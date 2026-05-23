@@ -34,6 +34,22 @@ export class UserAggregate extends BaseAggregate {
     return this._passwordHash;
   }
 
+  static fromPrimitives(primitives: {
+    id: string;
+    email: string;
+    passwordHash: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }): UserAggregate {
+    return new UserAggregate(
+      new UserIdValueObject(primitives.id),
+      primitives.email,
+      primitives.passwordHash,
+      new DateValueObject(primitives.createdAt),
+      new DateValueObject(primitives.updatedAt),
+    );
+  }
+
   static async register(email: string, plainPassword: string): Promise<UserAggregate> {
     const passwordHash = await bcrypt.hash(plainPassword, 12);
     const now = new DateValueObject(new Date());
