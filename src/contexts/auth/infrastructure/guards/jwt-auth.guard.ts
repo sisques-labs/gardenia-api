@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 
-/**
- * Stub JwtAuthGuard — always passes through.
- * Phase 7 will replace this with the real JWT strategy implementation.
- */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  override canActivate(): boolean {
-    return true;
+  override getRequest(context: ExecutionContext): unknown {
+    if (context.getType<string>() === 'graphql') {
+      return GqlExecutionContext.create(context).getContext<{
+        req: unknown;
+      }>().req;
+    }
+    return context.switchToHttp().getRequest();
   }
 }
