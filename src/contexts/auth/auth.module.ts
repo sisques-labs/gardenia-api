@@ -11,6 +11,8 @@ import { JwtAuthGuard } from './infrastructure/guards/jwt-auth.guard';
 import { LocalAuthGuard } from './infrastructure/guards/local-auth.guard';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
+import { AuthController } from './transport/rest/auth.controller';
+import { AuthResolver } from './transport/graphql/auth.resolver';
 
 @Module({
   imports: [
@@ -29,6 +31,7 @@ import { LocalStrategy } from './infrastructure/strategies/local.strategy';
       }),
     }),
   ],
+  controllers: [AuthController],
   providers: [
     AuthService,
     TokenService,
@@ -37,6 +40,7 @@ import { LocalStrategy } from './infrastructure/strategies/local.strategy';
     JwtStrategy,
     JwtAuthGuard,
     LocalAuthGuard,
+    AuthResolver,
   ],
   exports: [JwtAuthGuard, LocalAuthGuard, TokenService],
 })
