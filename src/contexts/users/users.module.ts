@@ -2,8 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AuthModule } from '@contexts/auth/auth.module';
-
+import { USER_READ_REPOSITORY } from '@contexts/users/domain/repositories/read/user-read.repository';
 import { CreateUserCommandHandler } from './application/commands/create-user/create-user.handler';
 import { DeleteUserCommandHandler } from './application/commands/delete-user/delete-user.handler';
 import { UpdateUserCommandHandler } from './application/commands/update-user/update-user.handler';
@@ -11,9 +10,8 @@ import { UserFindByCriteriaQueryHandler } from './application/queries/user-find-
 import { UserFindByIdQueryHandler } from './application/queries/user-find-by-id/user-find-by-id.handler';
 import { AssertUserViewModelExistsService } from './application/services/read/assert-user-view-model-exists/assert-user-view-model-exists.service';
 import { AssertUserExistsService } from './application/services/write/assert-user-exists/assert-user-exists.service';
-import { USER_READ_REPOSITORY } from './domain/repositories/read/user-read.repository';
-import { USER_WRITE_REPOSITORY } from './domain/repositories/write/user-write.repository';
 import { UserBuilder } from './domain/builders/user.builder';
+import { USER_WRITE_REPOSITORY } from './domain/repositories/write/user-write.repository';
 import { UserTypeOrmEntity } from './infrastructure/persistence/typeorm/entities/user.entity';
 import { UserTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/user-typeorm.mapper';
 import { UserTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-write.repository';
@@ -21,26 +19,56 @@ import './transport/graphql/enums/user/user-registered-enums.graphql';
 import { UserGraphQLMapper } from './transport/graphql/mappers/user/user.mapper';
 import { UserMutationsResolver } from './transport/graphql/resolvers/user/user-mutations.resolver';
 import { UserQueriesResolver } from './transport/graphql/resolvers/user/user-queries.resolver';
-import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
+
+const COMMAND_HANDLERS = [
+  CreateUserCommandHandler,
+  UpdateUserCommandHandler,
+  DeleteUserCommandHandler,
+];
+
+const QUERY_HANDLERS = [
+  UserFindByIdQueryHandler,
+  UserFindByCriteriaQueryHandler,
+];
+
+const APPLICATION_SERVICES = [
+  AssertUserViewModelExistsService,
+  AssertUserExistsService,
+];
+
+const DOMAIN_BUILDERS = [UserBuilder];
+
+const INFRASTRUCTURE_REPOSITORIES = [
+  { provide: USER_WRITE_REPOSITORY, useClass: UserTypeOrmWriteRepository },
+  { provide: USER_READ_REPOSITORY, useClass: UserTypeOrmWriteRepository },
+];
+
+const INFRASTRUCTURE_MAPPERS = [UserTypeOrmMapper];
+
+const TRANSPORT_GRAPHQL_MAPPERS = [UserGraphQLMapper];
+
+const TRANSPORT_GRAPHQL_RESOLVERS = [
+  UserQueriesResolver,
+  UserMutationsResolver,
+];
+
+const INFRASTRUCTURE_ENTITIES = [UserTypeOrmEntity];
+
+// const TRANSPORT_REST_CONTROLLERS = [UsersController];
 
 @Module({
-  imports: [CqrsModule, AuthModule, TypeOrmModule.forFeature([UserTypeOrmEntity])],
+  imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
   providers: [
-    CreateUserCommandHandler,
-    UpdateUserCommandHandler,
-    DeleteUserCommandHandler,
-    UserFindByIdQueryHandler,
-    UserFindByCriteriaQueryHandler,
-    AssertUserViewModelExistsService,
-    AssertUserExistsService,
-    UserBuilder,
-    UserTypeOrmMapper,
-    UserGraphQLMapper,
-    MutationResponseGraphQLMapper,
-    UserQueriesResolver,
-    UserMutationsResolver,
-    { provide: USER_WRITE_REPOSITORY, useClass: UserTypeOrmWriteRepository },
+    ...COMMAND_HANDLERS,
+    ...QUERY_HANDLERS,
+    ...APPLICATION_SERVICES,
+    ...DOMAIN_BUILDERS,
+    ...INFRASTRUCTURE_MAPPERS,
+    ...TRANSPORT_GRAPHQL_MAPPERS,
+    ...TRANSPORT_GRAPHQL_RESOLVERS,
+    ...INFRASTRUCTURE_REPOSITORIES,
   ],
-  exports: [USER_WRITE_REPOSITORY],
+  //controllers: [...TRANSPORT_REST_CONTROLLERS],
+  exports: [],
 })
 export class UsersModule {}
