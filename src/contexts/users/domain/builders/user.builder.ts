@@ -1,8 +1,8 @@
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
+import { UserStatusEnum } from '@contexts/users/domain/enums/user-status.enum';
 import { UserIdValueObject } from '@contexts/users/domain/value-objects/user-id/user-id.value-object';
 import { UserStatusValueObject } from '@contexts/users/domain/value-objects/user-status/user-status.vo';
 import { UserViewModel } from '@contexts/users/domain/view-models/user.view-model';
-import { UserStatusEnum } from '@contexts/users/enums/user-status.enum';
 import { Injectable } from '@nestjs/common';
 import {
   BaseBuilder,
