@@ -1,5 +1,7 @@
-import { BaseAggregate } from '@sisques-labs/nestjs-kit';
+import { BaseAggregate, UserStatusEnum } from '@sisques-labs/nestjs-kit';
 
+import { UserStatusChangedEvent } from '@contexts/users/domain/events/field-changed/user-status-changed/user-status-changed.event';
+import { UserUpdatedEvent } from '@contexts/users/domain/events/user-updated/user-updated.event';
 import { UserCreatedEvent } from '../events/user-created/user-created.event';
 import { UserDeletedEvent } from '../events/user-deleted/user-deleted.event';
 import { IUser } from '../interfaces/user.interface';
@@ -29,6 +31,66 @@ export class UserAggregate extends BaseAggregate {
       ),
     );
   }
+
+  public activate(): void {
+    this.changeStatus(UserStatusEnum.ACTIVE);
+  }
+
+  public deactivate(): void {
+    this.changeStatus(UserStatusEnum.INACTIVE);
+  }
+
+  public block(): void {
+    this.changeStatus(UserStatusEnum.BLOCKED);
+  }
+
+  public update(
+    props: Omit<Partial<IUser>, 'id' | 'createdAt' | 'updatedAt'>,
+  ): void {
+    if (props.status) {
+      this.changeStatus(props.status.value as UserStatusEnum);
+    }
+
+    this.apply(
+      new UserUpdatedEvent(
+        {
+          aggregateRootId: this.id.value,
+          aggregateRootType: UserAggregate.name,
+          entityId: this.id.value,
+          entityType: UserAggregate.name,
+          eventType: UserUpdatedEvent.name,
+        },
+        this.toPrimitives(),
+      ),
+    );
+  }
+
+  public changeStatus(status: UserStatusEnum): void {
+    const oldStatus = this._status.value;
+    const newStatus = new UserStatusValueObject(status);
+
+    this._status = newStatus;
+
+    this.touch();
+
+    this.apply(
+      new UserStatusChangedEvent(
+        {
+          aggregateRootId: this.id.value,
+          aggregateRootType: UserAggregate.name,
+          entityId: this.id.value,
+          entityType: UserAggregate.name,
+          eventType: UserStatusChangedEvent.name,
+        },
+        {
+          id: this.id.value,
+          oldValue: oldStatus as UserStatusEnum,
+          newValue: status,
+        },
+      ),
+    );
+  }
+
   public delete(): void {
     this.apply(
       new UserDeletedEvent(

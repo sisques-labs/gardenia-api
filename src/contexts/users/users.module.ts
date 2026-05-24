@@ -4,7 +4,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { RegisterUserCommandHandler } from './application/commands/register-user/register-user.handler';
+import { CreateUserCommandHandler } from './application/commands/create-user/create-user.handler';
+import { DeleteUserCommandHandler } from './application/commands/delete-user/delete-user.handler';
+import { UpdateUserCommandHandler } from './application/commands/update-user/update-user.handler';
 import { UserCreatedProjection } from './application/events/user-registered/user-registered.projection';
 import { GetCurrentUserQueryHandler } from './application/queries/get-current-user/get-current-user.handler';
 import { USER_READ_REPOSITORY } from './domain/repositories/read/user-read.repository';
@@ -30,7 +32,9 @@ import { UsersController } from './transport/rest/users.controller';
   ],
   controllers: [UsersController],
   providers: [
-    RegisterUserCommandHandler,
+    CreateUserCommandHandler,
+    UpdateUserCommandHandler,
+    DeleteUserCommandHandler,
     GetCurrentUserQueryHandler,
     UserCreatedProjection,
     UsersResolver,

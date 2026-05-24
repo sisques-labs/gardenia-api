@@ -48,8 +48,8 @@ importers:
         specifier: ^11.0.1
         version: 11.0.1(@nestjs/common@10.4.22(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@10.4.22)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@1.0.0(mongodb@7.2.0)(pg@8.21.0)(ts-node@10.9.2(@types/node@20.19.41)(typescript@5.9.3)))
       '@sisques-labs/nestjs-kit':
-        specifier: ^0.9.0
-        version: 0.9.0(37b3a31cc2e3658f580568aa8fd35159)
+        specifier: ^0.10.0
+        version: 0.10.0(37b3a31cc2e3658f580568aa8fd35159)
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
@@ -929,8 +929,8 @@ packages:
   '@sinonjs/fake-timers@10.3.0':
     resolution: {integrity: sha512-V4BG07kuYSUkTCSBHG8G8TNhM+F19jXFWnQtzj+we8DrkpSBCee9Z3Ms8yiGer/dlmhe35/Xdgyo3/0rQKg7YA==}
 
-  '@sisques-labs/nestjs-kit@0.9.0':
-    resolution: {integrity: sha512-bbcuPUwvNkNHhrSXUQXYeUjqINyC+d/oHg8LcPjarjATkdZtUkH3bKHMpGrG0PBdLjWB7ySYJnh7rQxUtTz2Mg==}
+  '@sisques-labs/nestjs-kit@0.10.0':
+    resolution: {integrity: sha512-Plxsx5IL6jT/E6fuTiWUAXv0D77NUzluY52HOTdgjBxEO17SLaUZcI6lqnXZ5hZ0sgF37yT6rAwiqIGuJEZTPQ==}
     peerDependencies:
       '@apollo/server': '>=4.0.0'
       '@nestjs/apollo': '>=12.0.0'
@@ -4948,7 +4948,7 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@sisques-labs/nestjs-kit@0.9.0(37b3a31cc2e3658f580568aa8fd35159)':
+  '@sisques-labs/nestjs-kit@0.10.0(37b3a31cc2e3658f580568aa8fd35159)':
     dependencies:
       '@kafkajs/confluent-schema-registry': 3.9.0
       '@nestjs/axios': 3.1.3(@nestjs/common@10.4.22(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(axios@1.16.1)(rxjs@7.8.2)
