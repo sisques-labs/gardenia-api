@@ -1,19 +1,14 @@
-import {
-  BaseAggregate,
-  DateValueObject,
-  UserRoleEnum,
-  UserStatusEnum,
-} from '@sisques-labs/nestjs-kit';
-import { UserIdValueObject } from '../value-objects/user-id.value-object';
+import { UserStatusValueObject } from '@contexts/users/domain/value-objects/user-status/user-status.vo';
+import { UserStatusEnum } from '@contexts/users/enums/user-status.enum';
+import { BaseAggregate, DateValueObject } from '@sisques-labs/nestjs-kit';
+import { UserIdValueObject } from '../value-objects/user-id/user-id.value-object';
 
 export class UserAggregate extends BaseAggregate {
   private readonly _id: UserIdValueObject;
-  private readonly _role: UserRoleEnum;
-  private readonly _status: UserStatusEnum;
+  private readonly _status: UserStatusValueObject;
 
   constructor(
     id: UserIdValueObject,
-    role: UserRoleEnum,
     status: UserStatusEnum,
     createdAt: DateValueObject,
     updatedAt: DateValueObject,

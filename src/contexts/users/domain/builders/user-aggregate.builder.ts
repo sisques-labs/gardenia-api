@@ -1,8 +1,12 @@
-import { DateValueObject, UserRoleEnum, UserStatusEnum } from '@sisques-labs/nestjs-kit';
+import {
+  DateValueObject,
+  UserRoleEnum,
+  UserStatusEnum,
+} from '@sisques-labs/nestjs-kit';
 
 import { UserAggregate } from '../aggregates/user.aggregate';
 import { UserCreatedEvent } from '../events/user-created.event';
-import { UserIdValueObject } from '../value-objects/user-id.value-object';
+import { UserIdValueObject } from '../value-objects/user-id/user-id.value-object';
 
 export class UserAggregateBuilder {
   private _id!: string;
@@ -27,7 +31,8 @@ export class UserAggregateBuilder {
   build(): UserAggregate {
     if (!this._id) throw new Error('UserAggregateBuilder: id is required');
     if (!this._role) throw new Error('UserAggregateBuilder: role is required');
-    if (!this._status) throw new Error('UserAggregateBuilder: status is required');
+    if (!this._status)
+      throw new Error('UserAggregateBuilder: status is required');
 
     const now = new DateValueObject(new Date());
     const user = new UserAggregate(
@@ -76,9 +81,12 @@ export class UserAggregateReconstructBuilder {
   }
 
   build(): UserAggregate {
-    if (!this._id) throw new Error('UserAggregateReconstructBuilder: id is required');
-    if (!this._role) throw new Error('UserAggregateReconstructBuilder: role is required');
-    if (!this._status) throw new Error('UserAggregateReconstructBuilder: status is required');
+    if (!this._id)
+      throw new Error('UserAggregateReconstructBuilder: id is required');
+    if (!this._role)
+      throw new Error('UserAggregateReconstructBuilder: role is required');
+    if (!this._status)
+      throw new Error('UserAggregateReconstructBuilder: status is required');
 
     return new UserAggregate(
       new UserIdValueObject(this._id),
