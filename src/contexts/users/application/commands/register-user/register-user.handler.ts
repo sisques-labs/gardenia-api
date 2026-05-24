@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { CommandHandler, EventPublisher, ICommandHandler } from '@nestjs/cqrs';
 
-import { UserAggregate } from '../../../domain/aggregates/user.aggregate';
+import { UserAggregateBuilder } from '../../../domain/builders/user-aggregate.builder';
 import { UserAlreadyExistsException } from '../../../domain/exceptions/user-already-exists.exception';
 import {
   IUserWriteRepository,
@@ -27,7 +27,11 @@ export class RegisterUserCommandHandler
       throw new UserAlreadyExistsException(email);
     }
 
-    const user = await UserAggregate.register(email, password);
+    const user = await new UserAggregateBuilder()
+      .withEmail(email)
+      .withPassword(password)
+      .build();
+
     const userWithContext = this.eventPublisher.mergeObjectContext(user);
 
     await this.userWriteRepository.save(userWithContext);

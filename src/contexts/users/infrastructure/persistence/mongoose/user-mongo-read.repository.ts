@@ -6,6 +6,7 @@ import {
   IUserReadRepository,
   UserViewModel,
 } from '../../../domain/repositories/i-user-read.repository';
+import { UserViewModelBuilder } from '../../../application/view-models/user-view-model.builder';
 import { UserDocument, UserDocumentType } from './user.schema';
 
 @Injectable()
@@ -19,10 +20,10 @@ export class UserMongoReadRepository implements IUserReadRepository {
     const doc = await this.model.findById(id).lean().exec();
     if (!doc) return null;
 
-    return {
-      id: doc._id as string,
-      email: doc.email,
-      createdAt: doc.createdAt,
-    };
+    return new UserViewModelBuilder()
+      .withId(doc._id as string)
+      .withEmail(doc.email)
+      .withCreatedAt(doc.createdAt)
+      .build();
   }
 }

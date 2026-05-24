@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { UserAggregateReconstructBuilder } from '../../../domain/builders/user-aggregate.builder';
 import { UserAggregate } from '../../../domain/aggregates/user.aggregate';
 import { IUserWriteRepository } from '../../../domain/repositories/i-user-write.repository';
 import { UserEntity } from './user.entity';
@@ -29,22 +30,23 @@ export class UserTypeOrmWriteRepository implements IUserWriteRepository {
   }
 
   private toAggregate(entity: UserEntity): UserAggregate {
-    return UserAggregate.fromPrimitives({
-      id: entity.id,
-      email: entity.email,
-      passwordHash: entity.passwordHash,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    });
+    return new UserAggregateReconstructBuilder()
+      .withId(entity.id)
+      .withEmail(entity.email)
+      .withPasswordHash(entity.passwordHash)
+      .withCreatedAt(entity.createdAt)
+      .withUpdatedAt(entity.updatedAt)
+      .build();
   }
 
   private toEntity(aggregate: UserAggregate): UserEntity {
+    const primitives = aggregate.toPrimitives();
     const entity = new UserEntity();
-    entity.id = aggregate.id.value;
-    entity.email = aggregate.email;
-    entity.passwordHash = aggregate.passwordHash;
-    entity.createdAt = aggregate.createdAt.value;
-    entity.updatedAt = aggregate.updatedAt.value;
+    entity.id = primitives.id;
+    entity.email = primitives.email;
+    entity.passwordHash = primitives.passwordHash;
+    entity.createdAt = primitives.createdAt;
+    entity.updatedAt = primitives.updatedAt;
     return entity;
   }
 }
