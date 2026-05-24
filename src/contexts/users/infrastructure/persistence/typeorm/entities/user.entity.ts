@@ -1,4 +1,4 @@
-import { UserRoleEnum, UserStatusEnum } from '@sisques-labs/nestjs-kit';
+import { UserStatusEnum } from '@sisques-labs/nestjs-kit';
 import {
   Column,
   CreateDateColumn,
@@ -8,12 +8,9 @@ import {
 } from 'typeorm';
 
 @Entity('users')
-export class UserEntity {
+export class UserTypeOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
-
-  @Column({ type: 'varchar' })
-  role!: UserRoleEnum;
 
   @Column({ type: 'varchar' })
   status!: UserStatusEnum;

@@ -16,8 +16,8 @@ import {
   UserDocument,
   UsersModel,
 } from './infrastructure/persistence/mongoose/user.schema';
-import { UserTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/user-typeorm-write.repository';
-import { UserEntity } from './infrastructure/persistence/typeorm/user.entity';
+import { UserEntity } from './infrastructure/persistence/typeorm/entities/user.entity';
+import { UserTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-write.repository';
 import { UsersResolver } from './transport/graphql/users.resolver';
 import { UsersController } from './transport/rest/users.controller';
 
