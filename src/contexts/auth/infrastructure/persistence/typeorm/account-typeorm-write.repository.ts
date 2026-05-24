@@ -1,10 +1,10 @@
+import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
+import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
+import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
-
-import { AccountAggregate } from '../../../domain/aggregates/account.aggregate';
-import { AccountAggregateReconstructBuilder } from '../../../domain/builders/account-aggregate.builder';
-import { IAccountWriteRepository } from '../../../domain/repositories/write/account-write.repository';
 import { AccountEntity } from './account.entity';
 
 @Injectable()
@@ -13,8 +13,19 @@ export class AccountTypeOrmWriteRepository implements IAccountWriteRepository {
     @InjectRepository(AccountEntity)
     private readonly repo: Repository<AccountEntity>,
   ) {}
+  findById(id: string): Promise<AccountAggregate | null> {
+    throw new Error('Method not implemented.');
+  }
+  findByCriteria(
+    criteria: Criteria,
+  ): Promise<PaginatedResult<AccountAggregate>> {
+    throw new Error('Method not implemented.');
+  }
+  delete(id: string): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
 
-  async save(account: AccountAggregate): Promise<void> {
+  async save(account: AccountAggregate): Promise<AccountAggregate> {
     const entity = this.toEntity(account);
     await this.repo.save(entity);
   }
@@ -30,7 +41,7 @@ export class AccountTypeOrmWriteRepository implements IAccountWriteRepository {
   }
 
   private toAggregate(entity: AccountEntity): AccountAggregate {
-    return new AccountAggregateReconstructBuilder()
+    return new AccountBuilder()
       .withId(entity.id)
       .withUserId(entity.userId)
       .withEmail(entity.email)

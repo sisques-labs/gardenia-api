@@ -13,7 +13,7 @@ import {
 
 import { RegisterUserCommand } from '@contexts/users/application/commands/register-user/register-user.command';
 
-import { AccountAggregateBuilder } from '../../../domain/builders/account-aggregate.builder';
+import { AccountAggregateBuilder } from '../../../domain/builders/account.builder';
 import { AccountAlreadyExistsException } from '../../../domain/exceptions/account-already-exists.exception';
 import {
   ACCOUNT_WRITE_REPOSITORY,
