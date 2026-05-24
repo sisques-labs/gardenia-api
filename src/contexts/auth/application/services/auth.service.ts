@@ -25,12 +25,12 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(
       password,
-      account.passwordHash,
+      account.passwordHash.value,
     );
     if (!isPasswordValid) {
       return null;
     }
 
-    return { userId: account.userId, email: account.email };
+    return { userId: account.userId.value, email: account.email.value };
   }
 }

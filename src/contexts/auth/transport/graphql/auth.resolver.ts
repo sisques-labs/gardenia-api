@@ -3,7 +3,6 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 
 import { LoginUserCommand } from '@contexts/auth/application/commands/login-user/login-user.command';
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
-import { AuthPayload } from '@contexts/auth/application/commands/login-user/login-user.handler';
 import { AuthService } from '@contexts/auth/application/services/auth.service';
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 
@@ -23,7 +22,7 @@ export class AuthResolver {
     @Args('input') input: RegisterAccountInput,
   ): Promise<boolean> {
     await this.commandBus.execute(
-      new RegisterAccountCommand(input.email, input.password),
+      new RegisterAccountCommand({ email: input.email, password: input.password }),
     );
     return true;
   }
@@ -41,8 +40,8 @@ export class AuthResolver {
       throw new InvalidCredentialsException();
     }
 
-    const payload = await this.commandBus.execute<LoginUserCommand, AuthPayload>(
-      new LoginUserCommand(result.userId, result.email),
+    const payload = await this.commandBus.execute<LoginUserCommand, { accessToken: string }>(
+      new LoginUserCommand({ userId: result.userId, email: result.email }),
     );
 
     const authPayload = new AuthPayloadObject();
