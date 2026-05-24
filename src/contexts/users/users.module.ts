@@ -1,46 +1,46 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { MongooseModule } from '@nestjs/mongoose';
-import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AuthModule } from '@contexts/auth/auth.module';
 
 import { CreateUserCommandHandler } from './application/commands/create-user/create-user.handler';
 import { DeleteUserCommandHandler } from './application/commands/delete-user/delete-user.handler';
 import { UpdateUserCommandHandler } from './application/commands/update-user/update-user.handler';
-import { UserCreatedProjection } from './application/events/user-registered/user-registered.projection';
-import { GetCurrentUserQueryHandler } from './application/queries/get-current-user/get-current-user.handler';
+import { UserFindByCriteriaQueryHandler } from './application/queries/user-find-by-criteria/user-find-by-criteria.handler';
+import { UserFindByIdQueryHandler } from './application/queries/user-find-by-id/user-find-by-id.handler';
+import { AssertUserViewModelExistsService } from './application/services/read/assert-user-view-model-exists/assert-user-view-model-exists.service';
+import { AssertUserExistsService } from './application/services/write/assert-user-exists/assert-user-exists.service';
 import { USER_READ_REPOSITORY } from './domain/repositories/read/user-read.repository';
 import { USER_WRITE_REPOSITORY } from './domain/repositories/write/user-write.repository';
-import { UserMongoReadRepository } from './infrastructure/persistence/mongoose/user-mongo-read.repository';
-import {
-  UserDocument,
-  UsersModel,
-} from './infrastructure/persistence/mongoose/user.schema';
-import { UserEntity } from './infrastructure/persistence/typeorm/entities/user.entity';
+import { UserBuilder } from './domain/builders/user.builder';
+import { UserTypeOrmEntity } from './infrastructure/persistence/typeorm/entities/user.entity';
+import { UserTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/user-typeorm.mapper';
 import { UserTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-write.repository';
-import { UsersResolver } from './transport/graphql/users.resolver';
-import { UsersController } from './transport/rest/users.controller';
+import './transport/graphql/enums/user/user-registered-enums.graphql';
+import { UserGraphQLMapper } from './transport/graphql/mappers/user/user.mapper';
+import { UserMutationsResolver } from './transport/graphql/resolvers/user/user-mutations.resolver';
+import { UserQueriesResolver } from './transport/graphql/resolvers/user/user-queries.resolver';
+import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
 
 @Module({
-  imports: [
-    CqrsModule,
-    PassportModule,
-    TypeOrmModule.forFeature([UserEntity]),
-    MongooseModule.forFeature([
-      { name: UserDocument.name, schema: UsersModel },
-    ]),
-  ],
-  controllers: [UsersController],
+  imports: [CqrsModule, AuthModule, TypeOrmModule.forFeature([UserTypeOrmEntity])],
   providers: [
     CreateUserCommandHandler,
     UpdateUserCommandHandler,
     DeleteUserCommandHandler,
-    GetCurrentUserQueryHandler,
-    UserCreatedProjection,
-    UsersResolver,
+    UserFindByIdQueryHandler,
+    UserFindByCriteriaQueryHandler,
+    AssertUserViewModelExistsService,
+    AssertUserExistsService,
+    UserBuilder,
+    UserTypeOrmMapper,
+    UserGraphQLMapper,
+    MutationResponseGraphQLMapper,
+    UserQueriesResolver,
+    UserMutationsResolver,
     { provide: USER_WRITE_REPOSITORY, useClass: UserTypeOrmWriteRepository },
-    { provide: USER_READ_REPOSITORY, useClass: UserMongoReadRepository },
   ],
-  exports: [],
+  exports: [USER_WRITE_REPOSITORY],
 })
 export class UsersModule {}

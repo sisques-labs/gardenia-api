@@ -6,6 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
+import '@core/transport/graphql/registered-enums.graphql';
+
 import { postgresConfig } from '@core/config/postgres.config';
 import { mongoConfig } from '@core/config/mongo.config';
 import { authConfig } from '@core/config/auth.config';

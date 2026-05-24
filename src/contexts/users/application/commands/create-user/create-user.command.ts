@@ -1,8 +1,9 @@
-import { IUser } from '@contexts/users/domain/interfaces/user.interface';
+import { IUserPrimitives } from '@contexts/users/domain/primitives/user.primitives';
 import { UserStatusValueObject } from '@contexts/users/domain/value-objects/user-status/user-status.vo';
+import { UserStatusEnum } from '@sisques-labs/nestjs-kit';
 
 export type CreateUserCommandInput = Omit<
-  IUser,
+  IUserPrimitives,
   'id' | 'createdAt' | 'updatedAt'
 >;
 
@@ -10,6 +11,6 @@ export class CreateUserCommand {
   public readonly status: UserStatusValueObject;
 
   constructor(input: CreateUserCommandInput) {
-    this.status = input.status;
+    this.status = new UserStatusValueObject(input.status as UserStatusEnum);
   }
 }
