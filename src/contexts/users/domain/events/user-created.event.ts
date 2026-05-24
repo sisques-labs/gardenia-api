@@ -1,6 +1,6 @@
 import { UserRoleEnum, UserStatusEnum } from '@sisques-labs/nestjs-kit';
 
-export class RegisterUserCommand {
+export class UserCreatedEvent {
   constructor(
     public readonly userId: string,
     public readonly role: UserRoleEnum,

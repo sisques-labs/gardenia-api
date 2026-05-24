@@ -5,8 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { RegisterUserCommandHandler } from './application/commands/register-user/register-user.handler';
-import { UserRegisteredProjection } from './application/events/user-registered/user-registered.projection';
-import { FindUserByEmailQueryHandler } from './application/queries/find-user-by-email/find-user-by-email.handler';
+import { UserCreatedProjection } from './application/events/user-registered/user-registered.projection';
 import { GetCurrentUserQueryHandler } from './application/queries/get-current-user/get-current-user.handler';
 import { USER_READ_REPOSITORY } from './domain/repositories/i-user-read.repository';
 import { USER_WRITE_REPOSITORY } from './domain/repositories/i-user-write.repository';
@@ -31,8 +30,7 @@ import { UsersResolver } from './transport/graphql/users.resolver';
   providers: [
     RegisterUserCommandHandler,
     GetCurrentUserQueryHandler,
-    FindUserByEmailQueryHandler,
-    UserRegisteredProjection,
+    UserCreatedProjection,
     UsersResolver,
     { provide: USER_WRITE_REPOSITORY, useClass: UserTypeOrmWriteRepository },
     { provide: USER_READ_REPOSITORY, useClass: UserMongoReadRepository },

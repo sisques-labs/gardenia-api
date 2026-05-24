@@ -1,34 +1,33 @@
-import { Injectable } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
+import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import {
-  FindUserByEmailQuery,
-  FindUserByEmailResult,
-} from '@contexts/users/application/queries/find-user-by-email/index';
+  ACCOUNT_WRITE_REPOSITORY,
+  IAccountWriteRepository,
+} from '../../domain/repositories/i-account-write.repository';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly queryBus: QueryBus) {}
+  constructor(
+    @Inject(ACCOUNT_WRITE_REPOSITORY)
+    private readonly accountWriteRepository: IAccountWriteRepository,
+  ) {}
 
-  async validateUser(
+  async validateAccount(
     email: string,
     password: string,
-  ): Promise<{ id: string; email: string } | null> {
-    const result = await this.queryBus.execute<
-      FindUserByEmailQuery,
-      FindUserByEmailResult
-    >(new FindUserByEmailQuery(email));
+  ): Promise<{ userId: string; email: string } | null> {
+    const account = await this.accountWriteRepository.findByEmail(email);
 
-    if (!result) {
+    if (!account) {
       return null;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, result.passwordHash);
+    const isPasswordValid = await bcrypt.compare(password, account.passwordHash);
     if (!isPasswordValid) {
       return null;
     }
 
-    return { id: result.id, email: result.email };
+    return { userId: account.userId, email: account.email };
   }
 }

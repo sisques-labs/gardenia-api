@@ -15,10 +15,10 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     email: string,
     password: string,
   ): Promise<{ userId: string; email: string }> {
-    const user = await this.authService.validateUser(email, password);
-    if (!user) {
+    const account = await this.authService.validateAccount(email, password);
+    if (!account) {
       throw new InvalidCredentialsException();
     }
-    return { userId: user.id, email: user.email };
+    return { userId: account.userId, email: account.email };
   }
 }

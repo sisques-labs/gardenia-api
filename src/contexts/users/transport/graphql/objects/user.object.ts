@@ -8,7 +8,13 @@ export class UserObject {
   id!: string;
 
   @Field(() => String)
-  email!: string;
+  role!: string;
+
+  @Field(() => String)
+  status!: string;
+
+  @Field(() => String, { nullable: true })
+  email?: string;
 
   @Field(() => Date)
   createdAt!: Date;
@@ -16,6 +22,8 @@ export class UserObject {
   static fromViewModel(vm: UserViewModel): UserObject {
     const obj = new UserObject();
     obj.id = vm.id;
+    obj.role = vm.role;
+    obj.status = vm.status;
     obj.email = vm.email;
     obj.createdAt = vm.createdAt;
     return obj;

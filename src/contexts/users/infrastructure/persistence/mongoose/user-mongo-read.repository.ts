@@ -22,6 +22,8 @@ export class UserMongoReadRepository implements IUserReadRepository {
 
     return new UserViewModelBuilder()
       .withId(doc._id as string)
+      .withRole(doc.role)
+      .withStatus(doc.status)
       .withEmail(doc.email)
       .withCreatedAt(doc.createdAt)
       .build();

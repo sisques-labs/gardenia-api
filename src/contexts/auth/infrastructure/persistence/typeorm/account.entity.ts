@@ -1,4 +1,3 @@
-import { UserRoleEnum, UserStatusEnum } from '@sisques-labs/nestjs-kit';
 import {
   Column,
   CreateDateColumn,
@@ -7,16 +6,19 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('users')
-export class UserEntity {
+@Entity('accounts')
+export class AccountEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar' })
-  role!: UserRoleEnum;
+  @Column({ type: 'uuid' })
+  userId!: string;
+
+  @Column({ type: 'varchar', unique: true })
+  email!: string;
 
   @Column({ type: 'varchar' })
-  status!: UserStatusEnum;
+  passwordHash!: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;

@@ -1,48 +1,48 @@
-import { BaseAggregate, DateValueObject } from '@sisques-labs/nestjs-kit';
+import { BaseAggregate, DateValueObject, UserRoleEnum, UserStatusEnum } from '@sisques-labs/nestjs-kit';
 
 import { UserIdValueObject } from '../value-objects/user-id.value-object';
 
 export class UserAggregate extends BaseAggregate {
   private readonly _id: UserIdValueObject;
-  private readonly _email: string;
-  private readonly _passwordHash: string;
+  private readonly _role: UserRoleEnum;
+  private readonly _status: UserStatusEnum;
 
   constructor(
     id: UserIdValueObject,
-    email: string,
-    passwordHash: string,
+    role: UserRoleEnum,
+    status: UserStatusEnum,
     createdAt: DateValueObject,
     updatedAt: DateValueObject,
   ) {
     super(createdAt, updatedAt);
     this._id = id;
-    this._email = email;
-    this._passwordHash = passwordHash;
+    this._role = role;
+    this._status = status;
   }
 
   get id(): UserIdValueObject {
     return this._id;
   }
 
-  get email(): string {
-    return this._email;
+  get role(): UserRoleEnum {
+    return this._role;
   }
 
-  get passwordHash(): string {
-    return this._passwordHash;
+  get status(): UserStatusEnum {
+    return this._status;
   }
 
   toPrimitives(): {
     id: string;
-    email: string;
-    passwordHash: string;
+    role: UserRoleEnum;
+    status: UserStatusEnum;
     createdAt: Date;
     updatedAt: Date;
   } {
     return {
       id: this._id.value,
-      email: this._email,
-      passwordHash: this._passwordHash,
+      role: this._role,
+      status: this._status,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };

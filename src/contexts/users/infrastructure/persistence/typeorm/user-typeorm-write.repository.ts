@@ -19,11 +19,6 @@ export class UserTypeOrmWriteRepository implements IUserWriteRepository {
     await this.repo.save(entity);
   }
 
-  async findByEmail(email: string): Promise<UserAggregate | null> {
-    const entity = await this.repo.findOne({ where: { email } });
-    return entity ? this.toAggregate(entity) : null;
-  }
-
   async findById(id: string): Promise<UserAggregate | null> {
     const entity = await this.repo.findOne({ where: { id } });
     return entity ? this.toAggregate(entity) : null;
@@ -32,8 +27,8 @@ export class UserTypeOrmWriteRepository implements IUserWriteRepository {
   private toAggregate(entity: UserEntity): UserAggregate {
     return new UserAggregateReconstructBuilder()
       .withId(entity.id)
-      .withEmail(entity.email)
-      .withPasswordHash(entity.passwordHash)
+      .withRole(entity.role)
+      .withStatus(entity.status)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -43,8 +38,8 @@ export class UserTypeOrmWriteRepository implements IUserWriteRepository {
     const primitives = aggregate.toPrimitives();
     const entity = new UserEntity();
     entity.id = primitives.id;
-    entity.email = primitives.email;
-    entity.passwordHash = primitives.passwordHash;
+    entity.role = primitives.role;
+    entity.status = primitives.status;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
     return entity;
