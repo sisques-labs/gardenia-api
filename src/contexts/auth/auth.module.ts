@@ -5,19 +5,19 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { RegisterAccountCommandHandler } from './application/commands/register-account/register-account.handler';
 import { LoginUserCommandHandler } from './application/commands/login-user/login-user.handler';
+import { RegisterAccountCommandHandler } from './application/commands/register-account/register-account.handler';
 import { AuthService } from './application/services/auth.service';
 import { TokenService } from './application/services/token.service';
-import { ACCOUNT_WRITE_REPOSITORY } from './domain/repositories/i-account-write.repository';
+import { ACCOUNT_WRITE_REPOSITORY } from './domain/repositories/write/account-write.repository';
 import { JwtAuthGuard } from './infrastructure/guards/jwt-auth.guard';
 import { LocalAuthGuard } from './infrastructure/guards/local-auth.guard';
-import { AccountEntity } from './infrastructure/persistence/typeorm/account.entity';
 import { AccountTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/account-typeorm-write.repository';
+import { AccountEntity } from './infrastructure/persistence/typeorm/account.entity';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
-import { AuthController } from './transport/rest/auth.controller';
 import { AuthResolver } from './transport/graphql/auth.resolver';
+import { AuthController } from './transport/rest/auth.controller';
 
 @Module({
   imports: [
@@ -48,7 +48,10 @@ import { AuthResolver } from './transport/graphql/auth.resolver';
     JwtAuthGuard,
     LocalAuthGuard,
     AuthResolver,
-    { provide: ACCOUNT_WRITE_REPOSITORY, useClass: AccountTypeOrmWriteRepository },
+    {
+      provide: ACCOUNT_WRITE_REPOSITORY,
+      useClass: AccountTypeOrmWriteRepository,
+    },
   ],
   exports: [JwtAuthGuard, LocalAuthGuard, TokenService],
 })

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { AccountAggregate } from '../../../domain/aggregates/account.aggregate';
 import { AccountAggregateReconstructBuilder } from '../../../domain/builders/account-aggregate.builder';
-import { IAccountWriteRepository } from '../../../domain/repositories/i-account-write.repository';
+import { IAccountWriteRepository } from '../../../domain/repositories/write/account-write.repository';
 import { AccountEntity } from './account.entity';
 
 @Injectable()

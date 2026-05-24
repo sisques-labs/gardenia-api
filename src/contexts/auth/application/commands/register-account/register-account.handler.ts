@@ -1,6 +1,15 @@
 import { Inject } from '@nestjs/common';
-import { CommandBus, CommandHandler, EventPublisher, ICommandHandler } from '@nestjs/cqrs';
-import { UserRoleEnum, UserStatusEnum, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  CommandBus,
+  CommandHandler,
+  EventPublisher,
+  ICommandHandler,
+} from '@nestjs/cqrs';
+import {
+  UserRoleEnum,
+  UserStatusEnum,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
 import { RegisterUserCommand } from '@contexts/users/application/commands/register-user/register-user.command';
 
@@ -9,13 +18,11 @@ import { AccountAlreadyExistsException } from '../../../domain/exceptions/accoun
 import {
   ACCOUNT_WRITE_REPOSITORY,
   IAccountWriteRepository,
-} from '../../../domain/repositories/i-account-write.repository';
+} from '../../../domain/repositories/write/account-write.repository';
 import { RegisterAccountCommand } from './register-account.command';
 
 @CommandHandler(RegisterAccountCommand)
-export class RegisterAccountCommandHandler
-  implements ICommandHandler<RegisterAccountCommand>
-{
+export class RegisterAccountCommandHandler implements ICommandHandler<RegisterAccountCommand> {
   constructor(
     @Inject(ACCOUNT_WRITE_REPOSITORY)
     private readonly accountWriteRepository: IAccountWriteRepository,

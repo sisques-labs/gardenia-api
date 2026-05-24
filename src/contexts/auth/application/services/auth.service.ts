@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import {
   ACCOUNT_WRITE_REPOSITORY,
   IAccountWriteRepository,
-} from '../../domain/repositories/i-account-write.repository';
+} from '../../domain/repositories/write/account-write.repository';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,10 @@ export class AuthService {
       return null;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, account.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      account.passwordHash,
+    );
     if (!isPasswordValid) {
       return null;
     }
