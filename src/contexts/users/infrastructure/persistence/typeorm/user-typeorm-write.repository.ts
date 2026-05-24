@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { UserAggregateReconstructBuilder } from '../../../domain/builders/user-aggregate.builder';
 import { UserAggregate } from '../../../domain/aggregates/user.aggregate';
-import { IUserWriteRepository } from '../../../domain/repositories/i-user-write.repository';
+import { UserAggregateReconstructBuilder } from '../../../domain/builders/user-aggregate.builder';
+import { IUserWriteRepository } from '../../../domain/repositories/write/user-write.repository';
 import { UserEntity } from './user.entity';
 
 @Injectable()

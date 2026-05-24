@@ -1,8 +1,4 @@
-import {
-  Controller,
-  Get,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import {
   ApiBearerAuth,
@@ -11,18 +7,19 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { CurrentUser, CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  CurrentUserPayload,
+} from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { GetCurrentUserQuery } from '@contexts/users/application/queries/get-current-user/get-current-user.query';
-import { UserViewModel } from '@contexts/users/domain/repositories/i-user-read.repository';
+import { UserViewModel } from '@contexts/users/domain/repositories/read/user-read.repository';
 
 @ApiTags('users')
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly queryBus: QueryBus,
-  ) {}
+  constructor(private readonly queryBus: QueryBus) {}
 
   @Get('me')
   @UseGuards(JwtAuthGuard)

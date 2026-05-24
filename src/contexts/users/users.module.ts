@@ -7,24 +7,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RegisterUserCommandHandler } from './application/commands/register-user/register-user.handler';
 import { UserCreatedProjection } from './application/events/user-registered/user-registered.projection';
 import { GetCurrentUserQueryHandler } from './application/queries/get-current-user/get-current-user.handler';
-import { USER_READ_REPOSITORY } from './domain/repositories/i-user-read.repository';
-import { USER_WRITE_REPOSITORY } from './domain/repositories/i-user-write.repository';
+import { USER_READ_REPOSITORY } from './domain/repositories/read/user-read.repository';
+import { USER_WRITE_REPOSITORY } from './domain/repositories/write/user-write.repository';
 import { UserMongoReadRepository } from './infrastructure/persistence/mongoose/user-mongo-read.repository';
 import {
   UserDocument,
   UsersModel,
 } from './infrastructure/persistence/mongoose/user.schema';
-import { UserEntity } from './infrastructure/persistence/typeorm/user.entity';
 import { UserTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/user-typeorm-write.repository';
-import { UsersController } from './transport/rest/users.controller';
+import { UserEntity } from './infrastructure/persistence/typeorm/user.entity';
 import { UsersResolver } from './transport/graphql/users.resolver';
+import { UsersController } from './transport/rest/users.controller';
 
 @Module({
   imports: [
     CqrsModule,
     PassportModule,
     TypeOrmModule.forFeature([UserEntity]),
-    MongooseModule.forFeature([{ name: UserDocument.name, schema: UsersModel }]),
+    MongooseModule.forFeature([
+      { name: UserDocument.name, schema: UsersModel },
+    ]),
   ],
   controllers: [UsersController],
   providers: [

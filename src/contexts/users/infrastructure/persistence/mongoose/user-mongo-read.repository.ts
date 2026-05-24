@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
+import { UserViewModelBuilder } from '../../../application/view-models/user-view-model.builder';
 import {
   IUserReadRepository,
   UserViewModel,
-} from '../../../domain/repositories/i-user-read.repository';
-import { UserViewModelBuilder } from '../../../application/view-models/user-view-model.builder';
+} from '../../../domain/repositories/read/user-read.repository';
 import { UserDocument, UserDocumentType } from './user.schema';
 
 @Injectable()

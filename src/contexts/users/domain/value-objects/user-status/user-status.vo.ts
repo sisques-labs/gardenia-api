@@ -1,9 +1,6 @@
-import { UserStatusEnum } from '@contexts/users/enums/user-status.enum';
-import { EnumValueObject } from '@sisques-labs/nestjs-kit';
+import { EnumValueObject, UserStatusEnum } from '@sisques-labs/nestjs-kit';
 
-export class UserStatusValueObject extends EnumValueObject<
-  typeof UserStatusEnum
-> {
+export class UserStatusValueObject extends EnumValueObject<typeof UserStatusEnum> {
   constructor(value: UserStatusEnum) {
     super(value);
   }

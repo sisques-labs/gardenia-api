@@ -1,47 +1,61 @@
-import { UserStatusValueObject } from '@contexts/users/domain/value-objects/user-status/user-status.vo';
-import { UserStatusEnum } from '@contexts/users/enums/user-status.enum';
-import { BaseAggregate, DateValueObject } from '@sisques-labs/nestjs-kit';
+import { BaseAggregate } from '@sisques-labs/nestjs-kit';
+
+import { UserCreatedEvent } from '../events/user-created/user-created.event';
+import { UserDeletedEvent } from '../events/user-deleted/user-deleted.event';
+import { IUser } from '../interfaces/user.interface';
+import { IUserPrimitives } from '../primitives/user.primitives';
 import { UserIdValueObject } from '../value-objects/user-id/user-id.value-object';
+import { UserStatusValueObject } from '../value-objects/user-status/user-status.vo';
 
 export class UserAggregate extends BaseAggregate {
   private readonly _id: UserIdValueObject;
-  private readonly _status: UserStatusValueObject;
+  private _status: UserStatusValueObject;
 
-  constructor(
-    id: UserIdValueObject,
-    status: UserStatusEnum,
-    createdAt: DateValueObject,
-    updatedAt: DateValueObject,
-  ) {
-    super(createdAt, updatedAt);
-    this._id = id;
-    this._role = role;
-    this._status = status;
+  constructor(props: IUser) {
+    super(props.createdAt, props.updatedAt);
+    this._id = props.id;
+    this._status = props.status;
+
+    this.apply(
+      new UserCreatedEvent(
+        {
+          aggregateRootId: this.id.value,
+          aggregateRootType: UserAggregate.name,
+          entityId: this.id.value,
+          entityType: UserAggregate.name,
+          eventType: UserCreatedEvent.name,
+        },
+        this.toPrimitives(),
+      ),
+    );
+  }
+  public delete(): void {
+    this.apply(
+      new UserDeletedEvent(
+        {
+          aggregateRootId: this.id.value,
+          aggregateRootType: UserAggregate.name,
+          entityId: this.id.value,
+          entityType: UserAggregate.name,
+          eventType: UserDeletedEvent.name,
+        },
+        this.toPrimitives(),
+      ),
+    );
   }
 
   get id(): UserIdValueObject {
     return this._id;
   }
 
-  get role(): UserRoleEnum {
-    return this._role;
-  }
-
-  get status(): UserStatusEnum {
+  get status(): UserStatusValueObject {
     return this._status;
   }
 
-  toPrimitives(): {
-    id: string;
-    role: UserRoleEnum;
-    status: UserStatusEnum;
-    createdAt: Date;
-    updatedAt: Date;
-  } {
+  toPrimitives(): IUserPrimitives {
     return {
       id: this._id.value,
-      role: this._role,
-      status: this._status,
+      status: this._status.value,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };

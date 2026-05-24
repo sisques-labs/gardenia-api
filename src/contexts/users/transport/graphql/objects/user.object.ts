@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
-import { UserViewModel } from '@contexts/users/domain/repositories/i-user-read.repository';
+import { UserViewModel } from '@contexts/users/domain/repositories/read/user-read.repository';
 
 @ObjectType('User')
 export class UserObject {

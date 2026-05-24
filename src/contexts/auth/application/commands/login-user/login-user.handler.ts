@@ -7,7 +7,7 @@ import {
 
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { GetCurrentUserQuery } from '@contexts/users/application/queries/get-current-user/get-current-user.query';
-import { UserViewModel } from '@contexts/users/domain/repositories/i-user-read.repository';
+import { UserViewModel } from '@contexts/users/domain/repositories/read/user-read.repository';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 import { TokenService } from '../../services/token.service';
 import { LoginUserCommand } from './login-user.command';

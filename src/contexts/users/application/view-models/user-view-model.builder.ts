@@ -1,6 +1,6 @@
 import { UserRoleEnum, UserStatusEnum } from '@sisques-labs/nestjs-kit';
 
-import { UserViewModel } from '../../domain/repositories/i-user-read.repository';
+import { UserViewModel } from '../../domain/repositories/read/user-read.repository';
 
 export class UserViewModelBuilder {
   private _id!: string;
@@ -37,8 +37,10 @@ export class UserViewModelBuilder {
   build(): UserViewModel {
     if (!this._id) throw new Error('UserViewModelBuilder: id is required');
     if (!this._role) throw new Error('UserViewModelBuilder: role is required');
-    if (!this._status) throw new Error('UserViewModelBuilder: status is required');
-    if (!this._createdAt) throw new Error('UserViewModelBuilder: createdAt is required');
+    if (!this._status)
+      throw new Error('UserViewModelBuilder: status is required');
+    if (!this._createdAt)
+      throw new Error('UserViewModelBuilder: createdAt is required');
 
     return {
       id: this._id,
