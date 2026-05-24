@@ -1,5 +1,9 @@
-import { BaseAggregate, DateValueObject, UserRoleEnum, UserStatusEnum } from '@sisques-labs/nestjs-kit';
-
+import {
+  BaseAggregate,
+  DateValueObject,
+  UserRoleEnum,
+  UserStatusEnum,
+} from '@sisques-labs/nestjs-kit';
 import { UserIdValueObject } from '../value-objects/user-id.value-object';
 
 export class UserAggregate extends BaseAggregate {

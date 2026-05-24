@@ -1,57 +1,87 @@
-import { BaseAggregate, DateValueObject } from '@sisques-labs/nestjs-kit';
-
-import { UuidValueObject } from '@sisques-labs/nestjs-kit';
+import { AccountDeletedEvent } from '@contexts/auth/domain/events/account-deleted/account-deleted.event';
+import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
+import { IAccount } from '@contexts/auth/domain/interfaces/account.interface';
+import { IAccountPrimitives } from '@contexts/auth/domain/primitives/account.primitives';
+import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
+import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
+import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
+import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export class AccountAggregate extends BaseAggregate {
-  private readonly _id: UuidValueObject;
-  private readonly _userId: string;
-  private readonly _email: string;
-  private readonly _passwordHash: string;
+  private readonly _id: AccountIdValueObject;
+  private readonly _userId: UuidValueObject;
+  private readonly _email: AccountEmailValueObject;
+  private _passwordHash: AccountPasswordHashValueObject;
 
-  constructor(
-    id: UuidValueObject,
-    userId: string,
-    email: string,
-    passwordHash: string,
-    createdAt: DateValueObject,
-    updatedAt: DateValueObject,
-  ) {
-    super(createdAt, updatedAt);
-    this._id = id;
-    this._userId = userId;
-    this._email = email;
-    this._passwordHash = passwordHash;
+  constructor(props: IAccount) {
+    super(props.createdAt, props.updatedAt);
+    this._id = props.id;
+    this._userId = props.userId;
+    this._email = props.email;
+    this._passwordHash = props.passwordHash;
   }
 
-  get id(): UuidValueObject {
+  public changePassword(password: string): void {
+    const oldPasswordHash = this.passwordHash.value;
+    const newPasswordHash = new AccountPasswordHashValueObject(password);
+
+    this._passwordHash = newPasswordHash;
+
+    this.apply(
+      new AccountPasswordChangedEvent(
+        {
+          aggregateRootId: this.id.value,
+          aggregateRootType: AccountAggregate.name,
+          entityId: this.id.value,
+          entityType: AccountAggregate.name,
+          eventType: AccountPasswordChangedEvent.name,
+        },
+        {
+          id: this.id.value,
+          oldValue: oldPasswordHash,
+          newValue: this.passwordHash.value,
+        },
+      ),
+    );
+  }
+
+  public delete(): void {
+    this.apply(
+      new AccountDeletedEvent(
+        {
+          aggregateRootId: this.id.value,
+          aggregateRootType: AccountAggregate.name,
+          entityId: this.id.value,
+          entityType: AccountAggregate.name,
+          eventType: AccountDeletedEvent.name,
+        },
+        this.toPrimitives(),
+      ),
+    );
+  }
+
+  get id(): AccountIdValueObject {
     return this._id;
   }
 
-  get userId(): string {
+  get userId(): UuidValueObject {
     return this._userId;
   }
 
-  get email(): string {
+  get email(): AccountEmailValueObject {
     return this._email;
   }
 
-  get passwordHash(): string {
+  get passwordHash(): AccountPasswordHashValueObject {
     return this._passwordHash;
   }
 
-  toPrimitives(): {
-    id: string;
-    userId: string;
-    email: string;
-    passwordHash: string;
-    createdAt: Date;
-    updatedAt: Date;
-  } {
+  toPrimitives(): IAccountPrimitives {
     return {
       id: this._id.value,
-      userId: this._userId,
-      email: this._email,
-      passwordHash: this._passwordHash,
+      userId: this._userId.value,
+      email: this._email.value,
+      passwordHash: this._passwordHash.value,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };
