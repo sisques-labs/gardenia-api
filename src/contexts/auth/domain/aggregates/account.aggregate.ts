@@ -1,10 +1,11 @@
+import { AccountCreatedEvent } from '@contexts/auth/domain/events/account-created/account-created.event';
 import { AccountDeletedEvent } from '@contexts/auth/domain/events/account-deleted/account-deleted.event';
+import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
 import { IAccount } from '@contexts/auth/domain/interfaces/account.interface';
 import { IAccountPrimitives } from '@contexts/auth/domain/primitives/account.primitives';
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
 import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
-import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
 import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export class AccountAggregate extends BaseAggregate {
@@ -19,6 +20,21 @@ export class AccountAggregate extends BaseAggregate {
     this._userId = props.userId;
     this._email = props.email;
     this._passwordHash = props.passwordHash;
+  }
+
+  public create(): void {
+    this.apply(
+      new AccountCreatedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: AccountAggregate.name,
+          entityId: this._id.value,
+          entityType: AccountAggregate.name,
+          eventType: AccountCreatedEvent.name,
+        },
+        this.toPrimitives(),
+      ),
+    );
   }
 
   public changePassword(password: string): void {
