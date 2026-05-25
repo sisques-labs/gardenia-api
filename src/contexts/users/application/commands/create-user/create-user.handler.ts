@@ -6,7 +6,7 @@ import {
   IUserWriteRepository,
   USER_WRITE_REPOSITORY,
 } from '@contexts/users/domain/repositories/write/user-write.repository';
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
@@ -15,6 +15,8 @@ export class CreateUserCommandHandler
   extends BaseCommandHandler<CreateUserCommand, UserAggregate>
   implements ICommandHandler<CreateUserCommand>
 {
+  private readonly logger = new Logger(CreateUserCommandHandler.name);
+
   constructor(
     @Inject(USER_WRITE_REPOSITORY)
     private readonly userWriteRepository: IUserWriteRepository,
@@ -25,6 +27,7 @@ export class CreateUserCommandHandler
   }
 
   async execute(command: CreateUserCommand): Promise<void> {
+    this.logger.log(`Creating user with command: ${JSON.stringify(command)}`);
     try {
       const user = this.userBuilder
         .withId(command.id)
@@ -34,6 +37,7 @@ export class CreateUserCommandHandler
       await this.userWriteRepository.save(user);
       await this.publishEvents(user);
     } catch (error) {
+      this.logger.error(`Error creating user: ${error}`);
       await this.eventBus.publish(
         new UserCreationFailedEvent(
           {
