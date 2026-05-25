@@ -32,6 +32,8 @@ export class CreateUserCommandHandler
       const user = this.userBuilder
         .withId(command.id)
         .withStatus(command.status.value)
+        .withCreatedAt(new Date())
+        .withUpdatedAt(new Date())
         .build();
 
       await this.userWriteRepository.save(user);
