@@ -5,12 +5,15 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { LoginUserCommandHandler } from './application/commands/login-user/login-user.handler';
+import { DeleteAccountCommandHandler } from './application/commands/delete-account/delete-account.handler';
+import { LoginAccountCommandHandler } from './application/commands/login-account/login-account.handler';
 import { RegisterAccountCommandHandler } from './application/commands/register-account/register-account.handler';
-import { AccountFindByIdQueryHandler } from './application/queries/account-find-by-id/account-find-by-id.handler';
+import { RegisterAccountSaga } from './application/sagas/register-account.saga';
 import { AccountFindByCriteriaQueryHandler } from './application/queries/account-find-by-criteria/account-find-by-criteria.handler';
-import { AssertAccountViewModelExistsService } from './application/services/read/assert-account-view-model-exists/assert-account-view-model-exists.service';
+import { AccountFindByIdQueryHandler } from './application/queries/account-find-by-id/account-find-by-id.handler';
 import { AuthService } from './application/services/auth.service';
+import { AssertAccountViewModelExistsService } from './application/services/read/assert-account-view-model-exists/assert-account-view-model-exists.service';
+import { ValidateAccountCredentialsService } from './application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { TokenService } from './application/services/token.service';
 import { AssertAccountExistsService } from './application/services/write/assert-account-exists/assert-account-exists.service';
 import { AccountBuilder } from './domain/builders/account.builder';
@@ -29,8 +32,11 @@ import { AuthController } from './transport/rest/auth.controller';
 
 const COMMAND_HANDLERS = [
   RegisterAccountCommandHandler,
-  LoginUserCommandHandler,
+  LoginAccountCommandHandler,
+  DeleteAccountCommandHandler,
 ];
+
+const SAGAS = [RegisterAccountSaga];
 
 const QUERY_HANDLERS = [
   AccountFindByIdQueryHandler,
@@ -42,6 +48,7 @@ const APPLICATION_SERVICES = [
   TokenService,
   AssertAccountExistsService,
   AssertAccountViewModelExistsService,
+  ValidateAccountCredentialsService,
 ];
 
 const DOMAIN_BUILDERS = [AccountBuilder];
@@ -49,7 +56,10 @@ const DOMAIN_BUILDERS = [AccountBuilder];
 const INFRASTRUCTURE_MAPPERS = [AccountTypeOrmMapper];
 
 const INFRASTRUCTURE_REPOSITORIES = [
-  { provide: ACCOUNT_WRITE_REPOSITORY, useClass: AccountTypeOrmWriteRepository },
+  {
+    provide: ACCOUNT_WRITE_REPOSITORY,
+    useClass: AccountTypeOrmWriteRepository,
+  },
   { provide: ACCOUNT_READ_REPOSITORY, useClass: AccountTypeOrmReadRepository },
 ];
 
@@ -84,6 +94,7 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController];
   controllers: [...TRANSPORT_REST_CONTROLLERS],
   providers: [
     ...COMMAND_HANDLERS,
+    ...SAGAS,
     ...QUERY_HANDLERS,
     ...APPLICATION_SERVICES,
     ...DOMAIN_BUILDERS,

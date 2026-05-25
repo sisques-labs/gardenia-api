@@ -1,6 +1,7 @@
 import { CreateUserCommand } from '@contexts/users/application/commands/create-user/create-user.command';
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
 import { UserBuilder } from '@contexts/users/domain/builders/user.builder';
+import { UserCreationFailedEvent } from '@contexts/users/domain/events/user-creation-failed/user-creation-failed.event';
 import {
   IUserWriteRepository,
   USER_WRITE_REPOSITORY,
@@ -18,15 +19,36 @@ export class CreateUserCommandHandler
     @Inject(USER_WRITE_REPOSITORY)
     private readonly userWriteRepository: IUserWriteRepository,
     private readonly userBuilder: UserBuilder,
-    eventBus: EventBus,
+    private readonly eventBus: EventBus,
   ) {
     super(eventBus);
   }
 
   async execute(command: CreateUserCommand): Promise<void> {
-    const user = this.userBuilder.withStatus(command.status.value).build();
+    try {
+      const user = this.userBuilder
+        .withId(command.id)
+        .withStatus(command.status.value)
+        .build();
 
-    await this.userWriteRepository.save(user);
-    await this.publishEvents(user);
+      await this.userWriteRepository.save(user);
+      await this.publishEvents(user);
+    } catch (error) {
+      await this.eventBus.publish(
+        new UserCreationFailedEvent(
+          {
+            aggregateRootId: command.id,
+            aggregateRootType: UserAggregate.name,
+            entityId: command.id,
+            entityType: UserAggregate.name,
+            eventType: UserCreationFailedEvent.name,
+          },
+          {
+            userId: command.id,
+            reason: error instanceof Error ? error.message : String(error),
+          },
+        ),
+      );
+    }
   }
 }
