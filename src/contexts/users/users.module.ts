@@ -14,6 +14,7 @@ import { UserBuilder } from './domain/builders/user.builder';
 import { USER_WRITE_REPOSITORY } from './domain/repositories/write/user-write.repository';
 import { UserTypeOrmEntity } from './infrastructure/persistence/typeorm/entities/user.entity';
 import { UserTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/user-typeorm.mapper';
+import { UserTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-read.repository';
 import { UserTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-write.repository';
 import './transport/graphql/enums/user/user-registered-enums.graphql';
 import { UserGraphQLMapper } from './transport/graphql/mappers/user/user.mapper';
@@ -40,7 +41,7 @@ const DOMAIN_BUILDERS = [UserBuilder];
 
 const INFRASTRUCTURE_REPOSITORIES = [
   { provide: USER_WRITE_REPOSITORY, useClass: UserTypeOrmWriteRepository },
-  { provide: USER_READ_REPOSITORY, useClass: UserTypeOrmWriteRepository },
+  { provide: USER_READ_REPOSITORY, useClass: UserTypeOrmReadRepository },
 ];
 
 const INFRASTRUCTURE_MAPPERS = [UserTypeOrmMapper];
@@ -54,8 +55,6 @@ const TRANSPORT_GRAPHQL_RESOLVERS = [
 
 const INFRASTRUCTURE_ENTITIES = [UserTypeOrmEntity];
 
-// const TRANSPORT_REST_CONTROLLERS = [UsersController];
-
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
   providers: [
@@ -68,7 +67,6 @@ const INFRASTRUCTURE_ENTITIES = [UserTypeOrmEntity];
     ...TRANSPORT_GRAPHQL_RESOLVERS,
     ...INFRASTRUCTURE_REPOSITORIES,
   ],
-  //controllers: [...TRANSPORT_REST_CONTROLLERS],
   exports: [],
 })
 export class UsersModule {}

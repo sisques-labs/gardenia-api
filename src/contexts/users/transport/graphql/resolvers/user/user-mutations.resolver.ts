@@ -4,17 +4,17 @@ import { UpdateUserCommand } from '@contexts/users/application/commands/update-u
 import { UserCreateRequestDto } from '@contexts/users/transport/graphql/dtos/requests/user/user-create.request.dto';
 import { UserDeleteRequestDto } from '@contexts/users/transport/graphql/dtos/requests/user/user-delete.request.dto';
 import { UserUpdateRequestDto } from '@contexts/users/transport/graphql/dtos/requests/user/user-update.request.dto';
-import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
+  UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
 @Resolver()
-@UseGuards(JwtAuthGuard)
+//@UseGuards(JwtAuthGuard)
 export class UserMutationsResolver {
   private readonly logger = new Logger(UserMutationsResolver.name);
 
@@ -31,6 +31,7 @@ export class UserMutationsResolver {
 
     await this.commandBus.execute(
       new CreateUserCommand({
+        id: UuidValueObject.generate().value,
         status: input.status,
       }),
     );

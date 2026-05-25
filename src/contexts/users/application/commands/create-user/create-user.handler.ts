@@ -19,7 +19,7 @@ export class CreateUserCommandHandler
     @Inject(USER_WRITE_REPOSITORY)
     private readonly userWriteRepository: IUserWriteRepository,
     private readonly userBuilder: UserBuilder,
-    private readonly eventBus: EventBus,
+    eventBus: EventBus,
   ) {
     super(eventBus);
   }
