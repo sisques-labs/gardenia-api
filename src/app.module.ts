@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 
 import '@core/transport/graphql/registered-enums.graphql';
 
@@ -16,6 +17,7 @@ import { UsersModule } from '@contexts/users/users.module';
 @Module({
   imports: [
     CqrsModule.forRoot(),
+    SharedGraphQLModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [postgresConfig, authConfig],
