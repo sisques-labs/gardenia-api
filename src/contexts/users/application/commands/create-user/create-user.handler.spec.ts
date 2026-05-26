@@ -4,6 +4,8 @@ import { EventBus } from '@nestjs/cqrs';
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
 import { UserBuilder } from '@contexts/users/domain/builders/user.builder';
 import { IUserWriteRepository } from '@contexts/users/domain/repositories/write/user-write.repository';
+import { AssertUsernameAvailableService } from '@contexts/users/application/services/read/assert-username-available/assert-username-available.service';
+import { UsernameAlreadyTakenException } from '@contexts/users/domain/exceptions/username-already-taken.exception';
 import { CreateUserCommand } from './create-user.command';
 import { CreateUserCommandHandler } from './create-user.handler';
 
@@ -13,6 +15,7 @@ const buildUser = (): UserAggregate =>
   new UserBuilder()
     .withId(USER_ID)
     .withStatus(UserStatusEnum.ACTIVE)
+    .withUsername('johndoe')
     .withCreatedAt(new Date('2024-01-01'))
     .withUpdatedAt(new Date('2024-01-01'))
     .build();
@@ -21,6 +24,7 @@ describe('CreateUserCommandHandler', () => {
   let handler: CreateUserCommandHandler;
   let userWriteRepository: jest.Mocked<IUserWriteRepository>;
   let userBuilder: jest.Mocked<UserBuilder>;
+  let assertUsernameAvailableService: jest.Mocked<AssertUsernameAvailableService>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -38,17 +42,27 @@ describe('CreateUserCommandHandler', () => {
     userBuilder = {
       withId: jest.fn().mockReturnThis(),
       withStatus: jest.fn().mockReturnThis(),
+      withUsername: jest.fn().mockReturnThis(),
       withCreatedAt: jest.fn().mockReturnThis(),
       withUpdatedAt: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue(builtUser),
     } as unknown as jest.Mocked<UserBuilder>;
+
+    assertUsernameAvailableService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<AssertUsernameAvailableService>;
 
     eventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
-    handler = new CreateUserCommandHandler(userWriteRepository, userBuilder, eventBus);
+    handler = new CreateUserCommandHandler(
+      userWriteRepository,
+      userBuilder,
+      assertUsernameAvailableService,
+      eventBus,
+    );
   });
 
   describe('happy path', () => {
@@ -56,9 +70,9 @@ describe('CreateUserCommandHandler', () => {
       userWriteRepository.save.mockResolvedValue(undefined as any);
 
       const command = new CreateUserCommand({
-        id: USER_ID,
         status: UserStatusEnum.ACTIVE,
-      } as any);
+        username: 'johndoe',
+      });
 
       await handler.execute(command);
 
@@ -66,13 +80,26 @@ describe('CreateUserCommandHandler', () => {
       expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
 
+    it('should call assertUsernameAvailableService before saving', async () => {
+      userWriteRepository.save.mockResolvedValue(undefined as any);
+
+      const command = new CreateUserCommand({
+        status: UserStatusEnum.ACTIVE,
+        username: 'johndoe',
+      });
+
+      await handler.execute(command);
+
+      expect(assertUsernameAvailableService.execute).toHaveBeenCalledTimes(1);
+    });
+
     it('should call the builder build() method to create the user', async () => {
       userWriteRepository.save.mockResolvedValue(undefined as any);
 
       const command = new CreateUserCommand({
-        id: USER_ID,
         status: UserStatusEnum.ACTIVE,
-      } as any);
+        username: 'johndoe',
+      });
 
       await handler.execute(command);
 
@@ -80,17 +107,30 @@ describe('CreateUserCommandHandler', () => {
     });
   });
 
+  describe('username already taken', () => {
+    it('should propagate UsernameAlreadyTakenException when username is taken', async () => {
+      assertUsernameAvailableService.execute.mockRejectedValue(
+        new UsernameAlreadyTakenException('johndoe'),
+      );
+
+      const command = new CreateUserCommand({
+        status: UserStatusEnum.ACTIVE,
+        username: 'johndoe',
+      });
+
+      await expect(handler.execute(command)).rejects.toThrow(UsernameAlreadyTakenException);
+      expect(userWriteRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
   describe('repository failure', () => {
-    it('should propagate the error when save throws (handler does not swallow errors in test context)', async () => {
-      // Note: the handler has a try/catch that attempts to publish UserCreationFailedEvent,
-      // but the eventBus.publish mock may not behave identically to the real EventBus
-      // in terms of flushing async behavior. The error propagates in test context.
+    it('should propagate the error when save throws', async () => {
       userWriteRepository.save.mockRejectedValue(new Error('DB error'));
 
       const command = new CreateUserCommand({
-        id: USER_ID,
         status: UserStatusEnum.ACTIVE,
-      } as any);
+        username: 'johndoe',
+      });
 
       await expect(handler.execute(command)).rejects.toThrow('DB error');
     });

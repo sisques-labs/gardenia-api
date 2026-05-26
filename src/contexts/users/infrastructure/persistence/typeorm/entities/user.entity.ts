@@ -15,6 +15,9 @@ export class UserTypeOrmEntity {
   @Column({ type: 'varchar' })
   status!: UserStatusEnum;
 
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  username!: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
 

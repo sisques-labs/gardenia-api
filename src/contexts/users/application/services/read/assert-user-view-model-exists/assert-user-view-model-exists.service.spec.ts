@@ -12,6 +12,7 @@ const buildViewModel = (): UserViewModel =>
   new UserViewModel({
     id: USER_ID,
     status: UserStatusEnum.ACTIVE,
+    username: 'johndoe',
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
   });
@@ -26,6 +27,7 @@ describe('AssertUserViewModelExistsService', () => {
     readRepository = {
       findById: jest.fn(),
       findByCriteria: jest.fn(),
+      findByUsername: jest.fn(),
       save: jest.fn(),
       delete: jest.fn(),
     } as unknown as jest.Mocked<IUserReadRepository>;

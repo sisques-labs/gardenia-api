@@ -15,6 +15,7 @@ const buildUser = (): UserAggregate =>
   new UserBuilder()
     .withId(USER_ID)
     .withStatus(UserStatusEnum.ACTIVE)
+    .withUsername('johndoe')
     .withCreatedAt(new Date('2024-01-01'))
     .withUpdatedAt(new Date('2024-01-01'))
     .build();

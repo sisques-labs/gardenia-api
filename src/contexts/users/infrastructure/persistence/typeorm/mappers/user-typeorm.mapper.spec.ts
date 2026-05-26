@@ -13,6 +13,7 @@ const buildEntity = (): UserTypeOrmEntity => {
   const entity = new UserTypeOrmEntity();
   entity.id = USER_ID;
   entity.status = UserStatusEnum.ACTIVE;
+  entity.username = 'johndoe';
   entity.createdAt = CREATED_AT;
   entity.updatedAt = UPDATED_AT;
   return entity;
@@ -22,6 +23,7 @@ const buildAggregate = (): UserAggregate =>
   new UserBuilder()
     .withId(USER_ID)
     .withStatus(UserStatusEnum.ACTIVE)
+    .withUsername('johndoe')
     .withCreatedAt(CREATED_AT)
     .withUpdatedAt(UPDATED_AT)
     .build();
@@ -43,6 +45,7 @@ describe('UserTypeOrmMapper', () => {
       expect(result).toBeInstanceOf(UserAggregate);
       expect(result.id.value).toBe(entity.id);
       expect(result.status.value).toBe(entity.status);
+      expect(result.username.value).toBe(entity.username);
     });
 
     it('should preserve createdAt and updatedAt from entity', () => {
@@ -64,6 +67,7 @@ describe('UserTypeOrmMapper', () => {
       expect(result).toBeInstanceOf(UserTypeOrmEntity);
       expect(result.id).toBe(aggregate.id.value);
       expect(result.status).toBe(aggregate.status.value);
+      expect(result.username).toBe(aggregate.username.value);
     });
 
     it('should preserve createdAt and updatedAt from aggregate', () => {
@@ -85,6 +89,7 @@ describe('UserTypeOrmMapper', () => {
 
       expect(result.id).toBe(original.id);
       expect(result.status).toBe(original.status);
+      expect(result.username).toBe(original.username);
       expect(result.createdAt).toEqual(original.createdAt);
       expect(result.updatedAt).toEqual(original.updatedAt);
     });

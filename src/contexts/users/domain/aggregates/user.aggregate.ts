@@ -1,6 +1,7 @@
 import { BaseAggregate, UserStatusEnum } from '@sisques-labs/nestjs-kit';
 
 import { UserStatusChangedEvent } from '@contexts/users/domain/events/field-changed/user-status-changed/user-status-changed.event';
+import { UserUsernameChangedEvent } from '@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event';
 import { UserUpdatedEvent } from '@contexts/users/domain/events/user-updated/user-updated.event';
 import { UserCreatedEvent } from '../events/user-created/user-created.event';
 import { UserDeletedEvent } from '../events/user-deleted/user-deleted.event';
@@ -8,15 +9,18 @@ import { IUser } from '../interfaces/user.interface';
 import { IUserPrimitives } from '../primitives/user.primitives';
 import { UserIdValueObject } from '../value-objects/user-id/user-id.value-object';
 import { UserStatusValueObject } from '../value-objects/user-status/user-status.vo';
+import { UsernameValueObject } from '../value-objects/username/username.value-object';
 
 export class UserAggregate extends BaseAggregate {
   private readonly _id: UserIdValueObject;
   private _status: UserStatusValueObject;
+  private _username: UsernameValueObject;
 
   constructor(props: IUser) {
     super(props.createdAt, props.updatedAt);
     this._id = props.id;
     this._status = props.status;
+    this._username = props.username;
 
     this.apply(
       new UserCreatedEvent(
@@ -49,6 +53,10 @@ export class UserAggregate extends BaseAggregate {
   ): void {
     if (props.status) {
       this.changeStatus(props.status.value as UserStatusEnum);
+    }
+
+    if (props.username) {
+      this.changeUsername(props.username);
     }
 
     this.apply(
@@ -91,6 +99,32 @@ export class UserAggregate extends BaseAggregate {
     );
   }
 
+  private changeUsername(newUsername: UsernameValueObject): void {
+    if (this._username.equals(newUsername)) return;
+
+    const oldValue = this._username.value;
+
+    this._username = newUsername;
+    this.touch();
+
+    this.apply(
+      new UserUsernameChangedEvent(
+        {
+          aggregateRootId: this.id.value,
+          aggregateRootType: UserAggregate.name,
+          entityId: this.id.value,
+          entityType: UserAggregate.name,
+          eventType: UserUsernameChangedEvent.name,
+        },
+        {
+          id: this.id.value,
+          oldValue,
+          newValue: newUsername.value,
+        },
+      ),
+    );
+  }
+
   public delete(): void {
     this.apply(
       new UserDeletedEvent(
@@ -114,10 +148,15 @@ export class UserAggregate extends BaseAggregate {
     return this._status;
   }
 
+  get username(): UsernameValueObject {
+    return this._username;
+  }
+
   toPrimitives(): IUserPrimitives {
     return {
       id: this._id.value,
       status: this._status.value,
+      username: this._username.value,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };

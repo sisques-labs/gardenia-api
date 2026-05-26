@@ -8,12 +8,14 @@ import { DeleteUserCommandHandler } from './application/commands/delete-user/del
 import { UpdateUserCommandHandler } from './application/commands/update-user/update-user.handler';
 import { UserFindByCriteriaQueryHandler } from './application/queries/user-find-by-criteria/user-find-by-criteria.handler';
 import { UserFindByIdQueryHandler } from './application/queries/user-find-by-id/user-find-by-id.handler';
+import { AssertUsernameAvailableService } from './application/services/read/assert-username-available/assert-username-available.service';
 import { AssertUserViewModelExistsService } from './application/services/read/assert-user-view-model-exists/assert-user-view-model-exists.service';
 import { AssertUserExistsService } from './application/services/write/assert-user-exists/assert-user-exists.service';
 import { UserBuilder } from './domain/builders/user.builder';
 import { USER_WRITE_REPOSITORY } from './domain/repositories/write/user-write.repository';
 import { UserTypeOrmEntity } from './infrastructure/persistence/typeorm/entities/user.entity';
 import { UserTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/user-typeorm.mapper';
+import { UserTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-read.repository';
 import { UserTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-write.repository';
 import './transport/graphql/enums/user/user-registered-enums.graphql';
 import { UserGraphQLMapper } from './transport/graphql/mappers/user/user.mapper';
@@ -34,13 +36,14 @@ const QUERY_HANDLERS = [
 const APPLICATION_SERVICES = [
   AssertUserViewModelExistsService,
   AssertUserExistsService,
+  AssertUsernameAvailableService,
 ];
 
 const DOMAIN_BUILDERS = [UserBuilder];
 
 const INFRASTRUCTURE_REPOSITORIES = [
   { provide: USER_WRITE_REPOSITORY, useClass: UserTypeOrmWriteRepository },
-  { provide: USER_READ_REPOSITORY, useClass: UserTypeOrmWriteRepository },
+  { provide: USER_READ_REPOSITORY, useClass: UserTypeOrmReadRepository },
 ];
 
 const INFRASTRUCTURE_MAPPERS = [UserTypeOrmMapper];

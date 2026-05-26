@@ -15,6 +15,7 @@ const buildUser = (status: UserStatusEnum = UserStatusEnum.ACTIVE): UserAggregat
   new UserBuilder()
     .withId(USER_ID)
     .withStatus(status)
+    .withUsername('johndoe')
     .withCreatedAt(CREATED_AT)
     .withUpdatedAt(UPDATED_AT)
     .build();
@@ -52,6 +53,7 @@ describe('UserAggregate', () => {
 
       expect(event.data.id).toBe(USER_ID);
       expect(event.data.status).toBe(UserStatusEnum.ACTIVE);
+      expect(event.data.username).toBe('johndoe');
     });
   });
 
@@ -237,6 +239,7 @@ describe('UserAggregate', () => {
 
       expect(primitives.id).toBe(USER_ID);
       expect(primitives.status).toBe(UserStatusEnum.ACTIVE);
+      expect(primitives.username).toBe('johndoe');
       expect(primitives.createdAt).toEqual(CREATED_AT);
       expect(primitives.updatedAt).toEqual(UPDATED_AT);
     });
@@ -248,12 +251,14 @@ describe('UserAggregate', () => {
       const reconstructed = new UserBuilder()
         .withId(primitives.id)
         .withStatus(primitives.status)
+        .withUsername(primitives.username)
         .withCreatedAt(primitives.createdAt)
         .withUpdatedAt(primitives.updatedAt)
         .build();
 
       expect(reconstructed.id.value).toBe(original.id.value);
       expect(reconstructed.status.value).toBe(original.status.value);
+      expect(reconstructed.username.value).toBe(original.username.value);
       expect(reconstructed.createdAt.value).toEqual(original.createdAt.value);
       expect(reconstructed.updatedAt.value).toEqual(original.updatedAt.value);
     });
@@ -274,6 +279,13 @@ describe('UserAggregate', () => {
       expect(user.status.value).toBe(UserStatusEnum.ACTIVE);
     });
 
+    it('should expose username as a UsernameValueObject', () => {
+      const user = buildUser();
+
+      expect(user.username).toBeDefined();
+      expect(user.username.value).toBe('johndoe');
+    });
+
     it('should expose createdAt from BaseAggregate', () => {
       const user = buildUser();
 
@@ -284,6 +296,55 @@ describe('UserAggregate', () => {
       const user = buildUser();
 
       expect(user.updatedAt.value).toEqual(UPDATED_AT);
+    });
+  });
+
+  describe('username — changeUsername via update()', () => {
+    it('should update the username when a different value is provided via update()', () => {
+      const { UserStatusValueObject } = require('@contexts/users/domain/value-objects/user-status/user-status.vo');
+      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
+      const user = buildUser();
+      user.update({ username: new UsernameValueObject('newusername') });
+
+      expect(user.username.value).toBe('newusername');
+    });
+
+    it('should emit a UserUsernameChangedEvent when username changes', () => {
+      const { UserUsernameChangedEvent } = require('@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event');
+      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
+      const user = buildUser();
+      user.update({ username: new UsernameValueObject('newusername') });
+
+      const events = user.getUncommittedEvents();
+      const usernameChangedEvent = events.find(e => e instanceof UserUsernameChangedEvent);
+
+      expect(usernameChangedEvent).toBeDefined();
+      expect(usernameChangedEvent).toBeInstanceOf(UserUsernameChangedEvent);
+    });
+
+    it('should emit UserUsernameChangedEvent with old and new values', () => {
+      const { UserUsernameChangedEvent } = require('@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event');
+      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
+      const user = buildUser();
+      user.update({ username: new UsernameValueObject('newusername') });
+
+      const events = user.getUncommittedEvents();
+      const usernameChangedEvent = events.find(e => e instanceof UserUsernameChangedEvent) as any;
+
+      expect(usernameChangedEvent.data.oldValue).toBe('johndoe');
+      expect(usernameChangedEvent.data.newValue).toBe('newusername');
+    });
+
+    it('should NOT emit UserUsernameChangedEvent when username is unchanged', () => {
+      const { UserUsernameChangedEvent } = require('@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event');
+      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
+      const user = buildUser();
+      user.update({ username: new UsernameValueObject('johndoe') });
+
+      const events = user.getUncommittedEvents();
+      const usernameChangedEvents = events.filter(e => e instanceof UserUsernameChangedEvent);
+
+      expect(usernameChangedEvents).toHaveLength(0);
     });
   });
 });

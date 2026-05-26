@@ -19,6 +19,7 @@ describe('UserBuilder', () => {
       const user = builder
         .withId(USER_ID)
         .withStatus(UserStatusEnum.ACTIVE)
+        .withUsername('johndoe')
         .withCreatedAt(CREATED_AT)
         .withUpdatedAt(UPDATED_AT)
         .build();
@@ -26,18 +27,17 @@ describe('UserBuilder', () => {
       expect(user).toBeInstanceOf(UserAggregate);
       expect(user.id.value).toBe(USER_ID);
       expect(user.status.value).toBe(UserStatusEnum.ACTIVE);
+      expect(user.username.value).toBe('johndoe');
       expect(user.createdAt.value).toEqual(CREATED_AT);
       expect(user.updatedAt.value).toEqual(UPDATED_AT);
     });
 
     it('should default createdAt to current date when not provided', () => {
-      // BaseBuilder.validate() requires createdAt — but build() passes `undefined` through
-      // and the DateValueObject uses it; the builder accepts optional dates via withCreatedAt.
-      // This test verifies the "no explicit createdAt but provided via withCreatedAt" path.
       const now = new Date();
       const user = builder
         .withId(USER_ID)
         .withStatus(UserStatusEnum.ACTIVE)
+        .withUsername('johndoe')
         .withCreatedAt(now)
         .withUpdatedAt(now)
         .build();
@@ -50,6 +50,7 @@ describe('UserBuilder', () => {
       const user = builder
         .withId(USER_ID)
         .withStatus(UserStatusEnum.ACTIVE)
+        .withUsername('johndoe')
         .withCreatedAt(now)
         .withUpdatedAt(now)
         .build();
@@ -62,6 +63,12 @@ describe('UserBuilder', () => {
 
       expect(result).toBe(builder);
     });
+
+    it('should support chaining — withUsername returns the builder instance', () => {
+      const result = builder.withUsername('johndoe');
+
+      expect(result).toBe(builder);
+    });
   });
 
   describe('validate()', () => {
@@ -69,6 +76,7 @@ describe('UserBuilder', () => {
       expect(() =>
         builder
           .withStatus(UserStatusEnum.ACTIVE)
+          .withUsername('johndoe')
           .withCreatedAt(CREATED_AT)
           .withUpdatedAt(UPDATED_AT)
           .build(),
@@ -79,6 +87,18 @@ describe('UserBuilder', () => {
       expect(() =>
         builder
           .withId(USER_ID)
+          .withUsername('johndoe')
+          .withCreatedAt(CREATED_AT)
+          .withUpdatedAt(UPDATED_AT)
+          .build(),
+      ).toThrow(FieldIsRequiredException);
+    });
+
+    it('should throw FieldIsRequiredException when username is missing', () => {
+      expect(() =>
+        builder
+          .withId(USER_ID)
+          .withStatus(UserStatusEnum.ACTIVE)
           .withCreatedAt(CREATED_AT)
           .withUpdatedAt(UPDATED_AT)
           .build(),
@@ -90,6 +110,7 @@ describe('UserBuilder', () => {
         builder
           .withId(USER_ID)
           .withStatus(UserStatusEnum.ACTIVE)
+          .withUsername('johndoe')
           .build(),
       ).toThrow(FieldIsRequiredException);
     });
@@ -100,12 +121,14 @@ describe('UserBuilder', () => {
       const viewModel = builder
         .withId(USER_ID)
         .withStatus(UserStatusEnum.ACTIVE)
+        .withUsername('johndoe')
         .withCreatedAt(CREATED_AT)
         .withUpdatedAt(UPDATED_AT)
         .buildViewModel();
 
       expect(viewModel.id).toBe(USER_ID);
       expect(viewModel.status).toBe(UserStatusEnum.ACTIVE);
+      expect(viewModel.username).toBe('johndoe');
       expect(viewModel.createdAt).toEqual(CREATED_AT);
       expect(viewModel.updatedAt).toEqual(UPDATED_AT);
     });

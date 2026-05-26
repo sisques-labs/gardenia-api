@@ -3,9 +3,11 @@ import { BaseViewModel } from '@sisques-labs/nestjs-kit';
 
 export class UserViewModel extends BaseViewModel {
   public readonly status: string;
+  public readonly username: string;
 
   constructor(props: IUserPrimitives) {
     super(props.id, props.createdAt, props.updatedAt);
     this.status = props.status;
+    this.username = props.username;
   }
 }

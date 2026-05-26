@@ -13,6 +13,7 @@ const buildViewModel = (): UserViewModel =>
   new UserViewModel({
     id: USER_ID,
     status: UserStatusEnum.ACTIVE,
+    username: 'johndoe',
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
   });
