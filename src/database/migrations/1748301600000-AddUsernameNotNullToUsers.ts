@@ -12,11 +12,21 @@ export class AddUsernameNotNullToUsers1748301600000
       ADD COLUMN IF NOT EXISTS "username" character varying(30) NULL
     `);
 
-    // Step 2: Backfill username for rows where it is still NULL
+    // Step 2: Backfill — first pass uses first 8 chars of UUID; second pass
+    // falls back to full UUID (no hyphens) for any first-pass collisions.
     await queryRunner.query(`
       UPDATE "users"
       SET "username" = 'user_' || SUBSTRING(id::text, 1, 8)
       WHERE "username" IS NULL
+    `);
+    await queryRunner.query(`
+      UPDATE "users" u
+      SET "username" = 'user_' || REPLACE(u.id::text, '-', '')
+      WHERE EXISTS (
+        SELECT 1 FROM "users" u2
+        WHERE u2."username" = u."username"
+          AND u2.id <> u.id
+      )
     `);
 
     // Step 3: Enforce NOT NULL constraint
