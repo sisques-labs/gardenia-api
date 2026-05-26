@@ -28,7 +28,7 @@ export class AddProfileFieldsToUsers1748388000000
 
     await queryRunner.query(`
       ALTER TABLE "users"
-      ADD COLUMN IF NOT EXISTS "locale" character varying(10) NULL
+      ADD COLUMN IF NOT EXISTS "locale" character varying(20) NULL
     `);
 
     await queryRunner.query(`
