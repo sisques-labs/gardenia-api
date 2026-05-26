@@ -31,6 +31,12 @@ export class CreateUserCommandHandler
     const user = this.userBuilder
       .withStatus(command.status.value)
       .withUsername(command.username.value)
+      .withFirstName(command.firstName)
+      .withLastName(command.lastName)
+      .withAvatarUrl(command.avatarUrl)
+      .withBio(command.bio)
+      .withLocale(command.locale)
+      .withTimezone(command.timezone)
       .build();
 
     await this.userWriteRepository.save(user);
