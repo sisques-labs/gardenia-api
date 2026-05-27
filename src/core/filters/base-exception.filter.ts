@@ -7,9 +7,11 @@ import {
 import { GqlExceptionFilter } from '@nestjs/graphql';
 import { Response } from 'express';
 import { BaseException } from '@sisques-labs/nestjs-kit';
+import { AccountAlreadyExistsException } from '@contexts/auth/domain/exceptions/account-already-exists.exception';
+import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
+import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import { UserAlreadyExistsException } from '@contexts/users/domain/exceptions/user-already-exists.exception';
 import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
-import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 
 @Catch(BaseException)
 export class BaseExceptionFilter
@@ -36,10 +38,16 @@ export class BaseExceptionFilter
   }
 
   private resolveStatus(exception: BaseException): number {
-    if (exception instanceof UserAlreadyExistsException) {
+    if (
+      exception instanceof AccountAlreadyExistsException ||
+      exception instanceof UserAlreadyExistsException
+    ) {
       return HttpStatus.CONFLICT; // 409
     }
-    if (exception instanceof UserNotFoundException) {
+    if (
+      exception instanceof AccountNotFoundException ||
+      exception instanceof UserNotFoundException
+    ) {
       return HttpStatus.NOT_FOUND; // 404
     }
     if (exception instanceof InvalidCredentialsException) {

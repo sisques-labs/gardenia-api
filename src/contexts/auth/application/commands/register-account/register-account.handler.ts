@@ -15,6 +15,7 @@ import {
   ICommandHandler,
 } from '@nestjs/cqrs';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import * as bcrypt from 'bcrypt';
 
 @CommandHandler(RegisterAccountCommand)
 export class RegisterAccountCommandHandler
@@ -42,11 +43,12 @@ export class RegisterAccountCommandHandler
 
     const id = UuidValueObject.generate().value;
     const now = new Date();
+    const hashedPassword = await bcrypt.hash(passwordHash.value, 10);
     const account = new AccountBuilder()
       .withId(id)
       .withUserId(userId)
       .withEmail(email.value)
-      .withPasswordHash(passwordHash.value)
+      .withPasswordHash(hashedPassword)
       .withCreatedAt(now)
       .withUpdatedAt(now)
       .build();
