@@ -40,7 +40,9 @@ export class UserAggregate extends BaseAggregate {
     this._bio = props.bio;
     this._locale = props.locale;
     this._timezone = props.timezone;
+  }
 
+  public create(): void {
     this.apply(
       new UserCreatedEvent(
         {

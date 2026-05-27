@@ -36,6 +36,7 @@ export class CreateUserCommandHandler
       .withUsername(username)
       .build();
 
+    user.create();
     await this.userWriteRepository.save(user);
     await this.publishEvents(user);
 
