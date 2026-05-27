@@ -1,5 +1,4 @@
 import { DeleteUserCommand } from '@contexts/users/application/commands/delete-user/delete-user.command';
-import { AssertUserExistsService } from '@contexts/users/application/services/write/assert-user-exists/assert-user-exists.service';
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
 import {
   IUserWriteRepository,
@@ -17,14 +16,15 @@ export class DeleteUserCommandHandler
   constructor(
     @Inject(USER_WRITE_REPOSITORY)
     private readonly userWriteRepository: IUserWriteRepository,
-    private readonly assertUserExistsService: AssertUserExistsService,
     eventBus: EventBus,
   ) {
     super(eventBus);
   }
 
   async execute(command: DeleteUserCommand): Promise<void> {
-    const user = await this.assertUserExistsService.execute(command.id);
+    const user = await this.userWriteRepository.findById(command.id.value);
+
+    if (!user) return;
 
     user.delete();
 
