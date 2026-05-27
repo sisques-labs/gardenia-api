@@ -16,6 +16,13 @@ export class UserGraphQLMapper {
     return {
       id: user.id,
       status: user.status,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio,
+      locale: user.locale,
+      timezone: user.timezone,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

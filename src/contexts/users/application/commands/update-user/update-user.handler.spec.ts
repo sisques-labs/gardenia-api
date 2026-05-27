@@ -139,4 +139,69 @@ describe('UpdateUserCommandHandler', () => {
       await expect(handler.execute(command)).rejects.toThrow('DB write error');
     });
   });
+
+  describe('profile fields forwarding', () => {
+    it('should apply all optional profile fields to the aggregate when provided', async () => {
+      const user = buildUser();
+      assertUserExistsService.execute.mockResolvedValue(user);
+      userWriteRepository.save.mockResolvedValue(undefined as any);
+
+      const command = new UpdateUserCommand({
+        id: USER_ID,
+        firstName: 'Jane',
+        lastName: 'Smith',
+        avatarUrl: 'https://example.com/new-avatar.png',
+        bio: 'Updated bio.',
+        locale: 'en-US',
+        timezone: 'America/New_York',
+      });
+
+      await handler.execute(command);
+
+      expect(user.firstName).toBe('Jane');
+      expect(user.lastName).toBe('Smith');
+      expect(user.avatarUrl).toBe('https://example.com/new-avatar.png');
+      expect(user.bio).toBe('Updated bio.');
+      expect(user.locale).toBe('en-US');
+      expect(user.timezone).toBe('America/New_York');
+    });
+
+    it('should set profile fields to null when explicitly provided as null', async () => {
+      const userWithFields = new UserBuilder()
+        .withId(USER_ID)
+        .withStatus(UserStatusEnum.ACTIVE)
+        .withUsername('johndoe')
+        .withFirstName('John')
+        .withLastName('Doe')
+        .withAvatarUrl('https://example.com/avatar.png')
+        .withBio('A bio.')
+        .withLocale('es-AR')
+        .withTimezone('America/Buenos_Aires')
+        .withCreatedAt(new Date('2024-01-01'))
+        .withUpdatedAt(new Date('2024-01-01'))
+        .build();
+
+      assertUserExistsService.execute.mockResolvedValue(userWithFields);
+      userWriteRepository.save.mockResolvedValue(undefined as any);
+
+      const command = new UpdateUserCommand({
+        id: USER_ID,
+        firstName: null,
+        lastName: null,
+        avatarUrl: null,
+        bio: null,
+        locale: null,
+        timezone: null,
+      });
+
+      await handler.execute(command);
+
+      expect(userWithFields.firstName).toBeNull();
+      expect(userWithFields.lastName).toBeNull();
+      expect(userWithFields.avatarUrl).toBeNull();
+      expect(userWithFields.bio).toBeNull();
+      expect(userWithFields.locale).toBeNull();
+      expect(userWithFields.timezone).toBeNull();
+    });
+  });
 });
