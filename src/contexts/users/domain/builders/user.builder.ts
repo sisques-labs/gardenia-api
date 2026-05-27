@@ -15,6 +15,12 @@ import {
 export class UserBuilder extends BaseBuilder<UserAggregate, UserViewModel> {
   private _status!: string;
   private _username!: string;
+  private _firstName: string | null = null;
+  private _lastName: string | null = null;
+  private _avatarUrl: string | null = null;
+  private _bio: string | null = null;
+  private _locale: string | null = null;
+  private _timezone: string | null = null;
 
   withStatus(status: string): this {
     this._status = status;
@@ -26,6 +32,36 @@ export class UserBuilder extends BaseBuilder<UserAggregate, UserViewModel> {
     return this;
   }
 
+  withFirstName(firstName: string | null): this {
+    this._firstName = firstName;
+    return this;
+  }
+
+  withLastName(lastName: string | null): this {
+    this._lastName = lastName;
+    return this;
+  }
+
+  withAvatarUrl(avatarUrl: string | null): this {
+    this._avatarUrl = avatarUrl;
+    return this;
+  }
+
+  withBio(bio: string | null): this {
+    this._bio = bio;
+    return this;
+  }
+
+  withLocale(locale: string | null): this {
+    this._locale = locale;
+    return this;
+  }
+
+  withTimezone(timezone: string | null): this {
+    this._timezone = timezone;
+    return this;
+  }
+
   public override buildViewModel(): UserViewModel {
     this.validate();
 
@@ -33,6 +69,12 @@ export class UserBuilder extends BaseBuilder<UserAggregate, UserViewModel> {
       id: this._id,
       status: this._status,
       username: this._username,
+      firstName: this._firstName,
+      lastName: this._lastName,
+      avatarUrl: this._avatarUrl,
+      bio: this._bio,
+      locale: this._locale,
+      timezone: this._timezone,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });
@@ -45,6 +87,12 @@ export class UserBuilder extends BaseBuilder<UserAggregate, UserViewModel> {
       id: new UserIdValueObject(this._id),
       status: new UserStatusValueObject(this._status as UserStatusEnum),
       username: new UsernameValueObject(this._username),
+      firstName: this._firstName,
+      lastName: this._lastName,
+      avatarUrl: this._avatarUrl,
+      bio: this._bio,
+      locale: this._locale,
+      timezone: this._timezone,
       createdAt: new DateValueObject(this._createdAt ?? new Date()),
       updatedAt: new DateValueObject(this._updatedAt ?? new Date()),
     });

@@ -7,6 +7,12 @@ export interface IUser {
   id: UserIdValueObject;
   status: UserStatusValueObject;
   username: UsernameValueObject;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  locale: string | null;
+  timezone: string | null;
   createdAt: DateValueObject;
   updatedAt: DateValueObject;
 }

@@ -14,6 +14,27 @@ const buildViewModel = (): UserViewModel =>
     id: USER_ID,
     status: UserStatusEnum.ACTIVE,
     username: 'johndoe',
+    firstName: null,
+    lastName: null,
+    avatarUrl: null,
+    bio: null,
+    locale: null,
+    timezone: null,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  });
+
+const buildFullViewModel = (): UserViewModel =>
+  new UserViewModel({
+    id: USER_ID,
+    status: UserStatusEnum.ACTIVE,
+    username: 'johndoe',
+    firstName: 'John',
+    lastName: 'Doe',
+    avatarUrl: 'https://example.com/avatar.png',
+    bio: 'A short bio.',
+    locale: 'es-AR',
+    timezone: 'America/Buenos_Aires',
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
   });
@@ -44,6 +65,22 @@ describe('UserFindByIdQueryHandler', () => {
         expect.any(UserIdValueObject),
       );
       expect(result).toBe(viewModel);
+    });
+
+    it('should return a view model that includes all profile fields when user has them', async () => {
+      const viewModel = buildFullViewModel();
+      const query = new UserFindByIdQuery({ id: USER_ID });
+      assertUserViewModelExistsService.execute.mockResolvedValue(viewModel);
+
+      const result = await handler.execute(query);
+
+      expect(result.username).toBe('johndoe');
+      expect(result.firstName).toBe('John');
+      expect(result.lastName).toBe('Doe');
+      expect(result.avatarUrl).toBe('https://example.com/avatar.png');
+      expect(result.bio).toBe('A short bio.');
+      expect(result.locale).toBe('es-AR');
+      expect(result.timezone).toBe('America/Buenos_Aires');
     });
   });
 

@@ -13,6 +13,12 @@ const buildViewModel = (): UserViewModel =>
     id: USER_ID,
     status: UserStatusEnum.ACTIVE,
     username: 'johndoe',
+    firstName: null,
+    lastName: null,
+    avatarUrl: null,
+    bio: null,
+    locale: null,
+    timezone: null,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
   });
