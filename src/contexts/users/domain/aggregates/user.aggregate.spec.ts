@@ -47,7 +47,7 @@ const buildFullUser = (): UserAggregate =>
     .build();
 
 describe('UserAggregate', () => {
-  describe('create() — static factory via constructor', () => {
+  describe('constructor — hydration', () => {
     it('should construct an aggregate with matching field values', () => {
       const user = buildUser();
 
@@ -57,29 +57,11 @@ describe('UserAggregate', () => {
       expect(user.updatedAt.value).toEqual(UPDATED_AT);
     });
 
-    it('should emit a UserCreatedEvent on construction', () => {
+    it('should have empty uncommitted events after construction', () => {
       const user = buildUser();
       const events = user.getUncommittedEvents();
 
-      expect(events).toHaveLength(1);
-      expect(events[0]).toBeInstanceOf(UserCreatedEvent);
-    });
-
-    it('should emit a UserCreatedEvent with correct aggregate metadata', () => {
-      const user = buildUser();
-      const event = user.getUncommittedEvents()[0] as UserCreatedEvent;
-
-      expect(event.aggregateRootId).toBe(USER_ID);
-      expect(event.aggregateRootType).toBe(UserAggregate.name);
-    });
-
-    it('should include correct primitives in the UserCreatedEvent data', () => {
-      const user = buildUser();
-      const event = user.getUncommittedEvents()[0] as UserCreatedEvent;
-
-      expect(event.data.id).toBe(USER_ID);
-      expect(event.data.status).toBe(UserStatusEnum.ACTIVE);
-      expect(event.data.username).toBe('johndoe');
+      expect(events).toHaveLength(0);
     });
 
     it('should initialize all nullable profile fields to null when not provided', () => {
@@ -102,6 +84,36 @@ describe('UserAggregate', () => {
       expect(user.bio).toBe('A short bio.');
       expect(user.locale).toBe('es-AR');
       expect(user.timezone).toBe('America/Buenos_Aires');
+    });
+  });
+
+  describe('create()', () => {
+    it('should emit a UserCreatedEvent', () => {
+      const user = buildUser();
+      user.create();
+      const events = user.getUncommittedEvents();
+
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(UserCreatedEvent);
+    });
+
+    it('should emit a UserCreatedEvent with correct aggregate metadata', () => {
+      const user = buildUser();
+      user.create();
+      const event = user.getUncommittedEvents()[0] as UserCreatedEvent;
+
+      expect(event.aggregateRootId).toBe(USER_ID);
+      expect(event.aggregateRootType).toBe(UserAggregate.name);
+    });
+
+    it('should include correct primitives in the UserCreatedEvent data', () => {
+      const user = buildUser();
+      user.create();
+      const event = user.getUncommittedEvents()[0] as UserCreatedEvent;
+
+      expect(event.data.id).toBe(USER_ID);
+      expect(event.data.status).toBe(UserStatusEnum.ACTIVE);
+      expect(event.data.username).toBe('johndoe');
     });
   });
 
