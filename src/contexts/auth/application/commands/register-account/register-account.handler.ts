@@ -1,7 +1,7 @@
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
+import { AssertAccountEmailAvailableService } from '@contexts/auth/application/services/write/assert-account-email-available/assert-account-email-available.service';
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
-import { AccountAlreadyExistsException } from '@contexts/auth/domain/exceptions/account-already-exists.exception';
 import {
   ACCOUNT_WRITE_REPOSITORY,
   IAccountWriteRepository,
@@ -24,6 +24,7 @@ export class RegisterAccountCommandHandler
   constructor(
     @Inject(ACCOUNT_WRITE_REPOSITORY)
     private readonly accountWriteRepository: IAccountWriteRepository,
+    private readonly assertAccountEmailAvailableService: AssertAccountEmailAvailableService,
     private readonly commandBus: CommandBus,
     eventBus: EventBus,
   ) {
@@ -33,12 +34,11 @@ export class RegisterAccountCommandHandler
   async execute(command: RegisterAccountCommand): Promise<void> {
     const { email, passwordHash } = command;
 
-    const existing = await this.accountWriteRepository.findByEmail(email.value);
-    if (existing) {
-      throw new AccountAlreadyExistsException(email.value);
-    }
+    await this.assertAccountEmailAvailableService.execute(email);
 
-    const userId = await this.commandBus.execute(new CreateUserCommand());
+    const userId = await this.commandBus.execute<CreateUserCommand, string>(
+      new CreateUserCommand(),
+    );
 
     const id = UuidValueObject.generate().value;
     const now = new Date();

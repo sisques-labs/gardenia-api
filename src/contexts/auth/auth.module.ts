@@ -11,6 +11,7 @@ import { AccountFindByIdQueryHandler } from './application/queries/account-find-
 import { AuthService } from './application/services/auth.service';
 import { AssertAccountViewModelExistsService } from './application/services/read/assert-account-view-model-exists/assert-account-view-model-exists.service';
 import { TokenService } from './application/services/token.service';
+import { AssertAccountEmailAvailableService } from './application/services/write/assert-account-email-available/assert-account-email-available.service';
 import { AssertAccountExistsService } from './application/services/write/assert-account-exists/assert-account-exists.service';
 import { AccountBuilder } from './domain/builders/account.builder';
 import { ACCOUNT_READ_REPOSITORY } from './domain/repositories/read/account-read.repository';
@@ -40,6 +41,7 @@ const APPLICATION_SERVICES = [
   AuthService,
   TokenService,
   AssertAccountExistsService,
+  AssertAccountEmailAvailableService,
   AssertAccountViewModelExistsService,
 ];
 
