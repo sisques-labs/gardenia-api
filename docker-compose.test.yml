@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_DB: gardenia_test
+      POSTGRES_USER: gardenia
+      POSTGRES_PASSWORD: gardenia
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U gardenia -d gardenia_test']
+      interval: 5s
+      timeout: 5s
+      retries: 5
