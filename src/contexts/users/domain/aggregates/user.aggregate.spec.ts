@@ -11,13 +11,18 @@ import { UserBioChangedEvent } from '@contexts/users/domain/events/field-changed
 import { UserLocaleChangedEvent } from '@contexts/users/domain/events/field-changed/user-locale-changed/user-locale-changed.event';
 import { UserTimezoneChangedEvent } from '@contexts/users/domain/events/field-changed/user-timezone-changed/user-timezone-changed.event';
 import { UserBuilder } from '@contexts/users/domain/builders/user.builder';
+import { UserUsernameChangedEvent } from '@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event';
+import { UserStatusValueObject } from '@contexts/users/domain/value-objects/user-status/user-status.vo';
+import { UsernameValueObject } from '@contexts/users/domain/value-objects/username/username.value-object';
 import { UserAggregate } from './user.aggregate';
 
 const USER_ID = '550e8400-e29b-41d4-a716-446655440000';
 const CREATED_AT = new Date('2024-01-01T00:00:00.000Z');
 const UPDATED_AT = new Date('2024-01-01T00:00:00.000Z');
 
-const buildUser = (status: UserStatusEnum = UserStatusEnum.ACTIVE): UserAggregate =>
+const buildUser = (
+  status: UserStatusEnum = UserStatusEnum.ACTIVE,
+): UserAggregate =>
   new UserBuilder()
     .withId(USER_ID)
     .withStatus(status)
@@ -113,7 +118,9 @@ describe('UserAggregate', () => {
       user.activate();
 
       const events = user.getUncommittedEvents();
-      const statusEvent = events.find(e => e instanceof UserStatusChangedEvent);
+      const statusEvent = events.find(
+        (e) => e instanceof UserStatusChangedEvent,
+      );
 
       expect(statusEvent).toBeDefined();
       expect(statusEvent).toBeInstanceOf(UserStatusChangedEvent);
@@ -124,7 +131,9 @@ describe('UserAggregate', () => {
       user.activate();
 
       const events = user.getUncommittedEvents();
-      const statusEvent = events.find(e => e instanceof UserStatusChangedEvent) as UserStatusChangedEvent;
+      const statusEvent = events.find(
+        (e) => e instanceof UserStatusChangedEvent,
+      ) as UserStatusChangedEvent;
 
       expect(statusEvent.data.oldValue).toBe(UserStatusEnum.INACTIVE);
       expect(statusEvent.data.newValue).toBe(UserStatusEnum.ACTIVE);
@@ -144,7 +153,9 @@ describe('UserAggregate', () => {
       user.deactivate();
 
       const events = user.getUncommittedEvents();
-      const statusEvent = events.find(e => e instanceof UserStatusChangedEvent);
+      const statusEvent = events.find(
+        (e) => e instanceof UserStatusChangedEvent,
+      );
 
       expect(statusEvent).toBeInstanceOf(UserStatusChangedEvent);
     });
@@ -154,7 +165,9 @@ describe('UserAggregate', () => {
       user.deactivate();
 
       const events = user.getUncommittedEvents();
-      const statusEvent = events.find(e => e instanceof UserStatusChangedEvent) as UserStatusChangedEvent;
+      const statusEvent = events.find(
+        (e) => e instanceof UserStatusChangedEvent,
+      ) as UserStatusChangedEvent;
 
       expect(statusEvent.data.oldValue).toBe(UserStatusEnum.ACTIVE);
       expect(statusEvent.data.newValue).toBe(UserStatusEnum.INACTIVE);
@@ -174,7 +187,9 @@ describe('UserAggregate', () => {
       user.block();
 
       const events = user.getUncommittedEvents();
-      const statusEvent = events.find(e => e instanceof UserStatusChangedEvent);
+      const statusEvent = events.find(
+        (e) => e instanceof UserStatusChangedEvent,
+      );
 
       expect(statusEvent).toBeInstanceOf(UserStatusChangedEvent);
     });
@@ -186,7 +201,7 @@ describe('UserAggregate', () => {
       user.delete();
 
       const events = user.getUncommittedEvents();
-      const deletedEvent = events.find(e => e instanceof UserDeletedEvent);
+      const deletedEvent = events.find((e) => e instanceof UserDeletedEvent);
 
       expect(deletedEvent).toBeInstanceOf(UserDeletedEvent);
     });
@@ -196,7 +211,9 @@ describe('UserAggregate', () => {
       user.delete();
 
       const events = user.getUncommittedEvents();
-      const deletedEvent = events.find(e => e instanceof UserDeletedEvent) as UserDeletedEvent;
+      const deletedEvent = events.find(
+        (e) => e instanceof UserDeletedEvent,
+      ) as UserDeletedEvent;
 
       expect(deletedEvent.aggregateRootId).toBe(USER_ID);
       expect(deletedEvent.entityType).toBe(UserAggregate.name);
@@ -207,7 +224,9 @@ describe('UserAggregate', () => {
       user.delete();
 
       const events = user.getUncommittedEvents();
-      const deletedEvent = events.find(e => e instanceof UserDeletedEvent) as UserDeletedEvent;
+      const deletedEvent = events.find(
+        (e) => e instanceof UserDeletedEvent,
+      ) as UserDeletedEvent;
 
       expect(deletedEvent.data.id).toBe(USER_ID);
     });
@@ -226,7 +245,9 @@ describe('UserAggregate', () => {
       user.changeStatus(UserStatusEnum.BLOCKED);
 
       const events = user.getUncommittedEvents();
-      const statusEvent = events.find(e => e instanceof UserStatusChangedEvent) as UserStatusChangedEvent;
+      const statusEvent = events.find(
+        (e) => e instanceof UserStatusChangedEvent,
+      ) as UserStatusChangedEvent;
 
       expect(statusEvent).toBeDefined();
       expect(statusEvent.data.oldValue).toBe(UserStatusEnum.ACTIVE);
@@ -240,18 +261,21 @@ describe('UserAggregate', () => {
       user.update({});
 
       const events = user.getUncommittedEvents();
-      const updatedEvent = events.find(e => e instanceof UserUpdatedEvent);
+      const updatedEvent = events.find((e) => e instanceof UserUpdatedEvent);
 
       expect(updatedEvent).toBeInstanceOf(UserUpdatedEvent);
     });
 
     it('should emit a UserStatusChangedEvent when status is provided', () => {
       const user = buildUser(UserStatusEnum.ACTIVE);
-      const { UserStatusValueObject } = require('@contexts/users/domain/value-objects/user-status/user-status.vo');
-      user.update({ status: new UserStatusValueObject(UserStatusEnum.INACTIVE) });
+      user.update({
+        status: new UserStatusValueObject(UserStatusEnum.INACTIVE),
+      });
 
       const events = user.getUncommittedEvents();
-      const statusEvent = events.find(e => e instanceof UserStatusChangedEvent);
+      const statusEvent = events.find(
+        (e) => e instanceof UserStatusChangedEvent,
+      );
 
       expect(statusEvent).toBeInstanceOf(UserStatusChangedEvent);
     });
@@ -261,15 +285,18 @@ describe('UserAggregate', () => {
       user.update({});
 
       const events = user.getUncommittedEvents();
-      const statusEvents = events.filter(e => e instanceof UserStatusChangedEvent);
+      const statusEvents = events.filter(
+        (e) => e instanceof UserStatusChangedEvent,
+      );
 
       expect(statusEvents).toHaveLength(0);
     });
 
     it('should update the status when provided', () => {
       const user = buildUser(UserStatusEnum.ACTIVE);
-      const { UserStatusValueObject } = require('@contexts/users/domain/value-objects/user-status/user-status.vo');
-      user.update({ status: new UserStatusValueObject(UserStatusEnum.INACTIVE) });
+      user.update({
+        status: new UserStatusValueObject(UserStatusEnum.INACTIVE),
+      });
 
       expect(user.status.value).toBe(UserStatusEnum.INACTIVE);
     });
@@ -380,8 +407,6 @@ describe('UserAggregate', () => {
 
   describe('username — changeUsername via update()', () => {
     it('should update the username when a different value is provided via update()', () => {
-      const { UserStatusValueObject } = require('@contexts/users/domain/value-objects/user-status/user-status.vo');
-      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
       const user = buildUser();
       user.update({ username: new UsernameValueObject('newusername') });
 
@@ -389,39 +414,39 @@ describe('UserAggregate', () => {
     });
 
     it('should emit a UserUsernameChangedEvent when username changes', () => {
-      const { UserUsernameChangedEvent } = require('@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event');
-      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
       const user = buildUser();
       user.update({ username: new UsernameValueObject('newusername') });
 
       const events = user.getUncommittedEvents();
-      const usernameChangedEvent = events.find(e => e instanceof UserUsernameChangedEvent);
+      const usernameChangedEvent = events.find(
+        (e) => e instanceof UserUsernameChangedEvent,
+      );
 
       expect(usernameChangedEvent).toBeDefined();
       expect(usernameChangedEvent).toBeInstanceOf(UserUsernameChangedEvent);
     });
 
     it('should emit UserUsernameChangedEvent with old and new values', () => {
-      const { UserUsernameChangedEvent } = require('@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event');
-      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
       const user = buildUser();
       user.update({ username: new UsernameValueObject('newusername') });
 
       const events = user.getUncommittedEvents();
-      const usernameChangedEvent = events.find(e => e instanceof UserUsernameChangedEvent) as any;
+      const usernameChangedEvent = events.find(
+        (e) => e instanceof UserUsernameChangedEvent,
+      ) as any;
 
       expect(usernameChangedEvent.data.oldValue).toBe('johndoe');
       expect(usernameChangedEvent.data.newValue).toBe('newusername');
     });
 
     it('should NOT emit UserUsernameChangedEvent when username is unchanged', () => {
-      const { UserUsernameChangedEvent } = require('@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event');
-      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
       const user = buildUser();
       user.update({ username: new UsernameValueObject('johndoe') });
 
       const events = user.getUncommittedEvents();
-      const usernameChangedEvents = events.filter(e => e instanceof UserUsernameChangedEvent);
+      const usernameChangedEvents = events.filter(
+        (e) => e instanceof UserUsernameChangedEvent,
+      );
 
       expect(usernameChangedEvents).toHaveLength(0);
     });
@@ -448,7 +473,9 @@ describe('UserAggregate', () => {
         user.update({ firstName: 'Jane' });
 
         const events = user.getUncommittedEvents();
-        const event = events.find(e => e instanceof UserFirstNameChangedEvent);
+        const event = events.find(
+          (e) => e instanceof UserFirstNameChangedEvent,
+        );
 
         expect(event).toBeInstanceOf(UserFirstNameChangedEvent);
       });
@@ -458,7 +485,9 @@ describe('UserAggregate', () => {
         user.update({ firstName: 'Jane' });
 
         const events = user.getUncommittedEvents();
-        const event = events.find(e => e instanceof UserFirstNameChangedEvent) as UserFirstNameChangedEvent;
+        const event = events.find(
+          (e) => e instanceof UserFirstNameChangedEvent,
+        ) as UserFirstNameChangedEvent;
 
         expect(event.data.oldValue).toBe('John');
         expect(event.data.newValue).toBe('Jane');
@@ -469,7 +498,9 @@ describe('UserAggregate', () => {
         user.update({ firstName: 'John' });
 
         const events = user.getUncommittedEvents();
-        const changedEvents = events.filter(e => e instanceof UserFirstNameChangedEvent);
+        const changedEvents = events.filter(
+          (e) => e instanceof UserFirstNameChangedEvent,
+        );
 
         expect(changedEvents).toHaveLength(0);
       });
@@ -488,7 +519,7 @@ describe('UserAggregate', () => {
         user.update({ lastName: 'Smith' });
 
         const events = user.getUncommittedEvents();
-        const event = events.find(e => e instanceof UserLastNameChangedEvent);
+        const event = events.find((e) => e instanceof UserLastNameChangedEvent);
 
         expect(event).toBeInstanceOf(UserLastNameChangedEvent);
       });
@@ -498,7 +529,9 @@ describe('UserAggregate', () => {
         user.update({ lastName: 'Doe' });
 
         const events = user.getUncommittedEvents();
-        const changedEvents = events.filter(e => e instanceof UserLastNameChangedEvent);
+        const changedEvents = events.filter(
+          (e) => e instanceof UserLastNameChangedEvent,
+        );
 
         expect(changedEvents).toHaveLength(0);
       });
@@ -517,7 +550,9 @@ describe('UserAggregate', () => {
         user.update({ avatarUrl: 'https://new.example.com/avatar.png' });
 
         const events = user.getUncommittedEvents();
-        const event = events.find(e => e instanceof UserAvatarUrlChangedEvent);
+        const event = events.find(
+          (e) => e instanceof UserAvatarUrlChangedEvent,
+        );
 
         expect(event).toBeInstanceOf(UserAvatarUrlChangedEvent);
       });
@@ -527,7 +562,9 @@ describe('UserAggregate', () => {
         user.update({ avatarUrl: 'https://example.com/avatar.png' });
 
         const events = user.getUncommittedEvents();
-        const changedEvents = events.filter(e => e instanceof UserAvatarUrlChangedEvent);
+        const changedEvents = events.filter(
+          (e) => e instanceof UserAvatarUrlChangedEvent,
+        );
 
         expect(changedEvents).toHaveLength(0);
       });
@@ -546,7 +583,7 @@ describe('UserAggregate', () => {
         user.update({ bio: 'My new bio.' });
 
         const events = user.getUncommittedEvents();
-        const event = events.find(e => e instanceof UserBioChangedEvent);
+        const event = events.find((e) => e instanceof UserBioChangedEvent);
 
         expect(event).toBeInstanceOf(UserBioChangedEvent);
       });
@@ -556,7 +593,9 @@ describe('UserAggregate', () => {
         user.update({ bio: 'A short bio.' });
 
         const events = user.getUncommittedEvents();
-        const changedEvents = events.filter(e => e instanceof UserBioChangedEvent);
+        const changedEvents = events.filter(
+          (e) => e instanceof UserBioChangedEvent,
+        );
 
         expect(changedEvents).toHaveLength(0);
       });
@@ -590,7 +629,7 @@ describe('UserAggregate', () => {
         user.update({ locale: 'en-US' });
 
         const events = user.getUncommittedEvents();
-        const event = events.find(e => e instanceof UserLocaleChangedEvent);
+        const event = events.find((e) => e instanceof UserLocaleChangedEvent);
 
         expect(event).toBeInstanceOf(UserLocaleChangedEvent);
       });
@@ -600,7 +639,9 @@ describe('UserAggregate', () => {
         user.update({ locale: 'es-AR' });
 
         const events = user.getUncommittedEvents();
-        const changedEvents = events.filter(e => e instanceof UserLocaleChangedEvent);
+        const changedEvents = events.filter(
+          (e) => e instanceof UserLocaleChangedEvent,
+        );
 
         expect(changedEvents).toHaveLength(0);
       });
@@ -619,7 +660,7 @@ describe('UserAggregate', () => {
         user.update({ timezone: 'Europe/London' });
 
         const events = user.getUncommittedEvents();
-        const event = events.find(e => e instanceof UserTimezoneChangedEvent);
+        const event = events.find((e) => e instanceof UserTimezoneChangedEvent);
 
         expect(event).toBeInstanceOf(UserTimezoneChangedEvent);
       });
@@ -629,7 +670,9 @@ describe('UserAggregate', () => {
         user.update({ timezone: 'America/Buenos_Aires' });
 
         const events = user.getUncommittedEvents();
-        const changedEvents = events.filter(e => e instanceof UserTimezoneChangedEvent);
+        const changedEvents = events.filter(
+          (e) => e instanceof UserTimezoneChangedEvent,
+        );
 
         expect(changedEvents).toHaveLength(0);
       });

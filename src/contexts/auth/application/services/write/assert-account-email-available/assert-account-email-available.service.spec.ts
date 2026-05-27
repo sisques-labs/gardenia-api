@@ -41,6 +41,8 @@ describe('AssertAccountEmailAvailableService', () => {
     writeRepository.findByEmail.mockResolvedValue(existing);
     const email = new AccountEmailValueObject('taken@example.com');
 
-    await expect(service.execute(email)).rejects.toThrow(AccountAlreadyExistsException);
+    await expect(service.execute(email)).rejects.toThrow(
+      AccountAlreadyExistsException,
+    );
   });
 });

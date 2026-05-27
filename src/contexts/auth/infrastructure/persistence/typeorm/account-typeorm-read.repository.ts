@@ -1,6 +1,4 @@
-import {
-  IAccountReadRepository,
-} from '@contexts/auth/domain/repositories/read/account-read.repository';
+import { IAccountReadRepository } from '@contexts/auth/domain/repositories/read/account-read.repository';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';

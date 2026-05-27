@@ -30,7 +30,9 @@ export class AuthResolver {
     const { accessToken } = await this.commandBus.execute<
       LoginAccountCommand,
       { accessToken: string }
-    >(new LoginAccountCommand({ email: input.email, password: input.password }));
+    >(
+      new LoginAccountCommand({ email: input.email, password: input.password }),
+    );
 
     const authPayload = new AuthPayloadObject();
     authPayload.accessToken = accessToken;

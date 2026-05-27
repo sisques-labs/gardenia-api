@@ -29,21 +29,29 @@ describe('AccountFindByIdQueryHandler', () => {
 
   it('should delegate to AssertAccountViewModelExistsService and return the view model', async () => {
     const viewModel = buildViewModel();
-    const query = new AccountFindByIdQuery({ id: '550e8400-e29b-41d4-a716-446655440000' });
+    const query = new AccountFindByIdQuery({
+      id: '550e8400-e29b-41d4-a716-446655440000',
+    });
     assertService.execute.mockResolvedValue(viewModel);
 
     const result = await handler.execute(query);
 
-    expect(assertService.execute).toHaveBeenCalledWith(expect.any(AccountIdValueObject));
+    expect(assertService.execute).toHaveBeenCalledWith(
+      expect.any(AccountIdValueObject),
+    );
     expect(result).toBe(viewModel);
   });
 
   it('should propagate exceptions thrown by AssertAccountViewModelExistsService', async () => {
-    const query = new AccountFindByIdQuery({ id: '550e8400-e29b-41d4-a716-446655440000' });
+    const query = new AccountFindByIdQuery({
+      id: '550e8400-e29b-41d4-a716-446655440000',
+    });
     assertService.execute.mockRejectedValue(
       new AccountNotFoundException('550e8400-e29b-41d4-a716-446655440000'),
     );
 
-    await expect(handler.execute(query)).rejects.toThrow(AccountNotFoundException);
+    await expect(handler.execute(query)).rejects.toThrow(
+      AccountNotFoundException,
+    );
   });
 });

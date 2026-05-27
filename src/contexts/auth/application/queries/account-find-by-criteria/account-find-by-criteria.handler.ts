@@ -9,9 +9,7 @@ import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 import { AccountFindByCriteriaQuery } from './account-find-by-criteria.query';
 
 @QueryHandler(AccountFindByCriteriaQuery)
-export class AccountFindByCriteriaQueryHandler
-  implements IQueryHandler<AccountFindByCriteriaQuery>
-{
+export class AccountFindByCriteriaQueryHandler implements IQueryHandler<AccountFindByCriteriaQuery> {
   constructor(
     @Inject(ACCOUNT_READ_REPOSITORY)
     private readonly accountReadRepository: IAccountReadRepository,

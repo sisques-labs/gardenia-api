@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddUsernameNotNullToUsers1748301600000
-  implements MigrationInterface
-{
+export class AddUsernameNotNullToUsers1748301600000 implements MigrationInterface {
   name = 'AddUsernameNotNullToUsers1748301600000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

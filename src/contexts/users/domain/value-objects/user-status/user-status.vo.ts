@@ -1,6 +1,8 @@
 import { EnumValueObject, UserStatusEnum } from '@sisques-labs/nestjs-kit';
 
-export class UserStatusValueObject extends EnumValueObject<typeof UserStatusEnum> {
+export class UserStatusValueObject extends EnumValueObject<
+  typeof UserStatusEnum
+> {
   constructor(value: UserStatusEnum) {
     super(value);
   }

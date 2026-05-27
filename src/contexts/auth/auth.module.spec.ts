@@ -20,10 +20,7 @@ const mockJwtStrategy = {
 
 async function createTestModule(): Promise<TestingModule> {
   return Test.createTestingModule({
-    imports: [
-      ConfigModule.forRoot({ isGlobal: true }),
-      AuthModule,
-    ],
+    imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
   })
     .overrideProvider(getRepositoryToken(AccountEntity))
     .useValue(mockRepository)
@@ -40,7 +37,9 @@ describe('AuthModule', () => {
 
   it('should resolve ACCOUNT_WRITE_REPOSITORY token', async () => {
     const moduleRef = await createTestModule();
-    const writeRepo = moduleRef.get(ACCOUNT_WRITE_REPOSITORY, { strict: false });
+    const writeRepo = moduleRef.get(ACCOUNT_WRITE_REPOSITORY, {
+      strict: false,
+    });
     expect(writeRepo).toBeDefined();
   });
 

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddProfileFieldsToUsers1748388000000
-  implements MigrationInterface
-{
+export class AddProfileFieldsToUsers1748388000000 implements MigrationInterface {
   name = 'AddProfileFieldsToUsers1748388000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -38,11 +36,21 @@ export class AddProfileFieldsToUsers1748388000000
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "timezone"`);
-    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "locale"`);
+    await queryRunner.query(
+      `ALTER TABLE "users" DROP COLUMN IF EXISTS "timezone"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "users" DROP COLUMN IF EXISTS "locale"`,
+    );
     await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "bio"`);
-    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "avatarUrl"`);
-    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "lastName"`);
-    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "firstName"`);
+    await queryRunner.query(
+      `ALTER TABLE "users" DROP COLUMN IF EXISTS "avatarUrl"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "users" DROP COLUMN IF EXISTS "lastName"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "users" DROP COLUMN IF EXISTS "firstName"`,
+    );
   }
 }

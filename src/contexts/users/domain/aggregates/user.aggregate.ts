@@ -244,7 +244,10 @@ export class UserAggregate extends BaseAggregate {
   }
 
   private changeBio(newValue: string | null): void {
-    if (newValue !== null && newValue.length > BioExceedsMaxLengthException.MAX_LENGTH) {
+    if (
+      newValue !== null &&
+      newValue.length > BioExceedsMaxLengthException.MAX_LENGTH
+    ) {
       throw new BioExceedsMaxLengthException(newValue.length);
     }
 

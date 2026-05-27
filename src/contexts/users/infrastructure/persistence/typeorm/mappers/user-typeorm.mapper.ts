@@ -25,15 +25,6 @@ export class UserTypeOrmMapper {
       .build();
   }
 
-  public toViewModel(entity: UserTypeOrmEntity): UserViewModel {
-    return new UserViewModel({
-      id: entity.id,
-      status: entity.status,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    });
-  }
-
   public toEntity(user: UserAggregate): UserTypeOrmEntity {
     const primitives = user.toPrimitives();
     const entity = new UserTypeOrmEntity();
@@ -54,18 +45,18 @@ export class UserTypeOrmMapper {
   }
 
   public toViewModel(entity: UserTypeOrmEntity): UserViewModel {
-    return new UserViewModel({
-      id: entity.id,
-      status: entity.status,
-      username: entity.username,
-      firstName: entity.firstName ?? null,
-      lastName: entity.lastName ?? null,
-      avatarUrl: entity.avatarUrl ?? null,
-      bio: entity.bio ?? null,
-      locale: entity.locale ?? null,
-      timezone: entity.timezone ?? null,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    });
+    return this.userBuilder
+      .withId(entity.id)
+      .withStatus(entity.status as UserStatusEnum)
+      .withUsername(entity.username)
+      .withFirstName(entity.firstName ?? null)
+      .withLastName(entity.lastName ?? null)
+      .withAvatarUrl(entity.avatarUrl ?? null)
+      .withBio(entity.bio ?? null)
+      .withLocale(entity.locale ?? null)
+      .withTimezone(entity.timezone ?? null)
+      .withCreatedAt(entity.createdAt)
+      .withUpdatedAt(entity.updatedAt)
+      .buildViewModel();
   }
 }

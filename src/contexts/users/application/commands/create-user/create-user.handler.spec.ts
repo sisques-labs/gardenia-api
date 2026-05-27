@@ -56,7 +56,11 @@ describe('CreateUserCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
-    handler = new CreateUserCommandHandler(userWriteRepository, userBuilder, eventBus);
+    handler = new CreateUserCommandHandler(
+      userWriteRepository,
+      userBuilder,
+      eventBus,
+    );
   });
 
   describe('happy path', () => {
@@ -85,7 +89,9 @@ describe('CreateUserCommandHandler', () => {
 
       await handler.execute(new CreateUserCommand());
 
-      expect(userBuilder.withStatus).toHaveBeenCalledWith(UserStatusEnum.ACTIVE);
+      expect(userBuilder.withStatus).toHaveBeenCalledWith(
+        UserStatusEnum.ACTIVE,
+      );
       expect(userBuilder.withUsername).toHaveBeenCalledWith(
         expect.stringMatching(/^user_[a-f0-9]{8}$/),
       );
@@ -104,7 +110,9 @@ describe('CreateUserCommandHandler', () => {
     it('should propagate the error when save throws', async () => {
       userWriteRepository.save.mockRejectedValue(new Error('DB error'));
 
-      await expect(handler.execute(new CreateUserCommand())).rejects.toThrow('DB error');
+      await expect(handler.execute(new CreateUserCommand())).rejects.toThrow(
+        'DB error',
+      );
     });
   });
 });
