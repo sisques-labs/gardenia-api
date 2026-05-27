@@ -8,7 +8,12 @@ import {
 } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { CreateUserCommand } from '@contexts/users/application/commands/create-user/create-user.command';
 import { Inject } from '@nestjs/common';
-import { CommandBus, CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import {
+  CommandBus,
+  CommandHandler,
+  EventBus,
+  ICommandHandler,
+} from '@nestjs/cqrs';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 @CommandHandler(RegisterAccountCommand)
@@ -33,9 +38,7 @@ export class RegisterAccountCommandHandler
       throw new AccountAlreadyExistsException(email.value);
     }
 
-    const userId = await this.commandBus.execute<CreateUserCommand, string>(
-      new CreateUserCommand(),
-    );
+    const userId = await this.commandBus.execute(new CreateUserCommand());
 
     const id = UuidValueObject.generate().value;
     const now = new Date();
