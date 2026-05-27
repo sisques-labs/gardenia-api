@@ -21,17 +21,30 @@ export class UserTypeOrmReadRepository implements IUserReadRepository {
   }
 
   async findByCriteria(
-    _criteria: Criteria,
+    criteria: Criteria,
   ): Promise<PaginatedResult<UserViewModel>> {
-    throw new Error('Method not implemented.');
+    const { page, perPage } = criteria.pagination;
+    const skip = (page - 1) * perPage;
+
+    const [entities, total] = await this.repo.findAndCount({
+      skip,
+      take: perPage,
+      order: criteria.sorts.reduce(
+        (acc, s) => ({ ...acc, [s.field]: s.direction }),
+        {},
+      ),
+    });
+
+    const items = entities.map((e) => this.mapper.toViewModel(e));
+    return new PaginatedResult(items, total, page, perPage);
   }
 
   async save(_viewModel: UserViewModel): Promise<void> {
-    throw new Error('Method not implemented.');
+    // read-side projection — write side handles persistence
   }
 
   async delete(_id: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    // read-side projection — write side handles persistence
   }
 
   async findByUsername(username: string): Promise<UserViewModel | null> {
