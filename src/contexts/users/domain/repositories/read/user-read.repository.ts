@@ -3,4 +3,6 @@ import { IBaseReadRepository } from '@sisques-labs/nestjs-kit';
 
 export const USER_READ_REPOSITORY = Symbol('USER_READ_REPOSITORY');
 
-export type IUserReadRepository = IBaseReadRepository<UserViewModel>;
+export interface IUserReadRepository extends IBaseReadRepository<UserViewModel> {
+  findByUsername(username: string): Promise<UserViewModel | null>;
+}

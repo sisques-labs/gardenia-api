@@ -33,4 +33,11 @@ export class UserTypeOrmReadRepository implements IUserReadRepository {
   async delete(_id: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
+
+  async findByUsername(username: string): Promise<UserViewModel | null> {
+    const entity = await this.repo.findOne({
+      where: { username: username.toLowerCase() },
+    });
+    return entity ? this.mapper.toViewModel(entity) : null;
+  }
 }

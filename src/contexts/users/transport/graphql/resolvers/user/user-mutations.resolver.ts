@@ -1,10 +1,9 @@
-import { CreateUserCommand } from '@contexts/users/application/commands/create-user/create-user.command';
+import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { DeleteUserCommand } from '@contexts/users/application/commands/delete-user/delete-user.command';
 import { UpdateUserCommand } from '@contexts/users/application/commands/update-user/update-user.command';
-import { UserCreateRequestDto } from '@contexts/users/transport/graphql/dtos/requests/user/user-create.request.dto';
 import { UserDeleteRequestDto } from '@contexts/users/transport/graphql/dtos/requests/user/user-delete.request.dto';
 import { UserUpdateRequestDto } from '@contexts/users/transport/graphql/dtos/requests/user/user-update.request.dto';
-import { Logger } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import {
@@ -22,25 +21,6 @@ export class UserMutationsResolver {
     private readonly commandBus: CommandBus,
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
   ) {}
-
-  @Mutation(() => MutationResponseDto)
-  async userCreate(
-    @Args('input') input: UserCreateRequestDto,
-  ): Promise<MutationResponseDto> {
-    this.logger.log(`Creating user with input: ${JSON.stringify(input)}`);
-
-    await this.commandBus.execute(
-      new CreateUserCommand({
-        id: UuidValueObject.generate().value,
-        status: input.status,
-      }),
-    );
-
-    return this.mutationResponseGraphQLMapper.toResponseDto({
-      success: true,
-      message: 'User created successfully',
-    });
-  }
 
   @Mutation(() => MutationResponseDto)
   async userUpdate(

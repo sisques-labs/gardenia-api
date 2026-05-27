@@ -1,19 +1,19 @@
 import { CreateUserCommand } from '@contexts/users/application/commands/create-user/create-user.command';
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
 import { UserBuilder } from '@contexts/users/domain/builders/user.builder';
-import { UserCreationFailedEvent } from '@contexts/users/domain/events/user-creation-failed/user-creation-failed.event';
+import { UserStatusEnum } from '@contexts/users/domain/enums/user-status.enum';
 import {
   IUserWriteRepository,
   USER_WRITE_REPOSITORY,
 } from '@contexts/users/domain/repositories/write/user-write.repository';
 import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
+import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 @CommandHandler(CreateUserCommand)
 export class CreateUserCommandHandler
   extends BaseCommandHandler<CreateUserCommand, UserAggregate>
-  implements ICommandHandler<CreateUserCommand>
+  implements ICommandHandler<CreateUserCommand, string>
 {
   private readonly logger = new Logger(CreateUserCommandHandler.name);
 
@@ -26,35 +26,19 @@ export class CreateUserCommandHandler
     super(eventBus);
   }
 
-  async execute(command: CreateUserCommand): Promise<void> {
-    this.logger.log(`Creating user with command: ${JSON.stringify(command)}`);
-    try {
-      const user = this.userBuilder
-        .withId(command.id)
-        .withStatus(command.status.value)
-        .withCreatedAt(new Date())
-        .withUpdatedAt(new Date())
-        .build();
+  async execute(_command: CreateUserCommand): Promise<string> {
+    const id = UuidValueObject.generate().value;
+    const username = `user_${id.replace(/-/g, '').slice(0, 8)}`;
 
-      await this.userWriteRepository.save(user);
-      await this.publishEvents(user);
-    } catch (error) {
-      this.logger.error(`Error creating user: ${error}`);
-      await this.eventBus.publish(
-        new UserCreationFailedEvent(
-          {
-            aggregateRootId: command.id,
-            aggregateRootType: UserAggregate.name,
-            entityId: command.id,
-            entityType: UserAggregate.name,
-            eventType: UserCreationFailedEvent.name,
-          },
-          {
-            userId: command.id,
-            reason: error instanceof Error ? error.message : String(error),
-          },
-        ),
-      );
-    }
+    const user = this.userBuilder
+      .withId(id)
+      .withStatus(UserStatusEnum.ACTIVE)
+      .withUsername(username)
+      .build();
+
+    await this.userWriteRepository.save(user);
+    await this.publishEvents(user);
+
+    return id;
   }
 }

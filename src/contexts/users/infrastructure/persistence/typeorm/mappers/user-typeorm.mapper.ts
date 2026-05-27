@@ -13,6 +13,13 @@ export class UserTypeOrmMapper {
     return this.userBuilder
       .withId(entity.id)
       .withStatus(entity.status as UserStatusEnum)
+      .withUsername(entity.username)
+      .withFirstName(entity.firstName ?? null)
+      .withLastName(entity.lastName ?? null)
+      .withAvatarUrl(entity.avatarUrl ?? null)
+      .withBio(entity.bio ?? null)
+      .withLocale(entity.locale ?? null)
+      .withTimezone(entity.timezone ?? null)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -33,9 +40,32 @@ export class UserTypeOrmMapper {
 
     entity.id = primitives.id;
     entity.status = primitives.status as UserStatusEnum;
+    entity.username = primitives.username;
+    entity.firstName = primitives.firstName;
+    entity.lastName = primitives.lastName;
+    entity.avatarUrl = primitives.avatarUrl;
+    entity.bio = primitives.bio;
+    entity.locale = primitives.locale;
+    entity.timezone = primitives.timezone;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
 
     return entity;
+  }
+
+  public toViewModel(entity: UserTypeOrmEntity): UserViewModel {
+    return new UserViewModel({
+      id: entity.id,
+      status: entity.status,
+      username: entity.username,
+      firstName: entity.firstName ?? null,
+      lastName: entity.lastName ?? null,
+      avatarUrl: entity.avatarUrl ?? null,
+      bio: entity.bio ?? null,
+      locale: entity.locale ?? null,
+      timezone: entity.timezone ?? null,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    });
   }
 }

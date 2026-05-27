@@ -8,6 +8,7 @@ import { DeleteUserCommandHandler } from './application/commands/delete-user/del
 import { UpdateUserCommandHandler } from './application/commands/update-user/update-user.handler';
 import { UserFindByCriteriaQueryHandler } from './application/queries/user-find-by-criteria/user-find-by-criteria.handler';
 import { UserFindByIdQueryHandler } from './application/queries/user-find-by-id/user-find-by-id.handler';
+import { AssertUsernameAvailableService } from './application/services/read/assert-username-available/assert-username-available.service';
 import { AssertUserViewModelExistsService } from './application/services/read/assert-user-view-model-exists/assert-user-view-model-exists.service';
 import { AssertUserExistsService } from './application/services/write/assert-user-exists/assert-user-exists.service';
 import { UserBuilder } from './domain/builders/user.builder';
@@ -35,6 +36,7 @@ const QUERY_HANDLERS = [
 const APPLICATION_SERVICES = [
   AssertUserViewModelExistsService,
   AssertUserExistsService,
+  AssertUsernameAvailableService,
 ];
 
 const DOMAIN_BUILDERS = [UserBuilder];

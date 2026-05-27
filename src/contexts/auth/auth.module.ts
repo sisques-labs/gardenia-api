@@ -4,17 +4,14 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { DeleteAccountCommandHandler } from './application/commands/delete-account/delete-account.handler';
-import { LoginAccountCommandHandler } from './application/commands/login-account/login-account.handler';
+import { LoginUserCommandHandler } from './application/commands/login-user/login-user.handler';
 import { RegisterAccountCommandHandler } from './application/commands/register-account/register-account.handler';
-import { RegisterAccountSaga } from './application/sagas/register-account.saga';
 import { AccountFindByCriteriaQueryHandler } from './application/queries/account-find-by-criteria/account-find-by-criteria.handler';
 import { AccountFindByIdQueryHandler } from './application/queries/account-find-by-id/account-find-by-id.handler';
 import { AuthService } from './application/services/auth.service';
 import { AssertAccountViewModelExistsService } from './application/services/read/assert-account-view-model-exists/assert-account-view-model-exists.service';
-import { ValidateAccountCredentialsService } from './application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { TokenService } from './application/services/token.service';
+import { AssertAccountEmailAvailableService } from './application/services/write/assert-account-email-available/assert-account-email-available.service';
 import { AssertAccountExistsService } from './application/services/write/assert-account-exists/assert-account-exists.service';
 import { AccountBuilder } from './domain/builders/account.builder';
 import { ACCOUNT_READ_REPOSITORY } from './domain/repositories/read/account-read.repository';
@@ -47,6 +44,7 @@ const APPLICATION_SERVICES = [
   AuthService,
   TokenService,
   AssertAccountExistsService,
+  AssertAccountEmailAvailableService,
   AssertAccountViewModelExistsService,
   ValidateAccountCredentialsService,
 ];
