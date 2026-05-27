@@ -1,13 +1,12 @@
 {
   "name": "gardenia-api",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "0.0.0",
+  "description": "Garden & plant manager API",
+  "author": "Sisques Labs",
   "private": true,
   "license": "UNLICENSED",
   "packageManager": "pnpm@9.15.4",
   "scripts": {
-    "prepare": "husky",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
