@@ -36,8 +36,6 @@ export class AccountTypeOrmMapper {
       id: entity.id,
       userId: entity.userId,
       email: entity.email,
-      // TODO: passwordHash should not reach transport DTOs — remove from ViewModel in a follow-up
-      passwordHash: entity.passwordHash,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     });
