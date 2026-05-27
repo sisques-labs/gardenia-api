@@ -6,8 +6,9 @@ import {
   ACCOUNT_WRITE_REPOSITORY,
   IAccountWriteRepository,
 } from '@contexts/auth/domain/repositories/write/account-write.repository';
+import { CreateUserCommand } from '@contexts/users/application/commands/create-user/create-user.command';
 import { Inject } from '@nestjs/common';
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import { CommandBus, CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 @CommandHandler(RegisterAccountCommand)
@@ -18,6 +19,7 @@ export class RegisterAccountCommandHandler
   constructor(
     @Inject(ACCOUNT_WRITE_REPOSITORY)
     private readonly accountWriteRepository: IAccountWriteRepository,
+    private readonly commandBus: CommandBus,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -27,14 +29,15 @@ export class RegisterAccountCommandHandler
     const { email, passwordHash } = command;
 
     const existing = await this.accountWriteRepository.findByEmail(email.value);
-
     if (existing) {
       throw new AccountAlreadyExistsException(email.value);
     }
 
-    const id = UuidValueObject.generate().value;
-    const userId = UuidValueObject.generate().value;
+    const userId = await this.commandBus.execute<CreateUserCommand, string>(
+      new CreateUserCommand(),
+    );
 
+    const id = UuidValueObject.generate().value;
     const now = new Date();
     const account = new AccountBuilder()
       .withId(id)
