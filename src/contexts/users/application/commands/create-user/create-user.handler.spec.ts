@@ -141,4 +141,48 @@ describe('CreateUserCommandHandler', () => {
       await expect(handler.execute(command)).rejects.toThrow('DB error');
     });
   });
+
+  describe('profile fields forwarding', () => {
+    it('should pass all optional profile fields from command to builder', async () => {
+      userWriteRepository.save.mockResolvedValue(undefined as any);
+
+      const command = new CreateUserCommand({
+        status: UserStatusEnum.ACTIVE,
+        username: 'johndoe',
+        firstName: 'John',
+        lastName: 'Doe',
+        avatarUrl: 'https://example.com/avatar.png',
+        bio: 'A short bio.',
+        locale: 'es-AR',
+        timezone: 'America/Buenos_Aires',
+      });
+
+      await handler.execute(command);
+
+      expect(userBuilder.withFirstName).toHaveBeenCalledWith('John');
+      expect(userBuilder.withLastName).toHaveBeenCalledWith('Doe');
+      expect(userBuilder.withAvatarUrl).toHaveBeenCalledWith('https://example.com/avatar.png');
+      expect(userBuilder.withBio).toHaveBeenCalledWith('A short bio.');
+      expect(userBuilder.withLocale).toHaveBeenCalledWith('es-AR');
+      expect(userBuilder.withTimezone).toHaveBeenCalledWith('America/Buenos_Aires');
+    });
+
+    it('should pass null for all optional profile fields when not provided in command', async () => {
+      userWriteRepository.save.mockResolvedValue(undefined as any);
+
+      const command = new CreateUserCommand({
+        status: UserStatusEnum.ACTIVE,
+        username: 'johndoe',
+      });
+
+      await handler.execute(command);
+
+      expect(userBuilder.withFirstName).toHaveBeenCalledWith(null);
+      expect(userBuilder.withLastName).toHaveBeenCalledWith(null);
+      expect(userBuilder.withAvatarUrl).toHaveBeenCalledWith(null);
+      expect(userBuilder.withBio).toHaveBeenCalledWith(null);
+      expect(userBuilder.withLocale).toHaveBeenCalledWith(null);
+      expect(userBuilder.withTimezone).toHaveBeenCalledWith(null);
+    });
+  });
 });
