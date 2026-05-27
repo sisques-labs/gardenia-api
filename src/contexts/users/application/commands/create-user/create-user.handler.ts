@@ -30,10 +30,13 @@ export class CreateUserCommandHandler
     const id = UuidValueObject.generate().value;
     const username = `user_${id.replace(/-/g, '').slice(0, 8)}`;
 
+    const now = new Date();
     const user = this.userBuilder
       .withId(id)
       .withStatus(UserStatusEnum.ACTIVE)
       .withUsername(username)
+      .withCreatedAt(now)
+      .withUpdatedAt(now)
       .build();
 
     user.create();

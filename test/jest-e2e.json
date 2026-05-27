@@ -11,5 +11,6 @@
     "^@core/(.*)$": "<rootDir>/src/core/$1"
   },
   "setupFiles": ["<rootDir>/test/helpers/env-setup.ts"],
-  "testTimeout": 30000
+  "testTimeout": 30000,
+  "maxWorkers": 1
 }
