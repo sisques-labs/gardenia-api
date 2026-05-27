@@ -1,7 +1,6 @@
 import { AuthModule } from '@contexts/auth/auth.module';
 import { UsersModule } from '@contexts/users/users.module';
 import { authConfig } from '@core/config/auth.config';
-import { mongoConfig } from '@core/config/mongo.config';
 import { postgresConfig } from '@core/config/postgres.config';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';

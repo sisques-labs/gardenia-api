@@ -1,10 +1,11 @@
+import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
+import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoginUserCommandHandler } from './application/commands/login-user/login-user.handler';
 import { RegisterAccountCommandHandler } from './application/commands/register-account/register-account.handler';
 import { AccountFindByCriteriaQueryHandler } from './application/queries/account-find-by-criteria/account-find-by-criteria.handler';
 import { AccountFindByIdQueryHandler } from './application/queries/account-find-by-id/account-find-by-id.handler';
@@ -30,10 +31,7 @@ import { AuthController } from './transport/rest/auth.controller';
 const COMMAND_HANDLERS = [
   RegisterAccountCommandHandler,
   LoginAccountCommandHandler,
-  DeleteAccountCommandHandler,
 ];
-
-const SAGAS = [RegisterAccountSaga];
 
 const QUERY_HANDLERS = [
   AccountFindByIdQueryHandler,
@@ -92,7 +90,6 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController];
   controllers: [...TRANSPORT_REST_CONTROLLERS],
   providers: [
     ...COMMAND_HANDLERS,
-    ...SAGAS,
     ...QUERY_HANDLERS,
     ...APPLICATION_SERVICES,
     ...DOMAIN_BUILDERS,
