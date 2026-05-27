@@ -3,6 +3,7 @@ import { IUserWriteRepository } from '@contexts/users/domain/repositories/write/
 import { UserTypeOrmEntity } from '@contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
 import { UserTypeOrmMapper } from '@contexts/users/infrastructure/persistence/typeorm/mappers/user-typeorm.mapper';
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
@@ -10,6 +11,7 @@ import { Repository } from 'typeorm';
 export class UserTypeOrmWriteRepository implements IUserWriteRepository {
   constructor(
     private readonly userTypeOrmMapper: UserTypeOrmMapper,
+    @InjectRepository(UserTypeOrmEntity)
     private readonly repository: Repository<UserTypeOrmEntity>,
   ) {}
 

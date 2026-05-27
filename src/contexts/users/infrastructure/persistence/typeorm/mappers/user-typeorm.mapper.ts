@@ -1,5 +1,6 @@
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
 import { UserBuilder } from '@contexts/users/domain/builders/user.builder';
+import { UserViewModel } from '@contexts/users/domain/view-models/user.view-model';
 import { UserTypeOrmEntity } from '@contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { UserStatusEnum } from '@sisques-labs/nestjs-kit';
@@ -15,6 +16,15 @@ export class UserTypeOrmMapper {
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
+  }
+
+  public toViewModel(entity: UserTypeOrmEntity): UserViewModel {
+    return new UserViewModel({
+      id: entity.id,
+      status: entity.status,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    });
   }
 
   public toEntity(user: UserAggregate): UserTypeOrmEntity {

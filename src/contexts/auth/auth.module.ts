@@ -5,25 +5,79 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { LoginUserCommandHandler } from './application/commands/login-user/login-user.handler';
+import { DeleteAccountCommandHandler } from './application/commands/delete-account/delete-account.handler';
+import { LoginAccountCommandHandler } from './application/commands/login-account/login-account.handler';
 import { RegisterAccountCommandHandler } from './application/commands/register-account/register-account.handler';
+import { RegisterAccountSaga } from './application/sagas/register-account.saga';
+import { AccountFindByCriteriaQueryHandler } from './application/queries/account-find-by-criteria/account-find-by-criteria.handler';
+import { AccountFindByIdQueryHandler } from './application/queries/account-find-by-id/account-find-by-id.handler';
 import { AuthService } from './application/services/auth.service';
+import { AssertAccountViewModelExistsService } from './application/services/read/assert-account-view-model-exists/assert-account-view-model-exists.service';
+import { ValidateAccountCredentialsService } from './application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { TokenService } from './application/services/token.service';
+import { AssertAccountExistsService } from './application/services/write/assert-account-exists/assert-account-exists.service';
+import { AccountBuilder } from './domain/builders/account.builder';
+import { ACCOUNT_READ_REPOSITORY } from './domain/repositories/read/account-read.repository';
 import { ACCOUNT_WRITE_REPOSITORY } from './domain/repositories/write/account-write.repository';
 import { JwtAuthGuard } from './infrastructure/guards/jwt-auth.guard';
 import { LocalAuthGuard } from './infrastructure/guards/local-auth.guard';
+import { AccountTypeOrmReadRepository } from './infrastructure/persistence/typeorm/account-typeorm-read.repository';
 import { AccountTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/account-typeorm-write.repository';
+import { AccountTypeOrmMapper } from './infrastructure/persistence/typeorm/account-typeorm.mapper';
 import { AccountEntity } from './infrastructure/persistence/typeorm/account.entity';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
 import { AuthResolver } from './transport/graphql/auth.resolver';
 import { AuthController } from './transport/rest/auth.controller';
 
+const COMMAND_HANDLERS = [
+  RegisterAccountCommandHandler,
+  LoginAccountCommandHandler,
+  DeleteAccountCommandHandler,
+];
+
+const SAGAS = [RegisterAccountSaga];
+
+const QUERY_HANDLERS = [
+  AccountFindByIdQueryHandler,
+  AccountFindByCriteriaQueryHandler,
+];
+
+const APPLICATION_SERVICES = [
+  AuthService,
+  TokenService,
+  AssertAccountExistsService,
+  AssertAccountViewModelExistsService,
+  ValidateAccountCredentialsService,
+];
+
+const DOMAIN_BUILDERS = [AccountBuilder];
+
+const INFRASTRUCTURE_MAPPERS = [AccountTypeOrmMapper];
+
+const INFRASTRUCTURE_REPOSITORIES = [
+  {
+    provide: ACCOUNT_WRITE_REPOSITORY,
+    useClass: AccountTypeOrmWriteRepository,
+  },
+  { provide: ACCOUNT_READ_REPOSITORY, useClass: AccountTypeOrmReadRepository },
+];
+
+const INFRASTRUCTURE_ENTITIES = [AccountEntity];
+
+const STRATEGIES = [LocalStrategy, JwtStrategy];
+
+const GUARDS = [JwtAuthGuard, LocalAuthGuard];
+
+const TRANSPORT_GRAPHQL_RESOLVERS = [AuthResolver];
+
+const TRANSPORT_REST_CONTROLLERS = [AuthController];
+
 @Module({
   imports: [
     CqrsModule,
     PassportModule,
-    TypeOrmModule.forFeature([AccountEntity]),
+    TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService): JwtModuleOptions => ({
@@ -37,21 +91,18 @@ import { AuthController } from './transport/rest/auth.controller';
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [...TRANSPORT_REST_CONTROLLERS],
   providers: [
-    AuthService,
-    TokenService,
-    RegisterAccountCommandHandler,
-    LoginUserCommandHandler,
-    LocalStrategy,
-    JwtStrategy,
-    JwtAuthGuard,
-    LocalAuthGuard,
-    AuthResolver,
-    {
-      provide: ACCOUNT_WRITE_REPOSITORY,
-      useClass: AccountTypeOrmWriteRepository,
-    },
+    ...COMMAND_HANDLERS,
+    ...SAGAS,
+    ...QUERY_HANDLERS,
+    ...APPLICATION_SERVICES,
+    ...DOMAIN_BUILDERS,
+    ...INFRASTRUCTURE_MAPPERS,
+    ...INFRASTRUCTURE_REPOSITORIES,
+    ...STRATEGIES,
+    ...GUARDS,
+    ...TRANSPORT_GRAPHQL_RESOLVERS,
   ],
   exports: [JwtAuthGuard, LocalAuthGuard, TokenService],
 })

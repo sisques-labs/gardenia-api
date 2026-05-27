@@ -8,12 +8,7 @@ import {
 } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { Inject } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import {
-  BaseCommandHandler,
-  Criteria,
-  FilterOperator,
-  UuidValueObject,
-} from '@sisques-labs/nestjs-kit';
+import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 @CommandHandler(RegisterAccountCommand)
 export class RegisterAccountCommandHandler
@@ -31,29 +26,27 @@ export class RegisterAccountCommandHandler
   async execute(command: RegisterAccountCommand): Promise<void> {
     const { email, passwordHash } = command;
 
-    const filters = {
-      field: 'email',
-      operator: FilterOperator.EQUALS,
-      value: email.value,
-    };
-
-    const existing = await this.accountWriteRepository.findByCriteria(
-      new Criteria([filters]),
-    );
+    const existing = await this.accountWriteRepository.findByEmail(email.value);
 
     if (existing) {
       throw new AccountAlreadyExistsException(email.value);
     }
 
+    const id = UuidValueObject.generate().value;
     const userId = UuidValueObject.generate().value;
 
-    const account = await new AccountBuilder()
+    const now = new Date();
+    const account = new AccountBuilder()
+      .withId(id)
       .withUserId(userId)
       .withEmail(email.value)
       .withPasswordHash(passwordHash.value)
+      .withCreatedAt(now)
+      .withUpdatedAt(now)
       .build();
 
     await this.accountWriteRepository.save(account);
+    account.create();
     await this.publishEvents(account);
   }
 }
