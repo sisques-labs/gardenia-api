@@ -57,8 +57,6 @@ const TRANSPORT_GRAPHQL_RESOLVERS = [
 
 const INFRASTRUCTURE_ENTITIES = [UserTypeOrmEntity];
 
-// const TRANSPORT_REST_CONTROLLERS = [UsersController];
-
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
   providers: [
@@ -71,7 +69,6 @@ const INFRASTRUCTURE_ENTITIES = [UserTypeOrmEntity];
     ...TRANSPORT_GRAPHQL_RESOLVERS,
     ...INFRASTRUCTURE_REPOSITORIES,
   ],
-  //controllers: [...TRANSPORT_REST_CONTROLLERS],
   exports: [],
 })
 export class UsersModule {}

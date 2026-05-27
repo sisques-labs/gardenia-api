@@ -1,33 +1,22 @@
-import { Inject, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-
-import {
-  ACCOUNT_WRITE_REPOSITORY,
-  IAccountWriteRepository,
-} from '../../domain/repositories/write/account-write.repository';
+import { Injectable } from '@nestjs/common';
+import { ValidateAccountCredentialsService } from './read/validate-account-credentials/validate-account-credentials.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(ACCOUNT_WRITE_REPOSITORY)
-    private readonly accountWriteRepository: IAccountWriteRepository,
+    private readonly validateAccountCredentialsService: ValidateAccountCredentialsService,
   ) {}
 
   async validateAccount(
     email: string,
     password: string,
   ): Promise<{ userId: string; email: string } | null> {
-    const account = await this.accountWriteRepository.findByEmail(email);
+    const account = await this.validateAccountCredentialsService.execute(
+      email,
+      password,
+    );
 
     if (!account) {
-      return null;
-    }
-
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      account.passwordHash.value,
-    );
-    if (!isPasswordValid) {
       return null;
     }
 

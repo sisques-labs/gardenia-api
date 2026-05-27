@@ -52,6 +52,7 @@ export class RegisterAccountCommandHandler
       .build();
 
     await this.accountWriteRepository.save(account);
+    account.create();
     await this.publishEvents(account);
   }
 }

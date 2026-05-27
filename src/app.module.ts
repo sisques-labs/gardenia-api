@@ -16,7 +16,7 @@ import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
     SharedGraphQLModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [postgresConfig, mongoConfig, authConfig],
+      load: [postgresConfig, authConfig],
       cache: true,
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({

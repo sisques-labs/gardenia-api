@@ -9,10 +9,11 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
+  UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
 @Resolver()
-@UseGuards(JwtAuthGuard)
+//@UseGuards(JwtAuthGuard)
 export class UserMutationsResolver {
   private readonly logger = new Logger(UserMutationsResolver.name);
 

@@ -25,6 +25,15 @@ export class UserTypeOrmMapper {
       .build();
   }
 
+  public toViewModel(entity: UserTypeOrmEntity): UserViewModel {
+    return new UserViewModel({
+      id: entity.id,
+      status: entity.status,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    });
+  }
+
   public toEntity(user: UserAggregate): UserTypeOrmEntity {
     const primitives = user.toPrimitives();
     const entity = new UserTypeOrmEntity();

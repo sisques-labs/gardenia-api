@@ -1,14 +1,11 @@
 import { AuthService } from './auth.service';
-import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
-import * as bcrypt from 'bcrypt';
-
-jest.mock('bcrypt');
+import { ValidateAccountCredentialsService } from './read/validate-account-credentials/validate-account-credentials.service';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let accountWriteRepository: jest.Mocked<IAccountWriteRepository>;
+  let validateAccountCredentialsService: jest.Mocked<ValidateAccountCredentialsService>;
 
   const buildAccount = (): AccountAggregate =>
     new AccountBuilder()
@@ -23,36 +20,29 @@ describe('AuthService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    accountWriteRepository = {
-      findByEmail: jest.fn(),
-      save: jest.fn(),
-      findById: jest.fn(),
-      delete: jest.fn(),
-      findByCriteria: jest.fn(),
-      findByUserId: jest.fn(),
-    } as unknown as jest.Mocked<IAccountWriteRepository>;
+    validateAccountCredentialsService = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<ValidateAccountCredentialsService>;
 
-    service = new AuthService(accountWriteRepository);
+    service = new AuthService(validateAccountCredentialsService);
   });
 
   describe('validateAccount', () => {
-    it('should call bcrypt.compare with account.passwordHash.value (a plain string)', async () => {
+    it('should delegate the credential validation to the application service', async () => {
       const account = buildAccount();
-      accountWriteRepository.findByEmail.mockResolvedValue(account);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      validateAccountCredentialsService.execute.mockResolvedValue(account);
 
       await service.validateAccount('test@example.com', 'plain-password');
 
-      expect(bcrypt.compare).toHaveBeenCalledWith(
+      expect(validateAccountCredentialsService.execute).toHaveBeenCalledWith(
+        'test@example.com',
         'plain-password',
-        account.passwordHash.value,
       );
     });
 
     it('should return { userId, email } as primitives when credentials are valid', async () => {
       const account = buildAccount();
-      accountWriteRepository.findByEmail.mockResolvedValue(account);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      validateAccountCredentialsService.execute.mockResolvedValue(account);
 
       const result = await service.validateAccount(
         'test@example.com',
@@ -66,9 +56,7 @@ describe('AuthService', () => {
     });
 
     it('should return null when password is wrong', async () => {
-      const account = buildAccount();
-      accountWriteRepository.findByEmail.mockResolvedValue(account);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      validateAccountCredentialsService.execute.mockResolvedValue(null);
 
       const result = await service.validateAccount(
         'test@example.com',
@@ -76,14 +64,14 @@ describe('AuthService', () => {
       );
 
       expect(result).toBeNull();
-      expect(bcrypt.compare).toHaveBeenCalledWith(
+      expect(validateAccountCredentialsService.execute).toHaveBeenCalledWith(
+        'test@example.com',
         'wrong-password',
-        account.passwordHash.value,
       );
     });
 
     it('should return null when email is unknown — without accessing any VO', async () => {
-      accountWriteRepository.findByEmail.mockResolvedValue(null);
+      validateAccountCredentialsService.execute.mockResolvedValue(null);
 
       const result = await service.validateAccount(
         'unknown@example.com',
@@ -91,7 +79,10 @@ describe('AuthService', () => {
       );
 
       expect(result).toBeNull();
-      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(validateAccountCredentialsService.execute).toHaveBeenCalledWith(
+        'unknown@example.com',
+        'any-password',
+      );
     });
   });
 });

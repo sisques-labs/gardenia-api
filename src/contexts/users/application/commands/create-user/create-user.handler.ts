@@ -6,7 +6,7 @@ import {
   IUserWriteRepository,
   USER_WRITE_REPOSITORY,
 } from '@contexts/users/domain/repositories/write/user-write.repository';
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
@@ -15,6 +15,8 @@ export class CreateUserCommandHandler
   extends BaseCommandHandler<CreateUserCommand, UserAggregate>
   implements ICommandHandler<CreateUserCommand, string>
 {
+  private readonly logger = new Logger(CreateUserCommandHandler.name);
+
   constructor(
     @Inject(USER_WRITE_REPOSITORY)
     private readonly userWriteRepository: IUserWriteRepository,

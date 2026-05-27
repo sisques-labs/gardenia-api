@@ -29,8 +29,11 @@ import { AuthController } from './transport/rest/auth.controller';
 
 const COMMAND_HANDLERS = [
   RegisterAccountCommandHandler,
-  LoginUserCommandHandler,
+  LoginAccountCommandHandler,
+  DeleteAccountCommandHandler,
 ];
+
+const SAGAS = [RegisterAccountSaga];
 
 const QUERY_HANDLERS = [
   AccountFindByIdQueryHandler,
@@ -43,6 +46,7 @@ const APPLICATION_SERVICES = [
   AssertAccountExistsService,
   AssertAccountEmailAvailableService,
   AssertAccountViewModelExistsService,
+  ValidateAccountCredentialsService,
 ];
 
 const DOMAIN_BUILDERS = [AccountBuilder];
@@ -88,6 +92,7 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController];
   controllers: [...TRANSPORT_REST_CONTROLLERS],
   providers: [
     ...COMMAND_HANDLERS,
+    ...SAGAS,
     ...QUERY_HANDLERS,
     ...APPLICATION_SERVICES,
     ...DOMAIN_BUILDERS,
