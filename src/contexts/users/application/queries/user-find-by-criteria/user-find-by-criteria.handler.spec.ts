@@ -23,6 +23,21 @@ const buildViewModel = (): UserViewModel =>
     updatedAt: new Date('2024-01-01'),
   });
 
+const buildFullViewModel = (): UserViewModel =>
+  new UserViewModel({
+    id: USER_ID,
+    status: UserStatusEnum.ACTIVE,
+    username: 'johndoe',
+    firstName: 'John',
+    lastName: 'Doe',
+    avatarUrl: 'https://example.com/avatar.png',
+    bio: 'A short bio.',
+    locale: 'es-AR',
+    timezone: 'America/Buenos_Aires',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  });
+
 describe('UserFindByCriteriaQueryHandler', () => {
   let handler: UserFindByCriteriaQueryHandler;
   let userReadRepository: jest.Mocked<IUserReadRepository>;
@@ -53,6 +68,25 @@ describe('UserFindByCriteriaQueryHandler', () => {
 
       expect(userReadRepository.findByCriteria).toHaveBeenCalledWith(criteria);
       expect(result).toBe(paginatedResult);
+    });
+
+    it('should return view models that include all profile fields when users have them', async () => {
+      const fullViewModel = buildFullViewModel();
+      const paginatedResult = new PaginatedResult<UserViewModel>([fullViewModel], 1, 1, 10);
+      const criteria = {} as Criteria;
+      const query = new UserFindByCriteriaQuery({ criteria });
+      userReadRepository.findByCriteria.mockResolvedValue(paginatedResult);
+
+      const result = await handler.execute(query);
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].username).toBe('johndoe');
+      expect(result.items[0].firstName).toBe('John');
+      expect(result.items[0].lastName).toBe('Doe');
+      expect(result.items[0].avatarUrl).toBe('https://example.com/avatar.png');
+      expect(result.items[0].bio).toBe('A short bio.');
+      expect(result.items[0].locale).toBe('es-AR');
+      expect(result.items[0].timezone).toBe('America/Buenos_Aires');
     });
   });
 
