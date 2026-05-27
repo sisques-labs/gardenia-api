@@ -30,6 +30,13 @@ export class UserMutationsResolver {
       new UpdateUserCommand({
         id: input.id,
         status: input.status,
+        username: input.username,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        avatarUrl: input.avatarUrl,
+        bio: input.bio,
+        locale: input.locale,
+        timezone: input.timezone,
       }),
     );
 
