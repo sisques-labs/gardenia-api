@@ -1,6 +1,6 @@
 import { UserStatusEnum } from '@contexts/users/domain/enums/user-status.enum';
 import { Field, InputType } from '@nestjs/graphql';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 @InputType('UserCreateRequestDto')
 export class UserCreateRequestDto {
@@ -46,6 +46,7 @@ export class UserCreateRequestDto {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   bio?: string | null;
 
   @Field(() => String, {
