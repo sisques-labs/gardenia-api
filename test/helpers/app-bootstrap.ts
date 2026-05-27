@@ -11,7 +11,7 @@ import { BaseExceptionFilter } from '../../src/core/filters/base-exception.filte
 
 export interface E2EContext {
   app: INestApplication;
-  http: () => request.SuperTest<request.Test>;
+  http: () => ReturnType<typeof request>;
   dataSource: DataSource;
   close: () => Promise<void>;
 }
