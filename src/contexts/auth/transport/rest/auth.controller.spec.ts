@@ -1,7 +1,9 @@
 import { CommandBus } from '@nestjs/cqrs';
 
+import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
+import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 
 import { AuthController } from './auth.controller';
 
@@ -72,6 +74,43 @@ describe('AuthController', () => {
       });
 
       expect(result).toHaveProperty('accessToken', 'jwt-token');
+    });
+  });
+
+  describe('deleteAccount()', () => {
+    const currentUser: CurrentUserPayload = {
+      userId: '550e8400-e29b-41d4-a716-446655440000',
+      email: 'test@example.com',
+    };
+
+    it('should dispatch DeleteAccountCommand with userId from CurrentUser', async () => {
+      commandBus.execute.mockResolvedValue(undefined);
+
+      await sut.deleteAccount(currentUser);
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.any(DeleteAccountCommand),
+      );
+    });
+
+    it('should return undefined (void / 204 semantics)', async () => {
+      commandBus.execute.mockResolvedValue(undefined);
+
+      const result = await sut.deleteAccount(currentUser);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should dispatch exactly one DeleteAccountCommand per call', async () => {
+      commandBus.execute.mockResolvedValue(undefined);
+
+      await sut.deleteAccount(currentUser);
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      const dispatched = commandBus.execute.mock
+        .calls[0][0] as DeleteAccountCommand;
+      expect(dispatched.userId).toBe(currentUser.userId);
     });
   });
 });

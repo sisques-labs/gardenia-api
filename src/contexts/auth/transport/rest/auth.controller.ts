@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import {
   ApiBearerAuth,
@@ -7,8 +15,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
+import {
+  CurrentUser,
+  CurrentUserPayload,
+} from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 
 import { LoginUserDto } from './dtos/login-user.dto';
 import { RegisterAccountDto } from './dtos/register-account.dto';
@@ -40,5 +54,15 @@ export class AuthController {
       LoginAccountCommand,
       { accessToken: string }
     >(new LoginAccountCommand({ email: dto.email, password: dto.password }));
+  }
+
+  @Delete('account')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Delete the authenticated account' })
+  @ApiResponse({ status: 204, description: 'Account deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async deleteAccount(@CurrentUser() user: CurrentUserPayload): Promise<void> {
+    await this.commandBus.execute(new DeleteAccountCommand(user.userId));
   }
 }
