@@ -62,7 +62,7 @@ describe('AccountTypeOrmMapper', () => {
   });
 
   describe('toViewModel', () => {
-    it('should return an AccountViewModel with userId, email and passwordHash as strings', () => {
+    it('should return an AccountViewModel with userId and email as strings, without passwordHash', () => {
       const entity = buildEntity();
 
       const result = mapper.toViewModel(entity);
@@ -70,7 +70,7 @@ describe('AccountTypeOrmMapper', () => {
       expect(result).toBeInstanceOf(AccountViewModel);
       expect(result.userId).toBe(entity.userId);
       expect(result.email).toBe(entity.email);
-      expect(result.passwordHash).toBe(entity.passwordHash);
+      expect((result as any).passwordHash).toBeUndefined();
     });
   });
 });

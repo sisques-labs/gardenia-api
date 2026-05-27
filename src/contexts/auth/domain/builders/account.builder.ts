@@ -42,7 +42,6 @@ export class AccountBuilder extends BaseBuilder<
       id: this._id,
       userId: this._userId,
       email: this._email,
-      passwordHash: this._passwordHash,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });
