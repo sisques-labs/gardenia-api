@@ -60,7 +60,11 @@ describe('DeleteUserCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
-    handler = new DeleteUserCommandHandler(userWriteRepository, assertUserExistsService, eventBus);
+    handler = new DeleteUserCommandHandler(
+      userWriteRepository,
+      assertUserExistsService,
+      eventBus,
+    );
   });
 
   describe('happy path', () => {
@@ -87,7 +91,9 @@ describe('DeleteUserCommandHandler', () => {
 
       const command = new DeleteUserCommand({ id: USER_ID });
 
-      await expect(handler.execute(command)).rejects.toThrow(UserNotFoundException);
+      await expect(handler.execute(command)).rejects.toThrow(
+        UserNotFoundException,
+      );
       expect(userWriteRepository.delete).not.toHaveBeenCalled();
     });
   });

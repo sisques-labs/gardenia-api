@@ -36,8 +36,9 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns JWT access token' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() dto: LoginUserDto): Promise<{ accessToken: string }> {
-    return this.commandBus.execute<LoginAccountCommand, { accessToken: string }>(
-      new LoginAccountCommand({ email: dto.email, password: dto.password }),
-    );
+    return this.commandBus.execute<
+      LoginAccountCommand,
+      { accessToken: string }
+    >(new LoginAccountCommand({ email: dto.email, password: dto.password }));
   }
 }

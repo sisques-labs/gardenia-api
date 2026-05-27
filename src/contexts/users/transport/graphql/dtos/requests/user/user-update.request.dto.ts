@@ -77,7 +77,8 @@ export class UserUpdateRequestDto {
 
   @Field(() => String, {
     nullable: true,
-    description: 'The timezone of the user (IANA tz, e.g. America/Buenos_Aires)',
+    description:
+      'The timezone of the user (IANA tz, e.g. America/Buenos_Aires)',
   })
   @IsOptional()
   @IsString()

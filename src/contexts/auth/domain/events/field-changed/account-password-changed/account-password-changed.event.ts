@@ -7,10 +7,7 @@ import {
 export class AccountPasswordChangedEvent extends BaseEvent<
   IFieldChangedEventData<string>
 > {
-  constructor(
-    metadata: IEventMetadata,
-    data: IFieldChangedEventData<string>,
-  ) {
+  constructor(metadata: IEventMetadata, data: IFieldChangedEventData<string>) {
     super(metadata, data);
   }
 }

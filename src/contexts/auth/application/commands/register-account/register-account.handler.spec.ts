@@ -3,21 +3,10 @@ import { RegisterAccountCommand } from './register-account.command';
 import { AssertAccountEmailAvailableService } from '@contexts/auth/application/services/write/assert-account-email-available/assert-account-email-available.service';
 import { AccountAlreadyExistsException } from '@contexts/auth/domain/exceptions/account-already-exists.exception';
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
-import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
 import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 
 const EXISTING_USER_ID = '660e8400-e29b-41d4-a716-446655440001';
-
-const buildExistingAccount = (): AccountAggregate =>
-  new AccountBuilder()
-    .withId('550e8400-e29b-41d4-a716-446655440000')
-    .withUserId(EXISTING_USER_ID)
-    .withEmail('existing@example.com')
-    .withPasswordHash('hashed-password')
-    .withCreatedAt(new Date('2024-01-01'))
-    .withUpdatedAt(new Date('2024-01-01'))
-    .build();
 
 describe('RegisterAccountCommandHandler', () => {
   let handler: RegisterAccountCommandHandler;
@@ -81,7 +70,9 @@ describe('RegisterAccountCommandHandler', () => {
       password: 'Password123!',
     });
 
-    await expect(handler.execute(command)).rejects.toThrow(AccountAlreadyExistsException);
+    await expect(handler.execute(command)).rejects.toThrow(
+      AccountAlreadyExistsException,
+    );
     expect(commandBus.execute).not.toHaveBeenCalled();
     expect(accountWriteRepository.save).not.toHaveBeenCalled();
   });
@@ -98,7 +89,8 @@ describe('RegisterAccountCommandHandler', () => {
 
     expect(commandBus.execute).toHaveBeenCalledTimes(1);
 
-    const savedAccount: AccountAggregate = accountWriteRepository.save.mock.calls[0][0];
+    const savedAccount: AccountAggregate =
+      accountWriteRepository.save.mock.calls[0][0];
     expect(savedAccount.userId.value).toBe(EXISTING_USER_ID);
   });
 
@@ -124,7 +116,9 @@ describe('RegisterAccountCommandHandler', () => {
       password: 'Password123!',
     });
 
-    await expect(handler.execute(command)).rejects.toThrow('User creation failed');
+    await expect(handler.execute(command)).rejects.toThrow(
+      'User creation failed',
+    );
     expect(accountWriteRepository.save).not.toHaveBeenCalled();
   });
 });

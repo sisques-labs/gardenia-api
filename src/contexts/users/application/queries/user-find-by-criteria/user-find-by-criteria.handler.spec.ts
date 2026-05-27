@@ -1,6 +1,9 @@
-import { Criteria, PaginatedResult, UserStatusEnum } from '@sisques-labs/nestjs-kit';
+import {
+  Criteria,
+  PaginatedResult,
+  UserStatusEnum,
+} from '@sisques-labs/nestjs-kit';
 
-import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
 import { IUserReadRepository } from '@contexts/users/domain/repositories/read/user-read.repository';
 import { UserViewModel } from '@contexts/users/domain/view-models/user.view-model';
 import { UserFindByCriteriaQuery } from './user-find-by-criteria.query';
@@ -59,7 +62,12 @@ describe('UserFindByCriteriaQueryHandler', () => {
   describe('found', () => {
     it('should delegate to read repository and return PaginatedResult<UserViewModel>', async () => {
       const viewModel = buildViewModel();
-      const paginatedResult = new PaginatedResult<UserViewModel>([viewModel], 1, 1, 10);
+      const paginatedResult = new PaginatedResult<UserViewModel>(
+        [viewModel],
+        1,
+        1,
+        10,
+      );
       const criteria = {} as Criteria;
       const query = new UserFindByCriteriaQuery({ criteria });
       userReadRepository.findByCriteria.mockResolvedValue(paginatedResult);
@@ -72,7 +80,12 @@ describe('UserFindByCriteriaQueryHandler', () => {
 
     it('should return view models that include all profile fields when users have them', async () => {
       const fullViewModel = buildFullViewModel();
-      const paginatedResult = new PaginatedResult<UserViewModel>([fullViewModel], 1, 1, 10);
+      const paginatedResult = new PaginatedResult<UserViewModel>(
+        [fullViewModel],
+        1,
+        1,
+        10,
+      );
       const criteria = {} as Criteria;
       const query = new UserFindByCriteriaQuery({ criteria });
       userReadRepository.findByCriteria.mockResolvedValue(paginatedResult);
@@ -108,7 +121,9 @@ describe('UserFindByCriteriaQueryHandler', () => {
     it('should propagate repository errors', async () => {
       const criteria = {} as Criteria;
       const query = new UserFindByCriteriaQuery({ criteria });
-      userReadRepository.findByCriteria.mockRejectedValue(new Error('DB error'));
+      userReadRepository.findByCriteria.mockRejectedValue(
+        new Error('DB error'),
+      );
 
       await expect(handler.execute(query)).rejects.toThrow('DB error');
     });

@@ -63,7 +63,9 @@ describe('AccountTypeOrmWriteRepository', () => {
       const entity = buildEntity();
       typeOrmRepo.findOne.mockResolvedValue(entity);
 
-      const result = await repository.findById('550e8400-e29b-41d4-a716-446655440000');
+      const result = await repository.findById(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
 
       expect(result).toBeInstanceOf(AccountAggregate);
       expect(result!.id.value).toBe(entity.id);
@@ -84,7 +86,9 @@ describe('AccountTypeOrmWriteRepository', () => {
 
       await repository.delete('550e8400-e29b-41d4-a716-446655440000');
 
-      expect(typeOrmRepo.delete).toHaveBeenCalledWith('550e8400-e29b-41d4-a716-446655440000');
+      expect(typeOrmRepo.delete).toHaveBeenCalledWith(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
     });
   });
 

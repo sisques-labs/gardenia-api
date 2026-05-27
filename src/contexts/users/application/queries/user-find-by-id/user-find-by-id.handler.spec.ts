@@ -91,14 +91,18 @@ describe('UserFindByIdQueryHandler', () => {
         new UserNotFoundException(USER_ID),
       );
 
-      await expect(handler.execute(query)).rejects.toThrow(UserNotFoundException);
+      await expect(handler.execute(query)).rejects.toThrow(
+        UserNotFoundException,
+      );
     });
   });
 
   describe('repository error', () => {
     it('should propagate generic repository errors', async () => {
       const query = new UserFindByIdQuery({ id: USER_ID });
-      assertUserViewModelExistsService.execute.mockRejectedValue(new Error('DB error'));
+      assertUserViewModelExistsService.execute.mockRejectedValue(
+        new Error('DB error'),
+      );
 
       await expect(handler.execute(query)).rejects.toThrow('DB error');
     });

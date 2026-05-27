@@ -1,4 +1,8 @@
-import { BaseEvent, IEventMetadata, IFieldChangedEventData } from '@sisques-labs/nestjs-kit';
+import {
+  BaseEvent,
+  IEventMetadata,
+  IFieldChangedEventData,
+} from '@sisques-labs/nestjs-kit';
 
 export class UserAvatarUrlChangedEvent extends BaseEvent<
   IFieldChangedEventData<string | null>

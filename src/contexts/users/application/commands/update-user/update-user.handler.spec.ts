@@ -92,7 +92,10 @@ describe('UpdateUserCommandHandler', () => {
       assertUserExistsService.execute.mockResolvedValue(user);
       userWriteRepository.save.mockResolvedValue(undefined as any);
 
-      const command = new UpdateUserCommand({ id: USER_ID, username: 'newusername' });
+      const command = new UpdateUserCommand({
+        id: USER_ID,
+        username: 'newusername',
+      });
 
       await handler.execute(command);
 
@@ -108,7 +111,9 @@ describe('UpdateUserCommandHandler', () => {
 
       const command = new UpdateUserCommand({ id: USER_ID });
 
-      await expect(handler.execute(command)).rejects.toThrow(UserNotFoundException);
+      await expect(handler.execute(command)).rejects.toThrow(
+        UserNotFoundException,
+      );
       expect(userWriteRepository.save).not.toHaveBeenCalled();
     });
   });
@@ -121,9 +126,14 @@ describe('UpdateUserCommandHandler', () => {
         new UsernameAlreadyTakenException('newusername'),
       );
 
-      const command = new UpdateUserCommand({ id: USER_ID, username: 'newusername' });
+      const command = new UpdateUserCommand({
+        id: USER_ID,
+        username: 'newusername',
+      });
 
-      await expect(handler.execute(command)).rejects.toThrow(UsernameAlreadyTakenException);
+      await expect(handler.execute(command)).rejects.toThrow(
+        UsernameAlreadyTakenException,
+      );
       expect(userWriteRepository.save).not.toHaveBeenCalled();
     });
   });

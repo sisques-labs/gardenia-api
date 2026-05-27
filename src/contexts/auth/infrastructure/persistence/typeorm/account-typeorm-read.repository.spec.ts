@@ -38,7 +38,9 @@ describe('AccountTypeOrmReadRepository', () => {
       typeOrmRepo.findOne.mockResolvedValue(entity);
       const toViewModelSpy = jest.spyOn(mapper, 'toViewModel');
 
-      const result = await repository.findById('550e8400-e29b-41d4-a716-446655440000');
+      const result = await repository.findById(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
 
       expect(toViewModelSpy).toHaveBeenCalledWith(entity);
       expect(result).toBeInstanceOf(AccountViewModel);

@@ -21,7 +21,7 @@ export class UserTypeOrmWriteRepository implements IUserWriteRepository {
   }
 
   async findByCriteria(
-    criteria: Criteria,
+    _criteria: Criteria,
   ): Promise<PaginatedResult<UserAggregate>> {
     throw new Error('Method not implemented.');
   }

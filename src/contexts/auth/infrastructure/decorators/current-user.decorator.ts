@@ -18,7 +18,9 @@ export const CurrentUser = createParamDecorator(
       return gqlCtx.getContext<{ req: { user: CurrentUserPayload } }>().req
         .user as CurrentUserPayload;
     }
-    const request = ctx.switchToHttp().getRequest<{ user: CurrentUserPayload }>();
+    const request = ctx
+      .switchToHttp()
+      .getRequest<{ user: CurrentUserPayload }>();
     return request.user;
   },
 );

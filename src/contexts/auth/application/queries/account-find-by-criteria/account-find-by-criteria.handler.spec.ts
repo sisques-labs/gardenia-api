@@ -28,7 +28,12 @@ describe('AccountFindByCriteriaQueryHandler', () => {
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),
     });
-    const paginatedResult = new PaginatedResult<AccountViewModel>([viewModel], 1, 1, 10);
+    const paginatedResult = new PaginatedResult<AccountViewModel>(
+      [viewModel],
+      1,
+      1,
+      10,
+    );
     const criteria = {} as Criteria;
     const query = new AccountFindByCriteriaQuery({ criteria });
     readRepository.findByCriteria.mockResolvedValue(paginatedResult);

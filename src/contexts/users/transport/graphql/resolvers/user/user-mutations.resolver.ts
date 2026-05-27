@@ -1,15 +1,13 @@
-import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { DeleteUserCommand } from '@contexts/users/application/commands/delete-user/delete-user.command';
 import { UpdateUserCommand } from '@contexts/users/application/commands/update-user/update-user.command';
 import { UserDeleteRequestDto } from '@contexts/users/transport/graphql/dtos/requests/user/user-delete.request.dto';
 import { UserUpdateRequestDto } from '@contexts/users/transport/graphql/dtos/requests/user/user-update.request.dto';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-  UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
 @Resolver()

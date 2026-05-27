@@ -71,29 +71,41 @@ describe('UsernameValueObject', () => {
 
   describe('invalid inputs', () => {
     it('should throw FieldIsRequiredException for empty string', () => {
-      expect(() => new UsernameValueObject('')).toThrow(FieldIsRequiredException);
+      expect(() => new UsernameValueObject('')).toThrow(
+        FieldIsRequiredException,
+      );
     });
 
     it('should throw InvalidUsernameLengthException for username shorter than 3 chars', () => {
-      expect(() => new UsernameValueObject('ab')).toThrow(InvalidUsernameLengthException);
+      expect(() => new UsernameValueObject('ab')).toThrow(
+        InvalidUsernameLengthException,
+      );
     });
 
     it('should throw InvalidUsernameLengthException for username longer than 30 chars', () => {
       const tooLong = 'a'.repeat(31);
 
-      expect(() => new UsernameValueObject(tooLong)).toThrow(InvalidUsernameLengthException);
+      expect(() => new UsernameValueObject(tooLong)).toThrow(
+        InvalidUsernameLengthException,
+      );
     });
 
     it('should throw InvalidUsernameFormatException for username with spaces', () => {
-      expect(() => new UsernameValueObject('john doe')).toThrow(InvalidUsernameFormatException);
+      expect(() => new UsernameValueObject('john doe')).toThrow(
+        InvalidUsernameFormatException,
+      );
     });
 
     it('should throw InvalidUsernameFormatException for username with special chars', () => {
-      expect(() => new UsernameValueObject('john@doe')).toThrow(InvalidUsernameFormatException);
+      expect(() => new UsernameValueObject('john@doe')).toThrow(
+        InvalidUsernameFormatException,
+      );
     });
 
     it('should throw InvalidUsernameFormatException for username with hyphens', () => {
-      expect(() => new UsernameValueObject('john-doe')).toThrow(InvalidUsernameFormatException);
+      expect(() => new UsernameValueObject('john-doe')).toThrow(
+        InvalidUsernameFormatException,
+      );
     });
   });
 

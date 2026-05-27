@@ -46,7 +46,9 @@ describe('AssertUsernameAvailableService', () => {
       const username = new UsernameValueObject('available_user');
 
       await expect(service.execute(username)).resolves.toBeUndefined();
-      expect(readRepository.findByUsername).toHaveBeenCalledWith('available_user');
+      expect(readRepository.findByUsername).toHaveBeenCalledWith(
+        'available_user',
+      );
     });
   });
 
@@ -56,7 +58,9 @@ describe('AssertUsernameAvailableService', () => {
       readRepository.findByUsername.mockResolvedValue(viewModel);
       const username = new UsernameValueObject('johndoe');
 
-      await expect(service.execute(username)).rejects.toThrow(UsernameAlreadyTakenException);
+      await expect(service.execute(username)).rejects.toThrow(
+        UsernameAlreadyTakenException,
+      );
     });
 
     it('should include the username in the thrown exception message', async () => {

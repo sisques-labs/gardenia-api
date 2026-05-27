@@ -1,4 +1,7 @@
-import { FieldIsRequiredException, UserStatusEnum } from '@sisques-labs/nestjs-kit';
+import {
+  FieldIsRequiredException,
+  UserStatusEnum,
+} from '@sisques-labs/nestjs-kit';
 
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
 import { UserBuilder } from './user.builder';

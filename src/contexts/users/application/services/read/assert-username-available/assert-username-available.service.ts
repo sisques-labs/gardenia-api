@@ -15,7 +15,9 @@ export class AssertUsernameAvailableService implements IBaseService {
   ) {}
 
   async execute(username: UsernameValueObject): Promise<void> {
-    const existing = await this.userReadRepository.findByUsername(username.value);
+    const existing = await this.userReadRepository.findByUsername(
+      username.value,
+    );
     if (existing) throw new UsernameAlreadyTakenException(username.value);
   }
 }
