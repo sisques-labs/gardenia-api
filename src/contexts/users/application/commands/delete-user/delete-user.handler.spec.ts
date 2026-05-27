@@ -15,6 +15,22 @@ const buildUser = (): UserAggregate =>
   new UserBuilder()
     .withId(USER_ID)
     .withStatus(UserStatusEnum.ACTIVE)
+    .withUsername('johndoe')
+    .withCreatedAt(new Date('2024-01-01'))
+    .withUpdatedAt(new Date('2024-01-01'))
+    .build();
+
+const buildEnrichedUser = (): UserAggregate =>
+  new UserBuilder()
+    .withId(USER_ID)
+    .withStatus(UserStatusEnum.ACTIVE)
+    .withUsername('johndoe')
+    .withFirstName('John')
+    .withLastName('Doe')
+    .withAvatarUrl('https://example.com/avatar.png')
+    .withBio('A short bio.')
+    .withLocale('es-AR')
+    .withTimezone('America/Buenos_Aires')
     .withCreatedAt(new Date('2024-01-01'))
     .withUpdatedAt(new Date('2024-01-01'))
     .build();
@@ -73,6 +89,21 @@ describe('DeleteUserCommandHandler', () => {
 
       await expect(handler.execute(command)).rejects.toThrow(UserNotFoundException);
       expect(userWriteRepository.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('enriched aggregate', () => {
+    it('should delete and publish events even when aggregate has all profile fields populated', async () => {
+      const enrichedUser = buildEnrichedUser();
+      assertUserExistsService.execute.mockResolvedValue(enrichedUser);
+      userWriteRepository.delete.mockResolvedValue(undefined as any);
+
+      const command = new DeleteUserCommand({ id: USER_ID });
+
+      await handler.execute(command);
+
+      expect(userWriteRepository.delete).toHaveBeenCalledWith(USER_ID);
+      expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
   });
 });

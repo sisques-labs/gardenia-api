@@ -4,6 +4,12 @@ import { UserCreatedEvent } from '@contexts/users/domain/events/user-created/use
 import { UserDeletedEvent } from '@contexts/users/domain/events/user-deleted/user-deleted.event';
 import { UserStatusChangedEvent } from '@contexts/users/domain/events/field-changed/user-status-changed/user-status-changed.event';
 import { UserUpdatedEvent } from '@contexts/users/domain/events/user-updated/user-updated.event';
+import { UserFirstNameChangedEvent } from '@contexts/users/domain/events/field-changed/user-first-name-changed/user-first-name-changed.event';
+import { UserLastNameChangedEvent } from '@contexts/users/domain/events/field-changed/user-last-name-changed/user-last-name-changed.event';
+import { UserAvatarUrlChangedEvent } from '@contexts/users/domain/events/field-changed/user-avatar-url-changed/user-avatar-url-changed.event';
+import { UserBioChangedEvent } from '@contexts/users/domain/events/field-changed/user-bio-changed/user-bio-changed.event';
+import { UserLocaleChangedEvent } from '@contexts/users/domain/events/field-changed/user-locale-changed/user-locale-changed.event';
+import { UserTimezoneChangedEvent } from '@contexts/users/domain/events/field-changed/user-timezone-changed/user-timezone-changed.event';
 import { UserBuilder } from '@contexts/users/domain/builders/user.builder';
 import { UserAggregate } from './user.aggregate';
 
@@ -15,6 +21,22 @@ const buildUser = (status: UserStatusEnum = UserStatusEnum.ACTIVE): UserAggregat
   new UserBuilder()
     .withId(USER_ID)
     .withStatus(status)
+    .withUsername('johndoe')
+    .withCreatedAt(CREATED_AT)
+    .withUpdatedAt(UPDATED_AT)
+    .build();
+
+const buildFullUser = (): UserAggregate =>
+  new UserBuilder()
+    .withId(USER_ID)
+    .withStatus(UserStatusEnum.ACTIVE)
+    .withUsername('johndoe')
+    .withFirstName('John')
+    .withLastName('Doe')
+    .withAvatarUrl('https://example.com/avatar.png')
+    .withBio('A short bio.')
+    .withLocale('es-AR')
+    .withTimezone('America/Buenos_Aires')
     .withCreatedAt(CREATED_AT)
     .withUpdatedAt(UPDATED_AT)
     .build();
@@ -52,6 +74,29 @@ describe('UserAggregate', () => {
 
       expect(event.data.id).toBe(USER_ID);
       expect(event.data.status).toBe(UserStatusEnum.ACTIVE);
+      expect(event.data.username).toBe('johndoe');
+    });
+
+    it('should initialize all nullable profile fields to null when not provided', () => {
+      const user = buildUser();
+
+      expect(user.firstName).toBeNull();
+      expect(user.lastName).toBeNull();
+      expect(user.avatarUrl).toBeNull();
+      expect(user.bio).toBeNull();
+      expect(user.locale).toBeNull();
+      expect(user.timezone).toBeNull();
+    });
+
+    it('should construct with all profile fields set when provided', () => {
+      const user = buildFullUser();
+
+      expect(user.firstName).toBe('John');
+      expect(user.lastName).toBe('Doe');
+      expect(user.avatarUrl).toBe('https://example.com/avatar.png');
+      expect(user.bio).toBe('A short bio.');
+      expect(user.locale).toBe('es-AR');
+      expect(user.timezone).toBe('America/Buenos_Aires');
     });
   });
 
@@ -237,23 +282,62 @@ describe('UserAggregate', () => {
 
       expect(primitives.id).toBe(USER_ID);
       expect(primitives.status).toBe(UserStatusEnum.ACTIVE);
+      expect(primitives.username).toBe('johndoe');
       expect(primitives.createdAt).toEqual(CREATED_AT);
       expect(primitives.updatedAt).toEqual(UPDATED_AT);
     });
 
+    it('should return null for all nullable fields when not set', () => {
+      const user = buildUser();
+      const primitives = user.toPrimitives();
+
+      expect(primitives.firstName).toBeNull();
+      expect(primitives.lastName).toBeNull();
+      expect(primitives.avatarUrl).toBeNull();
+      expect(primitives.bio).toBeNull();
+      expect(primitives.locale).toBeNull();
+      expect(primitives.timezone).toBeNull();
+    });
+
+    it('should return all profile field values when set', () => {
+      const user = buildFullUser();
+      const primitives = user.toPrimitives();
+
+      expect(primitives.firstName).toBe('John');
+      expect(primitives.lastName).toBe('Doe');
+      expect(primitives.avatarUrl).toBe('https://example.com/avatar.png');
+      expect(primitives.bio).toBe('A short bio.');
+      expect(primitives.locale).toBe('es-AR');
+      expect(primitives.timezone).toBe('America/Buenos_Aires');
+    });
+
     it('should reconstruct an equivalent aggregate from toPrimitives() output', () => {
-      const original = buildUser();
+      const original = buildFullUser();
       const primitives = original.toPrimitives();
 
       const reconstructed = new UserBuilder()
         .withId(primitives.id)
         .withStatus(primitives.status)
+        .withUsername(primitives.username)
+        .withFirstName(primitives.firstName)
+        .withLastName(primitives.lastName)
+        .withAvatarUrl(primitives.avatarUrl)
+        .withBio(primitives.bio)
+        .withLocale(primitives.locale)
+        .withTimezone(primitives.timezone)
         .withCreatedAt(primitives.createdAt)
         .withUpdatedAt(primitives.updatedAt)
         .build();
 
       expect(reconstructed.id.value).toBe(original.id.value);
       expect(reconstructed.status.value).toBe(original.status.value);
+      expect(reconstructed.username.value).toBe(original.username.value);
+      expect(reconstructed.firstName).toBe(original.firstName);
+      expect(reconstructed.lastName).toBe(original.lastName);
+      expect(reconstructed.avatarUrl).toBe(original.avatarUrl);
+      expect(reconstructed.bio).toBe(original.bio);
+      expect(reconstructed.locale).toBe(original.locale);
+      expect(reconstructed.timezone).toBe(original.timezone);
       expect(reconstructed.createdAt.value).toEqual(original.createdAt.value);
       expect(reconstructed.updatedAt.value).toEqual(original.updatedAt.value);
     });
@@ -274,6 +358,13 @@ describe('UserAggregate', () => {
       expect(user.status.value).toBe(UserStatusEnum.ACTIVE);
     });
 
+    it('should expose username as a UsernameValueObject', () => {
+      const user = buildUser();
+
+      expect(user.username).toBeDefined();
+      expect(user.username.value).toBe('johndoe');
+    });
+
     it('should expose createdAt from BaseAggregate', () => {
       const user = buildUser();
 
@@ -284,6 +375,264 @@ describe('UserAggregate', () => {
       const user = buildUser();
 
       expect(user.updatedAt.value).toEqual(UPDATED_AT);
+    });
+  });
+
+  describe('username — changeUsername via update()', () => {
+    it('should update the username when a different value is provided via update()', () => {
+      const { UserStatusValueObject } = require('@contexts/users/domain/value-objects/user-status/user-status.vo');
+      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
+      const user = buildUser();
+      user.update({ username: new UsernameValueObject('newusername') });
+
+      expect(user.username.value).toBe('newusername');
+    });
+
+    it('should emit a UserUsernameChangedEvent when username changes', () => {
+      const { UserUsernameChangedEvent } = require('@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event');
+      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
+      const user = buildUser();
+      user.update({ username: new UsernameValueObject('newusername') });
+
+      const events = user.getUncommittedEvents();
+      const usernameChangedEvent = events.find(e => e instanceof UserUsernameChangedEvent);
+
+      expect(usernameChangedEvent).toBeDefined();
+      expect(usernameChangedEvent).toBeInstanceOf(UserUsernameChangedEvent);
+    });
+
+    it('should emit UserUsernameChangedEvent with old and new values', () => {
+      const { UserUsernameChangedEvent } = require('@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event');
+      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
+      const user = buildUser();
+      user.update({ username: new UsernameValueObject('newusername') });
+
+      const events = user.getUncommittedEvents();
+      const usernameChangedEvent = events.find(e => e instanceof UserUsernameChangedEvent) as any;
+
+      expect(usernameChangedEvent.data.oldValue).toBe('johndoe');
+      expect(usernameChangedEvent.data.newValue).toBe('newusername');
+    });
+
+    it('should NOT emit UserUsernameChangedEvent when username is unchanged', () => {
+      const { UserUsernameChangedEvent } = require('@contexts/users/domain/events/field-changed/user-username-changed/user-username-changed.event');
+      const { UsernameValueObject } = require('@contexts/users/domain/value-objects/username/username.value-object');
+      const user = buildUser();
+      user.update({ username: new UsernameValueObject('johndoe') });
+
+      const events = user.getUncommittedEvents();
+      const usernameChangedEvents = events.filter(e => e instanceof UserUsernameChangedEvent);
+
+      expect(usernameChangedEvents).toHaveLength(0);
+    });
+  });
+
+  describe('profile fields — change via update()', () => {
+    describe('firstName', () => {
+      it('should update firstName when a different value is provided', () => {
+        const user = buildUser();
+        user.update({ firstName: 'Jane' });
+
+        expect(user.firstName).toBe('Jane');
+      });
+
+      it('should set firstName to null when null is provided', () => {
+        const user = buildFullUser();
+        user.update({ firstName: null });
+
+        expect(user.firstName).toBeNull();
+      });
+
+      it('should emit UserFirstNameChangedEvent when firstName changes', () => {
+        const user = buildUser();
+        user.update({ firstName: 'Jane' });
+
+        const events = user.getUncommittedEvents();
+        const event = events.find(e => e instanceof UserFirstNameChangedEvent);
+
+        expect(event).toBeInstanceOf(UserFirstNameChangedEvent);
+      });
+
+      it('should emit UserFirstNameChangedEvent with old and new values', () => {
+        const user = buildFullUser();
+        user.update({ firstName: 'Jane' });
+
+        const events = user.getUncommittedEvents();
+        const event = events.find(e => e instanceof UserFirstNameChangedEvent) as UserFirstNameChangedEvent;
+
+        expect(event.data.oldValue).toBe('John');
+        expect(event.data.newValue).toBe('Jane');
+      });
+
+      it('should NOT emit UserFirstNameChangedEvent when firstName is unchanged', () => {
+        const user = buildFullUser();
+        user.update({ firstName: 'John' });
+
+        const events = user.getUncommittedEvents();
+        const changedEvents = events.filter(e => e instanceof UserFirstNameChangedEvent);
+
+        expect(changedEvents).toHaveLength(0);
+      });
+    });
+
+    describe('lastName', () => {
+      it('should update lastName when a different value is provided', () => {
+        const user = buildUser();
+        user.update({ lastName: 'Smith' });
+
+        expect(user.lastName).toBe('Smith');
+      });
+
+      it('should emit UserLastNameChangedEvent when lastName changes', () => {
+        const user = buildUser();
+        user.update({ lastName: 'Smith' });
+
+        const events = user.getUncommittedEvents();
+        const event = events.find(e => e instanceof UserLastNameChangedEvent);
+
+        expect(event).toBeInstanceOf(UserLastNameChangedEvent);
+      });
+
+      it('should NOT emit UserLastNameChangedEvent when lastName is unchanged', () => {
+        const user = buildFullUser();
+        user.update({ lastName: 'Doe' });
+
+        const events = user.getUncommittedEvents();
+        const changedEvents = events.filter(e => e instanceof UserLastNameChangedEvent);
+
+        expect(changedEvents).toHaveLength(0);
+      });
+    });
+
+    describe('avatarUrl', () => {
+      it('should update avatarUrl when a different value is provided', () => {
+        const user = buildUser();
+        user.update({ avatarUrl: 'https://new.example.com/avatar.png' });
+
+        expect(user.avatarUrl).toBe('https://new.example.com/avatar.png');
+      });
+
+      it('should emit UserAvatarUrlChangedEvent when avatarUrl changes', () => {
+        const user = buildUser();
+        user.update({ avatarUrl: 'https://new.example.com/avatar.png' });
+
+        const events = user.getUncommittedEvents();
+        const event = events.find(e => e instanceof UserAvatarUrlChangedEvent);
+
+        expect(event).toBeInstanceOf(UserAvatarUrlChangedEvent);
+      });
+
+      it('should NOT emit UserAvatarUrlChangedEvent when avatarUrl is unchanged', () => {
+        const user = buildFullUser();
+        user.update({ avatarUrl: 'https://example.com/avatar.png' });
+
+        const events = user.getUncommittedEvents();
+        const changedEvents = events.filter(e => e instanceof UserAvatarUrlChangedEvent);
+
+        expect(changedEvents).toHaveLength(0);
+      });
+    });
+
+    describe('bio', () => {
+      it('should update bio when a different value is provided', () => {
+        const user = buildUser();
+        user.update({ bio: 'My new bio.' });
+
+        expect(user.bio).toBe('My new bio.');
+      });
+
+      it('should emit UserBioChangedEvent when bio changes', () => {
+        const user = buildUser();
+        user.update({ bio: 'My new bio.' });
+
+        const events = user.getUncommittedEvents();
+        const event = events.find(e => e instanceof UserBioChangedEvent);
+
+        expect(event).toBeInstanceOf(UserBioChangedEvent);
+      });
+
+      it('should NOT emit UserBioChangedEvent when bio is unchanged', () => {
+        const user = buildFullUser();
+        user.update({ bio: 'A short bio.' });
+
+        const events = user.getUncommittedEvents();
+        const changedEvents = events.filter(e => e instanceof UserBioChangedEvent);
+
+        expect(changedEvents).toHaveLength(0);
+      });
+
+      it('should throw a domain error when bio exceeds 500 characters', () => {
+        const user = buildUser();
+        const longBio = 'a'.repeat(501);
+
+        expect(() => user.update({ bio: longBio })).toThrow();
+      });
+
+      it('should accept a bio of exactly 500 characters', () => {
+        const user = buildUser();
+        const maxBio = 'a'.repeat(500);
+
+        expect(() => user.update({ bio: maxBio })).not.toThrow();
+        expect(user.bio).toBe(maxBio);
+      });
+    });
+
+    describe('locale', () => {
+      it('should update locale when a different value is provided', () => {
+        const user = buildUser();
+        user.update({ locale: 'en-US' });
+
+        expect(user.locale).toBe('en-US');
+      });
+
+      it('should emit UserLocaleChangedEvent when locale changes', () => {
+        const user = buildUser();
+        user.update({ locale: 'en-US' });
+
+        const events = user.getUncommittedEvents();
+        const event = events.find(e => e instanceof UserLocaleChangedEvent);
+
+        expect(event).toBeInstanceOf(UserLocaleChangedEvent);
+      });
+
+      it('should NOT emit UserLocaleChangedEvent when locale is unchanged', () => {
+        const user = buildFullUser();
+        user.update({ locale: 'es-AR' });
+
+        const events = user.getUncommittedEvents();
+        const changedEvents = events.filter(e => e instanceof UserLocaleChangedEvent);
+
+        expect(changedEvents).toHaveLength(0);
+      });
+    });
+
+    describe('timezone', () => {
+      it('should update timezone when a different value is provided', () => {
+        const user = buildUser();
+        user.update({ timezone: 'Europe/London' });
+
+        expect(user.timezone).toBe('Europe/London');
+      });
+
+      it('should emit UserTimezoneChangedEvent when timezone changes', () => {
+        const user = buildUser();
+        user.update({ timezone: 'Europe/London' });
+
+        const events = user.getUncommittedEvents();
+        const event = events.find(e => e instanceof UserTimezoneChangedEvent);
+
+        expect(event).toBeInstanceOf(UserTimezoneChangedEvent);
+      });
+
+      it('should NOT emit UserTimezoneChangedEvent when timezone is unchanged', () => {
+        const user = buildFullUser();
+        user.update({ timezone: 'America/Buenos_Aires' });
+
+        const events = user.getUncommittedEvents();
+        const changedEvents = events.filter(e => e instanceof UserTimezoneChangedEvent);
+
+        expect(changedEvents).toHaveLength(0);
+      });
     });
   });
 });

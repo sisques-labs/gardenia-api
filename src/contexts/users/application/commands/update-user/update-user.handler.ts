@@ -1,4 +1,5 @@
 import { UpdateUserCommand } from '@contexts/users/application/commands/update-user/update-user.command';
+import { AssertUsernameAvailableService } from '@contexts/users/application/services/read/assert-username-available/assert-username-available.service';
 import { AssertUserExistsService } from '@contexts/users/application/services/write/assert-user-exists/assert-user-exists.service';
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
 import {
@@ -18,6 +19,7 @@ export class UpdateUserCommandHandler
     @Inject(USER_WRITE_REPOSITORY)
     private readonly userWriteRepository: IUserWriteRepository,
     private readonly assertUserExistsService: AssertUserExistsService,
+    private readonly assertUsernameAvailableService: AssertUsernameAvailableService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -25,6 +27,10 @@ export class UpdateUserCommandHandler
 
   async execute(command: UpdateUserCommand): Promise<void> {
     const user = await this.assertUserExistsService.execute(command.id);
+
+    if (command.username) {
+      await this.assertUsernameAvailableService.execute(command.username);
+    }
 
     user.update(command);
 
