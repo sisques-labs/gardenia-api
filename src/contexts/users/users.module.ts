@@ -17,7 +17,6 @@ import { UserTypeOrmEntity } from './infrastructure/persistence/typeorm/entities
 import { UserTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/user-typeorm.mapper';
 import { UserTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-read.repository';
 import { UserTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-write.repository';
-import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
 import './transport/graphql/enums/user/user-registered-enums.graphql';
 import { UserGraphQLMapper } from './transport/graphql/mappers/user/user.mapper';
 import { UserMutationsResolver } from './transport/graphql/resolvers/user/user-mutations.resolver';
@@ -49,10 +48,7 @@ const INFRASTRUCTURE_REPOSITORIES = [
 
 const INFRASTRUCTURE_MAPPERS = [UserTypeOrmMapper];
 
-const TRANSPORT_GRAPHQL_MAPPERS = [
-  UserGraphQLMapper,
-  MutationResponseGraphQLMapper,
-];
+const TRANSPORT_GRAPHQL_MAPPERS = [UserGraphQLMapper];
 
 const TRANSPORT_GRAPHQL_RESOLVERS = [
   UserQueriesResolver,
