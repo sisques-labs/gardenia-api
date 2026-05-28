@@ -73,11 +73,11 @@ export class AuthController {
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<void> {
     await this.commandBus.execute(
-      new ChangePasswordCommand(
-        user.userId,
-        dto.currentPassword,
-        dto.newPassword,
-      ),
+      new ChangePasswordCommand({
+        userId: user.userId,
+        currentPassword: dto.currentPassword,
+        newPassword: dto.newPassword,
+      }),
     );
   }
 

@@ -1,7 +1,6 @@
 import { ChangePasswordCommand } from '@contexts/auth/application/commands/change-password/change-password.command';
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
-import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import {
   ACCOUNT_WRITE_REPOSITORY,
   IAccountWriteRepository,
@@ -38,9 +37,7 @@ export class ChangePasswordCommandHandler
       account.passwordHash.value,
     );
 
-    if (!matches) {
-      throw new InvalidCredentialsException();
-    }
+    account.assertCurrentPasswordMatches(matches);
 
     const hashed = await bcrypt.hash(command.newPassword, 10);
 

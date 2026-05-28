@@ -37,6 +37,7 @@ describe('ChangePasswordCommandHandler', () => {
 
     mockAccount = {
       passwordHash: { value: 'hashed_current_password' },
+      assertCurrentPasswordMatches: jest.fn(),
       changePassword: jest.fn(),
       commit: jest.fn().mockResolvedValue(undefined),
       getUncommittedEvents: jest.fn().mockReturnValue([
@@ -62,11 +63,11 @@ describe('ChangePasswordCommandHandler', () => {
   it('should throw AccountNotFoundException when account is not found', async () => {
     accountWriteRepository.findByUserId.mockResolvedValue(null);
 
-    const command = new ChangePasswordCommand(
-      USER_ID,
-      'currentPass',
-      'newPass123!',
-    );
+    const command = new ChangePasswordCommand({
+      userId: USER_ID,
+      currentPassword: 'currentPass',
+      newPassword: 'newPass123!',
+    });
 
     await expect(handler.execute(command)).rejects.toThrow(
       AccountNotFoundException,
@@ -78,11 +79,15 @@ describe('ChangePasswordCommandHandler', () => {
     accountWriteRepository.findByUserId.mockResolvedValue(mockAccount);
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-    const command = new ChangePasswordCommand(
-      USER_ID,
-      'wrongCurrentPass',
-      'newPass123!',
-    );
+    const command = new ChangePasswordCommand({
+      userId: USER_ID,
+      currentPassword: 'wrongCurrentPass',
+      newPassword: 'newPass123!',
+    });
+
+    mockAccount.assertCurrentPasswordMatches.mockImplementation(() => {
+      throw new InvalidCredentialsException();
+    });
 
     await expect(handler.execute(command)).rejects.toThrow(
       InvalidCredentialsException,
@@ -97,11 +102,11 @@ describe('ChangePasswordCommandHandler', () => {
     (bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password');
     accountWriteRepository.save.mockResolvedValue(undefined as any);
 
-    const command = new ChangePasswordCommand(
-      USER_ID,
-      'currentPass',
-      'newPass123!',
-    );
+    const command = new ChangePasswordCommand({
+      userId: USER_ID,
+      currentPassword: 'currentPass',
+      newPassword: 'newPass123!',
+    });
 
     await handler.execute(command);
 
@@ -118,11 +123,11 @@ describe('ChangePasswordCommandHandler', () => {
     (bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password');
     accountWriteRepository.save.mockResolvedValue(undefined as any);
 
-    const command = new ChangePasswordCommand(
-      USER_ID,
-      'currentPass',
-      'newPass123!',
-    );
+    const command = new ChangePasswordCommand({
+      userId: USER_ID,
+      currentPassword: 'currentPass',
+      newPassword: 'newPass123!',
+    });
 
     await handler.execute(command);
 

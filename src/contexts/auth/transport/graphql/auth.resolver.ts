@@ -62,11 +62,11 @@ export class AuthResolver {
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<MutationResponseDto> {
     await this.commandBus.execute(
-      new ChangePasswordCommand(
-        user.userId,
-        input.currentPassword,
-        input.newPassword,
-      ),
+      new ChangePasswordCommand({
+        userId: user.userId,
+        currentPassword: input.currentPassword,
+        newPassword: input.newPassword,
+      }),
     );
 
     return this.mutationResponseGraphQLMapper.toResponseDto({

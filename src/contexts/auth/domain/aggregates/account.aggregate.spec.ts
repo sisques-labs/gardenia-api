@@ -2,6 +2,7 @@ import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggre
 import { AccountCreatedEvent } from '@contexts/auth/domain/events/account-created/account-created.event';
 import { AccountDeletedEvent } from '@contexts/auth/domain/events/account-deleted/account-deleted.event';
 import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
+import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
 
 const ACCOUNT_ID = '550e8400-e29b-41d4-a716-446655440001';
@@ -142,6 +143,22 @@ describe('AccountAggregate', () => {
       ) as AccountDeletedEvent;
 
       expect(deletedEvent.data.id).toBe(ACCOUNT_ID);
+    });
+  });
+
+  describe('assertCurrentPasswordMatches()', () => {
+    it('should throw InvalidCredentialsException when password does not match', () => {
+      const account = buildAccount();
+
+      expect(() => account.assertCurrentPasswordMatches(false)).toThrow(
+        InvalidCredentialsException,
+      );
+    });
+
+    it('should not throw when password matches', () => {
+      const account = buildAccount();
+
+      expect(() => account.assertCurrentPasswordMatches(true)).not.toThrow();
     });
   });
 

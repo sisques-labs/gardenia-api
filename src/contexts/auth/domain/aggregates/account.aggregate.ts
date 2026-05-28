@@ -1,6 +1,7 @@
 import { AccountCreatedEvent } from '@contexts/auth/domain/events/account-created/account-created.event';
 import { AccountDeletedEvent } from '@contexts/auth/domain/events/account-deleted/account-deleted.event';
 import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
+import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import { IAccount } from '@contexts/auth/domain/interfaces/account.interface';
 import { IAccountPrimitives } from '@contexts/auth/domain/primitives/account.primitives';
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
@@ -59,6 +60,12 @@ export class AccountAggregate extends BaseAggregate {
         },
       ),
     );
+  }
+
+  public assertCurrentPasswordMatches(matches: boolean): void {
+    if (!matches) {
+      throw new InvalidCredentialsException();
+    }
   }
 
   public delete(): void {
