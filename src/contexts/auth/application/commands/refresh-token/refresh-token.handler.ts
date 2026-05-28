@@ -48,7 +48,7 @@ export class RefreshTokenCommandHandler
     command: RefreshTokenCommand,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const hash = await this.hashRefreshTokenService.execute(
-      command.refreshToken,
+      command.refreshToken.value,
     );
 
     // TODO(ADR-5): wrap in DataSource pessimistic_write lock for production concurrency safety
@@ -84,7 +84,7 @@ export class RefreshTokenCommandHandler
       .withUserId(session.userId.value)
       .withTokenHash(newHash)
       .withExpiresAt(newExpiry)
-      .withDeviceInfo(command.deviceInfo ?? null)
+      .withDeviceInfo(command.deviceInfo?.value ?? null)
       .build();
 
     newSession.create();

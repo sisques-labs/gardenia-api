@@ -31,7 +31,7 @@ export class LogoutCommandHandler
 
   async execute(command: LogoutCommand): Promise<void> {
     const hash = await this.hashRefreshTokenService.execute(
-      command.refreshToken,
+      command.refreshToken.value,
     );
     const session = await this.sessionRepo.findByTokenHash(hash);
 

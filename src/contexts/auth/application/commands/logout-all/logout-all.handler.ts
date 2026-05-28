@@ -28,7 +28,9 @@ export class LogoutAllCommandHandler
   }
 
   async execute(command: LogoutAllCommand): Promise<void> {
-    const sessions = await this.sessionRepo.findActiveByUserId(command.userId);
+    const sessions = await this.sessionRepo.findActiveByUserId(
+      command.userId.value,
+    );
 
     for (const session of sessions) {
       session.revoke('logout-all');
