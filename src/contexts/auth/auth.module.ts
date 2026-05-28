@@ -2,6 +2,13 @@ import { ChangePasswordCommandHandler } from '@contexts/auth/application/command
 import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands/delete-account/delete-account.handler';
 import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
+import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
+import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
+import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
+import { AUTH_SESSION_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
+import { AuthSessionEntity } from '@contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
+import { AuthSessionTypeOrmMapper } from '@contexts/auth/infrastructure/persistence/typeorm/mappers/auth-session-typeorm.mapper';
+import { AuthSessionTypeOrmWriteRepository } from '@contexts/auth/infrastructure/persistence/typeorm/repositories/auth-session-typeorm-write.repository';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -49,11 +56,13 @@ const APPLICATION_SERVICES = [
   AssertAccountEmailAvailableService,
   AssertAccountViewModelExistsService,
   ValidateAccountCredentialsService,
+  GenerateRefreshTokenService,
+  HashRefreshTokenService,
 ];
 
-const DOMAIN_BUILDERS = [AccountBuilder];
+const DOMAIN_BUILDERS = [AccountBuilder, AuthSessionBuilder];
 
-const INFRASTRUCTURE_MAPPERS = [AccountTypeOrmMapper];
+const INFRASTRUCTURE_MAPPERS = [AccountTypeOrmMapper, AuthSessionTypeOrmMapper];
 
 const INFRASTRUCTURE_REPOSITORIES = [
   {
@@ -61,9 +70,13 @@ const INFRASTRUCTURE_REPOSITORIES = [
     useClass: AccountTypeOrmWriteRepository,
   },
   { provide: ACCOUNT_READ_REPOSITORY, useClass: AccountTypeOrmReadRepository },
+  {
+    provide: AUTH_SESSION_WRITE_REPOSITORY,
+    useClass: AuthSessionTypeOrmWriteRepository,
+  },
 ];
 
-const INFRASTRUCTURE_ENTITIES = [AccountEntity];
+const INFRASTRUCTURE_ENTITIES = [AccountEntity, AuthSessionEntity];
 
 const STRATEGIES = [LocalStrategy, JwtStrategy];
 
