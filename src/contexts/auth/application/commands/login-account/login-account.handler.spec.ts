@@ -4,6 +4,7 @@ import { ValidateAccountCredentialsService } from '@contexts/auth/application/se
 import { TokenService } from '@contexts/auth/application/services/token.service';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
+import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 
 import { LoginAccountCommand } from './login-account.command';
 import { LoginAccountCommandHandler } from './login-account.handler';
@@ -13,6 +14,7 @@ describe('LoginAccountCommandHandler', () => {
   let tokenService: jest.Mocked<TokenService>;
   let eventBus: jest.Mocked<EventBus>;
   let validateAccountCredentialsService: jest.Mocked<ValidateAccountCredentialsService>;
+  let sessionRepo: jest.Mocked<IAuthSessionWriteRepository>;
 
   const buildAccount = () =>
     new AccountBuilder()
@@ -31,16 +33,25 @@ describe('LoginAccountCommandHandler', () => {
 
     eventBus = {
       publish: jest.fn(),
+      publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
     validateAccountCredentialsService = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<ValidateAccountCredentialsService>;
 
+    sessionRepo = {
+      save: jest.fn().mockResolvedValue(undefined),
+      findByTokenHash: jest.fn(),
+      findById: jest.fn(),
+      revokeAllByUserId: jest.fn(),
+    } as unknown as jest.Mocked<IAuthSessionWriteRepository>;
+
     handler = new LoginAccountCommandHandler(
       eventBus,
       tokenService,
       validateAccountCredentialsService,
+      sessionRepo,
     );
   });
 
@@ -67,12 +78,43 @@ describe('LoginAccountCommandHandler', () => {
       password: 'plain-password',
     });
 
-    await expect(handler.execute(command)).resolves.toEqual({
-      accessToken: 'jwt-token',
-    });
+    const result = await handler.execute(command);
+
+    expect(result).toHaveProperty('accessToken', 'jwt-token');
     expect(tokenService.sign).toHaveBeenCalledWith(
       account.userId.value,
       account.email.value,
     );
+  });
+
+  it('creates and saves an AuthSession and returns refreshToken on successful login', async () => {
+    const account = buildAccount();
+    validateAccountCredentialsService.execute.mockResolvedValue(account);
+
+    const command = new LoginAccountCommand({
+      email: 'test@example.com',
+      password: 'plain-password',
+    });
+
+    const result = await handler.execute(command);
+
+    expect(sessionRepo.save).toHaveBeenCalledTimes(1);
+    expect(result).toHaveProperty('refreshToken');
+    expect(typeof result.refreshToken).toBe('string');
+    expect(result.refreshToken.length).toBeGreaterThan(0);
+  });
+
+  it('publishes AuthSessionCreatedEvent after successful login', async () => {
+    const account = buildAccount();
+    validateAccountCredentialsService.execute.mockResolvedValue(account);
+
+    const command = new LoginAccountCommand({
+      email: 'test@example.com',
+      password: 'plain-password',
+    });
+
+    await handler.execute(command);
+
+    expect(eventBus.publishAll).toHaveBeenCalled();
   });
 });

@@ -1,5 +1,8 @@
 import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands/delete-account/delete-account.handler';
 import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
+import { LogoutAllCommandHandler } from '@contexts/auth/application/commands/logout-all/logout-all.handler';
+import { LogoutCommandHandler } from '@contexts/auth/application/commands/logout/logout.handler';
+import { RefreshTokenCommandHandler } from '@contexts/auth/application/commands/refresh-token/refresh-token.handler';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { AUTH_SESSION_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
@@ -38,6 +41,9 @@ const COMMAND_HANDLERS = [
   DeleteAccountCommandHandler,
   RegisterAccountCommandHandler,
   LoginAccountCommandHandler,
+  RefreshTokenCommandHandler,
+  LogoutCommandHandler,
+  LogoutAllCommandHandler,
 ];
 
 const QUERY_HANDLERS = [

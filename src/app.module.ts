@@ -22,7 +22,10 @@ import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
       driver: ApolloDriver,
       autoSchemaFile: true,
       playground: true,
-      context: ({ req }: { req: Request }) => ({ req }),
+      context: ({ req, res }: { req: Request; res: Response }) => ({
+        req,
+        res,
+      }),
     }),
     AuthModule,
     UsersModule,

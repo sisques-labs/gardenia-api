@@ -6,6 +6,10 @@ import {
   ACCOUNT_WRITE_REPOSITORY,
   IAccountWriteRepository,
 } from '@contexts/auth/domain/repositories/write/account-write.repository';
+import {
+  AUTH_SESSION_WRITE_REPOSITORY,
+  IAuthSessionWriteRepository,
+} from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 import { Inject } from '@nestjs/common';
 import {
   CommandBus,
@@ -23,6 +27,8 @@ export class DeleteAccountCommandHandler
   constructor(
     @Inject(ACCOUNT_WRITE_REPOSITORY)
     private readonly accountWriteRepository: IAccountWriteRepository,
+    @Inject(AUTH_SESSION_WRITE_REPOSITORY)
+    private readonly authSessionRepo: IAuthSessionWriteRepository,
     private readonly commandBus: CommandBus,
     eventBus: EventBus,
   ) {
@@ -36,6 +42,8 @@ export class DeleteAccountCommandHandler
 
     if (!account) throw new AccountNotFoundException(command.userId);
 
+    await this.authSessionRepo.revokeAllByUserId(command.userId);
+
     account.delete();
 
     await this.accountWriteRepository.delete(account.id.value);
@@ -44,6 +52,5 @@ export class DeleteAccountCommandHandler
       new DeleteUserCommand({ id: account.userId.value }),
     );
     await this.publishEvents(account);
-    // TODO(#17): revoke JWT on account deletion
   }
 }

@@ -6,6 +6,7 @@ import { DeleteUserCommand } from '@contexts/users/application/commands/delete-u
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
 import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
+import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 
 const ACCOUNT_ID = '550e8400-e29b-41d4-a716-446655440001';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
@@ -26,6 +27,7 @@ const buildAccount = () =>
 describe('DeleteAccountCommandHandler', () => {
   let handler: DeleteAccountCommandHandler;
   let accountWriteRepository: jest.Mocked<IAccountWriteRepository>;
+  let authSessionRepo: jest.Mocked<IAuthSessionWriteRepository>;
   let commandBus: jest.Mocked<CommandBus>;
   let eventBus: jest.Mocked<EventBus>;
 
@@ -41,6 +43,13 @@ describe('DeleteAccountCommandHandler', () => {
       delete: jest.fn(),
     } as unknown as jest.Mocked<IAccountWriteRepository>;
 
+    authSessionRepo = {
+      save: jest.fn(),
+      findByTokenHash: jest.fn(),
+      findById: jest.fn(),
+      revokeAllByUserId: jest.fn().mockResolvedValue(0),
+    } as unknown as jest.Mocked<IAuthSessionWriteRepository>;
+
     commandBus = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<CommandBus>;
@@ -52,6 +61,7 @@ describe('DeleteAccountCommandHandler', () => {
 
     handler = new DeleteAccountCommandHandler(
       accountWriteRepository,
+      authSessionRepo,
       commandBus,
       eventBus,
     );
