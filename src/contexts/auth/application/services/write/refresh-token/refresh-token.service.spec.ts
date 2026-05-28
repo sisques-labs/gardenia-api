@@ -1,15 +1,19 @@
-import { generateRefreshToken, hashRefreshToken } from './refresh-token.util';
+import { RefreshTokenService } from './refresh-token.service';
 
-describe('refresh-token.util', () => {
+describe('RefreshTokenService', () => {
+  const service = new RefreshTokenService();
+
   describe('hashRefreshToken', () => {
     it('should be deterministic (same input produces same output)', () => {
       const token = 'some-test-token';
-      expect(hashRefreshToken(token)).toBe(hashRefreshToken(token));
+      expect(service.hashRefreshToken(token)).toBe(
+        service.hashRefreshToken(token),
+      );
     });
 
     it('should produce exactly 64 hex characters', () => {
       const token = 'some-test-token';
-      const hash = hashRefreshToken(token);
+      const hash = service.hashRefreshToken(token);
       expect(hash).toHaveLength(64);
       expect(hash).toMatch(/^[0-9a-f]{64}$/);
     });
@@ -17,15 +21,14 @@ describe('refresh-token.util', () => {
 
   describe('generateRefreshToken', () => {
     it('should return a base64url string of approximately 43 chars (32 random bytes)', () => {
-      const token = generateRefreshToken();
-      // base64url of 32 bytes is Math.ceil(32 * 4 / 3) = 43 chars (no padding)
+      const token = service.generateRefreshToken();
       expect(token.length).toBeGreaterThanOrEqual(40);
       expect(token.length).toBeLessThanOrEqual(46);
     });
 
     it('should produce different values on each call', () => {
-      const token1 = generateRefreshToken();
-      const token2 = generateRefreshToken();
+      const token1 = service.generateRefreshToken();
+      const token2 = service.generateRefreshToken();
       expect(token1).not.toBe(token2);
     });
   });

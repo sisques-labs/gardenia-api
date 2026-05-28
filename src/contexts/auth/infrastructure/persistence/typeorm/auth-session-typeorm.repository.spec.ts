@@ -1,23 +1,24 @@
 import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { IsNull, Repository, UpdateResult } from 'typeorm';
-import { AuthSessionTypeOrmMapper } from './auth-session.mapper';
-import { AuthSessionTypeOrmRepository } from './auth-session-typeorm.repository';
-import { AuthSessionEntity } from './auth-session.entity';
+import { AuthSessionEntity } from './entities/auth-session.entity';
+import { AuthSessionTypeOrmMapper } from './mappers/auth-session-typeorm.mapper';
+import { AuthSessionTypeOrmWriteRepository } from './repositories/auth-session-typeorm-write.repository';
 
 const VALID_HASH = 'a3b4c5d6'.repeat(8);
 const VALID_ID = '550e8400-e29b-41d4-a716-446655440000';
 const VALID_USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 
 function buildAggregate(): AuthSessionAggregate {
-  return AuthSessionBuilder.build({
-    id: VALID_ID,
-    userId: VALID_USER_ID,
-    tokenHash: VALID_HASH,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
-  });
+  const builder = new AuthSessionBuilder();
+  return builder
+    .withId(VALID_ID)
+    .withUserId(VALID_USER_ID)
+    .withTokenHash(VALID_HASH)
+    .withExpiresAt(new Date(Date.now() + 1000 * 60 * 60 * 24 * 30))
+    .withCreatedAt(new Date('2024-01-01'))
+    .withUpdatedAt(new Date('2024-01-01'))
+    .build();
 }
 
 function buildEntity(): AuthSessionEntity {
@@ -34,7 +35,7 @@ function buildEntity(): AuthSessionEntity {
 }
 
 describe('AuthSessionTypeOrmRepository', () => {
-  let repository: AuthSessionTypeOrmRepository;
+  let repository: AuthSessionTypeOrmWriteRepository;
   let typeOrmRepo: jest.Mocked<Repository<AuthSessionEntity>>;
   let mapper: AuthSessionTypeOrmMapper;
 
@@ -45,8 +46,8 @@ describe('AuthSessionTypeOrmRepository', () => {
       update: jest.fn(),
     } as unknown as jest.Mocked<Repository<AuthSessionEntity>>;
 
-    mapper = new AuthSessionTypeOrmMapper();
-    repository = new AuthSessionTypeOrmRepository(typeOrmRepo, mapper);
+    mapper = new AuthSessionTypeOrmMapper(new AuthSessionBuilder());
+    repository = new AuthSessionTypeOrmWriteRepository(typeOrmRepo, mapper);
   });
 
   describe('save', () => {

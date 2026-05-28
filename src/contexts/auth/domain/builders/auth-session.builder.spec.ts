@@ -8,13 +8,14 @@ const VALID_USER_UUID = '550e8400-e29b-41d4-a716-446655440001';
 describe('AuthSessionBuilder', () => {
   it('should build a valid AuthSessionAggregate without emitting events', () => {
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+    const builder = new AuthSessionBuilder();
 
-    const session = AuthSessionBuilder.build({
-      id: VALID_UUID,
-      userId: VALID_USER_UUID,
-      tokenHash: VALID_HASH,
-      expiresAt,
-    });
+    const session = builder
+      .withId(VALID_UUID)
+      .withUserId(VALID_USER_UUID)
+      .withTokenHash(VALID_HASH)
+      .withExpiresAt(expiresAt)
+      .build();
 
     expect(session).toBeInstanceOf(AuthSessionAggregate);
     expect(session.id.value).toBe(VALID_UUID);
@@ -29,13 +30,14 @@ describe('AuthSessionBuilder', () => {
   });
 
   it('should build with optional deviceInfo', () => {
-    const session = AuthSessionBuilder.build({
-      id: VALID_UUID,
-      userId: VALID_USER_UUID,
-      tokenHash: VALID_HASH,
-      expiresAt: new Date(),
-      deviceInfo: 'Mozilla/5.0',
-    });
+    const builder = new AuthSessionBuilder();
+    const session = builder
+      .withId(VALID_UUID)
+      .withUserId(VALID_USER_UUID)
+      .withTokenHash(VALID_HASH)
+      .withExpiresAt(new Date())
+      .withDeviceInfo('Mozilla/5.0')
+      .build();
 
     expect(session.deviceInfo).toBe('Mozilla/5.0');
   });

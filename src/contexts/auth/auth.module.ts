@@ -2,11 +2,12 @@ import { ChangePasswordCommandHandler } from '@contexts/auth/application/command
 import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands/delete-account/delete-account.handler';
 import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
+import { RefreshTokenService } from '@contexts/auth/application/services/write/refresh-token/refresh-token.service';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { AUTH_SESSION_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
-import { AuthSessionTypeOrmRepository } from '@contexts/auth/infrastructure/persistence/typeorm/auth-session-typeorm.repository';
-import { AuthSessionEntity } from '@contexts/auth/infrastructure/persistence/typeorm/auth-session.entity';
-import { AuthSessionTypeOrmMapper } from '@contexts/auth/infrastructure/persistence/typeorm/auth-session.mapper';
+import { AuthSessionEntity } from '@contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
+import { AuthSessionTypeOrmMapper } from '@contexts/auth/infrastructure/persistence/typeorm/mappers/auth-session-typeorm.mapper';
+import { AuthSessionTypeOrmWriteRepository } from '@contexts/auth/infrastructure/persistence/typeorm/repositories/auth-session-typeorm-write.repository';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -54,6 +55,7 @@ const APPLICATION_SERVICES = [
   AssertAccountEmailAvailableService,
   AssertAccountViewModelExistsService,
   ValidateAccountCredentialsService,
+  RefreshTokenService,
 ];
 
 const DOMAIN_BUILDERS = [AccountBuilder, AuthSessionBuilder];
@@ -68,7 +70,7 @@ const INFRASTRUCTURE_REPOSITORIES = [
   { provide: ACCOUNT_READ_REPOSITORY, useClass: AccountTypeOrmReadRepository },
   {
     provide: AUTH_SESSION_WRITE_REPOSITORY,
-    useClass: AuthSessionTypeOrmRepository,
+    useClass: AuthSessionTypeOrmWriteRepository,
   },
 ];
 
