@@ -1,10 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.0-alpha.0] - 2026-05-28
+
+### Features
+- **auth:** Implement change password endpoint (8bd53a3)
+
+### Refactor
+- **auth:** Align change password command and domain validation (9ed4e4d)
+- **auth:** Move password validation flow to aggregate (179418d)
 ## [0.2.0-alpha.0] - 2026-05-28
 
 ### Chore
 - Update pnpm-store in .gitignore and upgrade @sisques-labs/nestjs-kit to v0.10.2 (13e3787)
+- Release v0.2.0-alpha.0 (9535451)
 
 ### Tech
 - **auth:** Implement findByCriteria in AccountTypeOrmReadRepository (f2e7a78)
