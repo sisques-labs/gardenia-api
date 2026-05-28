@@ -4,6 +4,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { ChangePasswordCommand } from '@contexts/auth/application/commands/change-password/change-password.command';
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
@@ -24,6 +26,7 @@ import {
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 
+import { ChangePasswordDto } from './dtos/change-password.dto';
 import { LoginUserDto } from './dtos/login-user.dto';
 import { RegisterAccountDto } from './dtos/register-account.dto';
 
@@ -54,6 +57,28 @@ export class AuthController {
       LoginAccountCommand,
       { accessToken: string }
     >(new LoginAccountCommand({ email: dto.email, password: dto.password }));
+  }
+
+  @Patch('password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Change the authenticated account password' })
+  @ApiResponse({ status: 204, description: 'Password changed successfully' })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid credentials or unauthorized',
+  })
+  async changePassword(
+    @Body() dto: ChangePasswordDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<void> {
+    await this.commandBus.execute(
+      new ChangePasswordCommand(
+        user.userId,
+        dto.currentPassword,
+        dto.newPassword,
+      ),
+    );
   }
 
   @Delete('account')
