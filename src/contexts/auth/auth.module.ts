@@ -1,6 +1,9 @@
 import { ChangePasswordCommandHandler } from '@contexts/auth/application/commands/change-password/change-password.handler';
 import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands/delete-account/delete-account.handler';
 import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
+import { LogoutAllCommandHandler } from '@contexts/auth/application/commands/logout-all/logout-all.handler';
+import { LogoutCommandHandler } from '@contexts/auth/application/commands/logout/logout.handler';
+import { RefreshTokenCommandHandler } from '@contexts/auth/application/commands/refresh-token/refresh-token.handler';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
 import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
@@ -42,6 +45,9 @@ const COMMAND_HANDLERS = [
   DeleteAccountCommandHandler,
   RegisterAccountCommandHandler,
   LoginAccountCommandHandler,
+  RefreshTokenCommandHandler,
+  LogoutCommandHandler,
+  LogoutAllCommandHandler,
 ];
 
 const QUERY_HANDLERS = [

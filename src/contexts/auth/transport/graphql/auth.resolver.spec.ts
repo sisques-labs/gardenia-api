@@ -8,6 +8,16 @@ import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/cur
 
 import { AuthResolver } from './auth.resolver';
 
+const buildMockContext = () => ({
+  req: {
+    cookies: {} as Record<string, string>,
+    res: {
+      cookie: jest.fn(),
+      clearCookie: jest.fn(),
+    },
+  },
+});
+
 describe('AuthResolver', () => {
   let sut: AuthResolver;
   let commandBus: jest.Mocked<CommandBus>;
@@ -58,12 +68,16 @@ describe('AuthResolver', () => {
 
   describe('login()', () => {
     it('should execute LoginAccountCommand with correct input', async () => {
-      commandBus.execute.mockResolvedValue({ accessToken: 'jwt-token' });
-
-      await sut.login({
-        email: 'test@example.com',
-        password: 'SuperStr0ng!Pass',
+      commandBus.execute.mockResolvedValue({
+        accessToken: 'jwt-token',
+        refreshToken: 'plain-refresh',
       });
+      const ctx = buildMockContext();
+
+      await sut.login(
+        { email: 'test@example.com', password: 'SuperStr0ng!Pass' },
+        ctx,
+      );
 
       expect(commandBus.execute).toHaveBeenCalledTimes(1);
       expect(commandBus.execute).toHaveBeenCalledWith(
@@ -71,15 +85,24 @@ describe('AuthResolver', () => {
       );
     });
 
-    it('should return AuthPayloadObject with accessToken', async () => {
-      commandBus.execute.mockResolvedValue({ accessToken: 'jwt-token' });
-
-      const result = await sut.login({
-        email: 'test@example.com',
-        password: 'SuperStr0ng!Pass',
+    it('should return AuthPayloadObject with accessToken and set refresh cookie', async () => {
+      commandBus.execute.mockResolvedValue({
+        accessToken: 'jwt-token',
+        refreshToken: 'plain-refresh',
       });
+      const ctx = buildMockContext();
+
+      const result = await sut.login(
+        { email: 'test@example.com', password: 'SuperStr0ng!Pass' },
+        ctx,
+      );
 
       expect(result.accessToken).toBe('jwt-token');
+      expect(ctx.req.res.cookie).toHaveBeenCalledWith(
+        'refresh_token',
+        'plain-refresh',
+        expect.any(Object),
+      );
     });
   });
 

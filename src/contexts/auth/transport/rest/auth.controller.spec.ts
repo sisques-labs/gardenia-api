@@ -1,4 +1,5 @@
 import { CommandBus } from '@nestjs/cqrs';
+import { Response } from 'express';
 
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
@@ -6,6 +7,12 @@ import { RegisterAccountCommand } from '@contexts/auth/application/commands/regi
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 
 import { AuthController } from './auth.controller';
+
+const buildMockResponse = () =>
+  ({
+    cookie: jest.fn(),
+    clearCookie: jest.fn(),
+  }) as unknown as jest.Mocked<Response>;
 
 describe('AuthController', () => {
   let sut: AuthController;
@@ -52,12 +59,16 @@ describe('AuthController', () => {
 
   describe('login()', () => {
     it('should execute LoginAccountCommand with correct input', async () => {
-      commandBus.execute.mockResolvedValue({ accessToken: 'jwt-token' });
-
-      await sut.login({
-        email: 'test@example.com',
-        password: 'SuperStr0ng!Pass',
+      commandBus.execute.mockResolvedValue({
+        accessToken: 'jwt-token',
+        refreshToken: 'plain-refresh',
       });
+      const res = buildMockResponse();
+
+      await sut.login(
+        { email: 'test@example.com', password: 'SuperStr0ng!Pass' },
+        res,
+      );
 
       expect(commandBus.execute).toHaveBeenCalledTimes(1);
       expect(commandBus.execute).toHaveBeenCalledWith(
@@ -65,15 +76,24 @@ describe('AuthController', () => {
       );
     });
 
-    it('should return payload containing accessToken', async () => {
-      commandBus.execute.mockResolvedValue({ accessToken: 'jwt-token' });
-
-      const result = await sut.login({
-        email: 'test@example.com',
-        password: 'SuperStr0ng!Pass',
+    it('should return payload containing accessToken and set refresh cookie', async () => {
+      commandBus.execute.mockResolvedValue({
+        accessToken: 'jwt-token',
+        refreshToken: 'plain-refresh',
       });
+      const res = buildMockResponse();
+
+      const result = await sut.login(
+        { email: 'test@example.com', password: 'SuperStr0ng!Pass' },
+        res,
+      );
 
       expect(result).toHaveProperty('accessToken', 'jwt-token');
+      expect(res.cookie).toHaveBeenCalledWith(
+        'refresh_token',
+        'plain-refresh',
+        expect.any(Object),
+      );
     });
   });
 
