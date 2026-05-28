@@ -1,12 +1,9 @@
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import {
-  FilterOperator,
-  MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+import { Response } from 'express';
+import { FilterOperator } from '@sisques-labs/nestjs-kit';
 
 import { AccountFindByCriteriaQuery } from '@contexts/auth/application/queries/account-find-by-criteria/account-find-by-criteria.query';
-import { AccountGraphQLMapper } from '@contexts/auth/transport/graphql/mappers/account/account.mapper';
-import { AccountObject } from '@contexts/auth/transport/graphql/objects/account.object';
+import { AccountRestMapper } from '@contexts/auth/transport/rest/mappers/account/account.mapper';
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
@@ -14,17 +11,13 @@ import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/accou
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 
-import { AuthResolver } from './auth.resolver';
+import { AuthController } from './auth.controller';
 
-const buildMockContext = () => ({
-  req: {
-    cookies: {} as Record<string, string>,
-    res: {
-      cookie: jest.fn(),
-      clearCookie: jest.fn(),
-    },
-  },
-});
+const buildMockResponse = () =>
+  ({
+    cookie: jest.fn(),
+    clearCookie: jest.fn(),
+  }) as unknown as jest.Mocked<Response>;
 
 const buildMockAccountViewModel = (): AccountViewModel =>
   new AccountViewModel({
@@ -35,35 +28,26 @@ const buildMockAccountViewModel = (): AccountViewModel =>
     updatedAt: new Date('2024-01-01'),
   });
 
-describe('AuthResolver', () => {
-  let sut: AuthResolver;
+describe('AuthController', () => {
+  let sut: AuthController;
   let commandBus: jest.Mocked<CommandBus>;
   let queryBus: jest.Mocked<QueryBus>;
-  let mutationResponseGraphQLMapper: jest.Mocked<MutationResponseGraphQLMapper>;
-  let accountGraphQLMapper: jest.Mocked<AccountGraphQLMapper>;
+  let accountRestMapper: jest.Mocked<AccountRestMapper>;
 
   beforeEach(() => {
     commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
     queryBus = { execute: jest.fn() } as unknown as jest.Mocked<QueryBus>;
-    mutationResponseGraphQLMapper = {
-      toResponseDto: jest.fn(),
-    } as unknown as jest.Mocked<MutationResponseGraphQLMapper>;
-    accountGraphQLMapper = {
-      toAccountObject: jest.fn(),
-    } as unknown as jest.Mocked<AccountGraphQLMapper>;
-    sut = new AuthResolver(
-      commandBus,
-      queryBus,
-      mutationResponseGraphQLMapper,
-      accountGraphQLMapper,
-    );
+    accountRestMapper = {
+      toViewModel: jest.fn(),
+    } as unknown as jest.Mocked<AccountRestMapper>;
+    sut = new AuthController(commandBus, queryBus, accountRestMapper);
   });
 
   describe('register()', () => {
     it('should execute RegisterAccountCommand with correct input', async () => {
       commandBus.execute.mockResolvedValue(undefined);
 
-      const result = await sut.register({
+      await sut.register({
         email: 'test@example.com',
         password: 'SuperStr0ng!Pass',
       });
@@ -72,7 +56,6 @@ describe('AuthResolver', () => {
       expect(commandBus.execute).toHaveBeenCalledWith(
         expect.any(RegisterAccountCommand),
       );
-      expect(result).toBe(true);
     });
 
     it('should dispatch exactly one RegisterAccountCommand per call', async () => {
@@ -100,11 +83,11 @@ describe('AuthResolver', () => {
         accessToken: 'jwt-token',
         refreshToken: 'plain-refresh',
       });
-      const ctx = buildMockContext();
+      const res = buildMockResponse();
 
       await sut.login(
         { email: 'test@example.com', password: 'SuperStr0ng!Pass' },
-        ctx,
+        res,
       );
 
       expect(commandBus.execute).toHaveBeenCalledTimes(1);
@@ -113,20 +96,20 @@ describe('AuthResolver', () => {
       );
     });
 
-    it('should return AuthPayloadObject with accessToken and set refresh cookie', async () => {
+    it('should return payload containing accessToken and set refresh cookie', async () => {
       commandBus.execute.mockResolvedValue({
         accessToken: 'jwt-token',
         refreshToken: 'plain-refresh',
       });
-      const ctx = buildMockContext();
+      const res = buildMockResponse();
 
       const result = await sut.login(
         { email: 'test@example.com', password: 'SuperStr0ng!Pass' },
-        ctx,
+        res,
       );
 
-      expect(result.accessToken).toBe('jwt-token');
-      expect(ctx.req.res.cookie).toHaveBeenCalledWith(
+      expect(result).toHaveProperty('accessToken', 'jwt-token');
+      expect(res.cookie).toHaveBeenCalledWith(
         'refresh_token',
         'plain-refresh',
         expect.any(Object),
@@ -140,34 +123,27 @@ describe('AuthResolver', () => {
       email: 'test@example.com',
     };
 
-    it('should return AccountObject with all 5 fields when account is found', async () => {
+    it('should return the mapped response dto when account is found', async () => {
       const viewModel = buildMockAccountViewModel();
-      const accountObject = Object.assign(new AccountObject(), {
+      const responseDto = {
         id: viewModel.id,
         userId: viewModel.userId,
         email: viewModel.email,
         createdAt: viewModel.createdAt,
         updatedAt: viewModel.updatedAt,
-      });
+      };
       queryBus.execute.mockResolvedValue({
         items: [viewModel],
         total: 1,
         page: 1,
         limit: 10,
       });
-      accountGraphQLMapper.toAccountObject.mockReturnValue(accountObject);
+      accountRestMapper.toViewModel.mockReturnValue(responseDto);
 
       const result = await sut.me(currentUser);
 
-      expect(result).toBe(accountObject);
-      expect(accountGraphQLMapper.toAccountObject).toHaveBeenCalledWith(
-        viewModel,
-      );
-      expect(result).toHaveProperty('id', viewModel.id);
-      expect(result).toHaveProperty('userId', viewModel.userId);
-      expect(result).toHaveProperty('email', viewModel.email);
-      expect(result).toHaveProperty('createdAt', viewModel.createdAt);
-      expect(result).toHaveProperty('updatedAt', viewModel.updatedAt);
+      expect(result).toBe(responseDto);
+      expect(accountRestMapper.toViewModel).toHaveBeenCalledWith(viewModel);
       const dispatched = queryBus.execute.mock
         .calls[0][0] as AccountFindByCriteriaQuery;
       expect(dispatched).toBeInstanceOf(AccountFindByCriteriaQuery);
@@ -201,7 +177,7 @@ describe('AuthResolver', () => {
         page: 1,
         limit: 10,
       });
-      accountGraphQLMapper.toAccountObject.mockReturnValue({} as AccountObject);
+      accountRestMapper.toViewModel.mockReturnValue({} as any);
 
       await sut.me(currentUser);
 
@@ -215,7 +191,7 @@ describe('AuthResolver', () => {
       email: 'test@example.com',
     };
 
-    it('should dispatch DeleteAccountCommand with correct userId', async () => {
+    it('should dispatch DeleteAccountCommand with userId from CurrentUser', async () => {
       commandBus.execute.mockResolvedValue(undefined);
 
       await sut.deleteAccount(currentUser);
@@ -226,12 +202,12 @@ describe('AuthResolver', () => {
       );
     });
 
-    it('should return true', async () => {
+    it('should return undefined (void / 204 semantics)', async () => {
       commandBus.execute.mockResolvedValue(undefined);
 
       const result = await sut.deleteAccount(currentUser);
 
-      expect(result).toBe(true);
+      expect(result).toBeUndefined();
     });
 
     it('should dispatch exactly one DeleteAccountCommand per call', async () => {

@@ -36,10 +36,8 @@ import {
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
-import {
-  AccountRestMapper,
-  AccountRestResponseDto,
-} from '@contexts/auth/transport/rest/mappers/account/account.mapper';
+import { AccountRestMapper } from '@contexts/auth/transport/rest/mappers/account/account.mapper';
+import { AccountRestResponseDto } from '@contexts/auth/transport/rest/dtos/account-rest-response.dto';
 import {
   Criteria,
   FilterOperator,
@@ -51,9 +49,9 @@ import {
   setRefreshCookie,
 } from '@contexts/auth/transport/shared/cookie.helper';
 
-import { ChangePasswordDto } from './dtos/change-password.dto';
-import { LoginUserDto } from './dtos/login-user.dto';
-import { RegisterAccountDto } from './dtos/register-account.dto';
+import { ChangePasswordDto } from '../dtos/change-password.dto';
+import { LoginUserDto } from '../dtos/login-user.dto';
+import { RegisterAccountDto } from '../dtos/register-account.dto';
 
 @ApiTags('auth')
 @ApiBearerAuth()
@@ -94,7 +92,7 @@ export class AuthController {
     );
     const account = result.items[0];
     if (!account) throw new AccountNotFoundException(user.userId);
-    return this.accountRestMapper.toResponseDto(account);
+    return this.accountRestMapper.toViewModel(account);
   }
 
   @Post('register')
@@ -135,17 +133,11 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
-    if (!refreshToken) {
-      throw new UnauthorizedException();
-    }
+    if (!refreshToken) throw new UnauthorizedException();
     const result = await this.commandBus.execute<
       RefreshTokenCommand,
       { accessToken: string; refreshToken: string }
-    >(
-      new RefreshTokenCommand({
-        refreshToken,
-      }),
-    );
+    >(new RefreshTokenCommand({ refreshToken }));
     setRefreshCookie(res, result.refreshToken);
     return { accessToken: result.accessToken };
   }
@@ -160,11 +152,7 @@ export class AuthController {
   ): Promise<void> {
     const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
     if (refreshToken) {
-      await this.commandBus.execute(
-        new LogoutCommand({
-          refreshToken,
-        }),
-      );
+      await this.commandBus.execute(new LogoutCommand({ refreshToken }));
     }
     clearRefreshCookie(res);
   }
@@ -181,9 +169,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     await this.commandBus.execute(
-      new LogoutAllCommand({
-        userId: user.userId,
-      }),
+      new LogoutAllCommand({ userId: user.userId }),
     );
     clearRefreshCookie(res);
   }

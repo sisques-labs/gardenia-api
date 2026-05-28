@@ -38,9 +38,10 @@ import { AccountEntity } from './infrastructure/persistence/typeorm/account.enti
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
 import { AccountGraphQLMapper } from './transport/graphql/mappers/account/account.mapper';
-import { AuthResolver } from './transport/graphql/auth.resolver';
+import { AuthMutationsResolver } from './transport/graphql/resolvers/auth/auth-mutations.resolver';
+import { AuthQueriesResolver } from './transport/graphql/resolvers/auth/auth-queries.resolver';
 import { AccountRestMapper } from './transport/rest/mappers/account/account.mapper';
-import { AuthController } from './transport/rest/auth.controller';
+import { AuthController } from './transport/rest/controllers/auth.controller';
 
 const COMMAND_HANDLERS = [
   ChangePasswordCommandHandler,
@@ -92,7 +93,10 @@ const STRATEGIES = [LocalStrategy, JwtStrategy];
 
 const GUARDS = [JwtAuthGuard, LocalAuthGuard];
 
-const TRANSPORT_GRAPHQL_RESOLVERS = [AuthResolver];
+const TRANSPORT_GRAPHQL_RESOLVERS = [
+  AuthQueriesResolver,
+  AuthMutationsResolver,
+];
 
 const TRANSPORT_REST_CONTROLLERS = [AuthController];
 

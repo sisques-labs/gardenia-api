@@ -15,58 +15,24 @@ import {
   clearRefreshCookie,
   setRefreshCookie,
 } from '@contexts/auth/transport/shared/cookie.helper';
+import { ChangePasswordInput } from '@contexts/auth/transport/graphql/dtos/change-password.input';
+import { LoginUserInput } from '@contexts/auth/transport/graphql/dtos/login-user.input';
+import { RegisterAccountInput } from '@contexts/auth/transport/graphql/dtos/register-account.input';
+import { AuthPayloadObject } from '@contexts/auth/transport/graphql/objects/auth-payload.object';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { CommandBus } from '@nestjs/cqrs';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import {
-  Criteria,
-  FilterOperator,
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-  PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
 
-import { AccountFindByCriteriaQuery } from '@contexts/auth/application/queries/account-find-by-criteria/account-find-by-criteria.query';
-import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
-import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
-import { AccountGraphQLMapper } from './mappers/account/account.mapper';
-import { AccountObject } from './objects/account.object';
-
-import { ChangePasswordInput } from './dtos/change-password.input';
-import { LoginUserInput } from './dtos/login-user.input';
-import { RegisterAccountInput } from './dtos/register-account.input';
-import { AuthPayloadObject } from './objects/auth-payload.object';
-
 @Resolver()
-export class AuthResolver {
+export class AuthMutationsResolver {
   constructor(
     private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
-    private readonly accountGraphQLMapper: AccountGraphQLMapper,
   ) {}
-
-  @Query(() => AccountObject)
-  @UseGuards(JwtAuthGuard)
-  async me(@CurrentUser() user: CurrentUserPayload): Promise<AccountObject> {
-    const result = await this.queryBus.execute<
-      AccountFindByCriteriaQuery,
-      PaginatedResult<AccountViewModel>
-    >(
-      new AccountFindByCriteriaQuery({
-        criteria: new Criteria([
-          {
-            field: 'userId',
-            operator: FilterOperator.EQUALS,
-            value: user.userId,
-          },
-        ]),
-      }),
-    );
-    const account = result.items[0];
-    if (!account) throw new AccountNotFoundException(user.userId);
-    return this.accountGraphQLMapper.toAccountObject(account);
-  }
 
   @Mutation(() => Boolean)
   async register(@Args('input') input: RegisterAccountInput): Promise<boolean> {
@@ -90,9 +56,7 @@ export class AuthResolver {
     >(
       new LoginAccountCommand({ email: input.email, password: input.password }),
     );
-
     setRefreshCookie(ctx.req.res, result.refreshToken);
-
     const authPayload = new AuthPayloadObject();
     authPayload.accessToken = result.accessToken;
     return authPayload;
@@ -103,20 +67,12 @@ export class AuthResolver {
     const refreshToken = ctx.req.cookies?.[REFRESH_COOKIE_NAME] as
       | string
       | undefined;
-    if (!refreshToken) {
-      throw new UnauthorizedException();
-    }
+    if (!refreshToken) throw new UnauthorizedException();
     const result = await this.commandBus.execute<
       RefreshTokenCommand,
       { accessToken: string; refreshToken: string }
-    >(
-      new RefreshTokenCommand({
-        refreshToken,
-      }),
-    );
-
+    >(new RefreshTokenCommand({ refreshToken }));
     setRefreshCookie(ctx.req.res, result.refreshToken);
-
     const authPayload = new AuthPayloadObject();
     authPayload.accessToken = result.accessToken;
     return authPayload;
@@ -128,11 +84,7 @@ export class AuthResolver {
       | string
       | undefined;
     if (refreshToken) {
-      await this.commandBus.execute(
-        new LogoutCommand({
-          refreshToken,
-        }),
-      );
+      await this.commandBus.execute(new LogoutCommand({ refreshToken }));
     }
     clearRefreshCookie(ctx.req.res);
     return true;
@@ -145,13 +97,12 @@ export class AuthResolver {
     @Context() ctx: any,
   ): Promise<boolean> {
     await this.commandBus.execute(
-      new LogoutAllCommand({
-        userId: user.userId,
-      }),
+      new LogoutAllCommand({ userId: user.userId }),
     );
     clearRefreshCookie(ctx.req.res);
     return true;
   }
+
   @Mutation(() => MutationResponseDto)
   @UseGuards(JwtAuthGuard)
   async changePassword(
@@ -165,7 +116,6 @@ export class AuthResolver {
         newPassword: input.newPassword,
       }),
     );
-
     return this.mutationResponseGraphQLMapper.toResponseDto({
       success: true,
       message: 'Password changed successfully',
