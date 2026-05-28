@@ -1,3 +1,6 @@
+import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
+
 export type ChangePasswordCommandInput = {
   userId: string;
   currentPassword: string;
@@ -5,13 +8,15 @@ export type ChangePasswordCommandInput = {
 };
 
 export class ChangePasswordCommand {
-  public readonly userId: string;
-  public readonly currentPassword: string;
-  public readonly newPassword: string;
+  public readonly userId: UuidValueObject;
+  public readonly currentPassword: AccountPasswordHashValueObject;
+  public readonly newPassword: AccountPasswordHashValueObject;
 
   constructor(input: ChangePasswordCommandInput) {
-    this.userId = input.userId;
-    this.currentPassword = input.currentPassword;
-    this.newPassword = input.newPassword;
+    this.userId = new UuidValueObject(input.userId);
+    this.currentPassword = new AccountPasswordHashValueObject(
+      input.currentPassword,
+    );
+    this.newPassword = new AccountPasswordHashValueObject(input.newPassword);
   }
 }

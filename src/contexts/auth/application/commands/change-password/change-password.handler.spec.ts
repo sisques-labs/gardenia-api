@@ -4,11 +4,8 @@ import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/in
 import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
 import { EventBus } from '@nestjs/cqrs';
-import * as bcrypt from 'bcrypt';
 import { ChangePasswordCommand } from './change-password.command';
 import { ChangePasswordCommandHandler } from './change-password.handler';
-
-jest.mock('bcrypt');
 
 const USER_ID = '660e8400-e29b-41d4-a716-446655440001';
 
@@ -37,8 +34,7 @@ describe('ChangePasswordCommandHandler', () => {
 
     mockAccount = {
       passwordHash: { value: 'hashed_current_password' },
-      assertCurrentPasswordMatches: jest.fn(),
-      changePassword: jest.fn(),
+      changePasswordWithValidation: jest.fn().mockResolvedValue(undefined),
       commit: jest.fn().mockResolvedValue(undefined),
       getUncommittedEvents: jest.fn().mockReturnValue([
         new AccountPasswordChangedEvent(
@@ -77,7 +73,6 @@ describe('ChangePasswordCommandHandler', () => {
 
   it('should throw InvalidCredentialsException when current password does not match', async () => {
     accountWriteRepository.findByUserId.mockResolvedValue(mockAccount);
-    (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
     const command = new ChangePasswordCommand({
       userId: USER_ID,
@@ -85,21 +80,19 @@ describe('ChangePasswordCommandHandler', () => {
       newPassword: 'newPass123!',
     });
 
-    mockAccount.assertCurrentPasswordMatches.mockImplementation(() => {
+    mockAccount.changePasswordWithValidation.mockImplementation(async () => {
       throw new InvalidCredentialsException();
     });
 
     await expect(handler.execute(command)).rejects.toThrow(
       InvalidCredentialsException,
     );
-    expect(mockAccount.changePassword).not.toHaveBeenCalled();
+    expect(mockAccount.changePasswordWithValidation).toHaveBeenCalledTimes(1);
     expect(accountWriteRepository.save).not.toHaveBeenCalled();
   });
 
   it('should change password, save, and publish events on success', async () => {
     accountWriteRepository.findByUserId.mockResolvedValue(mockAccount);
-    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-    (bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password');
     accountWriteRepository.save.mockResolvedValue(undefined as any);
 
     const command = new ChangePasswordCommand({
@@ -110,27 +103,11 @@ describe('ChangePasswordCommandHandler', () => {
 
     await handler.execute(command);
 
-    expect(mockAccount.changePassword).toHaveBeenCalledWith(
-      'new_hashed_password',
+    expect(mockAccount.changePasswordWithValidation).toHaveBeenCalledWith(
+      'currentPass',
+      'newPass123!',
     );
     expect(accountWriteRepository.save).toHaveBeenCalledWith(mockAccount);
     expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
-  });
-
-  it('should call bcrypt.hash with newPassword and salt rounds 10', async () => {
-    accountWriteRepository.findByUserId.mockResolvedValue(mockAccount);
-    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-    (bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password');
-    accountWriteRepository.save.mockResolvedValue(undefined as any);
-
-    const command = new ChangePasswordCommand({
-      userId: USER_ID,
-      currentPassword: 'currentPass',
-      newPassword: 'newPass123!',
-    });
-
-    await handler.execute(command);
-
-    expect(bcrypt.hash).toHaveBeenCalledWith('newPass123!', 10);
   });
 });

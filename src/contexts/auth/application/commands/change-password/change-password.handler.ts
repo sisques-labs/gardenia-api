@@ -8,7 +8,6 @@ import {
 import { Inject } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
-import * as bcrypt from 'bcrypt';
 
 @CommandHandler(ChangePasswordCommand)
 export class ChangePasswordCommandHandler
@@ -25,23 +24,17 @@ export class ChangePasswordCommandHandler
 
   async execute(command: ChangePasswordCommand): Promise<void> {
     const account = await this.accountWriteRepository.findByUserId(
-      command.userId,
+      command.userId.value,
     );
 
     if (!account) {
-      throw new AccountNotFoundException(command.userId);
+      throw new AccountNotFoundException(command.userId.value);
     }
 
-    const matches = await bcrypt.compare(
-      command.currentPassword,
-      account.passwordHash.value,
+    await account.changePasswordWithValidation(
+      command.currentPassword.value,
+      command.newPassword.value,
     );
-
-    account.assertCurrentPasswordMatches(matches);
-
-    const hashed = await bcrypt.hash(command.newPassword, 10);
-
-    account.changePassword(hashed);
 
     await this.accountWriteRepository.save(account);
 

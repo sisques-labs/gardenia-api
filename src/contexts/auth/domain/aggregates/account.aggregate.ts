@@ -8,6 +8,7 @@ import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/acc
 import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
 import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
 import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import * as bcrypt from 'bcrypt';
 
 export class AccountAggregate extends BaseAggregate {
   private readonly _id: AccountIdValueObject;
@@ -62,10 +63,21 @@ export class AccountAggregate extends BaseAggregate {
     );
   }
 
-  public assertCurrentPasswordMatches(matches: boolean): void {
+  public async changePasswordWithValidation(
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const matches = await bcrypt.compare(
+      currentPassword,
+      this.passwordHash.value,
+    );
+
     if (!matches) {
       throw new InvalidCredentialsException();
     }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    this.changePassword(hashedPassword);
   }
 
   public delete(): void {
