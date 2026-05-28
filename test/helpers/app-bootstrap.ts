@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 
 import { AppModule } from '../../src/app.module';
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
+import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
 import { BaseExceptionFilter } from '../../src/core/filters/base-exception.filter';
 
@@ -32,7 +33,7 @@ export async function createE2EApp(): Promise<E2EContext> {
         database: DB_DATABASE,
         username: DB_USERNAME,
         password: DB_PASSWORD,
-        entities: [AccountEntity, UserTypeOrmEntity],
+        entities: [AccountEntity, AuthSessionEntity, UserTypeOrmEntity],
         synchronize: true,
         logging: false,
       }),
