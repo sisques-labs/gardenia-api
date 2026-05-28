@@ -1,10 +1,23 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.5.0-alpha.0] - 2026-05-28
+
+### Features
+- **auth:** Add GET /auth/me and me GraphQL query (04da7d2)
+
+### Refactor
+- **auth:** Extract account view model mapping to dedicated mappers (827d2db)
+- **auth:** Restructure transport layer per PR feedback (d4df9fd)
+- **auth:** Inject builders via constructor, use domain AccountBuilder in REST mapper (60207cd)
+- **auth:** Remove AccountObjectBuilder, use domain AccountBuilder in GQL mapper (ee117e0)
 ## [0.4.0-alpha.0] - 2026-05-28
 
 ### Bug Fixes
 - **e2e:** Register auth session entity in test bootstrap (e4d7762)
+
+### Chore
+- Release v0.4.0-alpha.0 (573949e)
 
 ### Refactor
 - **auth:** Address PR review feedback for auth sessions (038415c)
