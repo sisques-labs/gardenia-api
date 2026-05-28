@@ -37,6 +37,10 @@ import {
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import {
+  AccountRestMapper,
+  AccountRestResponseDto,
+} from '@contexts/auth/transport/rest/mappers/account/account.mapper';
+import {
   Criteria,
   FilterOperator,
   PaginatedResult,
@@ -58,6 +62,7 @@ export class AuthController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    private readonly accountRestMapper: AccountRestMapper,
   ) {}
 
   @Get('me')
@@ -70,7 +75,9 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Account not found' })
-  async me(@CurrentUser() user: CurrentUserPayload): Promise<AccountViewModel> {
+  async me(
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<AccountRestResponseDto> {
     const result = await this.queryBus.execute<
       AccountFindByCriteriaQuery,
       PaginatedResult<AccountViewModel>
@@ -87,7 +94,7 @@ export class AuthController {
     );
     const account = result.items[0];
     if (!account) throw new AccountNotFoundException(user.userId);
-    return account;
+    return this.accountRestMapper.toResponseDto(account);
   }
 
   @Post('register')

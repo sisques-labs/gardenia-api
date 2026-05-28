@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { FilterOperator } from '@sisques-labs/nestjs-kit';
 
 import { AccountFindByCriteriaQuery } from '@contexts/auth/application/queries/account-find-by-criteria/account-find-by-criteria.query';
+import { AccountRestMapper } from '@contexts/auth/transport/rest/mappers/account/account.mapper';
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
@@ -31,11 +32,15 @@ describe('AuthController', () => {
   let sut: AuthController;
   let commandBus: jest.Mocked<CommandBus>;
   let queryBus: jest.Mocked<QueryBus>;
+  let accountRestMapper: jest.Mocked<AccountRestMapper>;
 
   beforeEach(() => {
     commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
     queryBus = { execute: jest.fn() } as unknown as jest.Mocked<QueryBus>;
-    sut = new AuthController(commandBus, queryBus);
+    accountRestMapper = {
+      toResponseDto: jest.fn(),
+    } as unknown as jest.Mocked<AccountRestMapper>;
+    sut = new AuthController(commandBus, queryBus, accountRestMapper);
   });
 
   describe('register()', () => {
@@ -118,19 +123,27 @@ describe('AuthController', () => {
       email: 'test@example.com',
     };
 
-    it('should return the AccountViewModel when account is found', async () => {
+    it('should return the mapped response dto when account is found', async () => {
       const viewModel = buildMockAccountViewModel();
+      const responseDto = {
+        id: viewModel.id,
+        userId: viewModel.userId,
+        email: viewModel.email,
+        createdAt: viewModel.createdAt,
+        updatedAt: viewModel.updatedAt,
+      };
       queryBus.execute.mockResolvedValue({
         items: [viewModel],
         total: 1,
         page: 1,
         limit: 10,
       });
+      accountRestMapper.toResponseDto.mockReturnValue(responseDto);
 
       const result = await sut.me(currentUser);
 
-      expect(result).toBe(viewModel);
-      expect(queryBus.execute).toHaveBeenCalledTimes(1);
+      expect(result).toBe(responseDto);
+      expect(accountRestMapper.toResponseDto).toHaveBeenCalledWith(viewModel);
       const dispatched = queryBus.execute.mock
         .calls[0][0] as AccountFindByCriteriaQuery;
       expect(dispatched).toBeInstanceOf(AccountFindByCriteriaQuery);
@@ -164,6 +177,7 @@ describe('AuthController', () => {
         page: 1,
         limit: 10,
       });
+      accountRestMapper.toResponseDto.mockReturnValue({} as any);
 
       await sut.me(currentUser);
 

@@ -29,6 +29,7 @@ import {
 import { AccountFindByCriteriaQuery } from '@contexts/auth/application/queries/account-find-by-criteria/account-find-by-criteria.query';
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
+import { AccountGraphQLMapper } from './mappers/account/account.mapper';
 import { AccountObject } from './objects/account.object';
 
 import { ChangePasswordInput } from './dtos/change-password.input';
@@ -42,6 +43,7 @@ export class AuthResolver {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
+    private readonly accountGraphQLMapper: AccountGraphQLMapper,
   ) {}
 
   @Query(() => AccountObject)
@@ -63,7 +65,7 @@ export class AuthResolver {
     );
     const account = result.items[0];
     if (!account) throw new AccountNotFoundException(user.userId);
-    return account as unknown as AccountObject;
+    return this.accountGraphQLMapper.toAccountObject(account);
   }
 
   @Mutation(() => Boolean)

@@ -37,7 +37,9 @@ import { AccountTypeOrmMapper } from './infrastructure/persistence/typeorm/accou
 import { AccountEntity } from './infrastructure/persistence/typeorm/account.entity';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
+import { AccountGraphQLMapper } from './transport/graphql/mappers/account/account.mapper';
 import { AuthResolver } from './transport/graphql/auth.resolver';
+import { AccountRestMapper } from './transport/rest/mappers/account/account.mapper';
 import { AuthController } from './transport/rest/auth.controller';
 
 const COMMAND_HANDLERS = [
@@ -69,6 +71,8 @@ const APPLICATION_SERVICES = [
 const DOMAIN_BUILDERS = [AccountBuilder, AuthSessionBuilder];
 
 const INFRASTRUCTURE_MAPPERS = [AccountTypeOrmMapper, AuthSessionTypeOrmMapper];
+
+const TRANSPORT_MAPPERS = [AccountRestMapper, AccountGraphQLMapper];
 
 const INFRASTRUCTURE_REPOSITORIES = [
   {
@@ -117,6 +121,7 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController];
     ...APPLICATION_SERVICES,
     ...DOMAIN_BUILDERS,
     ...INFRASTRUCTURE_MAPPERS,
+    ...TRANSPORT_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
     ...STRATEGIES,
     ...GUARDS,
