@@ -1,6 +1,8 @@
-import { BaseBuilder } from '@sisques-labs/nestjs-kit';
 import { AccountObject } from '@contexts/auth/transport/graphql/objects/account.object';
+import { Injectable } from '@nestjs/common';
+import { BaseBuilder } from '@sisques-labs/nestjs-kit';
 
+@Injectable()
 export class AccountObjectBuilder extends BaseBuilder<
   AccountObject,
   AccountObject

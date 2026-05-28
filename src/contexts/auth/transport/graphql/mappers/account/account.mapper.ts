@@ -5,8 +5,10 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AccountGraphQLMapper {
+  constructor(private readonly accountObjectBuilder: AccountObjectBuilder) {}
+
   toViewModel(vm: AccountViewModel): AccountObject {
-    return new AccountObjectBuilder()
+    return this.accountObjectBuilder
       .withId(vm.id)
       .withUserId(vm.userId)
       .withEmail(vm.email)
