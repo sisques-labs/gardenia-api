@@ -11,14 +11,7 @@ export class AuthSessionTypeOrmMapper {
 
   public toAggregate(entity: AuthSessionEntity): AuthSessionAggregate {
     return this.authSessionBuilder
-      .withId(entity.id)
-      .withUserId(entity.userId)
-      .withTokenHash(entity.tokenHash)
-      .withExpiresAt(entity.expiresAt)
-      .withRevokedAt(entity.revokedAt)
-      .withDeviceInfo(entity.deviceInfo)
-      .withCreatedAt(entity.createdAt)
-      .withUpdatedAt(entity.updatedAt)
+      .fromPrimitives(this.toEntityPrimitives(entity))
       .build();
   }
 
@@ -38,18 +31,24 @@ export class AuthSessionTypeOrmMapper {
 
   public toViewModel(entity: AuthSessionEntity): AuthSessionViewModel {
     return this.authSessionBuilder
-      .withId(entity.id)
-      .withUserId(entity.userId)
-      .withTokenHash(entity.tokenHash)
-      .withExpiresAt(entity.expiresAt)
-      .withRevokedAt(entity.revokedAt)
-      .withDeviceInfo(entity.deviceInfo)
-      .withCreatedAt(entity.createdAt)
-      .withUpdatedAt(entity.updatedAt)
+      .fromPrimitives(this.toEntityPrimitives(entity))
       .buildViewModel();
   }
 
   public toPrimitives(aggregate: AuthSessionAggregate): AuthSessionPrimitives {
     return aggregate.toPrimitives();
+  }
+
+  private toEntityPrimitives(entity: AuthSessionEntity): AuthSessionPrimitives {
+    return {
+      id: entity.id,
+      userId: entity.userId,
+      tokenHash: entity.tokenHash,
+      expiresAt: entity.expiresAt,
+      revokedAt: entity.revokedAt,
+      deviceInfo: entity.deviceInfo,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
   }
 }

@@ -1,4 +1,5 @@
 import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
+import { AuthSessionPrimitives } from '@contexts/auth/domain/primitives/auth-session.primitives';
 import { AuthSessionViewModel } from '@contexts/auth/domain/view-models/auth-session.view-model';
 import { AuthSessionIdValueObject } from '@contexts/auth/domain/value-objects/auth-session-id/auth-session-id.vo';
 import { RefreshTokenHashValueObject } from '@contexts/auth/domain/value-objects/refresh-token-hash/refresh-token-hash.vo';
@@ -9,17 +10,6 @@ import {
   FieldIsRequiredException,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
-
-export interface AuthSessionBuildProps {
-  id: string;
-  userId: string;
-  tokenHash: string;
-  expiresAt: Date;
-  revokedAt?: Date | null;
-  deviceInfo?: string | null;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
 
 @Injectable()
 export class AuthSessionBuilder extends BaseBuilder<
@@ -98,14 +88,14 @@ export class AuthSessionBuilder extends BaseBuilder<
     if (!this._expiresAt) throw new FieldIsRequiredException('expiresAt');
   }
 
-  public fromProps(props: AuthSessionBuildProps): this {
-    return this.withId(props.id)
-      .withUserId(props.userId)
-      .withTokenHash(props.tokenHash)
-      .withExpiresAt(props.expiresAt)
-      .withRevokedAt(props.revokedAt ?? null)
-      .withDeviceInfo(props.deviceInfo ?? null)
-      .withCreatedAt(props.createdAt ?? new Date())
-      .withUpdatedAt(props.updatedAt ?? new Date());
+  public fromPrimitives(primitives: AuthSessionPrimitives): this {
+    return this.withId(primitives.id)
+      .withUserId(primitives.userId)
+      .withTokenHash(primitives.tokenHash)
+      .withExpiresAt(primitives.expiresAt)
+      .withRevokedAt(primitives.revokedAt)
+      .withDeviceInfo(primitives.deviceInfo)
+      .withCreatedAt(primitives.createdAt)
+      .withUpdatedAt(primitives.updatedAt);
   }
 }
