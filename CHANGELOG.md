@@ -1,7 +1,24 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.4.0-alpha.0] - 2026-05-28
+
+### Bug Fixes
+- **e2e:** Register auth session entity in test bootstrap (e4d7762)
+
+### Refactor
+- **auth:** Address PR review feedback for auth sessions (038415c)
+- **auth:** Split refresh token services by responsibility (e1dc67e)
+- **auth:** Place refresh token services in own folders (95fae3a)
+- **auth:** Use fromPrimitives in auth session builder (6689081)
+- **auth:** Update handlers and tests for injectable token services (cd7c974)
+- **auth:** Align refresh/logout commands with PR feedback (d5348da)
+- **auth:** Use value objects in refresh/logout commands (4ad6909)
+- **auth:** Remove active-session repo method and custom token error (1a45e55)
 ## [0.3.0-alpha.0] - 2026-05-28
+
+### Chore
+- Release v0.3.0-alpha.0 (5630bf6)
 
 ### Features
 - **auth:** Implement change password endpoint (8bd53a3)
@@ -12,8 +29,13 @@ All notable changes to this project will be documented in this file.
 ## [0.2.0-alpha.0] - 2026-05-28
 
 ### Chore
+- **deps:** Add express as direct dependency (8533b9c)
 - Update pnpm-store in .gitignore and upgrade @sisques-labs/nestjs-kit to v0.10.2 (13e3787)
 - Release v0.2.0-alpha.0 (9535451)
+
+### Features
+- **auth:** Add AuthSession domain, infra and migration for refresh tokens (a76c173)
+- **auth:** Implement refresh token rotation, logout, and cookie transport (0e422d3)
 
 ### Tech
 - **auth:** Implement findByCriteria in AccountTypeOrmReadRepository (f2e7a78)
