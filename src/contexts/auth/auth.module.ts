@@ -1,14 +1,17 @@
+import { ChangePasswordCommandHandler } from '@contexts/auth/application/commands/change-password/change-password.handler';
 import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands/delete-account/delete-account.handler';
 import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
 import { LogoutAllCommandHandler } from '@contexts/auth/application/commands/logout-all/logout-all.handler';
 import { LogoutCommandHandler } from '@contexts/auth/application/commands/logout/logout.handler';
 import { RefreshTokenCommandHandler } from '@contexts/auth/application/commands/refresh-token/refresh-token.handler';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
+import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
+import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { AUTH_SESSION_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
-import { AuthSessionTypeOrmRepository } from '@contexts/auth/infrastructure/persistence/typeorm/auth-session-typeorm.repository';
-import { AuthSessionEntity } from '@contexts/auth/infrastructure/persistence/typeorm/auth-session.entity';
-import { AuthSessionTypeOrmMapper } from '@contexts/auth/infrastructure/persistence/typeorm/auth-session.mapper';
+import { AuthSessionEntity } from '@contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
+import { AuthSessionTypeOrmMapper } from '@contexts/auth/infrastructure/persistence/typeorm/mappers/auth-session-typeorm.mapper';
+import { AuthSessionTypeOrmWriteRepository } from '@contexts/auth/infrastructure/persistence/typeorm/repositories/auth-session-typeorm-write.repository';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -38,6 +41,7 @@ import { AuthResolver } from './transport/graphql/auth.resolver';
 import { AuthController } from './transport/rest/auth.controller';
 
 const COMMAND_HANDLERS = [
+  ChangePasswordCommandHandler,
   DeleteAccountCommandHandler,
   RegisterAccountCommandHandler,
   LoginAccountCommandHandler,
@@ -58,6 +62,8 @@ const APPLICATION_SERVICES = [
   AssertAccountEmailAvailableService,
   AssertAccountViewModelExistsService,
   ValidateAccountCredentialsService,
+  GenerateRefreshTokenService,
+  HashRefreshTokenService,
 ];
 
 const DOMAIN_BUILDERS = [AccountBuilder, AuthSessionBuilder];
@@ -72,7 +78,7 @@ const INFRASTRUCTURE_REPOSITORIES = [
   { provide: ACCOUNT_READ_REPOSITORY, useClass: AccountTypeOrmReadRepository },
   {
     provide: AUTH_SESSION_WRITE_REPOSITORY,
-    useClass: AuthSessionTypeOrmRepository,
+    useClass: AuthSessionTypeOrmWriteRepository,
   },
 ];
 

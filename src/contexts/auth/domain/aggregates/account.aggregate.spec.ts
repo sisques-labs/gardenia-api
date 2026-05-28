@@ -2,7 +2,11 @@ import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggre
 import { AccountCreatedEvent } from '@contexts/auth/domain/events/account-created/account-created.event';
 import { AccountDeletedEvent } from '@contexts/auth/domain/events/account-deleted/account-deleted.event';
 import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
+import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
+import * as bcrypt from 'bcrypt';
+
+jest.mock('bcrypt');
 
 const ACCOUNT_ID = '550e8400-e29b-41d4-a716-446655440001';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
@@ -142,6 +146,41 @@ describe('AccountAggregate', () => {
       ) as AccountDeletedEvent;
 
       expect(deletedEvent.data.id).toBe(ACCOUNT_ID);
+    });
+  });
+
+  describe('changePasswordWithValidation()', () => {
+    it('should throw InvalidCredentialsException when password does not match', async () => {
+      const account = buildAccount();
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(
+        account.changePasswordWithValidation(
+          'current-password',
+          'new-password-123',
+        ),
+      ).rejects.toThrow(InvalidCredentialsException);
+    });
+
+    it('should hash and change password when current password matches', async () => {
+      const account = buildAccount();
+      const newHashedPassword =
+        '$2b$10$zyxwvutsrqponmlkjihgfedcba987654321098765432109876543';
+
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (bcrypt.hash as jest.Mock).mockResolvedValue(newHashedPassword);
+
+      await account.changePasswordWithValidation(
+        'current-password',
+        'new-password-123',
+      );
+
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        'current-password',
+        PASSWORD_HASH,
+      );
+      expect(bcrypt.hash).toHaveBeenCalledWith('new-password-123', 10);
+      expect(account.passwordHash.value).toBe(newHashedPassword);
     });
   });
 

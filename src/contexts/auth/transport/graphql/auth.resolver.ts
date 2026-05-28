@@ -1,7 +1,4 @@
-import { UnauthorizedException, UseGuards } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
-
+import { ChangePasswordCommand } from '@contexts/auth/application/commands/change-password/change-password.command';
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
 import { LogoutAllCommand } from '@contexts/auth/application/commands/logout-all/logout-all.command';
@@ -18,14 +15,25 @@ import {
   clearRefreshCookie,
   setRefreshCookie,
 } from '@contexts/auth/transport/shared/cookie.helper';
+import { UnauthorizedException, UseGuards } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import {
+  MutationResponseDto,
+  MutationResponseGraphQLMapper,
+} from '@sisques-labs/nestjs-kit';
 
+import { ChangePasswordInput } from './dtos/change-password.input';
 import { LoginUserInput } from './dtos/login-user.input';
 import { RegisterAccountInput } from './dtos/register-account.input';
 import { AuthPayloadObject } from './objects/auth-payload.object';
 
 @Resolver()
 export class AuthResolver {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
+  ) {}
 
   @Mutation(() => Boolean)
   async register(@Args('input') input: RegisterAccountInput): Promise<boolean> {
@@ -98,6 +106,25 @@ export class AuthResolver {
     await this.commandBus.execute(new LogoutAllCommand(user.userId));
     clearRefreshCookie(ctx.req.res);
     return true;
+  }
+  @Mutation(() => MutationResponseDto)
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Args('input') input: ChangePasswordInput,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<MutationResponseDto> {
+    await this.commandBus.execute(
+      new ChangePasswordCommand({
+        userId: user.userId,
+        currentPassword: input.currentPassword,
+        newPassword: input.newPassword,
+      }),
+    );
+
+    return this.mutationResponseGraphQLMapper.toResponseDto({
+      success: true,
+      message: 'Password changed successfully',
+    });
   }
 
   @Mutation(() => Boolean)

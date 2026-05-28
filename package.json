@@ -1,6 +1,6 @@
 {
   "name": "sisques-labs/gardenia-api",
-  "version": "0.1.0-alpha.0",
+  "version": "0.3.0-alpha.0",
   "description": "Garden & plant manager API",
   "author": "Sisques Labs",
   "repository": {
@@ -45,7 +45,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.2",
     "@nestjs/typeorm": "^11.0.1",
-    "@sisques-labs/nestjs-kit": "^0.10.1",
+    "@sisques-labs/nestjs-kit": "^0.10.2",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",

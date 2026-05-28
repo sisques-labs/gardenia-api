@@ -1,4 +1,5 @@
 import { CommandBus } from '@nestjs/cqrs';
+import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
 
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
@@ -20,10 +21,14 @@ const buildMockContext = () => ({
 describe('AuthResolver', () => {
   let sut: AuthResolver;
   let commandBus: jest.Mocked<CommandBus>;
+  let mutationResponseGraphQLMapper: jest.Mocked<MutationResponseGraphQLMapper>;
 
   beforeEach(() => {
     commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
-    sut = new AuthResolver(commandBus);
+    mutationResponseGraphQLMapper = {
+      toResponseDto: jest.fn(),
+    } as unknown as jest.Mocked<MutationResponseGraphQLMapper>;
+    sut = new AuthResolver(commandBus, mutationResponseGraphQLMapper);
   });
 
   describe('register()', () => {

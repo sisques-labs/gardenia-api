@@ -1,22 +1,18 @@
 import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { AuthSessionPrimitives } from '@contexts/auth/domain/primitives/auth-session.primitives';
+import { AuthSessionViewModel } from '@contexts/auth/domain/view-models/auth-session.view-model';
 import { Injectable } from '@nestjs/common';
-import { AuthSessionEntity } from './auth-session.entity';
+import { AuthSessionEntity } from '../entities/auth-session.entity';
 
 @Injectable()
 export class AuthSessionTypeOrmMapper {
-  public toDomain(entity: AuthSessionEntity): AuthSessionAggregate {
-    return AuthSessionBuilder.build({
-      id: entity.id,
-      userId: entity.userId,
-      tokenHash: entity.tokenHash,
-      expiresAt: entity.expiresAt,
-      revokedAt: entity.revokedAt,
-      deviceInfo: entity.deviceInfo,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    });
+  constructor(private readonly authSessionBuilder: AuthSessionBuilder) {}
+
+  public toAggregate(entity: AuthSessionEntity): AuthSessionAggregate {
+    return this.authSessionBuilder
+      .fromPrimitives(this.toEntityPrimitives(entity))
+      .build();
   }
 
   public toEntity(aggregate: AuthSessionAggregate): AuthSessionEntity {
@@ -33,7 +29,26 @@ export class AuthSessionTypeOrmMapper {
     return entity;
   }
 
+  public toViewModel(entity: AuthSessionEntity): AuthSessionViewModel {
+    return this.authSessionBuilder
+      .fromPrimitives(this.toEntityPrimitives(entity))
+      .buildViewModel();
+  }
+
   public toPrimitives(aggregate: AuthSessionAggregate): AuthSessionPrimitives {
     return aggregate.toPrimitives();
+  }
+
+  private toEntityPrimitives(entity: AuthSessionEntity): AuthSessionPrimitives {
+    return {
+      id: entity.id,
+      userId: entity.userId,
+      tokenHash: entity.tokenHash,
+      expiresAt: entity.expiresAt,
+      revokedAt: entity.revokedAt,
+      deviceInfo: entity.deviceInfo,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
   }
 }

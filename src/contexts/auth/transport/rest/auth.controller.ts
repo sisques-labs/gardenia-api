@@ -4,6 +4,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Req,
   Res,
@@ -19,6 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
+import { ChangePasswordCommand } from '@contexts/auth/application/commands/change-password/change-password.command';
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
 import { LogoutAllCommand } from '@contexts/auth/application/commands/logout-all/logout-all.command';
@@ -36,6 +38,7 @@ import {
   setRefreshCookie,
 } from '@contexts/auth/transport/shared/cookie.helper';
 
+import { ChangePasswordDto } from './dtos/change-password.dto';
 import { LoginUserDto } from './dtos/login-user.dto';
 import { RegisterAccountDto } from './dtos/register-account.dto';
 
@@ -122,6 +125,28 @@ export class AuthController {
   ): Promise<void> {
     await this.commandBus.execute(new LogoutAllCommand(user.userId));
     clearRefreshCookie(res);
+  }
+
+  @Patch('password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Change the authenticated account password' })
+  @ApiResponse({ status: 204, description: 'Password changed successfully' })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid credentials or unauthorized',
+  })
+  async changePassword(
+    @Body() dto: ChangePasswordDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<void> {
+    await this.commandBus.execute(
+      new ChangePasswordCommand({
+        userId: user.userId,
+        currentPassword: dto.currentPassword,
+        newPassword: dto.newPassword,
+      }),
+    );
   }
 
   @Delete('account')
