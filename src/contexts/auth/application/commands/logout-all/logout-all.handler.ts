@@ -28,6 +28,12 @@ export class LogoutAllCommandHandler
   }
 
   async execute(command: LogoutAllCommand): Promise<void> {
-    await this.sessionRepo.revokeAllByUserId(command.userId);
+    const sessions = await this.sessionRepo.findActiveByUserId(command.userId);
+
+    for (const session of sessions) {
+      session.revoke('logout-all');
+      await this.sessionRepo.save(session);
+      await this.publishEvents(session);
+    }
   }
 }

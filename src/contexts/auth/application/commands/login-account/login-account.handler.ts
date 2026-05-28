@@ -1,10 +1,5 @@
 import { Inject } from '@nestjs/common';
-import {
-  AggregateRoot,
-  CommandHandler,
-  EventBus,
-  ICommandHandler,
-} from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { REFRESH_TOKEN_TTL_MS } from '@contexts/auth/application/constants/refresh-token.constants';
@@ -12,6 +7,7 @@ import { ValidateAccountCredentialsService } from '@contexts/auth/application/se
 import { TokenService } from '@contexts/auth/application/services/token.service';
 import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
 import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
+import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import {
@@ -23,7 +19,7 @@ import { LoginAccountCommand } from './login-account.command';
 
 @CommandHandler(LoginAccountCommand)
 export class LoginAccountCommandHandler
-  extends BaseCommandHandler<LoginAccountCommand, AggregateRoot>
+  extends BaseCommandHandler<LoginAccountCommand, AuthSessionAggregate>
   implements ICommandHandler<LoginAccountCommand>
 {
   constructor(

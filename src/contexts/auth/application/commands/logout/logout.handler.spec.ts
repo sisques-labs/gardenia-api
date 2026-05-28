@@ -51,7 +51,7 @@ describe('LogoutCommandHandler', () => {
   it('is idempotent when session is not found (silent success)', async () => {
     sessionRepo.findByTokenHash.mockResolvedValue(null);
 
-    const command = new LogoutCommand('unknown-token');
+    const command = new LogoutCommand({ refreshToken: 'unknown-token' });
 
     await expect(handler.execute(command)).resolves.toBeUndefined();
     expect(sessionRepo.save).not.toHaveBeenCalled();
@@ -61,7 +61,7 @@ describe('LogoutCommandHandler', () => {
     const session = buildActiveSession();
     sessionRepo.findByTokenHash.mockResolvedValue(session);
 
-    const command = new LogoutCommand('some-plain-token');
+    const command = new LogoutCommand({ refreshToken: 'some-plain-token' });
 
     await handler.execute(command);
 

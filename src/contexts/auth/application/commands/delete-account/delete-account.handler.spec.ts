@@ -46,7 +46,10 @@ describe('DeleteAccountCommandHandler', () => {
     authSessionRepo = {
       save: jest.fn(),
       findByTokenHash: jest.fn(),
+      findActiveByUserId: jest.fn(),
       findById: jest.fn(),
+      findByCriteria: jest.fn(),
+      delete: jest.fn(),
       revokeAllByUserId: jest.fn().mockResolvedValue(0),
     } as unknown as jest.Mocked<IAuthSessionWriteRepository>;
 

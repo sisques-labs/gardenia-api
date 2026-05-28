@@ -97,7 +97,9 @@ describe('RefreshTokenCommandHandler', () => {
   it('throws InvalidRefreshTokenException when session is not found', async () => {
     sessionRepo.findByTokenHash.mockResolvedValue(null);
 
-    const command = new RefreshTokenCommand('some-plain-token');
+    const command = new RefreshTokenCommand({
+      refreshToken: 'some-plain-token',
+    });
 
     await expect(handler.execute(command)).rejects.toThrow(
       InvalidRefreshTokenException,
@@ -110,7 +112,9 @@ describe('RefreshTokenCommandHandler', () => {
     });
     sessionRepo.findByTokenHash.mockResolvedValue(expiredSession);
 
-    const command = new RefreshTokenCommand('some-plain-token');
+    const command = new RefreshTokenCommand({
+      refreshToken: 'some-plain-token',
+    });
 
     await expect(handler.execute(command)).rejects.toThrow(
       InvalidRefreshTokenException,
@@ -123,7 +127,9 @@ describe('RefreshTokenCommandHandler', () => {
     });
     sessionRepo.findByTokenHash.mockResolvedValue(revokedSession);
 
-    const command = new RefreshTokenCommand('some-plain-token');
+    const command = new RefreshTokenCommand({
+      refreshToken: 'some-plain-token',
+    });
 
     await expect(handler.execute(command)).rejects.toThrow(
       RefreshTokenReuseDetectedException,
@@ -139,7 +145,9 @@ describe('RefreshTokenCommandHandler', () => {
     sessionRepo.findByTokenHash.mockResolvedValue(activeSession);
     accountRepo.findByUserId.mockResolvedValue(account);
 
-    const command = new RefreshTokenCommand('some-plain-token');
+    const command = new RefreshTokenCommand({
+      refreshToken: 'some-plain-token',
+    });
 
     const result = await handler.execute(command);
 

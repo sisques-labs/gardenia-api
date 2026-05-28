@@ -1,6 +1,14 @@
+export interface RefreshTokenCommandInput {
+  refreshToken: string;
+  deviceInfo?: string;
+}
+
 export class RefreshTokenCommand {
-  constructor(
-    public readonly refreshToken: string,
-    public readonly deviceInfo?: string,
-  ) {}
+  public readonly refreshToken: string;
+  public readonly deviceInfo?: string;
+
+  constructor(input: RefreshTokenCommandInput) {
+    this.refreshToken = input.refreshToken;
+    this.deviceInfo = input.deviceInfo;
+  }
 }

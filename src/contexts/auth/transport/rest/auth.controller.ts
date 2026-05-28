@@ -92,7 +92,11 @@ export class AuthController {
     const result = await this.commandBus.execute<
       RefreshTokenCommand,
       { accessToken: string; refreshToken: string }
-    >(new RefreshTokenCommand(refreshToken));
+    >(
+      new RefreshTokenCommand({
+        refreshToken,
+      }),
+    );
     setRefreshCookie(res, result.refreshToken);
     return { accessToken: result.accessToken };
   }
@@ -107,7 +111,11 @@ export class AuthController {
   ): Promise<void> {
     const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
     if (refreshToken) {
-      await this.commandBus.execute(new LogoutCommand(refreshToken));
+      await this.commandBus.execute(
+        new LogoutCommand({
+          refreshToken,
+        }),
+      );
     }
     clearRefreshCookie(res);
   }
@@ -123,7 +131,11 @@ export class AuthController {
     @CurrentUser() user: CurrentUserPayload,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    await this.commandBus.execute(new LogoutAllCommand(user.userId));
+    await this.commandBus.execute(
+      new LogoutAllCommand({
+        userId: user.userId,
+      }),
+    );
     clearRefreshCookie(res);
   }
 

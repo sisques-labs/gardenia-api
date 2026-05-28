@@ -76,7 +76,11 @@ export class AuthResolver {
     const result = await this.commandBus.execute<
       RefreshTokenCommand,
       { accessToken: string; refreshToken: string }
-    >(new RefreshTokenCommand(refreshToken));
+    >(
+      new RefreshTokenCommand({
+        refreshToken,
+      }),
+    );
 
     setRefreshCookie(ctx.req.res, result.refreshToken);
 
@@ -91,7 +95,11 @@ export class AuthResolver {
       | string
       | undefined;
     if (refreshToken) {
-      await this.commandBus.execute(new LogoutCommand(refreshToken));
+      await this.commandBus.execute(
+        new LogoutCommand({
+          refreshToken,
+        }),
+      );
     }
     clearRefreshCookie(ctx.req.res);
     return true;
@@ -103,7 +111,11 @@ export class AuthResolver {
     @CurrentUser() user: CurrentUserPayload,
     @Context() ctx: any,
   ): Promise<boolean> {
-    await this.commandBus.execute(new LogoutAllCommand(user.userId));
+    await this.commandBus.execute(
+      new LogoutAllCommand({
+        userId: user.userId,
+      }),
+    );
     clearRefreshCookie(ctx.req.res);
     return true;
   }

@@ -7,5 +7,6 @@ export const AUTH_SESSION_WRITE_REPOSITORY = Symbol(
 
 export interface IAuthSessionWriteRepository extends IBaseWriteRepository<AuthSessionAggregate> {
   findByTokenHash(tokenHash: string): Promise<AuthSessionAggregate | null>;
+  findActiveByUserId(userId: string): Promise<AuthSessionAggregate[]>;
   revokeAllByUserId(userId: string): Promise<number>;
 }

@@ -1,3 +1,11 @@
+export interface LogoutCommandInput {
+  refreshToken: string;
+}
+
 export class LogoutCommand {
-  constructor(public readonly refreshToken: string) {}
+  public readonly refreshToken: string;
+
+  constructor(input: LogoutCommandInput) {
+    this.refreshToken = input.refreshToken;
+  }
 }
