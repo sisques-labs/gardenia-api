@@ -1,3 +1,4 @@
+import { InvalidRefreshTokenValueException } from '@contexts/auth/domain/exceptions/invalid-refresh-token-value.exception';
 import { StringValueObject } from '@sisques-labs/nestjs-kit';
 
 export class RefreshTokenValueObject extends StringValueObject {
@@ -8,7 +9,7 @@ export class RefreshTokenValueObject extends StringValueObject {
 
   private ensureNotEmpty(value: string): void {
     if (!value?.trim()) {
-      throw new Error('Refresh token is required');
+      throw new InvalidRefreshTokenValueException();
     }
   }
 }

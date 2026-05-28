@@ -1,4 +1,5 @@
 import { EventBus } from '@nestjs/cqrs';
+import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
@@ -15,7 +16,6 @@ describe('LogoutAllCommandHandler', () => {
     sessionRepo = {
       save: jest.fn(),
       findByTokenHash: jest.fn(),
-      findActiveByUserId: jest.fn(),
       findById: jest.fn(),
       revokeAllByUserId: jest.fn().mockResolvedValue(3),
       findByCriteria: jest.fn(),
@@ -39,12 +39,14 @@ describe('LogoutAllCommandHandler', () => {
       .withExpiresAt(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
       .withRevokedAt(null)
       .build();
-    sessionRepo.findActiveByUserId.mockResolvedValue([activeSession]);
+    sessionRepo.findByCriteria.mockResolvedValue(
+      new PaginatedResult([activeSession], 1, 1, 1000),
+    );
     const command = new LogoutAllCommand({ userId });
 
     const result = await handler.execute(command);
 
-    expect(sessionRepo.findActiveByUserId).toHaveBeenCalledWith(userId);
+    expect(sessionRepo.findByCriteria).toHaveBeenCalled();
     expect(sessionRepo.save).toHaveBeenCalledWith(activeSession);
     expect(eventBus.publishAll).toHaveBeenCalled();
     expect(result).toBeUndefined();

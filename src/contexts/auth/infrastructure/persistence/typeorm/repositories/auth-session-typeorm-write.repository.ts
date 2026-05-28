@@ -43,13 +43,6 @@ export class AuthSessionTypeOrmWriteRepository implements IAuthSessionWriteRepos
     await this.repo.delete(id);
   }
 
-  async findActiveByUserId(userId: string): Promise<AuthSessionAggregate[]> {
-    const entities = await this.repo.find({
-      where: { userId, revokedAt: IsNull() },
-    });
-    return entities.map((entity) => this.mapper.toAggregate(entity));
-  }
-
   async revokeAllByUserId(userId: string): Promise<number> {
     const result = await this.repo.update(
       { userId, revokedAt: IsNull() },

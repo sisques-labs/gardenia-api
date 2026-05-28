@@ -46,7 +46,6 @@ describe('DeleteAccountCommandHandler', () => {
     authSessionRepo = {
       save: jest.fn(),
       findByTokenHash: jest.fn(),
-      findActiveByUserId: jest.fn(),
       findById: jest.fn(),
       findByCriteria: jest.fn(),
       delete: jest.fn(),
