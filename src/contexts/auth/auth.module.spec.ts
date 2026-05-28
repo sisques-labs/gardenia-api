@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthModule } from './auth.module';
 import { AccountEntity } from './infrastructure/persistence/typeorm/account.entity';
+import { AuthSessionEntity } from './infrastructure/persistence/typeorm/auth-session.entity';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { ACCOUNT_WRITE_REPOSITORY } from './domain/repositories/write/account-write.repository';
 import { ACCOUNT_READ_REPOSITORY } from './domain/repositories/read/account-read.repository';
@@ -12,6 +13,7 @@ const mockRepository = {
   findOne: jest.fn(),
   save: jest.fn(),
   delete: jest.fn(),
+  update: jest.fn(),
 };
 
 const mockJwtStrategy = {
@@ -23,6 +25,8 @@ async function createTestModule(): Promise<TestingModule> {
     imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
   })
     .overrideProvider(getRepositoryToken(AccountEntity))
+    .useValue(mockRepository)
+    .overrideProvider(getRepositoryToken(AuthSessionEntity))
     .useValue(mockRepository)
     .overrideProvider(JwtStrategy)
     .useValue(mockJwtStrategy)
