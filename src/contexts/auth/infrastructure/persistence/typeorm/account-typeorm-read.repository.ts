@@ -29,13 +29,19 @@ export class AccountTypeOrmReadRepository
     return entity ? this.mapper.toViewModel(entity) : null;
   }
 
-  // filters intentionally not applied — mirrors users context
   async findByCriteria(
     criteria: Criteria,
   ): Promise<PaginatedResult<AccountViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
+    const where =
+      criteria.filters?.reduce(
+        (acc, f) => ({ ...acc, [f.field]: f.value }),
+        {},
+      ) ?? {};
+
     const [entities, total] = await this.repo.findAndCount({
+      where,
       skip,
       take: limit,
       order: criteria.sorts.reduce(

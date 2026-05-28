@@ -1,6 +1,10 @@
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
-import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
+import {
+  Criteria,
+  FilterOperator,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 import { AccountTypeOrmMapper } from './account-typeorm.mapper';
 import { AccountTypeOrmReadRepository } from './account-typeorm-read.repository';
@@ -26,6 +30,14 @@ const buildCriteria = (
     pagination: { page, perPage },
     sorts,
     filters: [],
+  } as unknown as Criteria;
+};
+
+const buildCriteriaWithFilter = (field: string, value: string): Criteria => {
+  return {
+    pagination: { page: 1, perPage: 10 },
+    sorts: [],
+    filters: [{ field, operator: FilterOperator.EQUALS, value }],
   } as unknown as Criteria;
 };
 
@@ -82,11 +94,36 @@ describe('AccountTypeOrmReadRepository', () => {
 
       await repository.findByCriteria(criteria);
 
-      expect(typeOrmRepo.findAndCount).toHaveBeenCalledWith({
-        skip: 10,
-        take: 10,
-        order: { createdAt: 'ASC' },
-      });
+      expect(typeOrmRepo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {},
+          skip: 10,
+          take: 10,
+          order: { createdAt: 'ASC' },
+        }),
+      );
+    });
+
+    it('should call findAndCount with where: { userId } when a userId filter is passed', async () => {
+      typeOrmRepo.findAndCount.mockResolvedValue([[], 0]);
+      const criteria = buildCriteriaWithFilter('userId', 'u-123');
+
+      await repository.findByCriteria(criteria);
+
+      expect(typeOrmRepo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { userId: 'u-123' } }),
+      );
+    });
+
+    it('should call findAndCount with where: {} when no filters are passed', async () => {
+      typeOrmRepo.findAndCount.mockResolvedValue([[], 0]);
+      const criteria = buildCriteria(1, 10);
+
+      await repository.findByCriteria(criteria);
+
+      expect(typeOrmRepo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {} }),
+      );
     });
 
     it('should return PaginatedResult with items=[] and total=0 when no entities exist', async () => {

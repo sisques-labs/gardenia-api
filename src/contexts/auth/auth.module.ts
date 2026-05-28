@@ -37,8 +37,11 @@ import { AccountTypeOrmMapper } from './infrastructure/persistence/typeorm/accou
 import { AccountEntity } from './infrastructure/persistence/typeorm/account.entity';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
-import { AuthResolver } from './transport/graphql/auth.resolver';
-import { AuthController } from './transport/rest/auth.controller';
+import { AccountGraphQLMapper } from './transport/graphql/mappers/account/account.mapper';
+import { AuthMutationsResolver } from './transport/graphql/resolvers/auth/auth-mutations.resolver';
+import { AuthQueriesResolver } from './transport/graphql/resolvers/auth/auth-queries.resolver';
+import { AccountRestMapper } from './transport/rest/mappers/account/account.mapper';
+import { AuthController } from './transport/rest/controllers/auth.controller';
 
 const COMMAND_HANDLERS = [
   ChangePasswordCommandHandler,
@@ -70,6 +73,8 @@ const DOMAIN_BUILDERS = [AccountBuilder, AuthSessionBuilder];
 
 const INFRASTRUCTURE_MAPPERS = [AccountTypeOrmMapper, AuthSessionTypeOrmMapper];
 
+const TRANSPORT_MAPPERS = [AccountRestMapper, AccountGraphQLMapper];
+
 const INFRASTRUCTURE_REPOSITORIES = [
   {
     provide: ACCOUNT_WRITE_REPOSITORY,
@@ -88,7 +93,10 @@ const STRATEGIES = [LocalStrategy, JwtStrategy];
 
 const GUARDS = [JwtAuthGuard, LocalAuthGuard];
 
-const TRANSPORT_GRAPHQL_RESOLVERS = [AuthResolver];
+const TRANSPORT_GRAPHQL_RESOLVERS = [
+  AuthQueriesResolver,
+  AuthMutationsResolver,
+];
 
 const TRANSPORT_REST_CONTROLLERS = [AuthController];
 
@@ -117,6 +125,7 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController];
     ...APPLICATION_SERVICES,
     ...DOMAIN_BUILDERS,
     ...INFRASTRUCTURE_MAPPERS,
+    ...TRANSPORT_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
     ...STRATEGIES,
     ...GUARDS,

@@ -36,7 +36,9 @@ export class AccountBuilder extends BaseBuilder<
   }
 
   public override buildViewModel(): AccountViewModel {
-    this.validate();
+    super.validate();
+    if (!this._userId) throw new FieldIsRequiredException('userId');
+    if (!this._email) throw new FieldIsRequiredException('email');
 
     return new AccountViewModel({
       id: this._id,

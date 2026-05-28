@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Patch,
@@ -11,7 +12,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -20,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
+import { AccountFindByCriteriaQuery } from '@contexts/auth/application/queries/account-find-by-criteria/account-find-by-criteria.query';
 import { ChangePasswordCommand } from '@contexts/auth/application/commands/change-password/change-password.command';
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
@@ -27,26 +29,71 @@ import { LogoutAllCommand } from '@contexts/auth/application/commands/logout-all
 import { LogoutCommand } from '@contexts/auth/application/commands/logout/logout.command';
 import { RefreshTokenCommand } from '@contexts/auth/application/commands/refresh-token/refresh-token.command';
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
+import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
+import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import {
   CurrentUser,
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
+import { AccountRestMapper } from '@contexts/auth/transport/rest/mappers/account/account.mapper';
+import { AccountRestResponseDto } from '@contexts/auth/transport/rest/dtos/account-rest-response.dto';
+import {
+  Criteria,
+  FilterOperator,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 import {
   REFRESH_COOKIE_NAME,
   clearRefreshCookie,
   setRefreshCookie,
 } from '@contexts/auth/transport/shared/cookie.helper';
 
-import { ChangePasswordDto } from './dtos/change-password.dto';
-import { LoginUserDto } from './dtos/login-user.dto';
-import { RegisterAccountDto } from './dtos/register-account.dto';
+import { ChangePasswordDto } from '../dtos/change-password.dto';
+import { LoginUserDto } from '../dtos/login-user.dto';
+import { RegisterAccountDto } from '../dtos/register-account.dto';
 
 @ApiTags('auth')
 @ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+    private readonly accountRestMapper: AccountRestMapper,
+  ) {}
+
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get the authenticated account' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the authenticated account',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
+  async me(
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<AccountRestResponseDto> {
+    const result = await this.queryBus.execute<
+      AccountFindByCriteriaQuery,
+      PaginatedResult<AccountViewModel>
+    >(
+      new AccountFindByCriteriaQuery({
+        criteria: new Criteria([
+          {
+            field: 'userId',
+            operator: FilterOperator.EQUALS,
+            value: user.userId,
+          },
+        ]),
+      }),
+    );
+    const account = result.items[0];
+    if (!account) throw new AccountNotFoundException(user.userId);
+    return this.accountRestMapper.toViewModel(account);
+  }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -86,17 +133,11 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
-    if (!refreshToken) {
-      throw new UnauthorizedException();
-    }
+    if (!refreshToken) throw new UnauthorizedException();
     const result = await this.commandBus.execute<
       RefreshTokenCommand,
       { accessToken: string; refreshToken: string }
-    >(
-      new RefreshTokenCommand({
-        refreshToken,
-      }),
-    );
+    >(new RefreshTokenCommand({ refreshToken }));
     setRefreshCookie(res, result.refreshToken);
     return { accessToken: result.accessToken };
   }
@@ -111,11 +152,7 @@ export class AuthController {
   ): Promise<void> {
     const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
     if (refreshToken) {
-      await this.commandBus.execute(
-        new LogoutCommand({
-          refreshToken,
-        }),
-      );
+      await this.commandBus.execute(new LogoutCommand({ refreshToken }));
     }
     clearRefreshCookie(res);
   }
@@ -132,9 +169,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     await this.commandBus.execute(
-      new LogoutAllCommand({
-        userId: user.userId,
-      }),
+      new LogoutAllCommand({ userId: user.userId }),
     );
     clearRefreshCookie(res);
   }
