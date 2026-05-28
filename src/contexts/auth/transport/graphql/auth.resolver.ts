@@ -16,12 +16,20 @@ import {
   setRefreshCookie,
 } from '@contexts/auth/transport/shared/cookie.helper';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import {
+  Criteria,
+  FilterOperator,
   MutationResponseDto,
   MutationResponseGraphQLMapper,
+  PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
+
+import { AccountFindByCriteriaQuery } from '@contexts/auth/application/queries/account-find-by-criteria/account-find-by-criteria.query';
+import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
+import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
+import { AccountObject } from './objects/account.object';
 
 import { ChangePasswordInput } from './dtos/change-password.input';
 import { LoginUserInput } from './dtos/login-user.input';
@@ -32,8 +40,31 @@ import { AuthPayloadObject } from './objects/auth-payload.object';
 export class AuthResolver {
   constructor(
     private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
   ) {}
+
+  @Query(() => AccountObject)
+  @UseGuards(JwtAuthGuard)
+  async me(@CurrentUser() user: CurrentUserPayload): Promise<AccountObject> {
+    const result = await this.queryBus.execute<
+      AccountFindByCriteriaQuery,
+      PaginatedResult<AccountViewModel>
+    >(
+      new AccountFindByCriteriaQuery({
+        criteria: new Criteria([
+          {
+            field: 'userId',
+            operator: FilterOperator.EQUALS,
+            value: user.userId,
+          },
+        ]),
+      }),
+    );
+    const account = result.items[0];
+    if (!account) throw new AccountNotFoundException(user.userId);
+    return account as unknown as AccountObject;
+  }
 
   @Mutation(() => Boolean)
   async register(@Args('input') input: RegisterAccountInput): Promise<boolean> {

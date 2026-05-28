@@ -1,9 +1,15 @@
-import { CommandBus } from '@nestjs/cqrs';
-import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import {
+  FilterOperator,
+  MutationResponseGraphQLMapper,
+} from '@sisques-labs/nestjs-kit';
 
+import { AccountFindByCriteriaQuery } from '@contexts/auth/application/queries/account-find-by-criteria/account-find-by-criteria.query';
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
+import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
+import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 
 import { AuthResolver } from './auth.resolver';
@@ -18,17 +24,28 @@ const buildMockContext = () => ({
   },
 });
 
+const buildMockAccountViewModel = (): AccountViewModel =>
+  new AccountViewModel({
+    id: '550e8400-e29b-41d4-a716-446655440000',
+    userId: '660e8400-e29b-41d4-a716-446655440001',
+    email: 'test@example.com',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  });
+
 describe('AuthResolver', () => {
   let sut: AuthResolver;
   let commandBus: jest.Mocked<CommandBus>;
+  let queryBus: jest.Mocked<QueryBus>;
   let mutationResponseGraphQLMapper: jest.Mocked<MutationResponseGraphQLMapper>;
 
   beforeEach(() => {
     commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
+    queryBus = { execute: jest.fn() } as unknown as jest.Mocked<QueryBus>;
     mutationResponseGraphQLMapper = {
       toResponseDto: jest.fn(),
     } as unknown as jest.Mocked<MutationResponseGraphQLMapper>;
-    sut = new AuthResolver(commandBus, mutationResponseGraphQLMapper);
+    sut = new AuthResolver(commandBus, queryBus, mutationResponseGraphQLMapper);
   });
 
   describe('register()', () => {
@@ -103,6 +120,69 @@ describe('AuthResolver', () => {
         'plain-refresh',
         expect.any(Object),
       );
+    });
+  });
+
+  describe('me()', () => {
+    const currentUser: CurrentUserPayload = {
+      userId: '660e8400-e29b-41d4-a716-446655440001',
+      email: 'test@example.com',
+    };
+
+    it('should return AccountObject with all 5 fields when account is found', async () => {
+      const viewModel = buildMockAccountViewModel();
+      queryBus.execute.mockResolvedValue({
+        items: [viewModel],
+        total: 1,
+        page: 1,
+        limit: 10,
+      });
+
+      const result = await sut.me(currentUser);
+
+      expect(result).toHaveProperty('id', viewModel.id);
+      expect(result).toHaveProperty('userId', viewModel.userId);
+      expect(result).toHaveProperty('email', viewModel.email);
+      expect(result).toHaveProperty('createdAt', viewModel.createdAt);
+      expect(result).toHaveProperty('updatedAt', viewModel.updatedAt);
+      expect(queryBus.execute).toHaveBeenCalledTimes(1);
+      const dispatched = queryBus.execute.mock
+        .calls[0][0] as AccountFindByCriteriaQuery;
+      expect(dispatched).toBeInstanceOf(AccountFindByCriteriaQuery);
+      expect(dispatched.criteria.filters).toEqual([
+        {
+          field: 'userId',
+          operator: FilterOperator.EQUALS,
+          value: currentUser.userId,
+        },
+      ]);
+    });
+
+    it('should throw AccountNotFoundException when account is not found', async () => {
+      queryBus.execute.mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+      });
+
+      await expect(sut.me(currentUser)).rejects.toBeInstanceOf(
+        AccountNotFoundException,
+      );
+    });
+
+    it('should not call commandBus inside me()', async () => {
+      const viewModel = buildMockAccountViewModel();
+      queryBus.execute.mockResolvedValue({
+        items: [viewModel],
+        total: 1,
+        page: 1,
+        limit: 10,
+      });
+
+      await sut.me(currentUser);
+
+      expect(commandBus.execute).not.toHaveBeenCalled();
     });
   });
 
