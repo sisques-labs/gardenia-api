@@ -2,8 +2,8 @@ import { ChangePasswordCommandHandler } from '@contexts/auth/application/command
 import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands/delete-account/delete-account.handler';
 import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
-import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/refresh-token/generate-refresh-token.service';
-import { HashRefreshTokenService } from '@contexts/auth/application/services/write/refresh-token/hash-refresh-token.service';
+import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
+import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { AUTH_SESSION_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 import { AuthSessionEntity } from '@contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
