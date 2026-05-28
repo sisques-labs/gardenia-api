@@ -9,6 +9,8 @@ import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { REFRESH_TOKEN_TTL_MS } from '@contexts/auth/application/constants/refresh-token.constants';
 import { TokenService } from '@contexts/auth/application/services/token.service';
+import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
+import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { InvalidRefreshTokenException } from '@contexts/auth/domain/exceptions/invalid-refresh-token.exception';
 import { RefreshTokenReuseDetectedException } from '@contexts/auth/domain/exceptions/refresh-token-reuse-detected.exception';
@@ -20,10 +22,6 @@ import {
   AUTH_SESSION_WRITE_REPOSITORY,
   IAuthSessionWriteRepository,
 } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
-import {
-  generateRefreshToken,
-  hashRefreshToken,
-} from '@contexts/auth/infrastructure/security/refresh-token.util';
 
 import { RefreshTokenCommand } from './refresh-token.command';
 
@@ -39,6 +37,9 @@ export class RefreshTokenCommandHandler
     @Inject(ACCOUNT_WRITE_REPOSITORY)
     private readonly accountRepo: IAccountWriteRepository,
     private readonly tokenService: TokenService,
+    private readonly authSessionBuilder: AuthSessionBuilder,
+    private readonly generateRefreshTokenService: GenerateRefreshTokenService,
+    private readonly hashRefreshTokenService: HashRefreshTokenService,
   ) {
     super(eventBus);
   }
@@ -46,7 +47,9 @@ export class RefreshTokenCommandHandler
   async execute(
     command: RefreshTokenCommand,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const hash = hashRefreshToken(command.refreshToken);
+    const hash = await this.hashRefreshTokenService.execute(
+      command.refreshToken,
+    );
 
     // TODO(ADR-5): wrap in DataSource pessimistic_write lock for production concurrency safety
     const session = await this.sessionRepo.findByTokenHash(hash);
@@ -72,17 +75,17 @@ export class RefreshTokenCommandHandler
     await this.sessionRepo.save(session);
 
     // Create new session
-    const newToken = generateRefreshToken();
-    const newHash = hashRefreshToken(newToken);
+    const newToken = await this.generateRefreshTokenService.execute();
+    const newHash = await this.hashRefreshTokenService.execute(newToken);
     const newExpiry = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
-    const newSession = AuthSessionBuilder.build({
-      id: UuidValueObject.generate().value,
-      userId: session.userId.value,
-      tokenHash: newHash,
-      expiresAt: newExpiry,
-      deviceInfo: command.deviceInfo,
-    });
+    const newSession = this.authSessionBuilder
+      .withId(UuidValueObject.generate().value)
+      .withUserId(session.userId.value)
+      .withTokenHash(newHash)
+      .withExpiresAt(newExpiry)
+      .withDeviceInfo(command.deviceInfo ?? null)
+      .build();
 
     newSession.create();
     await this.sessionRepo.save(newSession);

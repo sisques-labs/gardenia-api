@@ -11,7 +11,7 @@ import {
   AUTH_SESSION_WRITE_REPOSITORY,
   IAuthSessionWriteRepository,
 } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
-import { hashRefreshToken } from '@contexts/auth/infrastructure/security/refresh-token.util';
+import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 
 import { LogoutCommand } from './logout.command';
 
@@ -22,6 +22,7 @@ export class LogoutCommandHandler
 {
   constructor(
     eventBus: EventBus,
+    private readonly hashRefreshTokenService: HashRefreshTokenService,
     @Inject(AUTH_SESSION_WRITE_REPOSITORY)
     private readonly sessionRepo: IAuthSessionWriteRepository,
   ) {
@@ -29,7 +30,9 @@ export class LogoutCommandHandler
   }
 
   async execute(command: LogoutCommand): Promise<void> {
-    const hash = hashRefreshToken(command.refreshToken);
+    const hash = await this.hashRefreshTokenService.execute(
+      command.refreshToken,
+    );
     const session = await this.sessionRepo.findByTokenHash(hash);
 
     if (!session) {

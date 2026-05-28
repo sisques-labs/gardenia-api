@@ -2,7 +2,10 @@ import { EventBus } from '@nestjs/cqrs';
 
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { TokenService } from '@contexts/auth/application/services/token.service';
+import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
+import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
+import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 
@@ -15,6 +18,8 @@ describe('LoginAccountCommandHandler', () => {
   let eventBus: jest.Mocked<EventBus>;
   let validateAccountCredentialsService: jest.Mocked<ValidateAccountCredentialsService>;
   let sessionRepo: jest.Mocked<IAuthSessionWriteRepository>;
+  let generateRefreshTokenService: jest.Mocked<GenerateRefreshTokenService>;
+  let hashRefreshTokenService: jest.Mocked<HashRefreshTokenService>;
 
   const buildAccount = () =>
     new AccountBuilder()
@@ -41,16 +46,29 @@ describe('LoginAccountCommandHandler', () => {
     } as unknown as jest.Mocked<ValidateAccountCredentialsService>;
 
     sessionRepo = {
-      save: jest.fn().mockResolvedValue(undefined),
+      save: jest.fn(),
       findByTokenHash: jest.fn(),
       findById: jest.fn(),
       revokeAllByUserId: jest.fn(),
+      findByCriteria: jest.fn(),
+      delete: jest.fn(),
     } as unknown as jest.Mocked<IAuthSessionWriteRepository>;
+
+    generateRefreshTokenService = {
+      execute: jest.fn().mockResolvedValue('refresh-token'),
+    } as unknown as jest.Mocked<GenerateRefreshTokenService>;
+
+    hashRefreshTokenService = {
+      execute: jest.fn().mockResolvedValue('a'.repeat(64)),
+    } as unknown as jest.Mocked<HashRefreshTokenService>;
 
     handler = new LoginAccountCommandHandler(
       eventBus,
       tokenService,
       validateAccountCredentialsService,
+      new AuthSessionBuilder(),
+      generateRefreshTokenService,
+      hashRefreshTokenService,
       sessionRepo,
     );
   });

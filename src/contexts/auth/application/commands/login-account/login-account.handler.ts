@@ -10,16 +10,14 @@ import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { REFRESH_TOKEN_TTL_MS } from '@contexts/auth/application/constants/refresh-token.constants';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { TokenService } from '@contexts/auth/application/services/token.service';
+import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
+import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import {
   AUTH_SESSION_WRITE_REPOSITORY,
   IAuthSessionWriteRepository,
 } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
-import {
-  generateRefreshToken,
-  hashRefreshToken,
-} from '@contexts/auth/infrastructure/security/refresh-token.util';
 
 import { LoginAccountCommand } from './login-account.command';
 
@@ -32,6 +30,9 @@ export class LoginAccountCommandHandler
     eventBus: EventBus,
     private readonly tokenService: TokenService,
     private readonly validateAccountCredentialsService: ValidateAccountCredentialsService,
+    private readonly authSessionBuilder: AuthSessionBuilder,
+    private readonly generateRefreshTokenService: GenerateRefreshTokenService,
+    private readonly hashRefreshTokenService: HashRefreshTokenService,
     @Inject(AUTH_SESSION_WRITE_REPOSITORY)
     private readonly sessionRepo: IAuthSessionWriteRepository,
   ) {
@@ -55,16 +56,16 @@ export class LoginAccountCommandHandler
       account.email.value,
     );
 
-    const plainToken = generateRefreshToken();
-    const tokenHash = hashRefreshToken(plainToken);
+    const plainToken = await this.generateRefreshTokenService.execute();
+    const tokenHash = await this.hashRefreshTokenService.execute(plainToken);
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
-    const session = AuthSessionBuilder.build({
-      id: UuidValueObject.generate().value,
-      userId: account.userId.value,
-      tokenHash,
-      expiresAt,
-    });
+    const session = this.authSessionBuilder
+      .withId(UuidValueObject.generate().value)
+      .withUserId(account.userId.value)
+      .withTokenHash(tokenHash)
+      .withExpiresAt(expiresAt)
+      .build();
 
     session.create();
     await this.sessionRepo.save(session);

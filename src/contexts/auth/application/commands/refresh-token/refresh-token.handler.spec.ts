@@ -7,21 +7,25 @@ import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/
 import { TokenService } from '@contexts/auth/application/services/token.service';
 import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
+import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
+import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 
 import { RefreshTokenCommand } from './refresh-token.command';
 import { RefreshTokenCommandHandler } from './refresh-token.handler';
 
-const buildActiveSession = (
-  overrides?: Partial<Parameters<typeof AuthSessionBuilder.build>[0]>,
-) =>
-  AuthSessionBuilder.build({
-    id: 'a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1',
-    userId: '660e8400-e29b-41d4-a716-446655440001',
-    tokenHash: 'a'.repeat(64),
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    revokedAt: null,
-    ...overrides,
-  });
+const buildActiveSession = (overrides?: {
+  expiresAt?: Date;
+  revokedAt?: Date | null;
+}) =>
+  new AuthSessionBuilder()
+    .withId('a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1')
+    .withUserId('660e8400-e29b-41d4-a716-446655440001')
+    .withTokenHash('a'.repeat(64))
+    .withExpiresAt(
+      overrides?.expiresAt ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    )
+    .withRevokedAt(overrides?.revokedAt ?? null)
+    .build();
 
 const buildAccount = () =>
   new AccountBuilder()
@@ -39,13 +43,17 @@ describe('RefreshTokenCommandHandler', () => {
   let accountRepo: jest.Mocked<IAccountWriteRepository>;
   let tokenService: jest.Mocked<TokenService>;
   let eventBus: jest.Mocked<EventBus>;
+  let generateRefreshTokenService: jest.Mocked<GenerateRefreshTokenService>;
+  let hashRefreshTokenService: jest.Mocked<HashRefreshTokenService>;
 
   beforeEach(() => {
     sessionRepo = {
-      save: jest.fn().mockResolvedValue(undefined),
+      save: jest.fn(),
       findByTokenHash: jest.fn(),
       findById: jest.fn(),
       revokeAllByUserId: jest.fn().mockResolvedValue(1),
+      findByCriteria: jest.fn(),
+      delete: jest.fn(),
     } as unknown as jest.Mocked<IAuthSessionWriteRepository>;
 
     accountRepo = {
@@ -59,6 +67,17 @@ describe('RefreshTokenCommandHandler', () => {
       sign: jest.fn().mockReturnValue('new-access-token'),
     } as unknown as jest.Mocked<TokenService>;
 
+    generateRefreshTokenService = {
+      execute: jest.fn().mockResolvedValue('new-refresh-token'),
+    } as unknown as jest.Mocked<GenerateRefreshTokenService>;
+
+    hashRefreshTokenService = {
+      execute: jest
+        .fn()
+        .mockResolvedValueOnce('a'.repeat(64))
+        .mockResolvedValueOnce('b'.repeat(64)),
+    } as unknown as jest.Mocked<HashRefreshTokenService>;
+
     eventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -69,6 +88,9 @@ describe('RefreshTokenCommandHandler', () => {
       sessionRepo,
       accountRepo,
       tokenService,
+      new AuthSessionBuilder(),
+      generateRefreshTokenService,
+      hashRefreshTokenService,
     );
   });
 
