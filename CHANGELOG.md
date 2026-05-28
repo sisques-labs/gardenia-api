@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.2.0-alpha.0] - 2026-05-28
+
+### Chore
+- Update pnpm-store in .gitignore and upgrade @sisques-labs/nestjs-kit to v0.10.2 (13e3787)
+
+### Tech
+- **auth:** Implement findByCriteria in AccountTypeOrmReadRepository (f2e7a78)
 ## [0.1.0-alpha.0] - 2026-05-27
 
 ### Bug Fixes
@@ -35,6 +42,7 @@ All notable changes to this project will be documented in this file.
 - **agents:** Add architecture skill with DDD+CQRS layer rules and conventions (83cf82b)
 - **package:** Update version to 0.0.0, add description and author information (8ddb747)
 - **package:** Update package name and add repository information (12f06b8)
+- Release v0.1.0-alpha.0 (2f914f7)
 
 ### Documentation
 - **readme:** Add auth, users, and core module documentation (86ed6fe)
