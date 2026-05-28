@@ -1,3 +1,4 @@
+import { ChangePasswordCommandHandler } from '@contexts/auth/application/commands/change-password/change-password.handler';
 import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands/delete-account/delete-account.handler';
 import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
@@ -35,6 +36,7 @@ import { AuthResolver } from './transport/graphql/auth.resolver';
 import { AuthController } from './transport/rest/auth.controller';
 
 const COMMAND_HANDLERS = [
+  ChangePasswordCommandHandler,
   DeleteAccountCommandHandler,
   RegisterAccountCommandHandler,
   LoginAccountCommandHandler,

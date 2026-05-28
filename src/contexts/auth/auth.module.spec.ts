@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 import { AuthModule } from './auth.module';
 import { AccountEntity } from './infrastructure/persistence/typeorm/account.entity';
 import { AuthSessionEntity } from './infrastructure/persistence/typeorm/auth-session.entity';
@@ -22,7 +23,11 @@ const mockJwtStrategy = {
 
 async function createTestModule(): Promise<TestingModule> {
   return Test.createTestingModule({
-    imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
+    imports: [
+      ConfigModule.forRoot({ isGlobal: true }),
+      SharedGraphQLModule,
+      AuthModule,
+    ],
   })
     .overrideProvider(getRepositoryToken(AccountEntity))
     .useValue(mockRepository)
