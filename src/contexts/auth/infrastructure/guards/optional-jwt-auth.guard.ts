@@ -1,21 +1,36 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { SKIP_SPACE_KEY } from '../../../../shared/decorators/skip-space.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
-// Used as global APP_GUARD. Decodes JWT if present and sets req.user,
-// but does NOT throw when no token is provided — public routes (register,
-// login, refresh) pass through without a token. Invalid or expired tokens
-// still throw 401. SpaceGuard (the next global guard) enforces auth for
-// all non-@SkipSpace routes by checking req.user.
+// Global APP_GUARD that runs before SpaceGuard.
+// Routes marked @SkipSpace() bypass JWT validation entirely (register, login,
+// refresh, logout). All other routes require a valid JWT — invalid or expired
+// tokens still throw 401. This avoids passport-jwt wrapping "No auth token"
+// in a JsonWebTokenError, which would cause false 401s on public routes.
 @Injectable()
 export class OptionalJwtAuthGuard extends JwtAuthGuard {
+  constructor(private readonly reflector: Reflector) {
+    super();
+  }
+
+  override async canActivate(context: ExecutionContext): Promise<boolean> {
+    const skipSpace = this.reflector.getAllAndOverride<boolean>(
+      SKIP_SPACE_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+    if (skipSpace) return true;
+    return super.canActivate(context) as Promise<boolean>;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   override handleRequest<TUser = any>(err: any, user: any, info: any): TUser {
     if (err) throw err;
-    if (!user && info instanceof Error) {
-      // Invalid or expired token — throw so the client knows to re-authenticate
-      throw new UnauthorizedException(info.message);
-    }
-    // No token at all (info is a string) — pass with user=undefined
-    return user || undefined;
+    if (!user) throw new UnauthorizedException(info?.message ?? 'Unauthorized');
+    return user;
   }
 }
