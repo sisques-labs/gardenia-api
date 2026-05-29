@@ -2,6 +2,7 @@ import { SupportModule } from './support/support.module';
 import { SharedModule } from './shared/shared.module';
 import { AuthModule } from '@contexts/auth/auth.module';
 import { UsersModule } from '@contexts/users/users.module';
+import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { authConfig } from '@core/config/auth.config';
 import { postgresConfig } from '@core/config/postgres.config';
 import '@core/transport/graphql/registered-enums.graphql';
@@ -37,6 +38,7 @@ import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
         res,
       }),
     }),
+    SpacesModule,
     AuthModule,
     UsersModule,
   ],
