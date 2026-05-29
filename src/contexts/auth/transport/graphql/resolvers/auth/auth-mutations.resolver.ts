@@ -69,6 +69,7 @@ export class AuthMutationsResolver {
   }
 
   @Mutation(() => AuthPayloadObject)
+  @SkipSpace()
   async refreshToken(@Context() ctx: any): Promise<AuthPayloadObject> {
     const refreshToken = ctx.req.cookies?.[REFRESH_COOKIE_NAME] as
       | string
@@ -85,6 +86,7 @@ export class AuthMutationsResolver {
   }
 
   @Mutation(() => Boolean)
+  @SkipSpace()
   async logout(@Context() ctx: any): Promise<boolean> {
     const refreshToken = ctx.req.cookies?.[REFRESH_COOKIE_NAME] as
       | string
@@ -96,6 +98,7 @@ export class AuthMutationsResolver {
     return true;
   }
 
+  @SkipSpace()
   @UseGuards(JwtAuthGuard)
   @Mutation(() => Boolean)
   async logoutAll(

@@ -6,6 +6,6 @@ import { DataSource } from 'typeorm';
  */
 export async function truncateAll(dataSource: DataSource): Promise<void> {
   await dataSource.query(
-    `TRUNCATE "accounts", "users" RESTART IDENTITY CASCADE`,
+    `TRUNCATE "accounts", "users", "spaces", "space_memberships" RESTART IDENTITY CASCADE`,
   );
 }

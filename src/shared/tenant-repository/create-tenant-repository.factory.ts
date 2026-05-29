@@ -20,8 +20,13 @@ export function createTenantRepository<E extends { spaceId: string }>(
           target.save({ ...entity, spaceId: ctx.require() });
       }
       if (prop === 'delete') {
-        return (criteria: any) =>
-          target.delete({ ...criteria, spaceId: ctx.require() });
+        return (criteria: any) => {
+          const where =
+            typeof criteria === 'string' || typeof criteria === 'number'
+              ? { id: criteria, spaceId: ctx.require() }
+              : { ...criteria, spaceId: ctx.require() };
+          return target.delete(where);
+        };
       }
       return Reflect.get(target, prop);
     },
