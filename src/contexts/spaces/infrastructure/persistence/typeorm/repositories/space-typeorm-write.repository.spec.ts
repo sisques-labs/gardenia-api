@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
 
 import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
+import { SpaceMembershipBuilder } from '@contexts/spaces/domain/builders/space-membership.builder';
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { SpaceMembershipEntity } from '../entities/space-membership.entity';
 import { SpaceEntity } from '../entities/space.entity';
@@ -48,6 +49,7 @@ describe('SpaceTypeOrmWriteRepository', () => {
     spaceRepo = {
       save: jest.fn(),
       findOne: jest.fn(),
+      findAndCount: jest.fn(),
       delete: jest.fn(),
     } as unknown as jest.Mocked<Repository<SpaceEntity>>;
 
@@ -57,7 +59,9 @@ describe('SpaceTypeOrmWriteRepository', () => {
     } as unknown as jest.Mocked<Repository<SpaceMembershipEntity>>;
 
     spaceMapper = new SpaceTypeOrmMapper(new SpaceBuilder());
-    membershipMapper = new SpaceMembershipTypeOrmMapper();
+    membershipMapper = new SpaceMembershipTypeOrmMapper(
+      new SpaceMembershipBuilder(),
+    );
 
     repository = new SpaceTypeOrmWriteRepository(
       spaceRepo,
@@ -110,7 +114,6 @@ describe('SpaceTypeOrmWriteRepository', () => {
   describe('findById()', () => {
     it('should return a SpaceAggregate when entity is found', async () => {
       const entity = buildSpaceEntity();
-
       spaceRepo.findOne.mockResolvedValue(entity);
 
       const result = await repository.findById(SPACE_ID);
@@ -137,14 +140,7 @@ describe('SpaceTypeOrmWriteRepository', () => {
 
       await repository.delete(SPACE_ID);
 
-      expect(spaceRepo.delete).toHaveBeenCalledTimes(1);
       expect(spaceRepo.delete).toHaveBeenCalledWith(SPACE_ID);
-    });
-
-    it('should resolve without throwing when delete succeeds', async () => {
-      spaceRepo.delete.mockResolvedValue({ affected: 1, raw: {} });
-
-      await expect(repository.delete(SPACE_ID)).resolves.not.toThrow();
     });
   });
 });

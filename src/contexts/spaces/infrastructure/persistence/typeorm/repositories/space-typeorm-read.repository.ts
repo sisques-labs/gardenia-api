@@ -7,28 +7,20 @@ import {
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
-import { SpaceMembership } from '@contexts/spaces/domain/entities/space-membership.entity';
-import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
-import { IMembershipReadRepository } from '@contexts/spaces/domain/repositories/read/membership-read.repository';
 import { ISpaceReadRepository } from '@contexts/spaces/domain/repositories/read/space-read.repository';
 import { SpaceViewModel } from '@contexts/spaces/domain/view-models/space.view-model';
-import { SpaceMembershipEntity } from '../entities/space-membership.entity';
 import { SpaceEntity } from '../entities/space.entity';
-import { SpaceMembershipTypeOrmMapper } from '../mappers/space-membership-typeorm.mapper';
 import { SpaceTypeOrmMapper } from '../mappers/space-typeorm.mapper';
 
 @Injectable()
 export class SpaceTypeOrmReadRepository
   extends BaseDatabaseRepository
-  implements ISpaceReadRepository, IMembershipReadRepository
+  implements ISpaceReadRepository
 {
   constructor(
     @InjectRepository(SpaceEntity)
     private readonly spaceRepo: Repository<SpaceEntity>,
-    @InjectRepository(SpaceMembershipEntity)
-    private readonly membershipRepo: Repository<SpaceMembershipEntity>,
     private readonly spaceMapper: SpaceTypeOrmMapper,
-    private readonly membershipMapper: SpaceMembershipTypeOrmMapper,
   ) {
     super();
   }
@@ -45,14 +37,7 @@ export class SpaceTypeOrmReadRepository
   ): Promise<PaginatedResult<SpaceViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    const where =
-      criteria.filters?.reduce(
-        (acc, f) => ({ ...acc, [f.field]: f.value }),
-        {},
-      ) ?? {};
-
     const [entities, total] = await this.spaceRepo.findAndCount({
-      where,
       skip,
       take: limit,
       order: criteria.sorts.reduce(
@@ -75,21 +60,5 @@ export class SpaceTypeOrmReadRepository
 
   async delete(_id: string): Promise<void> {
     // read-side projection — write side handles persistence
-  }
-
-  async findByUserAndSpace(
-    userId: string,
-    spaceId: string,
-  ): Promise<SpaceMembership | null> {
-    const entity = await this.membershipRepo.findOne({
-      where: { userId, spaceId },
-    });
-    return entity ? this.membershipMapper.toDomain(entity) : null;
-  }
-
-  async countByOwner(userId: string): Promise<number> {
-    return this.membershipRepo.count({
-      where: { userId, role: MembershipRoleEnum.OWNER },
-    });
   }
 }

@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
+import {
+  BaseDatabaseRepository,
+  Criteria,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
@@ -11,7 +15,10 @@ import { SpaceMembershipTypeOrmMapper } from '../mappers/space-membership-typeor
 import { SpaceTypeOrmMapper } from '../mappers/space-typeorm.mapper';
 
 @Injectable()
-export class SpaceTypeOrmWriteRepository implements ISpaceWriteRepository {
+export class SpaceTypeOrmWriteRepository
+  extends BaseDatabaseRepository
+  implements ISpaceWriteRepository
+{
   constructor(
     @InjectRepository(SpaceEntity)
     private readonly spaceRepo: Repository<SpaceEntity>,
@@ -19,7 +26,9 @@ export class SpaceTypeOrmWriteRepository implements ISpaceWriteRepository {
     private readonly membershipRepo: Repository<SpaceMembershipEntity>,
     private readonly spaceMapper: SpaceTypeOrmMapper,
     private readonly membershipMapper: SpaceMembershipTypeOrmMapper,
-  ) {}
+  ) {
+    super();
+  }
 
   async save(space: SpaceAggregate): Promise<SpaceAggregate> {
     const spaceEntity = this.spaceMapper.toPersistence(space) as SpaceEntity;
@@ -41,9 +50,21 @@ export class SpaceTypeOrmWriteRepository implements ISpaceWriteRepository {
   }
 
   async findByCriteria(
-    _criteria: Criteria,
+    criteria: Criteria,
   ): Promise<PaginatedResult<SpaceAggregate>> {
-    throw new Error('Method not implemented.');
+    const { page, limit, skip } = await this.calculatePagination(criteria);
+
+    const [entities, total] = await this.spaceRepo.findAndCount({
+      skip,
+      take: limit,
+      order: criteria.sorts?.reduce(
+        (acc, s) => ({ ...acc, [s.field]: s.direction }),
+        {},
+      ),
+    });
+
+    const items = entities.map((e) => this.spaceMapper.toDomain(e));
+    return new PaginatedResult(items, total, page, limit);
   }
 
   async delete(id: string): Promise<void> {

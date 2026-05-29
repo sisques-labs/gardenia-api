@@ -1,17 +1,13 @@
 import { Repository } from 'typeorm';
 
 import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
-import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { SpaceViewModel } from '@contexts/spaces/domain/view-models/space.view-model';
-import { SpaceMembershipEntity } from '../entities/space-membership.entity';
 import { SpaceEntity } from '../entities/space.entity';
-import { SpaceMembershipTypeOrmMapper } from '../mappers/space-membership-typeorm.mapper';
 import { SpaceTypeOrmMapper } from '../mappers/space-typeorm.mapper';
 import { SpaceTypeOrmReadRepository } from './space-typeorm-read.repository';
 
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440001';
 const OWNER_ID = '550e8400-e29b-41d4-a716-446655440002';
-const USER_ID = '550e8400-e29b-41d4-a716-446655440003';
 const CREATED_AT = new Date('2024-01-01T00:00:00.000Z');
 const UPDATED_AT = new Date('2024-01-01T00:00:00.000Z');
 
@@ -25,25 +21,10 @@ const buildSpaceEntity = (): SpaceEntity => {
   return entity;
 };
 
-const buildMembershipEntity = (
-  userId = USER_ID,
-  role = MembershipRoleEnum.MEMBER,
-): SpaceMembershipEntity => {
-  const entity = new SpaceMembershipEntity();
-  entity.id = '550e8400-e29b-41d4-a716-446655440010';
-  entity.spaceId = SPACE_ID;
-  entity.userId = userId;
-  entity.role = role;
-  entity.joinedAt = CREATED_AT;
-  return entity;
-};
-
 describe('SpaceTypeOrmReadRepository', () => {
   let repository: SpaceTypeOrmReadRepository;
   let spaceRepo: jest.Mocked<Repository<SpaceEntity>>;
-  let membershipRepo: jest.Mocked<Repository<SpaceMembershipEntity>>;
   let spaceMapper: SpaceTypeOrmMapper;
-  let membershipMapper: SpaceMembershipTypeOrmMapper;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,21 +36,9 @@ describe('SpaceTypeOrmReadRepository', () => {
       delete: jest.fn(),
     } as unknown as jest.Mocked<Repository<SpaceEntity>>;
 
-    membershipRepo = {
-      findOne: jest.fn(),
-      find: jest.fn(),
-      count: jest.fn(),
-    } as unknown as jest.Mocked<Repository<SpaceMembershipEntity>>;
-
     spaceMapper = new SpaceTypeOrmMapper(new SpaceBuilder());
-    membershipMapper = new SpaceMembershipTypeOrmMapper();
 
-    repository = new SpaceTypeOrmReadRepository(
-      spaceRepo,
-      membershipRepo,
-      spaceMapper,
-      membershipMapper,
-    );
+    repository = new SpaceTypeOrmReadRepository(spaceRepo, spaceMapper);
   });
 
   describe('findById()', () => {
@@ -95,51 +64,18 @@ describe('SpaceTypeOrmReadRepository', () => {
     });
   });
 
-  describe('findByUserAndSpace()', () => {
-    it('should return a SpaceMembership when found', async () => {
-      const membershipEntity = buildMembershipEntity(
-        USER_ID,
-        MembershipRoleEnum.MEMBER,
-      );
-      membershipRepo.findOne.mockResolvedValue(membershipEntity);
+  describe('findByCriteria()', () => {
+    it('should return a paginated list of SpaceViewModels', async () => {
+      const entity = buildSpaceEntity();
+      spaceRepo.findAndCount.mockResolvedValue([[entity], 1]);
 
-      const result = await repository.findByUserAndSpace(USER_ID, SPACE_ID);
+      const { Criteria } = await import('@sisques-labs/nestjs-kit');
+      const criteria = new Criteria([], [], { page: 1, perPage: 10 });
+      const result = await repository.findByCriteria(criteria);
 
-      expect(membershipRepo.findOne).toHaveBeenCalledWith({
-        where: { userId: USER_ID, spaceId: SPACE_ID },
-      });
-      expect(result).not.toBeNull();
-      expect(result?.userId).toBe(USER_ID);
-      expect(result?.spaceId).toBe(SPACE_ID);
-    });
-
-    it('should return null when membership is not found', async () => {
-      membershipRepo.findOne.mockResolvedValue(null);
-
-      const result = await repository.findByUserAndSpace(USER_ID, SPACE_ID);
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('countByOwner()', () => {
-    it('should count spaces where user is owner', async () => {
-      membershipRepo.count.mockResolvedValue(3);
-
-      const result = await repository.countByOwner(OWNER_ID);
-
-      expect(membershipRepo.count).toHaveBeenCalledWith({
-        where: { userId: OWNER_ID, role: MembershipRoleEnum.OWNER },
-      });
-      expect(result).toBe(3);
-    });
-
-    it('should return 0 when user owns no spaces', async () => {
-      membershipRepo.count.mockResolvedValue(0);
-
-      const result = await repository.countByOwner(USER_ID);
-
-      expect(result).toBe(0);
+      expect(result.items).toHaveLength(1);
+      expect(result.total).toBe(1);
+      expect(result.items[0]).toBeInstanceOf(SpaceViewModel);
     });
   });
 });

@@ -1,5 +1,6 @@
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { SpaceMembershipEntity } from '../entities/space-membership.entity';
+import { SpaceMembershipBuilder } from '@contexts/spaces/domain/builders/space-membership.builder';
 import { SpaceMembershipTypeOrmMapper } from './space-membership-typeorm.mapper';
 
 const MEMBERSHIP_ID = '550e8400-e29b-41d4-a716-446655440010';
@@ -21,7 +22,7 @@ describe('SpaceMembershipTypeOrmMapper', () => {
   let mapper: SpaceMembershipTypeOrmMapper;
 
   beforeEach(() => {
-    mapper = new SpaceMembershipTypeOrmMapper();
+    mapper = new SpaceMembershipTypeOrmMapper(new SpaceMembershipBuilder());
   });
 
   describe('toDomain()', () => {
