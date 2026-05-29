@@ -24,6 +24,7 @@ Generated: 2026-05-29
 - Repository interfaces: `IBaseReadRepository<ViewModel>` (read) / `IBaseWriteRepository<Aggregate>` (write). Empty interfaces use `type` alias, not `interface extends {}`.
 - Primitives: `type I{Name}Primitives = BasePrimitives & {...}`. ViewModels: `class {Name}ViewModel extends BaseViewModel`.
 - Event data interfaces in `domain/events/interfaces/`. Aggregate interfaces (`ISpace`, `IUser`) in `domain/interfaces/` with VO-typed fields.
+- NestJS modules: group providers into named const arrays (COMMAND_HANDLERS, QUERY_HANDLERS, APPLICATION_SERVICES, DOMAIN_BUILDERS, INFRASTRUCTURE_REPOSITORIES, INFRASTRUCTURE_MAPPERS, INFRASTRUCTURE_ENTITIES, TRANSPORT_PROVIDERS) and spread in @Module. Always import CqrsModule. Use `useClass` not `useExisting` for repo DI tokens. No `*.module.spec.ts`.
 
 ### branch-pr
 **File**: `~/.claude/skills/branch-pr/SKILL.md`

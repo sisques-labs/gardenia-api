@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AddMemberCommandHandler } from './application/commands/add-member/add-member.handler';
@@ -25,45 +26,54 @@ import { SpaceContext } from '../../shared/space-context/space-context.service';
 import { SpaceGuard } from './transport/guards/space.guard';
 import { SpaceInterceptor } from './transport/interceptors/space.interceptor';
 
+const COMMAND_HANDLERS = [
+  CreateSpaceCommandHandler,
+  AddMemberCommandHandler,
+  RemoveMemberCommandHandler,
+];
+
+const QUERY_HANDLERS = [
+  SpaceFindByIdQueryHandler,
+  SpacesFindByUserQueryHandler,
+  MembershipFindByUserAndSpaceQueryHandler,
+];
+
+const APPLICATION_SERVICES = [
+  AssertSpaceExistsService,
+  AssertSpaceViewModelExistsService,
+];
+
+const DOMAIN_BUILDERS = [SpaceBuilder, SpaceMembershipBuilder];
+
+const INFRASTRUCTURE_REPOSITORIES = [
+  { provide: SPACE_READ_REPOSITORY, useClass: SpaceTypeOrmReadRepository },
+  {
+    provide: MEMBERSHIP_READ_REPOSITORY,
+    useClass: SpaceMembershipTypeOrmReadRepository,
+  },
+  { provide: SPACE_WRITE_REPOSITORY, useClass: SpaceTypeOrmWriteRepository },
+];
+
+const INFRASTRUCTURE_MAPPERS = [
+  SpaceTypeOrmMapper,
+  SpaceMembershipTypeOrmMapper,
+];
+
+const INFRASTRUCTURE_ENTITIES = [SpaceEntity, SpaceMembershipEntity];
+
+const TRANSPORT_PROVIDERS = [SpaceGuard, SpaceInterceptor];
+
 @Module({
-  imports: [TypeOrmModule.forFeature([SpaceEntity, SpaceMembershipEntity])],
+  imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
   providers: [
-    // Builders
-    SpaceBuilder,
-    SpaceMembershipBuilder,
-    // Mappers
-    SpaceTypeOrmMapper,
-    SpaceMembershipTypeOrmMapper,
-    // Read repositories
-    SpaceTypeOrmReadRepository,
-    SpaceMembershipTypeOrmReadRepository,
-    { provide: SPACE_READ_REPOSITORY, useExisting: SpaceTypeOrmReadRepository },
-    {
-      provide: MEMBERSHIP_READ_REPOSITORY,
-      useExisting: SpaceMembershipTypeOrmReadRepository,
-    },
-    // Write repositories
-    SpaceTypeOrmWriteRepository,
-    {
-      provide: SPACE_WRITE_REPOSITORY,
-      useExisting: SpaceTypeOrmWriteRepository,
-    },
-    // Assert services
-    AssertSpaceExistsService,
-    AssertSpaceViewModelExistsService,
-    // Command handlers
-    CreateSpaceCommandHandler,
-    AddMemberCommandHandler,
-    RemoveMemberCommandHandler,
-    // Query handlers
-    SpaceFindByIdQueryHandler,
-    SpacesFindByUserQueryHandler,
-    MembershipFindByUserAndSpaceQueryHandler,
-    // SpaceContext (global singleton)
     SpaceContext,
-    // Guard + Interceptor
-    SpaceGuard,
-    SpaceInterceptor,
+    ...COMMAND_HANDLERS,
+    ...QUERY_HANDLERS,
+    ...APPLICATION_SERVICES,
+    ...DOMAIN_BUILDERS,
+    ...INFRASTRUCTURE_MAPPERS,
+    ...INFRASTRUCTURE_REPOSITORIES,
+    ...TRANSPORT_PROVIDERS,
   ],
   exports: [
     SpaceContext,

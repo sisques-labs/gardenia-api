@@ -39,6 +39,7 @@ rules:
     - Each task must include migration plan if DB schema changes
   apply:
     - Follow existing DDD+CQRS+Hexagonal patterns (see architecture skill)
+    - NestJS modules: group providers into named const arrays (COMMAND_HANDLERS, QUERY_HANDLERS, APPLICATION_SERVICES, DOMAIN_BUILDERS, INFRASTRUCTURE_REPOSITORIES, INFRASTRUCTURE_MAPPERS, INFRASTRUCTURE_ENTITIES, TRANSPORT_PROVIDERS) and spread them in @Module. Always import CqrsModule. Use useClass (not useExisting) for repository DI tokens.
     - Constructor = hydration only; domain events from named instance methods only
     - Resolvers use CommandBus/QueryBus only — no direct service injection in transport
     - Repository interfaces live in domain; never import infra from domain
