@@ -1,7 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.5.1-alpha.0] - 2026-05-29
+
+### Features
+- **app:** Integrate TypeORM with dynamic configuration for PostgreSQL (c98d593)
 ## [0.5.0-alpha.0] - 2026-05-28
+
+### Chore
+- Release v0.5.0-alpha.0 (eac83ff)
 
 ### Features
 - **auth:** Add GET /auth/me and me GraphQL query (04da7d2)
