@@ -2,7 +2,7 @@ schema: spec-driven
 
 context: |
   Tech stack: NestJS 10, TypeScript (strict), GraphQL (Apollo code-first) + REST, CQRS (@nestjs/cqrs), TypeORM + PostgreSQL, Jest, pnpm 9.15.4
-  Architecture: DDD + CQRS + Hexagonal (Screaming Architecture). Bounded contexts: auth, users. Layers: domain / application / infrastructure / transport
+  Architecture: DDD + CQRS + Hexagonal (Screaming Architecture). Bounded contexts: auth, users, spaces. Layers: domain / application / infrastructure / transport
   Testing: Jest unit (co-located .spec.ts, jest.Mocked<T>) + E2E (test/jest-e2e.json). Coverage: pnpm test:cov
   Style: Prettier + ESLint, Husky + lint-staged. Conventional Commits. No AI attribution in commits.
 
@@ -39,10 +39,20 @@ rules:
     - Each task must include migration plan if DB schema changes
   apply:
     - Follow existing DDD+CQRS+Hexagonal patterns (see architecture skill)
-    - Constructor = hydration only; domain events from named methods
-    - Resolvers use CommandBus/QueryBus only — no direct service injection
+    - Constructor = hydration only; domain events from named instance methods only
+    - Resolvers use CommandBus/QueryBus only — no direct service injection in transport
     - Repository interfaces live in domain; never import infra from domain
     - No module spec files; unit tests use jest.Mocked<T>, no @nestjs/testing
+    - Value objects named {Name}ValueObject (not VO); extend UuidValueObject/StringValueObject/EnumValueObject from @sisques-labs/nestjs-kit
+    - Enums live in domain/enums/, enum value objects extend EnumValueObject<typeof EnumType>
+    - Commands have {Name}CommandInput interface; fields are value objects built in constructor
+    - Queries have {Name}QueryInput type alias or use Criteria for list queries
+    - Aggregates constructed via Builder (BaseBuilder from nestjs-kit); NO static factory methods
+    - Assert services (assert-{entity}-exists, assert-{entity}-view-model-exists) in application/services/write|read/; handlers use them instead of raw findById + manual throw
+    - Repository interfaces extend IBaseReadRepository<ViewModel> or IBaseWriteRepository<Aggregate>
+    - Primitives type extends BasePrimitives; ViewModel extends BaseViewModel
+    - Event data interfaces live in domain/events/interfaces/
+    - ISpace/IUser etc. interfaces in domain/interfaces/ use value objects (not primitives)
     tdd: true
     test_command: "pnpm test"
   verify:
