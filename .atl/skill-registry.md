@@ -15,8 +15,15 @@ Generated: 2026-05-29
 - Repository interfaces live in `domain/repositories/`; infrastructure implements them; domain never imports from infrastructure.
 - No `*.module.spec.ts` files.
 - Unit tests: `jest.Mocked<T>`, co-located with source, no `@nestjs/testing`.
-- File naming: `{name}.aggregate.ts`, `{verb}-{name}.command.ts`, `{name}-find-by-{x}.query.ts`, `{reason}.exception.ts`, `{name}.vo.ts`.
+- File naming: `{name}.aggregate.ts`, `{verb}-{name}.command.ts`, `{name}-find-by-{x}.query.ts`, `{reason}.exception.ts`, `{name}.value-object.ts` (NOT .vo.ts).
 - Layer boundaries: business logic → domain/aggregates; orchestration → application/commands|queries; DB mapping → infrastructure/persistence/typeorm/mappers; HTTP/GQL wiring → transport (no logic).
+- Value objects extend `UuidValueObject` / `StringValueObject` / `EnumValueObject` from `@sisques-labs/nestjs-kit`. Enums in `domain/enums/`.
+- Commands: `{Name}CommandInput` interface + fields as VOs in constructor. Queries: same pattern or `Criteria` for list queries.
+- Aggregates constructed via `{Name}Builder extends BaseBuilder`; NO static `create()` on aggregates. Instance `create()` method emits the domain event.
+- Assert services (`assert-{entity}-exists`, `assert-{entity}-view-model-exists`) in `application/services/write|read/`. Handlers inject assert services instead of calling `findById` directly.
+- Repository interfaces: `IBaseReadRepository<ViewModel>` (read) / `IBaseWriteRepository<Aggregate>` (write). Empty interfaces use `type` alias, not `interface extends {}`.
+- Primitives: `type I{Name}Primitives = BasePrimitives & {...}`. ViewModels: `class {Name}ViewModel extends BaseViewModel`.
+- Event data interfaces in `domain/events/interfaces/`. Aggregate interfaces (`ISpace`, `IUser`) in `domain/interfaces/` with VO-typed fields.
 
 ### branch-pr
 **File**: `~/.claude/skills/branch-pr/SKILL.md`

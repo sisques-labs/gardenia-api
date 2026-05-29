@@ -108,24 +108,24 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 1.1 — Value Objects
 
-- [ ] **1.1.1** Create `src/contexts/spaces/domain/value-objects/space-id/space-id.vo.ts` + co-located `.spec.ts`.
+- [x] **1.1.1** Create `src/contexts/spaces/domain/value-objects/space-id/space-id.vo.ts` + co-located `.spec.ts`.
   - Wraps a UUID string; `create(value)` factory; rejects non-UUID with `InvalidSpaceIdException`.
   - **Acceptance**: spec passes; VO is immutable and validates format.
   - **Test**: unit — valid UUID accepted, empty string rejected, non-UUID rejected.
 
-- [ ] **1.1.2** Create `src/contexts/spaces/domain/value-objects/space-name/space-name.vo.ts` + `.spec.ts`.
+- [x] **1.1.2** Create `src/contexts/spaces/domain/value-objects/space-name/space-name.vo.ts` + `.spec.ts`.
   - Wraps a non-empty string (max 100 chars); rejects empty/blank/over-limit with `InvalidSpaceNameException`.
   - **Acceptance**: spec passes; boundary values (1 char, 100 chars, 101 chars) all tested.
   - **Test**: unit.
 
-- [ ] **1.1.3** Create `src/contexts/spaces/domain/value-objects/membership-role/membership-role.vo.ts` + `.spec.ts`.
+- [x] **1.1.3** Create `src/contexts/spaces/domain/value-objects/membership-role/membership-role.vo.ts` + `.spec.ts`.
   - Enum-like VO accepting only `'owner'` | `'member'`; rejects any other string.
   - **Acceptance**: spec passes; invalid value throws.
   - **Test**: unit.
 
 ### 1.2 — Domain Exceptions
 
-- [ ] **1.2** Create the following exception files (no tests required for exception classes):
+- [x] **1.2** Create the following exception files (no tests required for exception classes):
   - `src/contexts/spaces/domain/exceptions/space-not-found.exception.ts`
   - `src/contexts/spaces/domain/exceptions/not-a-space-member.exception.ts`
   - `src/contexts/spaces/domain/exceptions/space-limit-exceeded.exception.ts`
@@ -137,7 +137,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 1.3 — Domain Events
 
-- [ ] **1.3** Create domain events (no tests required):
+- [x] **1.3** Create domain events (no tests required):
   - `src/contexts/spaces/domain/events/space-created/space-created.event.ts` — payload: `spaceId`, `name`, `ownerId`
   - `src/contexts/spaces/domain/events/member-added/member-added.event.ts` — payload: `spaceId`, `userId`, `role`
   - `src/contexts/spaces/domain/events/member-removed/member-removed.event.ts` — payload: `spaceId`, `userId`
@@ -146,7 +146,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 1.4 — `SpaceMembership` Child Entity
 
-- [ ] **1.4** Create `src/contexts/spaces/domain/entities/space-membership.entity.ts` + `.spec.ts`.
+- [x] **1.4** Create `src/contexts/spaces/domain/entities/space-membership.entity.ts` + `.spec.ts`.
   - Fields: `userId` (string), `spaceId` (string), `role` (`MembershipRoleVO`), `joinedAt` (Date).
   - `SpaceMembership.create(userId, spaceId, role)` — named factory, sets `joinedAt = new Date()`.
   - Constructor is hydration-only.
@@ -156,7 +156,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 1.5 — `Space` Aggregate
 
-- [ ] **1.5** Create `src/contexts/spaces/domain/aggregates/space.aggregate.ts` + `.spec.ts`.
+- [x] **1.5** Create `src/contexts/spaces/domain/aggregates/space.aggregate.ts` + `.spec.ts`.
   - Fields: `id` (`SpaceIdVO`), `name` (`SpaceNameVO`), `ownerId` (string), `memberships` (`SpaceMembership[]`), `createdAt`, `updatedAt`.
   - Constructor: hydration-only.
   - `Space.create(ownerId, name)` — static factory; generates UUID id; calls `addMember(ownerId, OWNER)`; emits `SpaceCreatedEvent`.
@@ -168,7 +168,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 1.6 — Repository Interfaces (Domain)
 
-- [ ] **1.6** Create:
+- [x] **1.6** Create:
   - `src/contexts/spaces/domain/repositories/read/space-read.repository.ts` — interface: `findById(id): Promise<Space | null>`, `findByUserId(userId): Promise<Space[]>`.
   - `src/contexts/spaces/domain/repositories/write/space-write.repository.ts` — interface: `save(space): Promise<void>`.
   - `src/contexts/spaces/domain/repositories/read/membership-read.repository.ts` — interface: `findByUserAndSpace(userId, spaceId): Promise<SpaceMembership | null>`, `countByOwner(userId): Promise<number>`.
@@ -184,7 +184,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 2.1 — `CreateSpaceCommand` + Handler
 
-- [ ] **2.1** Create:
+- [x] **2.1** Create:
   - `src/contexts/spaces/application/commands/create-space/create-space.command.ts` — `{ ownerId: string, name: string }`
   - `src/contexts/spaces/application/commands/create-space/create-space.handler.ts` + `.spec.ts`
     - Reads `MAX_SPACES_PER_USER` from config.
@@ -196,7 +196,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 2.2 — `AddMemberCommand` + Handler
 
-- [ ] **2.2** Create:
+- [x] **2.2** Create:
   - `src/contexts/spaces/application/commands/add-member/add-member.command.ts` — `{ spaceId: string, requestingUserId: string, targetUserId: string }`
   - `src/contexts/spaces/application/commands/add-member/add-member.handler.ts` + `.spec.ts`
     - Loads `Space` via `spaceReadRepository.findById`; throws `SpaceNotFoundException` if not found.
@@ -208,7 +208,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 2.3 — `RemoveMemberCommand` + Handler
 
-- [ ] **2.3** Create:
+- [x] **2.3** Create:
   - `src/contexts/spaces/application/commands/remove-member/remove-member.command.ts` — `{ spaceId, requestingUserId, targetUserId }`
   - `src/contexts/spaces/application/commands/remove-member/remove-member.handler.ts` + `.spec.ts`
     - Loads Space; checks requester is owner; calls `space.removeMember(targetUserId)`; saves; publishes.
@@ -218,7 +218,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 2.4 — `SpaceFindByIdQuery` + Handler
 
-- [ ] **2.4** Create:
+- [x] **2.4** Create:
   - `src/contexts/spaces/application/queries/space-find-by-id/space-find-by-id.query.ts` — `{ spaceId: string }`
   - `src/contexts/spaces/application/queries/space-find-by-id/space-find-by-id.handler.ts` + `.spec.ts`
     - Returns `Space` or throws `SpaceNotFoundException`.
@@ -228,7 +228,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 2.5 — `SpacesFindByUserQuery` + Handler
 
-- [ ] **2.5** Create:
+- [x] **2.5** Create:
   - `src/contexts/spaces/application/queries/spaces-find-by-user/spaces-find-by-user.query.ts` — `{ userId: string }`
   - `src/contexts/spaces/application/queries/spaces-find-by-user/spaces-find-by-user.handler.ts` + `.spec.ts`
   - **Acceptance**: returns list of Spaces the user belongs to (via `spaceReadRepository.findByUserId`).
@@ -237,7 +237,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 2.6 — `MembershipFindByUserAndSpaceQuery` + Handler
 
-- [ ] **2.6** Create:
+- [x] **2.6** Create:
   - `src/contexts/spaces/application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.query.ts` — `{ userId, spaceId }`
   - `src/contexts/spaces/application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.handler.ts` + `.spec.ts`
     - Returns `SpaceMembership | null` (null = not a member; `SpaceGuard` uses this).
