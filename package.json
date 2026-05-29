@@ -30,7 +30,7 @@
     "migration:run": "pnpm typeorm migration:run -d src/database/data-source.ts",
     "migration:revert": "pnpm typeorm migration:revert -d src/database/data-source.ts",
     "migration:show": "pnpm typeorm migration:show -d src/database/data-source.ts",
-    "prepare": "husky"
+    "prepare": "node -e \"if(process.env.HUSKY!=='0')require('child_process').execSync('husky',{stdio:'inherit'})\""
   },
   "dependencies": {
     "@apollo/server": "^4.13.0",
