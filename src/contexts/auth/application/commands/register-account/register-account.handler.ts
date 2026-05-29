@@ -36,12 +36,11 @@ export class RegisterAccountCommandHandler
   async execute(command: RegisterAccountCommand): Promise<{ spaceId: string }> {
     const { email, passwordHash } = command;
 
-    // No email uniqueness check here: each registration creates a new Space,
-    // and UNIQUE(spaceId, email) at DB level guarantees uniqueness within a Space.
-    const userId = await this.commandBus.execute<CreateUserCommand, string>(
-      new CreateUserCommand(),
-    );
+    // 1. Generate userId upfront so CreateSpaceCommand can use it as ownerId.
+    // Email uniqueness per space is enforced by DB UNIQUE(spaceId, email).
+    const userId = UuidValueObject.generate().value;
 
+    // 2. Create Space first — SpaceTypeOrmWriteRepository is NOT tenant-scoped.
     const spaceId = await this.commandBus.execute<CreateSpaceCommand, string>(
       new CreateSpaceCommand({
         ownerId: userId,
@@ -49,6 +48,7 @@ export class RegisterAccountCommandHandler
       }),
     );
 
+    // 3. Run everything inside SpaceContext so tenant-wrapped repos accept the writes.
     const id = UuidValueObject.generate().value;
     const now = new Date();
     const hashedPassword = await bcrypt.hash(passwordHash.value, 10);
@@ -62,6 +62,7 @@ export class RegisterAccountCommandHandler
       .build();
 
     await this.spaceContext.run(spaceId, async () => {
+      await this.commandBus.execute(new CreateUserCommand(userId));
       await this.accountWriteRepository.save(account);
     });
 

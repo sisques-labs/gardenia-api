@@ -11,6 +11,7 @@ import { AccountTypeOrmMapper } from './account-typeorm.mapper';
 
 @Injectable()
 export class AccountTypeOrmWriteRepository implements IAccountWriteRepository {
+  private readonly rawRepo: Repository<AccountEntity>;
   private readonly repo: Repository<AccountEntity>;
 
   constructor(
@@ -19,6 +20,7 @@ export class AccountTypeOrmWriteRepository implements IAccountWriteRepository {
     private readonly mapper: AccountTypeOrmMapper,
     private readonly spaceContext: SpaceContext,
   ) {
+    this.rawRepo = rawRepo;
     this.repo = createTenantRepository(rawRepo, spaceContext);
   }
 
@@ -43,13 +45,15 @@ export class AccountTypeOrmWriteRepository implements IAccountWriteRepository {
     return this.mapper.toAggregate(saved);
   }
 
+  // Global lookups — used by auth flows (login, JWT validation) which are
+  // space-agnostic. These bypass the tenant proxy intentionally.
   async findByEmail(email: string): Promise<AccountAggregate | null> {
-    const entity = await this.repo.findOne({ where: { email } });
+    const entity = await this.rawRepo.findOne({ where: { email } });
     return entity ? this.mapper.toAggregate(entity) : null;
   }
 
   async findByUserId(userId: string): Promise<AccountAggregate | null> {
-    const entity = await this.repo.findOne({ where: { userId } });
+    const entity = await this.rawRepo.findOne({ where: { userId } });
     return entity ? this.mapper.toAggregate(entity) : null;
   }
 }

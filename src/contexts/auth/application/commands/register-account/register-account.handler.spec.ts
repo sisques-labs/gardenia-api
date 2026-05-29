@@ -1,11 +1,9 @@
 import { RegisterAccountCommandHandler } from './register-account.handler';
 import { RegisterAccountCommand } from './register-account.command';
-import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 
-const EXISTING_USER_ID = '660e8400-e29b-41d4-a716-446655440001';
 const NEW_SPACE_ID = '770e8400-e29b-41d4-a716-446655440002';
 
 describe('RegisterAccountCommandHandler', () => {
@@ -52,12 +50,13 @@ describe('RegisterAccountCommandHandler', () => {
   });
 
   const setupSuccessCommandBus = () => {
+    // Order: CreateSpaceCommand (→ spaceId), then CreateUserCommand (→ void)
     commandBus.execute
-      .mockResolvedValueOnce(EXISTING_USER_ID)
-      .mockResolvedValueOnce(NEW_SPACE_ID);
+      .mockResolvedValueOnce(NEW_SPACE_ID)
+      .mockResolvedValueOnce(undefined);
   };
 
-  it('should dispatch CreateUserCommand then CreateSpaceCommand and use returned ids', async () => {
+  it('should dispatch CreateSpaceCommand then CreateUserCommand', async () => {
     setupSuccessCommandBus();
     accountWriteRepository.save.mockResolvedValue(undefined as any);
 
@@ -69,12 +68,9 @@ describe('RegisterAccountCommandHandler', () => {
     );
 
     expect(commandBus.execute).toHaveBeenCalledTimes(2);
-    const savedAccount: AccountAggregate =
-      accountWriteRepository.save.mock.calls[0][0];
-    expect(savedAccount.userId.value).toBe(EXISTING_USER_ID);
   });
 
-  it('should call SpaceContext.run with the new spaceId when saving account', async () => {
+  it('should call SpaceContext.run with the new spaceId', async () => {
     setupSuccessCommandBus();
     accountWriteRepository.save.mockResolvedValue(undefined as any);
 
@@ -106,9 +102,9 @@ describe('RegisterAccountCommandHandler', () => {
   });
 
   it('should not save account if CreateSpaceCommand fails', async () => {
-    commandBus.execute
-      .mockResolvedValueOnce(EXISTING_USER_ID)
-      .mockRejectedValueOnce(new Error('Space creation failed'));
+    commandBus.execute.mockRejectedValueOnce(
+      new Error('Space creation failed'),
+    );
 
     await expect(
       handler.execute(
@@ -122,7 +118,9 @@ describe('RegisterAccountCommandHandler', () => {
   });
 
   it('should not save account if CreateUserCommand fails', async () => {
-    commandBus.execute.mockRejectedValue(new Error('User creation failed'));
+    commandBus.execute
+      .mockResolvedValueOnce(NEW_SPACE_ID)
+      .mockRejectedValueOnce(new Error('User creation failed'));
 
     await expect(
       handler.execute(
