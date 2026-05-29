@@ -5,9 +5,10 @@ import { postgresConfig } from '@core/config/postgres.config';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GraphQLModule } from '@nestjs/graphql';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 @Module({
   imports: [
@@ -17,6 +18,11 @@ import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
       isGlobal: true,
       load: [postgresConfig, authConfig],
       cache: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) =>
+        config.getOrThrow<TypeOrmModuleOptions>('postgres'),
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
