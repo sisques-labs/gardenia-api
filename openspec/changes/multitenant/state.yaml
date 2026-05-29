@@ -1,0 +1,12 @@
+change: multitenant
+status: exploring
+created: 2026-05-29
+phases:
+  explore: done
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: in_progress
+  verify: pending
+  archive: pending

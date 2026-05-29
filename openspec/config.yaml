@@ -1,0 +1,53 @@
+schema: spec-driven
+
+context: |
+  Tech stack: NestJS 10, TypeScript (strict), GraphQL (Apollo code-first) + REST, CQRS (@nestjs/cqrs), TypeORM + PostgreSQL, Jest, pnpm 9.15.4
+  Architecture: DDD + CQRS + Hexagonal (Screaming Architecture). Bounded contexts: auth, users. Layers: domain / application / infrastructure / transport
+  Testing: Jest unit (co-located .spec.ts, jest.Mocked<T>) + E2E (test/jest-e2e.json). Coverage: pnpm test:cov
+  Style: Prettier + ESLint, Husky + lint-staged. Conventional Commits. No AI attribution in commits.
+
+testing:
+  strict_tdd: true
+  test_command: "pnpm test"
+  coverage_command: "pnpm test:cov"
+  e2e_command: "pnpm test:e2e"
+  detected: "2026-05-29"
+  layers:
+    unit: { available: true, tool: "jest + ts-jest" }
+    integration: { available: false, tool: null }
+    e2e: { available: true, tool: "jest + supertest" }
+  coverage: { available: true, command: "pnpm test:cov" }
+  quality:
+    linter: { available: true, command: "pnpm lint" }
+    type_checker: { available: true, command: "tsc --noEmit" }
+    formatter: { available: true, command: "pnpm format" }
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify all bounded contexts impacted
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+    - Respect DDD+CQRS+Hexagonal layering — no cross-layer violations
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+    - Each task must include migration plan if DB schema changes
+  apply:
+    - Follow existing DDD+CQRS+Hexagonal patterns (see architecture skill)
+    - Constructor = hydration only; domain events from named methods
+    - Resolvers use CommandBus/QueryBus only — no direct service injection
+    - Repository interfaces live in domain; never import infra from domain
+    - No module spec files; unit tests use jest.Mocked<T>, no @nestjs/testing
+    tdd: true
+    test_command: "pnpm test"
+  verify:
+    test_command: "pnpm test"
+    build_command: "pnpm build"
+    coverage_threshold: 80
+  archive:
+    - Warn before merging destructive deltas
