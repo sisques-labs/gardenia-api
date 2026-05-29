@@ -9,9 +9,12 @@ const USER_ID = '550e8400-e29b-41d4-a716-446655440000';
 const CREATED_AT = new Date('2024-01-01T00:00:00.000Z');
 const UPDATED_AT = new Date('2024-01-01T00:00:00.000Z');
 
+const SPACE_ID = '770e8400-e29b-41d4-a716-446655440002';
+
 const buildEntity = (): UserTypeOrmEntity => {
   const entity = new UserTypeOrmEntity();
   entity.id = USER_ID;
+  entity.spaceId = SPACE_ID;
   entity.status = UserStatusEnum.ACTIVE;
   entity.username = 'johndoe';
   entity.firstName = 'John';
@@ -28,6 +31,7 @@ const buildEntity = (): UserTypeOrmEntity => {
 const buildEntityNullableFields = (): UserTypeOrmEntity => {
   const entity = new UserTypeOrmEntity();
   entity.id = USER_ID;
+  entity.spaceId = SPACE_ID;
   entity.status = UserStatusEnum.ACTIVE;
   entity.username = 'johndoe';
   entity.firstName = null;

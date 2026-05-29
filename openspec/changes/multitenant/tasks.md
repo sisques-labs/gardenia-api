@@ -379,7 +379,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 6.1 — Auth: Add `spaceId` to `AccountEntity`
 
-- [ ] **6.1** Modify `src/contexts/auth/infrastructure/persistence/typeorm/account.entity.ts`.
+- [x] **6.1** Modify `src/contexts/auth/infrastructure/persistence/typeorm/account.entity.ts`.
   - Add `@Column({ name: 'space_id' }) spaceId: string;`
   - Update unique index annotation: replace `@Unique(['email'])` with `@Unique(['spaceId', 'email'])`.
   - **Acceptance**: entity compiles; column name matches migration 0.4.
@@ -388,7 +388,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 6.2 — Auth: Wrap Account Repositories with Tenant Factory
 
-- [ ] **6.2** Modify `src/contexts/auth/infrastructure/persistence/typeorm/account-typeorm-read.repository.ts` and `account-typeorm-write.repository.ts`.
+- [x] **6.2** Modify `src/contexts/auth/infrastructure/persistence/typeorm/account-typeorm-read.repository.ts` and `account-typeorm-write.repository.ts`.
   - Inject `SpaceContext`; wrap injected `Repository<AccountEntity>` via `createTenantRepository(repo, ctx)`.
   - **Acceptance**: existing read/write repo tests pass; new tests verify `spaceId` is injected via the proxy.
   - **Test**: update existing `.spec.ts` files — add mock `SpaceContext`, assert proxy behaviour on at least one method.
@@ -396,7 +396,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 6.3 — Auth: Update `register-account` Handler (Bootstrap Orchestration)
 
-- [ ] **6.3** Modify `src/contexts/auth/application/commands/register-account/register-account.handler.ts`.
+- [x] **6.3** Modify `src/contexts/auth/application/commands/register-account/register-account.handler.ts`.
   - Before saving account: dispatch `CreateSpaceCommand(ownerId=userId, name='<username>\'s Space')`.
   - Receive `spaceId` from the newly created Space.
   - Wrap the account/user save calls in `SpaceContext.run(newSpaceId, ...)` so the tenant-wrapped repos accept the writes.
@@ -408,7 +408,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 6.4 — Auth: Annotate Auth Transport with `@SkipSpace()`
 
-- [ ] **6.4** Apply `@SkipSpace()` to the registration and login endpoints/resolvers.
+- [x] **6.4** Apply `@SkipSpace()` to the registration and login endpoints/resolvers.
   - Files: REST controller and/or GraphQL resolver in `src/contexts/auth/transport/`.
   - **Acceptance**: `@SkipSpace()` present on `register` and `login` handlers; no other auth routes are exempt.
   - **Test**: none (decorator only).
@@ -416,7 +416,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 6.5 — Users: Add `spaceId` to `UserEntity`
 
-- [ ] **6.5** Modify `src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity.ts`.
+- [x] **6.5** Modify `src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity.ts`.
   - Add `@Column({ name: 'space_id' }) spaceId: string;`
   - Update unique index: replace `@Unique(['username'])` with `@Unique(['spaceId', 'username'])`.
   - **Acceptance**: entity compiles; column name matches migration 0.5.
@@ -425,7 +425,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 6.6 — Users: Wrap User Repositories with Tenant Factory
 
-- [ ] **6.6** Modify `src/contexts/users/infrastructure/persistence/typeorm/repositories/user-typeorm-read.repository.ts` and `user-typeorm-write.repository.ts`.
+- [x] **6.6** Modify `src/contexts/users/infrastructure/persistence/typeorm/repositories/user-typeorm-read.repository.ts` and `user-typeorm-write.repository.ts`.
   - Inject `SpaceContext`; wrap injected `Repository<UserEntity>` via `createTenantRepository(repo, ctx)`.
   - **Acceptance**: existing repo tests pass; new assertions verify `spaceId` injection.
   - **Test**: update `.spec.ts` — mock `SpaceContext`, assert proxy on at least one read + one write.
@@ -433,7 +433,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 6.7 — Auth: Update `AssertAccountEmailAvailableService`
 
-- [ ] **6.7** Verify `src/contexts/auth/application/services/write/assert-account-email-available/assert-account-email-available.service.ts`.
+- [x] **6.7** Verify `src/contexts/auth/application/services/write/assert-account-email-available/assert-account-email-available.service.ts`.
   - Since email uniqueness is now `(spaceId, email)`, the uniqueness check must scope by `spaceId`. The tenant repo wrapping (6.2) handles this automatically if the service uses the wrapped read repo.
   - Confirm no manual email-only query exists; update if it does.
   - **Acceptance**: `assert-account-email-available.service.spec.ts` passes with mocked tenant-aware repo.

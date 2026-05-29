@@ -23,11 +23,13 @@ describe('Auth (e2e)', () => {
   describe('REST /api/auth', () => {
     describe('POST /api/auth/register', () => {
       it('returns 201 and creates account row in DB', async () => {
-        await ctx
+        const res = await ctx
           .http()
           .post('/api/auth/register')
           .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
           .expect(201);
+
+        expect(res.body).toHaveProperty('spaceId');
 
         const rows = await ctx.dataSource.query(
           'SELECT id, email FROM accounts WHERE email = $1',
@@ -37,7 +39,8 @@ describe('Auth (e2e)', () => {
         expect(rows[0].email).toBe(TEST_EMAIL);
       });
 
-      it('returns 409 when email is already registered', async () => {
+      it('returns 201 for each registration (each gets its own Space)', async () => {
+        // Email uniqueness is now (spaceId, email) — two registrations create two Spaces
         await ctx
           .http()
           .post('/api/auth/register')
@@ -48,7 +51,7 @@ describe('Auth (e2e)', () => {
           .http()
           .post('/api/auth/register')
           .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
-          .expect(409);
+          .expect(201);
       });
     });
 
@@ -94,7 +97,7 @@ describe('Auth (e2e)', () => {
         ).expect(200);
 
         expect(res.body.errors).toBeUndefined();
-        expect(res.body.data.register).toBe(true);
+        expect(typeof res.body.data.register).toBe('string'); // spaceId UUID
       });
     });
 

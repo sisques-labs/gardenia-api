@@ -26,8 +26,8 @@ export class CreateUserCommandHandler
     super(eventBus);
   }
 
-  async execute(_command: CreateUserCommand): Promise<string> {
-    const id = UuidValueObject.generate().value;
+  async execute(command: CreateUserCommand): Promise<string> {
+    const id = command.id ?? UuidValueObject.generate().value;
     const username = `user_${id.replace(/-/g, '').slice(0, 8)}`;
 
     const now = new Date();

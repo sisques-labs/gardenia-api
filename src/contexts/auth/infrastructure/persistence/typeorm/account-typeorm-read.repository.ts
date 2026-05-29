@@ -8,6 +8,8 @@ import {
   PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
+import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
+import { createTenantRepository } from '../../../../../shared/tenant-repository/create-tenant-repository.factory';
 import { AccountEntity } from './account.entity';
 import { AccountTypeOrmMapper } from './account-typeorm.mapper';
 
@@ -16,12 +18,16 @@ export class AccountTypeOrmReadRepository
   extends BaseDatabaseRepository
   implements IAccountReadRepository
 {
+  private readonly repo: Repository<AccountEntity>;
+
   constructor(
     @InjectRepository(AccountEntity)
-    private readonly repo: Repository<AccountEntity>,
+    rawRepo: Repository<AccountEntity>,
     private readonly mapper: AccountTypeOrmMapper,
+    private readonly spaceContext: SpaceContext,
   ) {
     super();
+    this.repo = createTenantRepository(rawRepo, spaceContext);
   }
 
   async findById(id: string): Promise<AccountViewModel | null> {

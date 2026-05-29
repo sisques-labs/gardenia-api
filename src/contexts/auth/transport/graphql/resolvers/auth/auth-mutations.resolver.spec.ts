@@ -34,7 +34,7 @@ describe('AuthMutationsResolver', () => {
 
   describe('register()', () => {
     it('should execute RegisterAccountCommand with correct input', async () => {
-      commandBus.execute.mockResolvedValue(undefined);
+      commandBus.execute.mockResolvedValue({ spaceId: 'test-space-id' });
 
       const result = await sut.register({
         email: 'test@example.com',
@@ -45,7 +45,7 @@ describe('AuthMutationsResolver', () => {
       expect(commandBus.execute).toHaveBeenCalledWith(
         expect.any(RegisterAccountCommand),
       );
-      expect(result).toBe(true);
+      expect(result).toBe('test-space-id');
     });
   });
 
@@ -107,7 +107,7 @@ describe('AuthMutationsResolver', () => {
     };
 
     it('should dispatch ChangePasswordCommand with correct fields', async () => {
-      commandBus.execute.mockResolvedValue(undefined);
+      commandBus.execute.mockResolvedValue({ spaceId: 'test-space-id' });
       mutationResponseGraphQLMapper.toResponseDto.mockReturnValue({
         success: true,
         message: 'Password changed successfully',

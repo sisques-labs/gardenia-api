@@ -10,18 +10,24 @@ import {
   PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
+import { SpaceContext } from '../../../../../../shared/space-context/space-context.service';
+import { createTenantRepository } from '../../../../../../shared/tenant-repository/create-tenant-repository.factory';
 
 @Injectable()
 export class UserTypeOrmReadRepository
   extends BaseDatabaseRepository
   implements IUserReadRepository
 {
+  private readonly repo: Repository<UserTypeOrmEntity>;
+
   constructor(
     @InjectRepository(UserTypeOrmEntity)
-    private readonly repo: Repository<UserTypeOrmEntity>,
+    rawRepo: Repository<UserTypeOrmEntity>,
     private readonly mapper: UserTypeOrmMapper,
+    private readonly spaceContext: SpaceContext,
   ) {
     super();
+    this.repo = createTenantRepository(rawRepo, spaceContext);
   }
 
   async findById(id: string): Promise<UserViewModel | null> {

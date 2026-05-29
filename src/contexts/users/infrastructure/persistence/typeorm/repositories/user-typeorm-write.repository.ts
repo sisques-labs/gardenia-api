@@ -6,14 +6,21 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
+import { SpaceContext } from '../../../../../../shared/space-context/space-context.service';
+import { createTenantRepository } from '../../../../../../shared/tenant-repository/create-tenant-repository.factory';
 
 @Injectable()
 export class UserTypeOrmWriteRepository implements IUserWriteRepository {
+  private readonly repository: Repository<UserTypeOrmEntity>;
+
   constructor(
     private readonly userTypeOrmMapper: UserTypeOrmMapper,
     @InjectRepository(UserTypeOrmEntity)
-    private readonly repository: Repository<UserTypeOrmEntity>,
-  ) {}
+    rawRepository: Repository<UserTypeOrmEntity>,
+    private readonly spaceContext: SpaceContext,
+  ) {
+    this.repository = createTenantRepository(rawRepository, spaceContext);
+  }
 
   async findById(id: string): Promise<UserAggregate | null> {
     const entity = await this.repository.findOne({ where: { id } });

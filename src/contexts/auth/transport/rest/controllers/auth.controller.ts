@@ -49,6 +49,7 @@ import {
   setRefreshCookie,
 } from '@contexts/auth/transport/shared/cookie.helper';
 
+import { SkipSpace } from '../../../../../shared/decorators/skip-space.decorator';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
 import { LoginUserDto } from '../dtos/login-user.dto';
 import { RegisterAccountDto } from '../dtos/register-account.dto';
@@ -96,17 +97,21 @@ export class AuthController {
   }
 
   @Post('register')
+  @SkipSpace()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new account' })
   @ApiResponse({ status: 201, description: 'Account registered successfully' })
   @ApiResponse({ status: 409, description: 'Account already exists' })
-  async register(@Body() dto: RegisterAccountDto): Promise<void> {
-    await this.commandBus.execute(
+  async register(
+    @Body() dto: RegisterAccountDto,
+  ): Promise<{ spaceId: string }> {
+    return this.commandBus.execute(
       new RegisterAccountCommand({ email: dto.email, password: dto.password }),
     );
   }
 
   @Post('login')
+  @SkipSpace()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Returns JWT access token' })
