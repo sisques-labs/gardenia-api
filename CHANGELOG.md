@@ -1,7 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.5.2-alpha.0] - 2026-05-29
+
+### Features
+- **database:** Implement required environment variables for PostgreSQL configuration (f29c595)
 ## [0.5.1-alpha.0] - 2026-05-29
+
+### Chore
+- Release v0.5.1-alpha.0 (5919b68)
 
 ### Features
 - **app:** Integrate TypeORM with dynamic configuration for PostgreSQL (c98d593)
