@@ -41,17 +41,15 @@ describe('SpaceMembershipBuilder', () => {
   });
 
   it('should default joinedAt to now when not set', () => {
-    const before = new Date();
+    const before = Date.now() - 1;
     const membership = builder
       .withUserId(USER_ID)
       .withSpaceId(SPACE_ID)
       .withRole(MembershipRoleEnum.MEMBER)
       .build();
-    const after = new Date();
+    const after = Date.now() + 1;
 
-    expect(membership.joinedAt.getTime()).toBeGreaterThanOrEqual(
-      before.getTime(),
-    );
-    expect(membership.joinedAt.getTime()).toBeLessThanOrEqual(after.getTime());
+    expect(membership.joinedAt.getTime()).toBeGreaterThanOrEqual(before);
+    expect(membership.joinedAt.getTime()).toBeLessThanOrEqual(after);
   });
 });

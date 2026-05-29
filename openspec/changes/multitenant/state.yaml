@@ -1,5 +1,5 @@
 change: multitenant
-status: exploring
+status: in_progress
 created: 2026-05-29
 phases:
   explore: done
@@ -10,3 +10,11 @@ phases:
   apply: in_progress
   verify: pending
   archive: pending
+
+delivery:
+  pr1_migrations: merged  # #84
+  pr2_spaces_domain: merged  # #85
+  pr3_spaces_infra: merged  # #86
+  pr4_space_guard: open  # #87
+  pr5_adapt_auth_users: pending
+  pr6_e2e_wiring: pending
