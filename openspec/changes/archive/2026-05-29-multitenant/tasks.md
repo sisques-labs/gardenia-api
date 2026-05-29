@@ -253,32 +253,32 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 3.1 — TypeORM Entities
 
-- [ ] **3.1.1** Create `src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity.ts`.
+- [x] **3.1.1** Create `src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity.ts`.
   - Columns: `id`, `name`, `owner_id`, `created_at`, `updated_at`. No `@OneToMany` for memberships (loaded separately or joined).
   - **Acceptance**: entity compiles; column names match migration 0.2.
   - **Test**: none.
 
-- [ ] **3.1.2** Create `src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity.ts`.
+- [x] **3.1.2** Create `src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity.ts`.
   - Columns: `id`, `space_id`, `user_id`, `role`, `joined_at`. `@ManyToOne` → `SpaceEntity` with `{ onDelete: 'CASCADE' }`.
   - **Acceptance**: entity compiles; column names match migration 0.3.
   - **Test**: none.
 
 ### 3.2 — Mappers
 
-- [ ] **3.2.1** Create `src/contexts/spaces/infrastructure/persistence/typeorm/mappers/space-typeorm.mapper.ts` + `.spec.ts`.
+- [x] **3.2.1** Create `src/contexts/spaces/infrastructure/persistence/typeorm/mappers/space-typeorm.mapper.ts` + `.spec.ts`.
   - `toDomain(entity): Space` and `toPersistence(space): Partial<SpaceEntity>`.
   - Does NOT map memberships inline (membership mapper is separate).
   - **Acceptance**: round-trip test passes; no data loss.
   - **Test**: unit.
 
-- [ ] **3.2.2** Create `src/contexts/spaces/infrastructure/persistence/typeorm/mappers/space-membership-typeorm.mapper.ts` + `.spec.ts`.
+- [x] **3.2.2** Create `src/contexts/spaces/infrastructure/persistence/typeorm/mappers/space-membership-typeorm.mapper.ts` + `.spec.ts`.
   - `toDomain(entity): SpaceMembership` and `toPersistence(m): Partial<SpaceMembershipEntity>`.
   - **Acceptance**: round-trip test passes.
   - **Test**: unit.
 
 ### 3.3 — TypeORM Read Repository
 
-- [ ] **3.3** Create `src/contexts/spaces/infrastructure/persistence/typeorm/repositories/space-typeorm-read.repository.ts` + `.spec.ts`.
+- [x] **3.3** Create `src/contexts/spaces/infrastructure/persistence/typeorm/repositories/space-typeorm-read.repository.ts` + `.spec.ts`.
   - Implements `ISpaceReadRepository` + `IMembershipReadRepository`.
   - `findById`: uses raw `Repository<SpaceEntity>.findOne`; maps to domain.
   - `findByUserId`: joins `space_memberships` where `user_id = userId`; maps results.
@@ -291,7 +291,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 3.4 — TypeORM Write Repository
 
-- [ ] **3.4** Create `src/contexts/spaces/infrastructure/persistence/typeorm/repositories/space-typeorm-write.repository.ts` + `.spec.ts`.
+- [x] **3.4** Create `src/contexts/spaces/infrastructure/persistence/typeorm/repositories/space-typeorm-write.repository.ts` + `.spec.ts`.
   - Implements `ISpaceWriteRepository`.
   - `save(space)`: maps space + all memberships; upserts `SpaceEntity` + all `SpaceMembershipEntity` rows.
   - NOTE: this repository is also NOT tenant-wrapped (writes come from command handlers that already have the spaceId in the aggregate).

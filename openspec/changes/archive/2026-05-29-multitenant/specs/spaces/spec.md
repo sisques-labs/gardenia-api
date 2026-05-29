@@ -1,0 +1,170 @@
+# Spec: Spaces Bounded Context
+
+**Change**: multitenant
+**Phase**: spec
+**Date**: 2026-05-29
+**Status**: done
+
+---
+
+## 1. Overview
+
+This spec describes the delta — what MUST be true after the multi-tenancy change is applied — for the `spaces` bounded context. It does not prescribe implementation structure beyond what is already decided.
+
+---
+
+## 2. Invariants
+
+### 2.1 `Space` Aggregate
+
+- A `Space` MUST have a non-empty `id` (UUID), a non-empty `name`, and at least one `SpaceMembership` with role `owner` at all times.
+- A `Space` MUST contain one or more `SpaceMembership` child entities.
+- A `Space` MUST NOT be created without an owner `SpaceMembership` present in the same operation.
+- The `Space` aggregate constructor MUST be hydration-only; domain events MUST be emitted via named instance methods (e.g., `create()`, `addMember()`, `removeMember()`).
+
+### 2.2 `SpaceMembership` Child Entity
+
+- `SpaceMembership` is a child entity of `Space`; it MUST NOT be its own aggregate root.
+- `SpaceMembership` MUST carry: `userId` (UUID), `spaceId` (UUID), `role` (`owner` | `member`), and `joinedAt` (timestamp).
+- A `SpaceMembership` with role `owner` MUST NOT be removable if it is the last owner in the `Space`. Attempting this MUST raise a domain exception.
+- Roles are limited to `owner` and `member`; any other value MUST be rejected at the value-object level.
+
+---
+
+## 3. Space Creation
+
+### 3.1 Standard Creation
+
+**Given** an authenticated user who belongs to fewer than `MAX_SPACES_PER_USER` spaces as owner  
+**When** a `CreateSpaceCommand` is dispatched with a valid name  
+**Then** a new `Space` is persisted with a generated UUID, the given name, and one `SpaceMembership` (role: `owner`, `userId` = the requesting user)  
+**And** a `SpaceCreatedEvent` MUST be emitted by the aggregate  
+**And** the new Space MUST be immediately accessible via `SpaceFindByIdQuery` for that user
+
+### 3.2 Auto-Creation on Registration
+
+**Given** a new user completes the `register-account` flow  
+**When** the account is created successfully  
+**Then** a `Space` MUST be created automatically in the same operation, using a default name derived from the user's identity  
+**And** the user MUST be assigned the `owner` role on that Space via a `SpaceMembership`  
+**And** this MUST happen atomically: if Space creation fails, account creation MUST also roll back  
+**And** the auto-created Space counts toward `MAX_SPACES_PER_USER`
+
+### 3.3 Cap Enforcement
+
+- `MAX_SPACES_PER_USER` is an integer configurable via environment variable; its default value MUST be documented.
+- A user is considered the "owner" of a Space when they hold a `SpaceMembership` with role `owner`.
+- **Given** a user who already owns `MAX_SPACES_PER_USER` spaces  
+  **When** `CreateSpaceCommand` is dispatched  
+  **Then** a `SpaceLimitExceededException` domain exception MUST be raised and no Space is persisted.
+- The cap check MUST occur before any persistence write.
+
+---
+
+## 4. Membership Management
+
+### 4.1 Adding a Member
+
+**Given** an authenticated owner of Space S  
+**When** `AddMemberCommand` is dispatched with a valid `userId` and Space S's `spaceId`  
+**Then** a new `SpaceMembership` (role: `member`) is persisted on Space S  
+**And** a `MemberAddedEvent` MUST be emitted  
+**And** the added user MUST immediately have access to Space S data via `SpaceGuard`
+
+**Given** the target user already holds a `SpaceMembership` for that Space  
+**When** `AddMemberCommand` is dispatched again  
+**Then** a domain exception MUST be raised and no duplicate membership is created
+
+### 4.2 Removing a Member
+
+**Given** an authenticated owner of Space S  
+**When** `RemoveMemberCommand` is dispatched with a valid `userId` that holds a `member` role  
+**Then** the `SpaceMembership` is removed  
+**And** a `MemberRemovedEvent` MUST be emitted  
+**And** the removed user MUST NOT be able to access Space S data after removal
+
+**Given** the target user holds the only `owner` membership of Space S  
+**When** `RemoveMemberCommand` is dispatched for that user  
+**Then** a `LastOwnerRemovalException` domain exception MUST be raised and no membership is removed
+
+### 4.3 Non-Owner Attempt
+
+**Given** an authenticated user with `member` role in Space S  
+**When** `AddMemberCommand` or `RemoveMemberCommand` is dispatched for Space S  
+**Then** the command handler MUST reject the operation with an authorization exception
+
+---
+
+## 5. Space Isolation Guarantee
+
+- A user MUST NOT read or write data belonging to a Space they are not a member of, through any application-layer path.
+- This guarantee is enforced at two layers:
+  1. **Transport** (`SpaceGuard`): validates the `X-Space-ID` header and the user's `SpaceMembership` before the request reaches any handler.
+  2. **Infrastructure** (`BaseTenantRepository`): appends `spaceId` to every query; the domain layer MUST NOT contain tenant-aware logic.
+- There MUST be no repository method that returns cross-Space data without an explicit, documented bypass (which is out of scope for this change).
+
+---
+
+## 6. `SpaceGuard` Behavior
+
+- `SpaceGuard` MUST be applied globally (or on all routes that require tenant context).
+- Routes explicitly excluded from `SpaceGuard` (e.g., `POST /auth/register`, `POST /auth/login`) MUST be documented in the transport layer.
+
+**Given** an incoming request with no `X-Space-ID` header  
+**When** `SpaceGuard` evaluates the request  
+**Then** the request MUST be rejected with HTTP 400 (Bad Request)
+
+**Given** an incoming request with a valid `X-Space-ID` header but the authenticated user has no `SpaceMembership` for that Space  
+**When** `SpaceGuard` evaluates the request  
+**Then** the request MUST be rejected with HTTP 403 (Forbidden)
+
+**Given** an incoming request with a valid `X-Space-ID` header and the authenticated user has a `SpaceMembership` for that Space  
+**When** `SpaceGuard` evaluates the request  
+**Then** `spaceId` MUST be stored in `SpaceContext` (via `AsyncLocalStorage`) before control passes to the route handler  
+**And** subsequent repository calls within that request MUST read `spaceId` from `SpaceContext` without any additional header parsing
+
+**Given** an invalid UUID in the `X-Space-ID` header (i.e., not a well-formed UUID)  
+**When** `SpaceGuard` evaluates the request  
+**Then** the request MUST be rejected with HTTP 400 (Bad Request)
+
+---
+
+## 7. `SpaceContext` (AsyncLocalStorage)
+
+- `SpaceContext` MUST be a request-scoped service backed by `AsyncLocalStorage`.
+- `SpaceContext` MUST expose at minimum: `set(spaceId: string): void` and `get(): string | undefined`.
+- `SpaceContext` MUST be populated by `SpaceGuard` before any repository call executes in the request lifecycle.
+- Repositories (`BaseTenantRepository`) MUST call `SpaceContext.get()` on every query. If the returned value is `undefined` or empty, the repository MUST throw a `SpaceContextMissingException` and MUST NOT execute the query. This is the **fail-closed** contract.
+- No part of the domain layer MAY import or reference `SpaceContext` directly.
+
+---
+
+## 8. Domain Events
+
+| Event | Emitted By | Payload |
+|---|---|---|
+| `SpaceCreatedEvent` | `Space.create()` | `spaceId`, `name`, `ownerId` |
+| `MemberAddedEvent` | `Space.addMember()` | `spaceId`, `userId`, `role` |
+| `MemberRemovedEvent` | `Space.removeMember()` | `spaceId`, `userId` |
+
+---
+
+## 9. Domain Exceptions
+
+| Exception | Trigger |
+|---|---|
+| `SpaceNotFoundException` | Space does not exist for a given `spaceId` |
+| `NotASpaceMemberException` | User has no `SpaceMembership` for the target Space |
+| `SpaceLimitExceededException` | User already owns `MAX_SPACES_PER_USER` spaces |
+| `LastOwnerRemovalException` | Attempt to remove the last owner from a Space |
+| `SpaceContextMissingException` | Repository call when `SpaceContext` is empty |
+| `DuplicateMembershipException` | `AddMemberCommand` for a user already in the Space |
+
+---
+
+## 10. Out of Scope
+
+- Cross-space admin or `SpaceContext` bypass.
+- Space deletion lifecycle.
+- Invitation flows (membership is programmatic only at this stage).
+- Billing or quotas per Space.

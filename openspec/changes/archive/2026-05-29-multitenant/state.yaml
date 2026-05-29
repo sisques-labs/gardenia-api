@@ -1,0 +1,34 @@
+change: multitenant
+status: complete
+created: 2026-05-29
+completed: 2026-05-29
+
+phases:
+  explore: done
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: done
+  verify: done
+  archive: done
+
+delivery:
+  pr1_migrations: merged  # #84
+  pr2_spaces_domain: merged  # #85
+  pr3_spaces_infra: merged  # #86
+  pr4_space_guard: merged  # #87
+  pr5_adapt_auth_users: merged  # #88
+  pr6_e2e_wiring: merged  # #89
+
+bugs_fixed:
+  - id: jwt-global-guard
+    description: >
+      JwtAuthGuard as APP_GUARD blocked public routes (register, login).
+      Fixed with OptionalJwtAuthGuard that uses Reflector to bypass JWT
+      validation entirely for @SkipSpace routes.
+  - id: tenant-delete-string-spread
+    description: >
+      Spreading a string UUID in the tenant proxy delete interceptor produced
+      character-indexed keys ({ '0': 'a', ... }). Fixed by detecting string/number
+      criteria and wrapping as { id: criteria, spaceId }.
