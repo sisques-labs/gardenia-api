@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.5.5-alpha.0] - 2026-05-29
+
+### Bug Fixes
+- **docker:** Create logs dir with node ownership before switching user (1827141)
 ## [0.5.4-alpha.0] - 2026-05-29
 
 ### Bug Fixes
@@ -11,6 +15,7 @@ All notable changes to this project will be documented in this file.
 
 ### Chore
 - Integrate OpenSpec spec-driven workflow (418e3ff)
+- Release v0.5.4-alpha.0 (3a0a90a)
 ## [0.5.3-alpha.0] - 2026-05-29
 
 ### Chore
