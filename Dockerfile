@@ -41,6 +41,8 @@ ENV HUSKY=0
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/dist ./dist
 
+RUN mkdir -p logs && chown node:node logs
+
 USER node
 EXPOSE 3000
 
