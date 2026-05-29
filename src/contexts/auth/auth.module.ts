@@ -42,6 +42,7 @@ import { AuthMutationsResolver } from './transport/graphql/resolvers/auth/auth-m
 import { AuthQueriesResolver } from './transport/graphql/resolvers/auth/auth-queries.resolver';
 import { AccountRestMapper } from './transport/rest/mappers/account/account.mapper';
 import { AuthController } from './transport/rest/controllers/auth.controller';
+import { SpaceContext } from '../../shared/space-context/space-context.service';
 
 const COMMAND_HANDLERS = [
   ChangePasswordCommandHandler,
@@ -120,6 +121,7 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController];
   ],
   controllers: [...TRANSPORT_REST_CONTROLLERS],
   providers: [
+    SpaceContext,
     ...COMMAND_HANDLERS,
     ...QUERY_HANDLERS,
     ...APPLICATION_SERVICES,

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SpaceContext } from '../../shared/space-context/space-context.service';
 
 import { USER_READ_REPOSITORY } from '@contexts/users/domain/repositories/read/user-read.repository';
 import { CreateUserCommandHandler } from './application/commands/create-user/create-user.handler';
@@ -60,6 +61,7 @@ const INFRASTRUCTURE_ENTITIES = [UserTypeOrmEntity];
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
   providers: [
+    SpaceContext,
     ...COMMAND_HANDLERS,
     ...QUERY_HANDLERS,
     ...APPLICATION_SERVICES,
