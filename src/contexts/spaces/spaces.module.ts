@@ -75,19 +75,6 @@ const TRANSPORT_PROVIDERS = [SpaceGuard, SpaceInterceptor];
     ...INFRASTRUCTURE_REPOSITORIES,
     ...TRANSPORT_PROVIDERS,
   ],
-  exports: [
-    SpaceContext,
-    SpaceGuard,
-    SpaceInterceptor,
-    SPACE_READ_REPOSITORY,
-    MEMBERSHIP_READ_REPOSITORY,
-    SPACE_WRITE_REPOSITORY,
-    AssertSpaceExistsService,
-    AssertSpaceViewModelExistsService,
-    SpaceBuilder,
-    SpaceMembershipBuilder,
-    SpaceTypeOrmMapper,
-    SpaceMembershipTypeOrmMapper,
-  ],
+  exports: [],
 })
 export class SpacesModule {}
