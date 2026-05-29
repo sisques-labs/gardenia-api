@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 
+import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
 import { SpaceLimitExceededException } from '@contexts/spaces/domain/exceptions/space-limit-exceeded.exception';
 import { IMembershipReadRepository } from '@contexts/spaces/domain/repositories/read/membership-read.repository';
 import { ISpaceWriteRepository } from '@contexts/spaces/domain/repositories/write/space-write.repository';
@@ -17,17 +18,25 @@ describe('CreateSpaceCommandHandler', () => {
   let spaceWriteRepository: jest.Mocked<ISpaceWriteRepository>;
   let configService: jest.Mocked<ConfigService>;
   let eventBus: jest.Mocked<EventBus>;
+  let spaceBuilder: SpaceBuilder;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     membershipReadRepository = {
+      findById: jest.fn(),
+      findByCriteria: jest.fn(),
+      save: jest.fn(),
+      delete: jest.fn(),
       findByUserAndSpace: jest.fn(),
       countByOwner: jest.fn(),
     } as jest.Mocked<IMembershipReadRepository>;
 
     spaceWriteRepository = {
+      findById: jest.fn(),
+      findByCriteria: jest.fn(),
       save: jest.fn(),
+      delete: jest.fn(),
     } as jest.Mocked<ISpaceWriteRepository>;
 
     configService = {
@@ -39,10 +48,13 @@ describe('CreateSpaceCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
+    spaceBuilder = new SpaceBuilder();
+
     handler = new CreateSpaceCommandHandler(
       membershipReadRepository,
       spaceWriteRepository,
       configService,
+      spaceBuilder,
       eventBus,
     );
   });
@@ -50,10 +62,10 @@ describe('CreateSpaceCommandHandler', () => {
   describe('happy path', () => {
     it('should create and save a space when under the cap', async () => {
       membershipReadRepository.countByOwner.mockResolvedValue(2);
-      spaceWriteRepository.save.mockResolvedValue(undefined);
+      spaceWriteRepository.save.mockResolvedValue(undefined as any);
 
       const spaceId = await handler.execute(
-        new CreateSpaceCommand(OWNER_ID, SPACE_NAME),
+        new CreateSpaceCommand({ ownerId: OWNER_ID, name: SPACE_NAME }),
       );
 
       expect(spaceWriteRepository.save).toHaveBeenCalledTimes(1);
@@ -65,9 +77,11 @@ describe('CreateSpaceCommandHandler', () => {
 
     it('should publish events after saving', async () => {
       membershipReadRepository.countByOwner.mockResolvedValue(0);
-      spaceWriteRepository.save.mockResolvedValue(undefined);
+      spaceWriteRepository.save.mockResolvedValue(undefined as any);
 
-      await handler.execute(new CreateSpaceCommand(OWNER_ID, SPACE_NAME));
+      await handler.execute(
+        new CreateSpaceCommand({ ownerId: OWNER_ID, name: SPACE_NAME }),
+      );
 
       expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
@@ -77,7 +91,9 @@ describe('CreateSpaceCommandHandler', () => {
       configService.get.mockReturnValue(5);
 
       await expect(
-        handler.execute(new CreateSpaceCommand(OWNER_ID, SPACE_NAME)),
+        handler.execute(
+          new CreateSpaceCommand({ ownerId: OWNER_ID, name: SPACE_NAME }),
+        ),
       ).rejects.toThrow(SpaceLimitExceededException);
 
       expect(spaceWriteRepository.save).not.toHaveBeenCalled();
@@ -90,7 +106,9 @@ describe('CreateSpaceCommandHandler', () => {
       configService.get.mockReturnValue(5);
 
       await expect(
-        handler.execute(new CreateSpaceCommand(OWNER_ID, SPACE_NAME)),
+        handler.execute(
+          new CreateSpaceCommand({ ownerId: OWNER_ID, name: SPACE_NAME }),
+        ),
       ).rejects.toThrow(SpaceLimitExceededException);
     });
 
@@ -99,7 +117,9 @@ describe('CreateSpaceCommandHandler', () => {
       membershipReadRepository.countByOwner.mockResolvedValue(3);
 
       await expect(
-        handler.execute(new CreateSpaceCommand(OWNER_ID, SPACE_NAME)),
+        handler.execute(
+          new CreateSpaceCommand({ ownerId: OWNER_ID, name: SPACE_NAME }),
+        ),
       ).rejects.toThrow(SpaceLimitExceededException);
 
       expect(configService.get).toHaveBeenCalledWith('MAX_SPACES_PER_USER', 5);
@@ -112,7 +132,9 @@ describe('CreateSpaceCommandHandler', () => {
       spaceWriteRepository.save.mockRejectedValue(new Error('DB error'));
 
       await expect(
-        handler.execute(new CreateSpaceCommand(OWNER_ID, SPACE_NAME)),
+        handler.execute(
+          new CreateSpaceCommand({ ownerId: OWNER_ID, name: SPACE_NAME }),
+        ),
       ).rejects.toThrow('DB error');
     });
   });

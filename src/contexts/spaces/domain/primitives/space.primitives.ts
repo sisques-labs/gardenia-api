@@ -1,15 +1,6 @@
-export interface ISpaceMembershipPrimitives {
-  userId: string;
-  spaceId: string;
-  role: string;
-  joinedAt: Date;
-}
+import { BasePrimitives } from '@sisques-labs/nestjs-kit';
 
-export interface ISpacePrimitives {
-  id: string;
+export type ISpacePrimitives = BasePrimitives & {
   name: string;
   ownerId: string;
-  memberships: ISpaceMembershipPrimitives[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+};

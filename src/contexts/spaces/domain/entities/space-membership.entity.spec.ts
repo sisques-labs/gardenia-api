@@ -1,7 +1,9 @@
-import {
-  MembershipRole,
-  MembershipRoleVO,
-} from '../value-objects/membership-role/membership-role.vo';
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
+
+import { MembershipRoleEnum } from '../enums/membership-role.enum';
+import { ISpaceMembership } from '../interfaces/space-membership.interface';
+import { MembershipRoleValueObject } from '../value-objects/membership-role/membership-role.value-object';
+import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
 import { SpaceMembership } from './space-membership.entity';
 
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
@@ -13,12 +15,12 @@ describe('SpaceMembership', () => {
       const membership = SpaceMembership.create(
         USER_ID,
         SPACE_ID,
-        MembershipRole.OWNER,
+        MembershipRoleEnum.OWNER,
       );
 
       expect(membership.userId).toBe(USER_ID);
       expect(membership.spaceId).toBe(SPACE_ID);
-      expect(membership.role.value).toBe(MembershipRole.OWNER);
+      expect(membership.role.value).toBe(MembershipRoleEnum.OWNER);
     });
 
     it('should set joinedAt automatically on create', () => {
@@ -26,7 +28,7 @@ describe('SpaceMembership', () => {
       const membership = SpaceMembership.create(
         USER_ID,
         SPACE_ID,
-        MembershipRole.MEMBER,
+        MembershipRoleEnum.MEMBER,
       );
       const after = new Date();
 
@@ -42,9 +44,9 @@ describe('SpaceMembership', () => {
       const membership = SpaceMembership.create(
         USER_ID,
         SPACE_ID,
-        MembershipRole.MEMBER,
+        MembershipRoleEnum.MEMBER,
       );
-      expect(membership.role.value).toBe(MembershipRole.MEMBER);
+      expect(membership.role.value).toBe(MembershipRoleEnum.MEMBER);
       expect(membership.role.isOwner()).toBe(false);
     });
 
@@ -52,7 +54,7 @@ describe('SpaceMembership', () => {
       const membership = SpaceMembership.create(
         USER_ID,
         SPACE_ID,
-        MembershipRole.OWNER,
+        MembershipRoleEnum.OWNER,
       );
       expect(membership.role.isOwner()).toBe(true);
     });
@@ -61,25 +63,29 @@ describe('SpaceMembership', () => {
   describe('hydration constructor', () => {
     it('should allow constructing with all fields provided', () => {
       const joinedAt = new Date('2024-01-01');
-      const role = new MembershipRoleVO(MembershipRole.MEMBER);
-      const membership = new SpaceMembership({
-        userId: USER_ID,
-        spaceId: SPACE_ID,
-        role,
-        joinedAt,
-      });
+      const props: ISpaceMembership = {
+        userId: new UuidValueObject(USER_ID),
+        spaceId: new SpaceIdValueObject(SPACE_ID),
+        role: new MembershipRoleValueObject(MembershipRoleEnum.MEMBER),
+        joinedAt: new DateValueObject(joinedAt),
+      };
+      const membership = new SpaceMembership(props);
 
       expect(membership.userId).toBe(USER_ID);
       expect(membership.spaceId).toBe(SPACE_ID);
-      expect(membership.role.value).toBe(MembershipRole.MEMBER);
-      expect(membership.joinedAt).toBe(joinedAt);
+      expect(membership.role.value).toBe(MembershipRoleEnum.MEMBER);
+      expect(membership.joinedAt).toEqual(joinedAt);
     });
   });
 
   describe('invalid role', () => {
     it('should throw when creating with an invalid role string', () => {
       expect(() =>
-        SpaceMembership.create(USER_ID, SPACE_ID, 'admin' as MembershipRole),
+        SpaceMembership.create(
+          USER_ID,
+          SPACE_ID,
+          'admin' as MembershipRoleEnum,
+        ),
       ).toThrow();
     });
   });

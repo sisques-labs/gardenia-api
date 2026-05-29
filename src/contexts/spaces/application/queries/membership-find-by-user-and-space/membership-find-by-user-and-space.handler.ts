@@ -23,8 +23,8 @@ export class MembershipFindByUserAndSpaceQueryHandler implements IQueryHandler<
     query: MembershipFindByUserAndSpaceQuery,
   ): Promise<SpaceMembership | null> {
     return this.membershipReadRepository.findByUserAndSpace(
-      query.userId,
-      query.spaceId,
+      query.userId.value,
+      query.spaceId.value,
     );
   }
 }

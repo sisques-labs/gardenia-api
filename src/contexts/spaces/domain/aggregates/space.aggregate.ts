@@ -1,81 +1,50 @@
-import {
-  BaseAggregate,
-  DateValueObject,
-  UuidValueObject,
-} from '@sisques-labs/nestjs-kit';
+import { BaseAggregate } from '@sisques-labs/nestjs-kit';
 
 import { SpaceMembership } from '../entities/space-membership.entity';
+import { MembershipRoleEnum } from '../enums/membership-role.enum';
 import { MemberAddedEvent } from '../events/member-added/member-added.event';
 import { MemberRemovedEvent } from '../events/member-removed/member-removed.event';
 import { SpaceCreatedEvent } from '../events/space-created/space-created.event';
 import { DuplicateMembershipException } from '../exceptions/duplicate-membership.exception';
 import { LastOwnerRemovalException } from '../exceptions/last-owner-removal.exception';
 import { NotASpaceMemberException } from '../exceptions/not-a-space-member.exception';
-import { MembershipRole } from '../value-objects/membership-role/membership-role.vo';
-import { SpaceIdVO } from '../value-objects/space-id/space-id.vo';
-import { SpaceNameVO } from '../value-objects/space-name/space-name.vo';
-
-export interface ISpaceProps {
-  id: SpaceIdVO;
-  name: SpaceNameVO;
-  ownerId: string;
-  memberships: SpaceMembership[];
-  createdAt: DateValueObject;
-  updatedAt: DateValueObject;
-}
+import { ISpace } from '../interfaces/space.interface';
+import { ISpacePrimitives } from '../primitives/space.primitives';
+import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
+import { SpaceNameValueObject } from '../value-objects/space-name/space-name.value-object';
 
 export class SpaceAggregate extends BaseAggregate {
-  private readonly _id: SpaceIdVO;
-  private readonly _name: SpaceNameVO;
-  private readonly _ownerId: string;
+  private readonly _id: SpaceIdValueObject;
+  private readonly _name: SpaceNameValueObject;
+  private readonly _ownerId: SpaceIdValueObject;
   private _memberships: SpaceMembership[];
 
-  constructor(props: ISpaceProps) {
+  constructor(props: ISpace) {
     super(props.createdAt, props.updatedAt);
     this._id = props.id;
     this._name = props.name;
     this._ownerId = props.ownerId;
-    this._memberships = props.memberships;
+    this._memberships = [];
   }
 
-  static create(ownerId: string, name: string): SpaceAggregate {
-    const now = new Date();
-    const id = UuidValueObject.generate().value;
-
-    const space = new SpaceAggregate({
-      id: new SpaceIdVO(id),
-      name: new SpaceNameVO(name),
-      ownerId,
-      memberships: [],
-      createdAt: new DateValueObject(now),
-      updatedAt: new DateValueObject(now),
-    });
-
-    space.addMember(ownerId, MembershipRole.OWNER);
-
-    space.apply(
+  public create(): void {
+    this.apply(
       new SpaceCreatedEvent(
         {
-          aggregateRootId: id,
+          aggregateRootId: this._id.value,
           aggregateRootType: SpaceAggregate.name,
-          entityId: id,
+          entityId: this._id.value,
           entityType: SpaceAggregate.name,
           eventType: SpaceCreatedEvent.name,
         },
-        {
-          spaceId: id,
-          name,
-          ownerId,
-        },
+        this.toPrimitives(),
       ),
     );
-
-    return space;
   }
 
   addMember(
     userId: string,
-    role: MembershipRole = MembershipRole.MEMBER,
+    role: MembershipRoleEnum = MembershipRoleEnum.MEMBER,
   ): void {
     const alreadyMember = this._memberships.some((m) => m.userId === userId);
     if (alreadyMember) {
@@ -138,16 +107,26 @@ export class SpaceAggregate extends BaseAggregate {
     );
   }
 
-  get id(): SpaceIdVO {
+  toPrimitives(): ISpacePrimitives {
+    return {
+      id: this._id.value,
+      name: this._name.value,
+      ownerId: this._ownerId.value,
+      createdAt: this.createdAt.value,
+      updatedAt: this.updatedAt.value,
+    };
+  }
+
+  get id(): SpaceIdValueObject {
     return this._id;
   }
 
-  get name(): SpaceNameVO {
+  get name(): SpaceNameValueObject {
     return this._name;
   }
 
   get ownerId(): string {
-    return this._ownerId;
+    return this._ownerId.value;
   }
 
   get memberships(): SpaceMembership[] {

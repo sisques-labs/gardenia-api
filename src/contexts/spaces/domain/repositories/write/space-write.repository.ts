@@ -1,7 +1,7 @@
-import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
+import { IBaseWriteRepository } from '@sisques-labs/nestjs-kit';
+
+import { SpaceAggregate } from '../../aggregates/space.aggregate';
 
 export const SPACE_WRITE_REPOSITORY = Symbol('SPACE_WRITE_REPOSITORY');
 
-export interface ISpaceWriteRepository {
-  save(space: SpaceAggregate): Promise<void>;
-}
+export type ISpaceWriteRepository = IBaseWriteRepository<SpaceAggregate>;

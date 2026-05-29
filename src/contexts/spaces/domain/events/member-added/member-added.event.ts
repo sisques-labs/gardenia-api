@@ -1,13 +1,9 @@
 import { BaseEvent, IEventMetadata } from '@sisques-labs/nestjs-kit';
 
-export interface IMemberAddedEventData {
-  spaceId: string;
-  userId: string;
-  role: string;
-}
+import { ISpaceMemberEventData } from '../interfaces/space-event-data.interface';
 
-export class MemberAddedEvent extends BaseEvent<IMemberAddedEventData> {
-  constructor(metadata: IEventMetadata, data: IMemberAddedEventData) {
+export class MemberAddedEvent extends BaseEvent<ISpaceMemberEventData> {
+  constructor(metadata: IEventMetadata, data: ISpaceMemberEventData) {
     super(metadata, data);
   }
 }

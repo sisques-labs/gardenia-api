@@ -1,6 +1,6 @@
 import { SpaceMembership } from '@contexts/spaces/domain/entities/space-membership.entity';
+import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { IMembershipReadRepository } from '@contexts/spaces/domain/repositories/read/membership-read.repository';
-import { MembershipRole } from '@contexts/spaces/domain/value-objects/membership-role/membership-role.vo';
 
 import { MembershipFindByUserAndSpaceQuery } from './membership-find-by-user-and-space.query';
 import { MembershipFindByUserAndSpaceQueryHandler } from './membership-find-by-user-and-space.handler';
@@ -16,6 +16,10 @@ describe('MembershipFindByUserAndSpaceQueryHandler', () => {
     jest.clearAllMocks();
 
     membershipReadRepository = {
+      findById: jest.fn(),
+      findByCriteria: jest.fn(),
+      save: jest.fn(),
+      delete: jest.fn(),
       findByUserAndSpace: jest.fn(),
       countByOwner: jest.fn(),
     } as jest.Mocked<IMembershipReadRepository>;
@@ -30,12 +34,15 @@ describe('MembershipFindByUserAndSpaceQueryHandler', () => {
       const membership = SpaceMembership.create(
         USER_ID,
         SPACE_ID,
-        MembershipRole.MEMBER,
+        MembershipRoleEnum.MEMBER,
       );
       membershipReadRepository.findByUserAndSpace.mockResolvedValue(membership);
 
       const result = await handler.execute(
-        new MembershipFindByUserAndSpaceQuery(USER_ID, SPACE_ID),
+        new MembershipFindByUserAndSpaceQuery({
+          userId: USER_ID,
+          spaceId: SPACE_ID,
+        }),
       );
 
       expect(result).toBe(membership);
@@ -51,7 +58,10 @@ describe('MembershipFindByUserAndSpaceQueryHandler', () => {
       membershipReadRepository.findByUserAndSpace.mockResolvedValue(null);
 
       const result = await handler.execute(
-        new MembershipFindByUserAndSpaceQuery(USER_ID, SPACE_ID),
+        new MembershipFindByUserAndSpaceQuery({
+          userId: USER_ID,
+          spaceId: SPACE_ID,
+        }),
       );
 
       expect(result).toBeNull();
@@ -61,7 +71,10 @@ describe('MembershipFindByUserAndSpaceQueryHandler', () => {
       membershipReadRepository.findByUserAndSpace.mockResolvedValue(null);
 
       const result = await handler.execute(
-        new MembershipFindByUserAndSpaceQuery(USER_ID, SPACE_ID),
+        new MembershipFindByUserAndSpaceQuery({
+          userId: USER_ID,
+          spaceId: SPACE_ID,
+        }),
       );
 
       expect(result).toBeFalsy();

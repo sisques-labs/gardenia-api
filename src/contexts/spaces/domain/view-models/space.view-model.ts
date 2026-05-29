@@ -1,15 +1,14 @@
-export interface ISpaceMembershipViewModel {
-  userId: string;
-  spaceId: string;
-  role: string;
-  joinedAt: Date;
-}
+import { BaseViewModel } from '@sisques-labs/nestjs-kit';
 
-export interface ISpaceViewModel {
-  id: string;
-  name: string;
-  ownerId: string;
-  memberships: ISpaceMembershipViewModel[];
-  createdAt: Date;
-  updatedAt: Date;
+import { ISpacePrimitives } from '../primitives/space.primitives';
+
+export class SpaceViewModel extends BaseViewModel {
+  public readonly name: string;
+  public readonly ownerId: string;
+
+  constructor(props: ISpacePrimitives) {
+    super(props.id, props.createdAt, props.updatedAt);
+    this.name = props.name;
+    this.ownerId = props.ownerId;
+  }
 }

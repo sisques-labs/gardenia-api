@@ -1,8 +1,7 @@
-import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
+import { IBaseReadRepository } from '@sisques-labs/nestjs-kit';
+
+import { SpaceViewModel } from '../../view-models/space.view-model';
 
 export const SPACE_READ_REPOSITORY = Symbol('SPACE_READ_REPOSITORY');
 
-export interface ISpaceReadRepository {
-  findById(id: string): Promise<SpaceAggregate | null>;
-  findByUserId(userId: string): Promise<SpaceAggregate[]>;
-}
+export type ISpaceReadRepository = IBaseReadRepository<SpaceViewModel>;
