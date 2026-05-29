@@ -1,3 +1,4 @@
+import { SupportModule } from './support/support.module';
 import { AuthModule } from '@contexts/auth/auth.module';
 import { UsersModule } from '@contexts/users/users.module';
 import { authConfig } from '@core/config/auth.config';
@@ -12,6 +13,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 @Module({
   imports: [
+    SupportModule,
     CqrsModule.forRoot(),
     SharedGraphQLModule,
     ConfigModule.forRoot({
