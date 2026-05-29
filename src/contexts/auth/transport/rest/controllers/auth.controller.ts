@@ -49,6 +49,7 @@ import {
   setRefreshCookie,
 } from '@contexts/auth/transport/shared/cookie.helper';
 
+import { SkipSpace } from '../../../../../shared/decorators/skip-space.decorator';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
 import { LoginUserDto } from '../dtos/login-user.dto';
 import { RegisterAccountDto } from '../dtos/register-account.dto';
@@ -96,6 +97,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @SkipSpace()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new account' })
   @ApiResponse({ status: 201, description: 'Account registered successfully' })
@@ -107,6 +109,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @SkipSpace()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Returns JWT access token' })

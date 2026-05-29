@@ -3,10 +3,12 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('accounts')
+@Unique(['spaceId', 'email'])
 export class AccountEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -14,7 +16,10 @@ export class AccountEntity {
   @Column({ type: 'uuid' })
   userId!: string;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({ name: 'space_id', type: 'uuid' })
+  spaceId!: string;
+
+  @Column({ type: 'varchar' })
   email!: string;
 
   @Column({ type: 'varchar' })

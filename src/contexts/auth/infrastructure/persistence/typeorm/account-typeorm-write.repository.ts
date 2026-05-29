@@ -4,16 +4,23 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
+import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
+import { createTenantRepository } from '../../../../../shared/tenant-repository/create-tenant-repository.factory';
 import { AccountEntity } from './account.entity';
 import { AccountTypeOrmMapper } from './account-typeorm.mapper';
 
 @Injectable()
 export class AccountTypeOrmWriteRepository implements IAccountWriteRepository {
+  private readonly repo: Repository<AccountEntity>;
+
   constructor(
     @InjectRepository(AccountEntity)
-    private readonly repo: Repository<AccountEntity>,
+    rawRepo: Repository<AccountEntity>,
     private readonly mapper: AccountTypeOrmMapper,
-  ) {}
+    private readonly spaceContext: SpaceContext,
+  ) {
+    this.repo = createTenantRepository(rawRepo, spaceContext);
+  }
 
   async findById(id: string): Promise<AccountAggregate | null> {
     const entity = await this.repo.findOne({ where: { id } });

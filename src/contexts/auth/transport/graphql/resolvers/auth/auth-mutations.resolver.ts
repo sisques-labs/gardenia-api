@@ -22,6 +22,7 @@ import { AuthPayloadObject } from '@contexts/auth/transport/graphql/objects/auth
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import { SkipSpace } from '../../../../../../shared/decorators/skip-space.decorator';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
@@ -35,6 +36,7 @@ export class AuthMutationsResolver {
   ) {}
 
   @Mutation(() => Boolean)
+  @SkipSpace()
   async register(@Args('input') input: RegisterAccountInput): Promise<boolean> {
     await this.commandBus.execute(
       new RegisterAccountCommand({
@@ -46,6 +48,7 @@ export class AuthMutationsResolver {
   }
 
   @Mutation(() => AuthPayloadObject)
+  @SkipSpace()
   async login(
     @Args('input') input: LoginUserInput,
     @Context() ctx: any,

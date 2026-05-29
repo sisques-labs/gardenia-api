@@ -28,7 +28,7 @@ describe('AssertAccountEmailAvailableService', () => {
     expect(writeRepository.findByEmail).toHaveBeenCalledWith('new@example.com');
   });
 
-  it('should throw AccountAlreadyExistsException when email is already registered', async () => {
+  it('should throw AccountAlreadyExistsException when email is already registered in the same space', async () => {
     const existing = new AccountBuilder()
       .withId('550e8400-e29b-41d4-a716-446655440000')
       .withUserId('660e8400-e29b-41d4-a716-446655440001')
@@ -44,5 +44,14 @@ describe('AssertAccountEmailAvailableService', () => {
     await expect(service.execute(email)).rejects.toThrow(
       AccountAlreadyExistsException,
     );
+  });
+
+  it('should allow the same email in a different space (cross-space isolation via tenant proxy)', async () => {
+    // The tenant proxy (wrapping the write repo) scopes findByEmail by spaceId.
+    // When the active spaceId differs, the repo returns null — email is available.
+    writeRepository.findByEmail.mockResolvedValue(null);
+    const email = new AccountEmailValueObject('alice@example.com');
+
+    await expect(service.execute(email)).resolves.toBeUndefined();
   });
 });

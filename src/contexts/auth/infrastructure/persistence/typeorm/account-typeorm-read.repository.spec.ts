@@ -1,5 +1,6 @@
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
+import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
 import {
   Criteria,
   FilterOperator,
@@ -10,10 +11,13 @@ import { AccountTypeOrmMapper } from './account-typeorm.mapper';
 import { AccountTypeOrmReadRepository } from './account-typeorm-read.repository';
 import { AccountEntity } from './account.entity';
 
+const SPACE_ID = '770e8400-e29b-41d4-a716-446655440002';
+
 const buildEntity = (overrides: Partial<AccountEntity> = {}): AccountEntity => {
   const entity = new AccountEntity();
   entity.id = '550e8400-e29b-41d4-a716-446655440000';
   entity.userId = '660e8400-e29b-41d4-a716-446655440001';
+  entity.spaceId = SPACE_ID;
   entity.email = 'test@example.com';
   entity.passwordHash = 'hashed-password';
   entity.createdAt = new Date('2024-01-01');
@@ -45,6 +49,7 @@ describe('AccountTypeOrmReadRepository', () => {
   let repository: AccountTypeOrmReadRepository;
   let typeOrmRepo: jest.Mocked<Repository<AccountEntity>>;
   let mapper: AccountTypeOrmMapper;
+  let spaceContext: jest.Mocked<SpaceContext>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -54,10 +59,35 @@ describe('AccountTypeOrmReadRepository', () => {
       findAndCount: jest.fn(),
     } as unknown as jest.Mocked<Repository<AccountEntity>>;
 
+    spaceContext = {
+      run: jest.fn(),
+      get: jest.fn().mockReturnValue(SPACE_ID),
+      require: jest.fn().mockReturnValue(SPACE_ID),
+    } as unknown as jest.Mocked<SpaceContext>;
+
     const builder = new AccountBuilder();
     mapper = new AccountTypeOrmMapper(builder);
 
-    repository = new AccountTypeOrmReadRepository(typeOrmRepo, mapper);
+    repository = new AccountTypeOrmReadRepository(
+      typeOrmRepo,
+      mapper,
+      spaceContext,
+    );
+  });
+
+  describe('tenant proxy', () => {
+    it('should inject spaceId into findOne where clause', async () => {
+      const entity = buildEntity();
+      typeOrmRepo.findOne.mockResolvedValue(entity);
+
+      await repository.findById('550e8400-e29b-41d4-a716-446655440000');
+
+      expect(typeOrmRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ spaceId: SPACE_ID }),
+        }),
+      );
+    });
   });
 
   describe('findById', () => {
@@ -96,7 +126,7 @@ describe('AccountTypeOrmReadRepository', () => {
 
       expect(typeOrmRepo.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: {},
+          where: expect.objectContaining({ spaceId: SPACE_ID }),
           skip: 10,
           take: 10,
           order: { createdAt: 'ASC' },
@@ -111,18 +141,25 @@ describe('AccountTypeOrmReadRepository', () => {
       await repository.findByCriteria(criteria);
 
       expect(typeOrmRepo.findAndCount).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { userId: 'u-123' } }),
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 'u-123',
+            spaceId: SPACE_ID,
+          }),
+        }),
       );
     });
 
-    it('should call findAndCount with where: {} when no filters are passed', async () => {
+    it('should call findAndCount with spaceId in where when no other filters are passed', async () => {
       typeOrmRepo.findAndCount.mockResolvedValue([[], 0]);
       const criteria = buildCriteria(1, 10);
 
       await repository.findByCriteria(criteria);
 
       expect(typeOrmRepo.findAndCount).toHaveBeenCalledWith(
-        expect.objectContaining({ where: {} }),
+        expect.objectContaining({
+          where: expect.objectContaining({ spaceId: SPACE_ID }),
+        }),
       );
     });
 

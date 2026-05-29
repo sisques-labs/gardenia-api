@@ -3,7 +3,10 @@ import { AccountEntity } from './account.entity';
 import { AccountTypeOrmMapper } from './account-typeorm.mapper';
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
+import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
 import { Repository } from 'typeorm';
+
+const SPACE_ID = '770e8400-e29b-41d4-a716-446655440002';
 
 const buildAccount = (): AccountAggregate =>
   new AccountBuilder()
@@ -19,6 +22,7 @@ const buildEntity = (): AccountEntity => {
   const entity = new AccountEntity();
   entity.id = '550e8400-e29b-41d4-a716-446655440000';
   entity.userId = '660e8400-e29b-41d4-a716-446655440001';
+  entity.spaceId = SPACE_ID;
   entity.email = 'test@example.com';
   entity.passwordHash = 'hashed-password';
   entity.createdAt = new Date('2024-01-01');
@@ -30,6 +34,7 @@ describe('AccountTypeOrmWriteRepository', () => {
   let repository: AccountTypeOrmWriteRepository;
   let typeOrmRepo: jest.Mocked<Repository<AccountEntity>>;
   let mapper: AccountTypeOrmMapper;
+  let spaceContext: jest.Mocked<SpaceContext>;
 
   beforeEach(() => {
     typeOrmRepo = {
@@ -38,10 +43,47 @@ describe('AccountTypeOrmWriteRepository', () => {
       delete: jest.fn(),
     } as unknown as jest.Mocked<Repository<AccountEntity>>;
 
+    spaceContext = {
+      run: jest.fn(),
+      get: jest.fn().mockReturnValue(SPACE_ID),
+      require: jest.fn().mockReturnValue(SPACE_ID),
+    } as unknown as jest.Mocked<SpaceContext>;
+
     const builder = new AccountBuilder();
     mapper = new AccountTypeOrmMapper(builder);
 
-    repository = new AccountTypeOrmWriteRepository(typeOrmRepo, mapper);
+    repository = new AccountTypeOrmWriteRepository(
+      typeOrmRepo,
+      mapper,
+      spaceContext,
+    );
+  });
+
+  describe('tenant proxy', () => {
+    it('should inject spaceId into save call', async () => {
+      const account = buildAccount();
+      const entity = buildEntity();
+      typeOrmRepo.save.mockResolvedValue(entity);
+
+      await repository.save(account);
+
+      expect(typeOrmRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ spaceId: SPACE_ID }),
+      );
+    });
+
+    it('should inject spaceId into findOne where clause', async () => {
+      const entity = buildEntity();
+      typeOrmRepo.findOne.mockResolvedValue(entity);
+
+      await repository.findById('550e8400-e29b-41d4-a716-446655440000');
+
+      expect(typeOrmRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ spaceId: SPACE_ID }),
+        }),
+      );
+    });
   });
 
   describe('save', () => {
@@ -81,13 +123,13 @@ describe('AccountTypeOrmWriteRepository', () => {
   });
 
   describe('delete', () => {
-    it('should call repo.delete with the given id', async () => {
+    it('should call repo.delete with the given id and inject spaceId', async () => {
       typeOrmRepo.delete.mockResolvedValue({ affected: 1, raw: {} });
 
       await repository.delete('550e8400-e29b-41d4-a716-446655440000');
 
       expect(typeOrmRepo.delete).toHaveBeenCalledWith(
-        '550e8400-e29b-41d4-a716-446655440000',
+        expect.objectContaining({ spaceId: SPACE_ID }),
       );
     });
   });

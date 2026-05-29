@@ -8,6 +8,7 @@ const buildEntity = (): AccountEntity => {
   const entity = new AccountEntity();
   entity.id = '550e8400-e29b-41d4-a716-446655440000';
   entity.userId = '660e8400-e29b-41d4-a716-446655440001';
+  entity.spaceId = '770e8400-e29b-41d4-a716-446655440002';
   entity.email = 'test@example.com';
   entity.passwordHash = 'hashed-password';
   entity.createdAt = new Date('2024-01-01');

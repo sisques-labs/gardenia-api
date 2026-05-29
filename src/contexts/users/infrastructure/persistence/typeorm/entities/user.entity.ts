@@ -4,18 +4,23 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('users')
+@Unique(['spaceId', 'username'])
 export class UserTypeOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Column({ name: 'space_id', type: 'uuid' })
+  spaceId!: string;
+
   @Column({ type: 'varchar' })
   status!: UserStatusEnum;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, unique: true })
+  @Column({ type: 'varchar', length: 30, nullable: false })
   username!: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
