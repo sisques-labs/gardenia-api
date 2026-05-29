@@ -48,7 +48,7 @@ rules:
     - Commands have {Name}CommandInput interface; fields are value objects built in constructor
     - Queries have {Name}QueryInput type alias or use Criteria for list queries
     - Aggregates constructed via Builder (BaseBuilder from nestjs-kit); NO static factory methods
-    - Assert services (assert-{entity}-exists, assert-{entity}-view-model-exists) in application/services/write|read/; handlers use them instead of raw findById + manual throw
+    - Assert services (assert-{entity}-exists, assert-{entity}-view-model-exists) in application/services/write|read/; handlers use them instead of raw findById + manual throw. Inject by class type only — no @Inject() decorator needed for concrete classes.
     - Repository interfaces extend IBaseReadRepository<ViewModel> or IBaseWriteRepository<Aggregate>
     - Primitives type extends BasePrimitives; ViewModel extends BaseViewModel
     - Event data interfaces live in domain/events/interfaces/

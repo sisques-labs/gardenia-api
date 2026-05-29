@@ -1,4 +1,3 @@
-import { Inject } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
 import { AssertSpaceViewModelExistsService } from '@contexts/spaces/application/services/read/assert-space-view-model-exists/assert-space-view-model-exists.service';
@@ -12,7 +11,6 @@ export class SpaceFindByIdQueryHandler implements IQueryHandler<
   SpaceViewModel
 > {
   constructor(
-    @Inject(AssertSpaceViewModelExistsService)
     private readonly assertSpaceViewModelExistsService: AssertSpaceViewModelExistsService,
   ) {}
 
