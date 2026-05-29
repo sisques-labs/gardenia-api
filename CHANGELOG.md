@@ -1,7 +1,20 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.5.4-alpha.0] - 2026-05-29
+
+### Bug Fixes
+- **docker:** Add prod-deps stage to include node_modules in runtime image (a4229c6)
+- **docker:** Skip prepare script in prod-deps stage to avoid missing husky (238175a)
+- **docker:** Prune devDeps from existing node_modules instead of reinstalling (c4cf5d3)
+- **husky:** Skip prepare script when HUSKY=0 to support Docker prod builds (92d02e7)
+
+### Chore
+- Integrate OpenSpec spec-driven workflow (418e3ff)
 ## [0.5.3-alpha.0] - 2026-05-29
+
+### Chore
+- Release v0.5.3-alpha.0 (76b8701)
 
 ### Features
 - **logging:** Implement Winston structured logging (5f1150f)
