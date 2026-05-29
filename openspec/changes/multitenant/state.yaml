@@ -16,5 +16,15 @@ delivery:
   pr2_spaces_domain: merged  # #85
   pr3_spaces_infra: merged  # #86
   pr4_space_guard: merged  # #87
-  pr5_adapt_auth_users: pending
+  pr5_adapt_auth_users: open  # #88
   pr6_e2e_wiring: pending
+
+known_issues:
+  - id: e2e-remaining
+    description: >
+      Some E2E tests may still fail after PR #88 fixes. To be addressed
+      after PR #6 is merged. Root causes identified but deferred.
+    items:
+      - delete-account DELETE /api/auth/account may need X-Space-ID or @SkipSpace + raw repo for findById
+      - get-me GET /api/auth/me uses accountFindByCriteria query which goes through tenant-wrapped read repo
+      - users.e2e usersFindByCriteria — SpaceInterceptor must set ALS before handler; verify interceptor ordering
