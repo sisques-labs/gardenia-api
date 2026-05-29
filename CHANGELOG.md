@@ -1,7 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.5.3-alpha.0] - 2026-05-29
+
+### Features
+- **logging:** Implement Winston structured logging (5f1150f)
 ## [0.5.2-alpha.0] - 2026-05-29
+
+### Chore
+- Release v0.5.2-alpha.0 (53edf20)
 
 ### Features
 - **database:** Implement required environment variables for PostgreSQL configuration (f29c595)
