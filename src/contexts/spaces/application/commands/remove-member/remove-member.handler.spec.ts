@@ -1,7 +1,8 @@
 import { EventBus } from '@nestjs/cqrs';
 
-import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
+import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
+import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { LastOwnerRemovalException } from '@contexts/spaces/domain/exceptions/last-owner-removal.exception';
 import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
@@ -33,6 +34,7 @@ function buildSpace(): SpaceAggregate {
 describe('RemoveMemberCommandHandler', () => {
   let handler: RemoveMemberCommandHandler;
   let spaceWriteRepository: jest.Mocked<ISpaceWriteRepository>;
+  let assertSpaceExistsService: jest.Mocked<AssertSpaceExistsService>;
   let eventBus: jest.Mocked<EventBus>;
   let space: SpaceAggregate;
 
@@ -48,17 +50,25 @@ describe('RemoveMemberCommandHandler', () => {
       delete: jest.fn(),
     } as jest.Mocked<ISpaceWriteRepository>;
 
+    assertSpaceExistsService = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<AssertSpaceExistsService>;
+
     eventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
-    handler = new RemoveMemberCommandHandler(spaceWriteRepository, eventBus);
+    handler = new RemoveMemberCommandHandler(
+      spaceWriteRepository,
+      assertSpaceExistsService,
+      eventBus,
+    );
   });
 
   describe('happy path', () => {
     it('should remove a member when requester is the owner', async () => {
-      spaceWriteRepository.findById.mockResolvedValue(space);
+      assertSpaceExistsService.execute.mockResolvedValue(space);
       spaceWriteRepository.save.mockResolvedValue(undefined as any);
 
       await handler.execute(
@@ -76,7 +86,9 @@ describe('RemoveMemberCommandHandler', () => {
 
   describe('space not found', () => {
     it('should throw SpaceNotFoundException when space does not exist', async () => {
-      spaceWriteRepository.findById.mockResolvedValue(null);
+      assertSpaceExistsService.execute.mockRejectedValue(
+        new SpaceNotFoundException(SPACE_ID),
+      );
 
       await expect(
         handler.execute(
@@ -93,7 +105,7 @@ describe('RemoveMemberCommandHandler', () => {
   describe('authorization', () => {
     it('should throw NotASpaceMemberException when requester is not the owner', async () => {
       space.addMember(NON_OWNER_ID, MembershipRoleEnum.MEMBER);
-      spaceWriteRepository.findById.mockResolvedValue(space);
+      assertSpaceExistsService.execute.mockResolvedValue(space);
 
       await expect(
         handler.execute(
@@ -117,7 +129,7 @@ describe('RemoveMemberCommandHandler', () => {
         .withUpdatedAt(NOW)
         .build();
       ownerOnlySpace.addMember(OWNER_ID, MembershipRoleEnum.OWNER);
-      spaceWriteRepository.findById.mockResolvedValue(ownerOnlySpace);
+      assertSpaceExistsService.execute.mockResolvedValue(ownerOnlySpace);
 
       await expect(
         handler.execute(
@@ -133,7 +145,7 @@ describe('RemoveMemberCommandHandler', () => {
 
   describe('non-member removal', () => {
     it('should throw NotASpaceMemberException at aggregate level when target is not a member', async () => {
-      spaceWriteRepository.findById.mockResolvedValue(space);
+      assertSpaceExistsService.execute.mockResolvedValue(space);
 
       await expect(
         handler.execute(

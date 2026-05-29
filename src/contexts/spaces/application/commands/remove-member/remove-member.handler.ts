@@ -2,9 +2,9 @@ import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
+import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
 import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
-import { SpaceNotFoundException } from '@contexts/spaces/domain/exceptions/space-not-found.exception';
 import {
   ISpaceWriteRepository,
   SPACE_WRITE_REPOSITORY,
@@ -22,19 +22,14 @@ export class RemoveMemberCommandHandler
   constructor(
     @Inject(SPACE_WRITE_REPOSITORY)
     private readonly spaceWriteRepository: ISpaceWriteRepository,
+    private readonly assertSpaceExistsService: AssertSpaceExistsService,
     eventBus: EventBus,
   ) {
     super(eventBus);
   }
 
   async execute(command: RemoveMemberCommand): Promise<void> {
-    const space = await this.spaceWriteRepository.findById(
-      command.spaceId.value,
-    );
-
-    if (!space) {
-      throw new SpaceNotFoundException(command.spaceId.value);
-    }
+    const space = await this.assertSpaceExistsService.execute(command.spaceId);
 
     const requesterMembership = space.memberships.find(
       (m) => m.userId === command.requestingUserId.value,

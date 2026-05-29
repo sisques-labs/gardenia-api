@@ -1,5 +1,5 @@
+import { AssertSpaceViewModelExistsService } from '@contexts/spaces/application/services/read/assert-space-view-model-exists/assert-space-view-model-exists.service';
 import { SpaceNotFoundException } from '@contexts/spaces/domain/exceptions/space-not-found.exception';
-import { ISpaceReadRepository } from '@contexts/spaces/domain/repositories/read/space-read.repository';
 import { SpaceViewModel } from '@contexts/spaces/domain/view-models/space.view-model';
 
 import { SpaceFindByIdQuery } from './space-find-by-id.query';
@@ -11,7 +11,7 @@ const NOW = new Date('2024-01-01T00:00:00.000Z');
 
 describe('SpaceFindByIdQueryHandler', () => {
   let handler: SpaceFindByIdQueryHandler;
-  let spaceReadRepository: jest.Mocked<ISpaceReadRepository>;
+  let assertSpaceViewModelExistsService: jest.Mocked<AssertSpaceViewModelExistsService>;
   let spaceViewModel: SpaceViewModel;
 
   beforeEach(() => {
@@ -25,32 +25,32 @@ describe('SpaceFindByIdQueryHandler', () => {
       updatedAt: NOW,
     });
 
-    spaceReadRepository = {
-      findById: jest.fn(),
-      findByCriteria: jest.fn(),
-      save: jest.fn(),
-      delete: jest.fn(),
-    } as jest.Mocked<ISpaceReadRepository>;
+    assertSpaceViewModelExistsService = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<AssertSpaceViewModelExistsService>;
 
-    handler = new SpaceFindByIdQueryHandler(spaceReadRepository);
+    handler = new SpaceFindByIdQueryHandler(assertSpaceViewModelExistsService);
   });
 
   describe('found', () => {
     it('should return the space view model when it exists', async () => {
-      spaceReadRepository.findById.mockResolvedValue(spaceViewModel);
+      assertSpaceViewModelExistsService.execute.mockResolvedValue(
+        spaceViewModel,
+      );
 
       const result = await handler.execute(
         new SpaceFindByIdQuery({ spaceId: SPACE_ID }),
       );
 
       expect(result).toBe(spaceViewModel);
-      expect(spaceReadRepository.findById).toHaveBeenCalledWith(SPACE_ID);
     });
   });
 
   describe('not found', () => {
     it('should throw SpaceNotFoundException when space does not exist', async () => {
-      spaceReadRepository.findById.mockResolvedValue(null);
+      assertSpaceViewModelExistsService.execute.mockRejectedValue(
+        new SpaceNotFoundException(SPACE_ID),
+      );
 
       await expect(
         handler.execute(new SpaceFindByIdQuery({ spaceId: SPACE_ID })),

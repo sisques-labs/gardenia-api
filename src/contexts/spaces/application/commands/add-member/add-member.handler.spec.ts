@@ -1,7 +1,8 @@
 import { EventBus } from '@nestjs/cqrs';
 
-import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
+import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
+import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { DuplicateMembershipException } from '@contexts/spaces/domain/exceptions/duplicate-membership.exception';
 import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
@@ -32,6 +33,7 @@ function buildSpace(): SpaceAggregate {
 describe('AddMemberCommandHandler', () => {
   let handler: AddMemberCommandHandler;
   let spaceWriteRepository: jest.Mocked<ISpaceWriteRepository>;
+  let assertSpaceExistsService: jest.Mocked<AssertSpaceExistsService>;
   let eventBus: jest.Mocked<EventBus>;
   let space: SpaceAggregate;
 
@@ -47,17 +49,25 @@ describe('AddMemberCommandHandler', () => {
       delete: jest.fn(),
     } as jest.Mocked<ISpaceWriteRepository>;
 
+    assertSpaceExistsService = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<AssertSpaceExistsService>;
+
     eventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
-    handler = new AddMemberCommandHandler(spaceWriteRepository, eventBus);
+    handler = new AddMemberCommandHandler(
+      spaceWriteRepository,
+      assertSpaceExistsService,
+      eventBus,
+    );
   });
 
   describe('happy path', () => {
     it('should add a member when requester is the owner', async () => {
-      spaceWriteRepository.findById.mockResolvedValue(space);
+      assertSpaceExistsService.execute.mockResolvedValue(space);
       spaceWriteRepository.save.mockResolvedValue(undefined as any);
 
       await handler.execute(
@@ -75,7 +85,9 @@ describe('AddMemberCommandHandler', () => {
 
   describe('space not found', () => {
     it('should throw SpaceNotFoundException when space does not exist', async () => {
-      spaceWriteRepository.findById.mockResolvedValue(null);
+      assertSpaceExistsService.execute.mockRejectedValue(
+        new SpaceNotFoundException(SPACE_ID),
+      );
 
       await expect(
         handler.execute(
@@ -92,7 +104,7 @@ describe('AddMemberCommandHandler', () => {
   describe('authorization', () => {
     it('should throw NotASpaceMemberException when requester is not the owner', async () => {
       space.addMember(NON_OWNER_ID, MembershipRoleEnum.MEMBER);
-      spaceWriteRepository.findById.mockResolvedValue(space);
+      assertSpaceExistsService.execute.mockResolvedValue(space);
 
       await expect(
         handler.execute(
@@ -106,7 +118,7 @@ describe('AddMemberCommandHandler', () => {
     });
 
     it('should throw NotASpaceMemberException when requester is not a member at all', async () => {
-      spaceWriteRepository.findById.mockResolvedValue(space);
+      assertSpaceExistsService.execute.mockResolvedValue(space);
 
       await expect(
         handler.execute(
@@ -123,7 +135,7 @@ describe('AddMemberCommandHandler', () => {
   describe('duplicate member', () => {
     it('should throw DuplicateMembershipException when target is already a member', async () => {
       space.addMember(MEMBER_ID, MembershipRoleEnum.MEMBER);
-      spaceWriteRepository.findById.mockResolvedValue(space);
+      assertSpaceExistsService.execute.mockResolvedValue(space);
 
       await expect(
         handler.execute(
