@@ -1,5 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Criteria, FilterOperator } from '@sisques-labs/nestjs-kit';
 
 import { SpaceMembership } from '@contexts/spaces/domain/entities/space-membership.entity';
 import {
@@ -22,9 +23,20 @@ export class MembershipFindByUserAndSpaceQueryHandler implements IQueryHandler<
   async execute(
     query: MembershipFindByUserAndSpaceQuery,
   ): Promise<SpaceMembership | null> {
-    return this.membershipReadRepository.findByUserAndSpace(
-      query.userId.value,
-      query.spaceId.value,
-    );
+    const criteria = new Criteria([
+      {
+        field: 'userId',
+        operator: FilterOperator.EQUALS,
+        value: query.userId.value,
+      },
+      {
+        field: 'spaceId',
+        operator: FilterOperator.EQUALS,
+        value: query.spaceId.value,
+      },
+    ]);
+
+    const result = await this.membershipReadRepository.findByCriteria(criteria);
+    return result.total > 0 ? result.items[0] : null;
   }
 }

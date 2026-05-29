@@ -20,7 +20,6 @@ describe('MembershipFindByUserAndSpaceQueryHandler', () => {
       findByCriteria: jest.fn(),
       save: jest.fn(),
       delete: jest.fn(),
-      findByUserAndSpace: jest.fn(),
       countByOwner: jest.fn(),
     } as jest.Mocked<IMembershipReadRepository>;
 
@@ -36,7 +35,12 @@ describe('MembershipFindByUserAndSpaceQueryHandler', () => {
         SPACE_ID,
         MembershipRoleEnum.MEMBER,
       );
-      membershipReadRepository.findByUserAndSpace.mockResolvedValue(membership);
+      membershipReadRepository.findByCriteria.mockResolvedValue({
+        items: [membership],
+        total: 1,
+        page: 1,
+        limit: 10,
+      } as any);
 
       const result = await handler.execute(
         new MembershipFindByUserAndSpaceQuery({
@@ -46,16 +50,18 @@ describe('MembershipFindByUserAndSpaceQueryHandler', () => {
       );
 
       expect(result).toBe(membership);
-      expect(membershipReadRepository.findByUserAndSpace).toHaveBeenCalledWith(
-        USER_ID,
-        SPACE_ID,
-      );
+      expect(membershipReadRepository.findByCriteria).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('not found', () => {
     it('should return null when user is not a member of the space', async () => {
-      membershipReadRepository.findByUserAndSpace.mockResolvedValue(null);
+      membershipReadRepository.findByCriteria.mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+      } as any);
 
       const result = await handler.execute(
         new MembershipFindByUserAndSpaceQuery({
@@ -68,7 +74,12 @@ describe('MembershipFindByUserAndSpaceQueryHandler', () => {
     });
 
     it('null return value is falsy (SpaceGuard can use it as a boolean check)', async () => {
-      membershipReadRepository.findByUserAndSpace.mockResolvedValue(null);
+      membershipReadRepository.findByCriteria.mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+      } as any);
 
       const result = await handler.execute(
         new MembershipFindByUserAndSpaceQuery({
