@@ -35,16 +35,19 @@ export class AuthMutationsResolver {
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
   ) {}
 
-  @Mutation(() => Boolean)
+  @Mutation(() => String)
   @SkipSpace()
-  async register(@Args('input') input: RegisterAccountInput): Promise<boolean> {
-    await this.commandBus.execute(
+  async register(@Args('input') input: RegisterAccountInput): Promise<string> {
+    const result = await this.commandBus.execute<
+      RegisterAccountCommand,
+      { spaceId: string }
+    >(
       new RegisterAccountCommand({
         email: input.email,
         password: input.password,
       }),
     );
-    return true;
+    return result.spaceId;
   }
 
   @Mutation(() => AuthPayloadObject)

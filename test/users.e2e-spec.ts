@@ -22,16 +22,18 @@ const LOGIN_MUTATION = `
 describe('Users (e2e)', () => {
   let ctx: E2EContext;
   let token: string;
+  let spaceId: string;
   let userId: string;
 
   beforeAll(async () => {
     ctx = await createE2EApp();
     await truncateAll(ctx.dataSource);
 
-    // Register a user so we have data to query
-    await gql(ctx.app, REGISTER_MUTATION, {
+    // Register — returns spaceId
+    const registerRes = await gql(ctx.app, REGISTER_MUTATION, {
       input: { email: REGISTER_EMAIL, password: REGISTER_PASSWORD },
     });
+    spaceId = registerRes.body.data.register;
 
     // Login to obtain JWT
     const loginRes = await gql(ctx.app, LOGIN_MUTATION, {
@@ -39,7 +41,7 @@ describe('Users (e2e)', () => {
     });
     token = loginRes.body.data.login.accessToken;
 
-    // Fetch the created user id via findByCriteria
+    // Fetch the created user id via findByCriteria (with X-Space-ID)
     const listRes = await gql(
       ctx.app,
       `query {
@@ -53,6 +55,7 @@ describe('Users (e2e)', () => {
       }`,
       {},
       token,
+      spaceId,
     );
     userId = listRes.body.data.usersFindByCriteria.items[0].id;
   });
@@ -76,6 +79,7 @@ describe('Users (e2e)', () => {
         }`,
         {},
         token,
+        spaceId,
       ).expect(200);
 
       expect(res.body.errors).toBeUndefined();
@@ -97,6 +101,7 @@ describe('Users (e2e)', () => {
         }`,
         { input: { id: userId } },
         token,
+        spaceId,
       ).expect(200);
 
       expect(res.body.errors).toBeUndefined();
@@ -113,9 +118,9 @@ describe('Users (e2e)', () => {
         }`,
         { input: { id: '00000000-0000-0000-0000-000000000000' } },
         token,
+        spaceId,
       ).expect(200);
 
-      // userFindById is nullable — non-existent returns null, no GQL error
       expect(res.body.data.userFindById).toBeNull();
     });
   });
@@ -132,12 +137,12 @@ describe('Users (e2e)', () => {
         }`,
         { input: { id: userId, username: 'updateduser' } },
         token,
+        spaceId,
       ).expect(200);
 
       expect(res.body.errors).toBeUndefined();
       expect(res.body.data.userUpdate.success).toBe(true);
 
-      // Verify the change persisted in DB
       const rows = await ctx.dataSource.query(
         'SELECT username FROM users WHERE id = $1',
         [userId],
@@ -158,12 +163,12 @@ describe('Users (e2e)', () => {
         }`,
         { input: { id: userId } },
         token,
+        spaceId,
       ).expect(200);
 
       expect(res.body.errors).toBeUndefined();
       expect(res.body.data.userDelete.success).toBe(true);
 
-      // User should no longer appear in list query
       const listRes = await gql(
         ctx.app,
         `query {
@@ -173,6 +178,7 @@ describe('Users (e2e)', () => {
         }`,
         {},
         token,
+        spaceId,
       );
       const ids = listRes.body.data.usersFindByCriteria.items.map(
         (u: { id: string }) => u.id,

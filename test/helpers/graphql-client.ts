@@ -14,6 +14,7 @@ export function gql(
   query: string,
   variables?: Record<string, unknown>,
   token?: string,
+  spaceId?: string,
 ): request.Test {
   const req = request(app.getHttpServer())
     .post('/graphql')
@@ -21,6 +22,10 @@ export function gql(
 
   if (token) {
     req.set('Authorization', `Bearer ${token}`);
+  }
+
+  if (spaceId) {
+    req.set('X-Space-ID', spaceId);
   }
 
   return req;

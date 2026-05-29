@@ -21,11 +21,13 @@ describe('Auth GET /api/auth/me (e2e)', () => {
 
   describe('happy path', () => {
     it('returns 200 with account fields and no passwordHash', async () => {
-      await ctx
+      const registerRes = await ctx
         .http()
         .post('/api/auth/register')
         .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
         .expect(201);
+
+      const { spaceId } = registerRes.body as { spaceId: string };
 
       const loginRes = await ctx
         .http()
@@ -39,6 +41,7 @@ describe('Auth GET /api/auth/me (e2e)', () => {
         .http()
         .get('/api/auth/me')
         .set('Authorization', `Bearer ${accessToken}`)
+        .set('X-Space-ID', spaceId)
         .expect(200);
 
       expect(res.body).toHaveProperty('id');
