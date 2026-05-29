@@ -9,6 +9,7 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { ACCOUNT_WRITE_REPOSITORY } from './domain/repositories/write/account-write.repository';
 import { ACCOUNT_READ_REPOSITORY } from './domain/repositories/read/account-read.repository';
 import { AccountBuilder } from './domain/builders/account.builder';
+import { SharedModule } from '../../shared/shared.module';
 import { SpaceContext } from '../../shared/space-context/space-context.service';
 
 const mockRepository = {
@@ -26,6 +27,7 @@ async function createTestModule(): Promise<TestingModule> {
   return Test.createTestingModule({
     imports: [
       ConfigModule.forRoot({ isGlobal: true }),
+      SharedModule,
       SharedGraphQLModule,
       AuthModule,
     ],
