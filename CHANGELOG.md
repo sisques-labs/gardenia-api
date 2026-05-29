@@ -1,10 +1,54 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.0-alpha.0] - 2026-05-29
+
+### Bug Fixes
+- **spaces:** Use inclusive bounds in joinedAt timing test (f08e726)
+- **auth,users:** Register SpaceContext in module providers (d4cd2c3)
+- **auth,users:** Fix SpaceContext flow for register and login (b784c35)
+- **app:** Import SpacesModule in AppModule to register CreateSpaceCommandHandler (99a2146)
+- **e2e:** Add SpaceEntity and SpaceMembershipEntity to E2E bootstrap (7240e12)
+- **e2e:** Pass X-Space-ID in protected requests, update auth API (ec9b2cd)
+- **app,auth:** Replace global JwtAuthGuard with OptionalJwtAuthGuard, add @SkipSpace to public auth routes (fdbd3ac)
+- **auth:** Fix handleRequest generic signature in OptionalJwtAuthGuard (9478d50)
+- **auth:** Rewrite OptionalJwtAuthGuard to skip via Reflector instead of soft passport handling (989a228)
+- **tenant-repo:** Handle string/number id in delete proxy (bfe2aed)
+- **migrations:** Fold username and profile columns into InitialSchema (9f008bd)
+
+### Documentation
+- **openspec:** Update config and skill registry with established conventions (6604370)
+- **openspec:** Mark PR #86 as merged in delivery state (5b74a43)
+- **openspec:** Note known E2E issues and update delivery state (f9b1809)
+- **openspec:** Verify and archive multitenant change (7526a14)
+
+### Features
+- **migrations:** Add spaces and tenant isolation schema (33f9645)
+- **spaces:** Add spaces bounded context — domain and application layers (b6996c0)
+- **spaces:** Add assert space exists services (c568bc9)
+- **spaces:** Add infrastructure layer and cross-cutting tenant utilities (1bdf667)
+- **spaces:** Add SpaceGuard, SpaceInterceptor and SpacesModule (dd0d06a)
+- **auth,users:** Adapt contexts for multitenant row-level isolation (7333c83)
+- **e2e:** Add Phase 7 space isolation E2E tests (7124f09)
+- **app:** Register SpaceGuard and SpaceInterceptor as global providers (8894244)
+
+### Refactor
+- **spaces:** Align domain and application to project conventions (056fd90)
+- **spaces:** Use assert services in handlers instead of raw findById (3b2692d)
+- **spaces:** Remove redundant @Inject on concrete assert service (4985922)
+- **users:** Reorder imports and add TODO for value objects in IUser interface (7407a42)
+- **spaces:** Extend SpaceNameValueObject from StringValueObject (7355a78)
+- **spaces:** Address PR #86 review comments (0b3279f)
+- **spaces:** Align SpacesModule with project module conventions (8a2cb7f)
+- **spaces:** Remove all exports from SpacesModule (0c2712a)
+- **shared:** Introduce global SharedModule for SpaceContext (4cbfda3)
 ## [0.5.5-alpha.0] - 2026-05-29
 
 ### Bug Fixes
 - **docker:** Create logs dir with node ownership before switching user (1827141)
+
+### Chore
+- Release v0.5.5-alpha.0 (1e7aa7f)
 ## [0.5.4-alpha.0] - 2026-05-29
 
 ### Bug Fixes
