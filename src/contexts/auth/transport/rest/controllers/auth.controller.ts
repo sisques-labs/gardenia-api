@@ -129,6 +129,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @SkipSpace()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh access token using refresh token cookie' })
   @ApiResponse({ status: 200, description: 'Returns new JWT access token' })
@@ -148,6 +149,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @SkipSpace()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Logout and revoke refresh token cookie' })
   @ApiResponse({ status: 204, description: 'Logged out successfully' })
@@ -163,6 +165,7 @@ export class AuthController {
   }
 
   @Post('logout-all')
+  @SkipSpace()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()

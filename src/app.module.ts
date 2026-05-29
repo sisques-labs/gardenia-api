@@ -5,7 +5,7 @@ import { UsersModule } from '@contexts/users/users.module';
 import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
-import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
 import { authConfig } from '@core/config/auth.config';
 import { postgresConfig } from '@core/config/postgres.config';
 import '@core/transport/graphql/registered-enums.graphql';
@@ -47,8 +47,9 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     UsersModule,
   ],
   providers: [
-    // JwtAuthGuard runs first — authenticates the request and sets req.user
-    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through
+    // if no token (public routes), throws only on invalid/expired tokens.
+    { provide: APP_GUARD, useClass: OptionalJwtAuthGuard },
     // SpaceGuard runs after JWT — validates X-Space-ID and membership
     { provide: APP_GUARD, useClass: SpaceGuard },
     // SpaceInterceptor wraps the handler in an ALS frame keyed by spaceId
