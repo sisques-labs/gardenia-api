@@ -340,7 +340,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 5.1 — ALS Frame Lifetime Validation (spike)
 
-- [ ] **5.1** Validate whether a NestJS `CanActivate` guard returning `Promise<boolean>` keeps the `AsyncLocalStorage` frame alive for the full async handler chain, or if `run()` must be hosted in a middleware/interceptor.
+- [x] **5.1** Validate whether a NestJS `CanActivate` guard returning `Promise<boolean>` keeps the `AsyncLocalStorage` frame alive for the full async handler chain, or if `run()` must be hosted in a middleware/interceptor.
   - Write a minimal throw-away test (can be a spike `.spec.ts` or inline comment) that verifies frame survival across `await next()`.
   - **Acceptance**: conclusion documented in a `// ALS Decision:` comment at top of `space.guard.ts` before it's written.
   - **Test**: spike unit test or manual verification.
@@ -348,7 +348,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 5.2 — `SpaceGuard`
 
-- [ ] **5.2** Create `src/contexts/spaces/transport/guards/space.guard.ts` + `.spec.ts`.
+- [x] **5.2** Create `src/contexts/spaces/transport/guards/space.guard.ts` + `.spec.ts`.
   - Implements `CanActivate`.
   - Reads `SKIP_SPACE_KEY` via `Reflector`; returns `true` immediately if set.
   - Extracts `req.user` (set by `JwtAuthGuard`); if absent, throws `UnauthorizedException`.
@@ -362,7 +362,7 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3
 
 ### 5.3 — `SpacesModule`
 
-- [ ] **5.3** Create `src/contexts/spaces/spaces.module.ts`.
+- [x] **5.3** Create `src/contexts/spaces/spaces.module.ts`.
   - Registers: `SpaceEntity`, `SpaceMembershipEntity` via `TypeOrmModule.forFeature(...)`.
   - Provides: all command handlers (2.1–2.3), query handlers (2.4–2.6), read/write repositories.
   - Exports: `SpaceReadRepository`, `MembershipReadRepository` (needed by guard).
