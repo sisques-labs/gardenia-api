@@ -1,0 +1,70 @@
+import { SpaceMembership } from '@contexts/spaces/domain/entities/space-membership.entity';
+import { IMembershipReadRepository } from '@contexts/spaces/domain/repositories/read/membership-read.repository';
+import { MembershipRole } from '@contexts/spaces/domain/value-objects/membership-role/membership-role.vo';
+
+import { MembershipFindByUserAndSpaceQuery } from './membership-find-by-user-and-space.query';
+import { MembershipFindByUserAndSpaceQueryHandler } from './membership-find-by-user-and-space.handler';
+
+const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
+const SPACE_ID = '550e8400-e29b-41d4-a716-446655440000';
+
+describe('MembershipFindByUserAndSpaceQueryHandler', () => {
+  let handler: MembershipFindByUserAndSpaceQueryHandler;
+  let membershipReadRepository: jest.Mocked<IMembershipReadRepository>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    membershipReadRepository = {
+      findByUserAndSpace: jest.fn(),
+      countByOwner: jest.fn(),
+    } as jest.Mocked<IMembershipReadRepository>;
+
+    handler = new MembershipFindByUserAndSpaceQueryHandler(
+      membershipReadRepository,
+    );
+  });
+
+  describe('found', () => {
+    it('should return the membership when user is a member of the space', async () => {
+      const membership = SpaceMembership.create(
+        USER_ID,
+        SPACE_ID,
+        MembershipRole.MEMBER,
+      );
+      membershipReadRepository.findByUserAndSpace.mockResolvedValue(membership);
+
+      const result = await handler.execute(
+        new MembershipFindByUserAndSpaceQuery(USER_ID, SPACE_ID),
+      );
+
+      expect(result).toBe(membership);
+      expect(membershipReadRepository.findByUserAndSpace).toHaveBeenCalledWith(
+        USER_ID,
+        SPACE_ID,
+      );
+    });
+  });
+
+  describe('not found', () => {
+    it('should return null when user is not a member of the space', async () => {
+      membershipReadRepository.findByUserAndSpace.mockResolvedValue(null);
+
+      const result = await handler.execute(
+        new MembershipFindByUserAndSpaceQuery(USER_ID, SPACE_ID),
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('null return value is falsy (SpaceGuard can use it as a boolean check)', async () => {
+      membershipReadRepository.findByUserAndSpace.mockResolvedValue(null);
+
+      const result = await handler.execute(
+        new MembershipFindByUserAndSpaceQuery(USER_ID, SPACE_ID),
+      );
+
+      expect(result).toBeFalsy();
+    });
+  });
+});
