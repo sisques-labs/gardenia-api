@@ -1,16 +1,20 @@
 import { DynamicModule, Provider, Type } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getDataSourceToken, TypeOrmModule } from '@nestjs/typeorm';
 import { CqrsModule } from '@nestjs/cqrs';
 import { DataSource } from 'typeorm';
+import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
+import { authConfig } from '../../src/core/config/auth.config';
 import { SharedModule } from '../../src/shared/shared.module';
 import { SpaceContext } from '../../src/shared/space-context/space-context.service';
+import { bootstrapTestDataSource } from './test-data-source';
 
 const DB_HOST = process.env.DATABASE_HOST ?? 'localhost';
 const DB_PORT = parseInt(process.env.DATABASE_PORT ?? '5433', 10);
@@ -41,8 +45,14 @@ export interface IntegrationContext {
 export async function createIntegrationModule(
   options: IntegrationModuleOptions,
 ): Promise<IntegrationContext> {
+  await bootstrapTestDataSource();
+
   const moduleFixture = await Test.createTestingModule({
     imports: [
+      ConfigModule.forRoot({
+        isGlobal: true,
+        load: [authConfig],
+      }),
       TypeOrmModule.forRoot({
         type: 'postgres',
         host: DB_HOST,
@@ -51,11 +61,12 @@ export async function createIntegrationModule(
         username: DB_USERNAME,
         password: DB_PASSWORD,
         entities: TEST_ENTITIES,
-        synchronize: true,
+        synchronize: false,
         logging: false,
       }),
       CqrsModule,
       SharedModule,
+      SharedGraphQLModule,
       ...options.imports,
     ],
     providers: options.providers ?? [],

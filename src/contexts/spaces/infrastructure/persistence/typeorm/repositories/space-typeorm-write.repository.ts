@@ -35,9 +35,7 @@ export class SpaceTypeOrmWriteRepository
     const savedEntity = await this.spaceRepo.save(spaceEntity);
 
     for (const membership of space.memberships) {
-      const membershipEntity = this.membershipMapper.toPersistence(
-        membership,
-      ) as SpaceMembershipEntity;
+      const membershipEntity = this.membershipMapper.toPersistence(membership);
       await this.membershipRepo.save(membershipEntity);
     }
 
