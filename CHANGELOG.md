@@ -1,10 +1,35 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.0-alpha.0] - 2026-05-30
+
+### Bug Fixes
+- **plants:** Use value objects in commands, interface, and aggregate; add field-changed events (935ce7e)
+- **plants:** Extract repository bindings into INFRASTRUCTURE_REPOSITORIES constant (9f0b9c7)
+
+### Documentation
+- **integration-tests:** Update task documentation and add new convention for testing (83e8298)
+- **openspec:** Archive plant-context change — all 27 tasks complete (a664bea)
+
+### Features
+- **plants:** Add domain and application layer for plants bounded context (339e7eb)
+- **plants:** Add infrastructure layer and module wiring for plants context (558f27e)
+- **plants:** Add REST and GraphQL transport layer with E2E tests (8299611)
+
+### Testing
+- Add integration test infrastructure (phase 1) (287d558)
+- Add pilot integration specs for tenant isolation (phase 2) (66c8d88)
+- Use migrations in integration tests (phase 3) (bb8c871)
+- Add optional Testcontainers for local DB tests (phase 4) (9a4ce25)
+- Align E2E tests with migrations instead of synchronize (phase 5) (4852e48)
+- Harden integration test maintenance and archive change (phase 6) (44c7c84)
 ## [0.6.1-alpha.0] - 2026-05-30
 
 ### Bug Fixes
 - **spaces:** Address verify warnings and suggestions (48874f4)
+
+### Chore
+- Release v0.6.1-alpha.0 (0ee2e33)
 
 ### Documentation
 - **openspec:** Add proposal, tasks, progress and verify report for spaces REST controller (18090c2)
