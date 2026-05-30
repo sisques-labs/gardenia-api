@@ -5,6 +5,7 @@ import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
 import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
+import { NotSpaceOwnerException } from '@contexts/spaces/domain/exceptions/not-space-owner.exception';
 import {
   ISpaceWriteRepository,
   SPACE_WRITE_REPOSITORY,
@@ -35,8 +36,15 @@ export class RemoveMemberCommandHandler
       (m) => m.userId === command.requestingUserId.value,
     );
 
-    if (!requesterMembership || !requesterMembership.role.isOwner()) {
+    if (!requesterMembership) {
       throw new NotASpaceMemberException(
+        command.requestingUserId.value,
+        command.spaceId.value,
+      );
+    }
+
+    if (!requesterMembership.role.isOwner()) {
+      throw new NotSpaceOwnerException(
         command.requestingUserId.value,
         command.spaceId.value,
       );

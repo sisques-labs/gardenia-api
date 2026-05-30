@@ -1,10 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import {
-  Criteria,
-  FilterOperator,
-  PaginatedResult,
-} from '@sisques-labs/nestjs-kit';
+import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
 import {
   ISpaceReadRepository,
@@ -27,14 +23,6 @@ export class SpacesFindByUserQueryHandler implements IQueryHandler<
   async execute(
     query: SpacesFindByUserQuery,
   ): Promise<PaginatedResult<SpaceViewModel>> {
-    const criteria = new Criteria([
-      {
-        field: 'ownerId',
-        operator: FilterOperator.EQUALS,
-        value: query.userId.value,
-      },
-    ]);
-
-    return this.spaceReadRepository.findByCriteria(criteria);
+    return this.spaceReadRepository.findByMember(query.userId.value);
   }
 }

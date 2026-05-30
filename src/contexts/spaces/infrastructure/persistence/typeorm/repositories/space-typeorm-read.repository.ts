@@ -54,6 +54,21 @@ export class SpaceTypeOrmReadRepository
     return new PaginatedResult(items, total, page, limit);
   }
 
+  async findByMember(userId: string): Promise<PaginatedResult<SpaceViewModel>> {
+    const entities = await this.spaceRepo
+      .createQueryBuilder('s')
+      .innerJoin('space_memberships', 'm', 'm.space_id = s.id')
+      .where('m.user_id = :userId', { userId })
+      .getMany();
+
+    const items = entities.map((e) => {
+      const aggregate = this.spaceMapper.toDomain(e);
+      return new SpaceViewModel(aggregate.toPrimitives());
+    });
+
+    return new PaginatedResult(items, items.length, 1, items.length || 1);
+  }
+
   async save(_viewModel: SpaceViewModel): Promise<void> {
     // read-side projection — write side handles persistence
   }

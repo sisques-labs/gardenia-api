@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { SelectQueryBuilder, Repository } from 'typeorm';
 
 import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
 import { SpaceViewModel } from '@contexts/spaces/domain/view-models/space.view-model';
@@ -8,6 +8,7 @@ import { SpaceTypeOrmReadRepository } from './space-typeorm-read.repository';
 
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440001';
 const OWNER_ID = '550e8400-e29b-41d4-a716-446655440002';
+const MEMBER_SPACE_ID = '550e8400-e29b-41d4-a716-446655440003';
 const CREATED_AT = new Date('2024-01-01T00:00:00.000Z');
 const UPDATED_AT = new Date('2024-01-01T00:00:00.000Z');
 
@@ -21,6 +22,19 @@ const buildSpaceEntity = (): SpaceEntity => {
   return entity;
 };
 
+function buildQueryBuilderMock(
+  results: SpaceEntity[],
+): jest.Mocked<SelectQueryBuilder<SpaceEntity>> {
+  const qb = {
+    innerJoin: jest.fn(),
+    where: jest.fn(),
+    getMany: jest.fn().mockResolvedValue(results),
+  } as unknown as jest.Mocked<SelectQueryBuilder<SpaceEntity>>;
+  (qb.innerJoin as jest.Mock).mockReturnValue(qb);
+  (qb.where as jest.Mock).mockReturnValue(qb);
+  return qb;
+}
+
 describe('SpaceTypeOrmReadRepository', () => {
   let repository: SpaceTypeOrmReadRepository;
   let spaceRepo: jest.Mocked<Repository<SpaceEntity>>;
@@ -32,6 +46,7 @@ describe('SpaceTypeOrmReadRepository', () => {
     spaceRepo = {
       findOne: jest.fn(),
       findAndCount: jest.fn(),
+      createQueryBuilder: jest.fn(),
       save: jest.fn(),
       delete: jest.fn(),
     } as unknown as jest.Mocked<Repository<SpaceEntity>>;
@@ -76,6 +91,41 @@ describe('SpaceTypeOrmReadRepository', () => {
       expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
       expect(result.items[0]).toBeInstanceOf(SpaceViewModel);
+    });
+  });
+
+  describe('findByMember()', () => {
+    it('should return owner-space and member-space when user has both', async () => {
+      const ownerEntity = buildSpaceEntity();
+
+      const memberEntity = new SpaceEntity();
+      memberEntity.id = MEMBER_SPACE_ID;
+      memberEntity.name = 'Member Space';
+      memberEntity.ownerId = '550e8400-e29b-41d4-a716-446655440099';
+      memberEntity.createdAt = CREATED_AT;
+      memberEntity.updatedAt = UPDATED_AT;
+
+      const qb = buildQueryBuilderMock([ownerEntity, memberEntity]);
+      (spaceRepo.createQueryBuilder as jest.Mock).mockReturnValue(qb);
+
+      const result = await repository.findByMember(OWNER_ID);
+
+      expect(result.items).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.items[0]).toBeInstanceOf(SpaceViewModel);
+      expect(result.items[1]).toBeInstanceOf(SpaceViewModel);
+      expect(result.items[0].id).toBe(SPACE_ID);
+      expect(result.items[1].id).toBe(MEMBER_SPACE_ID);
+    });
+
+    it('should return empty result when user has no memberships', async () => {
+      const qb = buildQueryBuilderMock([]);
+      (spaceRepo.createQueryBuilder as jest.Mock).mockReturnValue(qb);
+
+      const result = await repository.findByMember(OWNER_ID);
+
+      expect(result.items).toHaveLength(0);
+      expect(result.total).toBe(0);
     });
   });
 });
