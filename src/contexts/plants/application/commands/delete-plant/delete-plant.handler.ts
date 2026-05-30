@@ -31,9 +31,9 @@ export class DeletePlantCommandHandler
   async execute(command: DeletePlantCommand): Promise<void> {
     const plant = await this.assertPlantExistsService.execute(command.plantId);
 
-    if (plant.userId !== command.requestingUserId) {
+    if (plant.userId.value !== command.requestingUserId.value) {
       throw new NotPlantOwnerException(
-        command.requestingUserId,
+        command.requestingUserId.value,
         command.plantId.value,
       );
     }
@@ -44,7 +44,7 @@ export class DeletePlantCommandHandler
     await this.publishEvents(plant);
 
     this.logger.log(
-      `Plant deleted: ${command.plantId.value} by user: ${command.requestingUserId}`,
+      `Plant deleted: ${command.plantId.value} by user: ${command.requestingUserId.value}`,
     );
   }
 }

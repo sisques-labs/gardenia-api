@@ -34,10 +34,10 @@ export class CreatePlantCommandHandler
 
     const plant = this.plantBuilder
       .withId(UuidValueObject.generate().value)
-      .withName(command.name)
-      .withSpecies(command.species)
-      .withImageUrl(command.imageUrl)
-      .withUserId(command.userId)
+      .withName(command.name.value)
+      .withSpecies(command.species?.value ?? null)
+      .withImageUrl(command.imageUrl?.value ?? null)
+      .withUserId(command.userId.value)
       .withSpaceId(this.spaceContext.require())
       .withCreatedAt(now)
       .withUpdatedAt(now)
@@ -49,7 +49,7 @@ export class CreatePlantCommandHandler
     await this.publishEvents(plant);
 
     this.logger.log(
-      `Plant created: ${plant.id.value} by user: ${command.userId}`,
+      `Plant created: ${plant.id.value} by user: ${command.userId.value}`,
     );
 
     return plant.id.value;

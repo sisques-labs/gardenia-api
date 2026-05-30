@@ -1,5 +1,5 @@
 import { EventBus } from '@nestjs/cqrs';
-import { DateValueObject } from '@sisques-labs/nestjs-kit';
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
@@ -24,8 +24,8 @@ const buildAggregate = (): PlantAggregate =>
     name: new PlantNameValueObject('Rose'),
     species: null,
     imageUrl: null,
-    userId: OWNER_ID,
-    spaceId: SPACE_ID,
+    userId: new UuidValueObject(OWNER_ID),
+    spaceId: new UuidValueObject(SPACE_ID),
     createdAt: new DateValueObject(NOW),
     updatedAt: new DateValueObject(NOW),
   });

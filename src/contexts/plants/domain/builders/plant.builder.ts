@@ -3,6 +3,7 @@ import {
   BaseBuilder,
   DateValueObject,
   FieldIsRequiredException,
+  UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '../aggregates/plant.aggregate';
@@ -58,8 +59,8 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
         this._imageUrl != null
           ? new PlantImageUrlValueObject(this._imageUrl)
           : null,
-      userId: this._userId,
-      spaceId: this._spaceId,
+      userId: new UuidValueObject(this._userId),
+      spaceId: new UuidValueObject(this._spaceId),
       createdAt: new DateValueObject(this._createdAt),
       updatedAt: new DateValueObject(this._updatedAt),
     });

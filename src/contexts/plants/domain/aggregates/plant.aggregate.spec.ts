@@ -1,7 +1,8 @@
-import { DateValueObject } from '@sisques-labs/nestjs-kit';
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantCreatedEvent } from '../events/plant-created/plant-created.event';
 import { PlantDeletedEvent } from '../events/plant-deleted/plant-deleted.event';
+import { PlantNameChangedEvent } from '../events/field-changed/plant-name-changed/plant-name-changed.event';
 import { PlantUpdatedEvent } from '../events/plant-updated/plant-updated.event';
 import { IPlant } from '../interfaces/plant.interface';
 import { PlantIdValueObject } from '../value-objects/plant-id/plant-id.value-object';
@@ -21,8 +22,8 @@ const buildPlant = (overrides?: Partial<IPlant>): PlantAggregate =>
     name: new PlantNameValueObject('Rose'),
     species: null,
     imageUrl: null,
-    userId: USER_ID,
-    spaceId: SPACE_ID,
+    userId: new UuidValueObject(USER_ID),
+    spaceId: new UuidValueObject(SPACE_ID),
     createdAt: new DateValueObject(NOW),
     updatedAt: new DateValueObject(NOW),
     ...overrides,
@@ -57,9 +58,19 @@ describe('PlantAggregate', () => {
   });
 
   describe('update()', () => {
-    it('should emit a single PlantUpdatedEvent', () => {
+    it('should emit PlantNameChangedEvent and PlantUpdatedEvent when name changes', () => {
       const plant = buildPlant();
       plant.update({ name: new PlantNameValueObject('Tulip') });
+
+      const events = plant.getUncommittedEvents();
+      expect(events).toHaveLength(2);
+      expect(events[0]).toBeInstanceOf(PlantNameChangedEvent);
+      expect(events[1]).toBeInstanceOf(PlantUpdatedEvent);
+    });
+
+    it('should emit only PlantUpdatedEvent when no fields actually change', () => {
+      const plant = buildPlant();
+      plant.update({ name: new PlantNameValueObject('Rose') });
 
       const events = plant.getUncommittedEvents();
       expect(events).toHaveLength(1);

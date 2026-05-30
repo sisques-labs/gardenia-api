@@ -31,9 +31,9 @@ export class UpdatePlantCommandHandler
   async execute(command: UpdatePlantCommand): Promise<void> {
     const plant = await this.assertPlantExistsService.execute(command.plantId);
 
-    if (plant.userId !== command.requestingUserId) {
+    if (plant.userId.value !== command.requestingUserId.value) {
       throw new NotPlantOwnerException(
-        command.requestingUserId,
+        command.requestingUserId.value,
         command.plantId.value,
       );
     }
@@ -48,7 +48,7 @@ export class UpdatePlantCommandHandler
     await this.publishEvents(plant);
 
     this.logger.log(
-      `Plant updated: ${command.plantId.value} by user: ${command.requestingUserId}`,
+      `Plant updated: ${command.plantId.value} by user: ${command.requestingUserId.value}`,
     );
   }
 }

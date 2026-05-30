@@ -1,4 +1,4 @@
-import { DateValueObject } from '@sisques-labs/nestjs-kit';
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
@@ -19,8 +19,8 @@ const buildAggregate = (): PlantAggregate =>
     name: new PlantNameValueObject('Rose'),
     species: null,
     imageUrl: null,
-    userId: USER_ID,
-    spaceId: SPACE_ID,
+    userId: new UuidValueObject(USER_ID),
+    spaceId: new UuidValueObject(SPACE_ID),
     createdAt: new DateValueObject(NOW),
     updatedAt: new DateValueObject(NOW),
   });

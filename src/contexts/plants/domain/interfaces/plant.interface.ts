@@ -1,4 +1,4 @@
-import { DateValueObject } from '@sisques-labs/nestjs-kit';
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantIdValueObject } from '../value-objects/plant-id/plant-id.value-object';
 import { PlantImageUrlValueObject } from '../value-objects/plant-image-url/plant-image-url.value-object';
@@ -10,8 +10,8 @@ export interface IPlant {
   name: PlantNameValueObject;
   species: PlantSpeciesValueObject | null;
   imageUrl: PlantImageUrlValueObject | null;
-  userId: string;
-  spaceId: string;
+  userId: UuidValueObject;
+  spaceId: UuidValueObject;
   createdAt: DateValueObject;
   updatedAt: DateValueObject;
 }
