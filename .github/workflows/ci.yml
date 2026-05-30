@@ -62,7 +62,6 @@ jobs:
       DATABASE_DATABASE: gardenia_test
       DATABASE_USERNAME: gardenia
       DATABASE_PASSWORD: gardenia
-      DATABASE_SYNCHRONIZE: "true"
       JWT_SECRET: ci-test-jwt-secret
       JWT_EXPIRES_IN: 1d
       NODE_ENV: test
@@ -78,6 +77,9 @@ jobs:
         with:
           app_path: "."
           frozen_lockfile: "true"
+
+      - name: Apply database migrations
+        run: pnpm migration:run
 
       - name: Run E2E tests
         run: pnpm test:e2e
