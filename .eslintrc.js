@@ -23,4 +23,23 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
   },
+  overrides: [
+    {
+      files: ['src/**/*.spec.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: [
+              {
+                name: '@nestjs/testing',
+                message:
+                  'Unit tests must use manual instantiation (jest.Mocked<T>). @nestjs/testing is allowed only in test/integration/ and test/**/*.e2e-spec.ts.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
 };
