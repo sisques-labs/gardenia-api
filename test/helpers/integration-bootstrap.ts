@@ -11,6 +11,7 @@ import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persis
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
+import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { authConfig } from '../../src/core/config/auth.config';
 import { SharedModule } from '../../src/shared/shared.module';
 import { SpaceContext } from '../../src/shared/space-context/space-context.service';
@@ -28,6 +29,7 @@ const TEST_ENTITIES = [
   UserTypeOrmEntity,
   SpaceEntity,
   SpaceMembershipEntity,
+  PlantTypeOrmEntity,
 ];
 
 export interface IntegrationModuleOptions {

@@ -5,12 +5,14 @@ import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persis
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
+import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { InitialSchema1779729423499 } from '../../src/database/migrations/1779729423499-InitialSchema';
 import { CreateAuthSessions1779953632660 } from '../../src/database/migrations/1779953632660-CreateAuthSessions';
 import { CreateSpaces1780000000001 } from '../../src/database/migrations/1780000000001-CreateSpaces';
 import { CreateSpaceMemberships1780000000002 } from '../../src/database/migrations/1780000000002-CreateSpaceMemberships';
 import { AddSpaceIdToAccounts1780000000003 } from '../../src/database/migrations/1780000000003-AddSpaceIdToAccounts';
 import { AddSpaceIdToUsers1780000000004 } from '../../src/database/migrations/1780000000004-AddSpaceIdToUsers';
+import { CreatePlants1780000000005 } from '../../src/database/migrations/1780000000005-CreatePlants';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -18,6 +20,7 @@ const TEST_ENTITIES = [
   UserTypeOrmEntity,
   SpaceEntity,
   SpaceMembershipEntity,
+  PlantTypeOrmEntity,
 ];
 
 const TEST_MIGRATIONS = [
@@ -27,6 +30,7 @@ const TEST_MIGRATIONS = [
   CreateSpaceMemberships1780000000002,
   AddSpaceIdToAccounts1780000000003,
   AddSpaceIdToUsers1780000000004,
+  CreatePlants1780000000005,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {
