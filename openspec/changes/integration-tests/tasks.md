@@ -61,11 +61,11 @@ Phases 4 and 5 are independent of each other but both depend on Phase 3.
 
 ## 3. Migration parity
 
-- [ ] 3.1 Create `test/helpers/test-data-source.ts` with `bootstrapTestDataSource()` — builds `DataSource` from `src/database/data-source.ts` config, `synchronize: false`, runs `runMigrations()`
-- [ ] 3.2 Update `integration-bootstrap.ts` to use `bootstrapTestDataSource()` instead of `synchronize: true`
-- [ ] 3.3 Remove `DATABASE_SYNCHRONIZE: 'true'` from integration CI job env vars
-- [ ] 3.4 Run `pnpm test:integration` locally against migrations — all pilot specs green
-- [ ] 3.5 Add CI step or smoke check: migration apply succeeds before integration tests run (fail fast with clear error)
+- [x] 3.1 Create `test/helpers/test-data-source.ts` with `bootstrapTestDataSource()` — builds `DataSource` from `src/database/data-source.ts` config, `synchronize: false`, runs `runMigrations()`
+- [x] 3.2 Update `integration-bootstrap.ts` to use `bootstrapTestDataSource()` instead of `synchronize: true`
+- [x] 3.3 Remove `DATABASE_SYNCHRONIZE: 'true'` from integration CI job env vars
+- [x] 3.4 Run `pnpm test:integration` locally against migrations — all pilot specs green
+- [x] 3.5 Add CI step or smoke check: migration apply succeeds before integration tests run (fail fast with clear error)
 
 ---
 
