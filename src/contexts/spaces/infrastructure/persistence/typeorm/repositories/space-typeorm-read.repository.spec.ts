@@ -116,6 +116,16 @@ describe('SpaceTypeOrmReadRepository', () => {
       expect(result.items[1]).toBeInstanceOf(SpaceViewModel);
       expect(result.items[0].id).toBe(SPACE_ID);
       expect(result.items[1].id).toBe(MEMBER_SPACE_ID);
+
+      expect(qb.innerJoin).toHaveBeenCalledWith(
+        'space_memberships',
+        expect.any(String),
+        expect.stringContaining('space_id'),
+      );
+      expect(qb.where).toHaveBeenCalledWith(
+        expect.stringContaining('user_id'),
+        expect.objectContaining({ userId: OWNER_ID }),
+      );
     });
 
     it('should return empty result when user has no memberships', async () => {

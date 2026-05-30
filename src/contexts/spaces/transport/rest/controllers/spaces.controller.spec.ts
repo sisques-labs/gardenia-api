@@ -78,6 +78,22 @@ describe('SpacesController', () => {
       expect(dispatched.name.value).toBe(dto.name);
     });
 
+    it('should ignore any ownerId field present in dto body', async () => {
+      const vm = buildSpaceViewModel();
+      const responseDto = buildSpaceResponseDto();
+      commandBus.execute.mockResolvedValueOnce(SPACE_ID);
+      queryBus.execute.mockResolvedValueOnce(vm);
+      spaceRestMapper.toResponse.mockReturnValue(responseDto);
+
+      const dtoWithSpoofedOwner = { ...dto, ownerId: 'attacker-id' } as any;
+      await sut.createSpace(dtoWithSpoofedOwner, currentUser);
+
+      const dispatched = commandBus.execute.mock
+        .calls[0][0] as CreateSpaceCommand;
+      expect(dispatched.ownerId.value).toBe(currentUser.userId);
+      expect(dispatched.ownerId.value).not.toBe('attacker-id');
+    });
+
     it('should dispatch SpaceFindByIdQuery with the returned spaceId', async () => {
       const vm = buildSpaceViewModel();
       const responseDto = buildSpaceResponseDto();
