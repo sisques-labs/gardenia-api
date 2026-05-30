@@ -18,7 +18,7 @@ Apply this skill whenever creating or modifying any file under `src/contexts/` o
 3. **`MutationResponseGraphQLMapper` is global.** It is provided by `AppModule`. Never add it to a bounded-context module's providers.
 4. **Repository interfaces live in domain.** Infrastructure classes implement them; domain never imports from infrastructure.
 5. **No module compilation tests.** Do not create `*.module.spec.ts` files.
-6. **Unit tests = manual instantiation.** Use `jest.Mocked<T>`, co-located with source. No `@nestjs/testing` in unit specs.
+6. **Unit tests = manual instantiation.** Use `jest.Mocked<T>`, co-located with source. No `@nestjs/testing` in unit specs (enforced by ESLint `no-restricted-imports` on `src/**/*.spec.ts`).
 
 ## Test Layers
 
