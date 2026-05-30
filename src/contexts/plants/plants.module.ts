@@ -16,6 +16,11 @@ import { PlantTypeOrmEntity } from './infrastructure/persistence/typeorm/entitie
 import { PlantTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/plant-typeorm.mapper';
 import { PlantTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/plant-typeorm-read.repository';
 import { PlantTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/plant-typeorm-write.repository';
+import { PlantsController } from './transport/rest/controllers/plants.controller';
+import { PlantRestMapper } from './transport/rest/mappers/plant/plant.mapper';
+import { PlantGraphQLMapper } from './transport/graphql/mappers/plant/plant.mapper';
+import { PlantQueriesResolver } from './transport/graphql/resolvers/plant/plant-queries.resolver';
+import { PlantMutationsResolver } from './transport/graphql/resolvers/plant/plant-mutations.resolver';
 import './transport/graphql/enums/plant/plant-registered-enums.graphql';
 
 const COMMAND_HANDLERS = [
@@ -43,9 +48,17 @@ const INFRASTRUCTURE_REPOSITORIES = [
   { provide: PLANT_WRITE_REPOSITORY, useClass: PlantTypeOrmWriteRepository },
 ];
 
+const REST_CONTROLLERS = [PlantsController];
+const REST_PROVIDERS = [PlantRestMapper];
+const GRAPHQL_PROVIDERS = [
+  PlantQueriesResolver,
+  PlantMutationsResolver,
+  PlantGraphQLMapper,
+];
+
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature([PlantTypeOrmEntity])],
-  controllers: [],
+  controllers: [...REST_CONTROLLERS],
   providers: [
     ...COMMAND_HANDLERS,
     ...QUERY_HANDLERS,
@@ -53,6 +66,8 @@ const INFRASTRUCTURE_REPOSITORIES = [
     ...DOMAIN_BUILDERS,
     ...INFRASTRUCTURE_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
+    ...REST_PROVIDERS,
+    ...GRAPHQL_PROVIDERS,
   ],
   exports: [],
 })
