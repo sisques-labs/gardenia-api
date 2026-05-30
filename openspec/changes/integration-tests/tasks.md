@@ -11,13 +11,13 @@
 
 ## Review Workload Forecast
 
-| Field | Value |
-|-------|-------|
-| Estimated changed lines | ~400–600 |
-| 400-line budget risk | Medium |
-| Chained PRs recommended | Yes — one PR per phase |
-| Suggested split | Phase 1 PR, Phase 2 PR, Phase 3 PR (optional 4–5 later) |
-| DB schema changes | None — test infrastructure only |
+| Field                   | Value                                                   |
+| ----------------------- | ------------------------------------------------------- |
+| Estimated changed lines | ~400–600                                                |
+| 400-line budget risk    | Medium                                                  |
+| Chained PRs recommended | Yes — one PR per phase                                  |
+| Suggested split         | Phase 1 PR, Phase 2 PR, Phase 3 PR (optional 4–5 later) |
+| DB schema changes       | None — test infrastructure only                         |
 
 ---
 
@@ -95,3 +95,4 @@ Phases 4 and 5 are independent of each other but both depend on Phase 3.
 - [ ] 6.1 Add ESLint `no-restricted-imports` rule blocking `@nestjs/testing` in `src/**/*.spec.ts`
 - [ ] 6.2 Add comment or constant in `db-reset.ts` documenting that the table list MUST be updated when new entities are added
 - [ ] 6.3 Archive change: run `/sdd-verify` then `/sdd-archive` to merge delta spec into `openspec/specs/testing-infrastructure/spec.md`
+- [ ] 6.4 Update openspec conventions to always inclue unit test integration test and e2e test when developing a new feature or doing something
