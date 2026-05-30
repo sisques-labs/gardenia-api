@@ -82,11 +82,11 @@ Phases 4 and 5 are independent of each other but both depend on Phase 3.
 
 ## 5. E2E alignment
 
-- [ ] 5.1 Update `test/helpers/app-bootstrap.ts` — switch `createE2EApp()` to use `bootstrapTestDataSource()` / migrations instead of `synchronize: true`
-- [ ] 5.2 Remove duplicate `TypeOrmModule.forRoot` from `createE2EApp()` where possible — rely on `AppModule` TypeORM config + test env vars
-- [ ] 5.3 Remove `DATABASE_SYNCHRONIZE: 'true'` from E2E CI job env vars
-- [ ] 5.4 Run `pnpm test:e2e` locally and in CI — all existing E2E specs green with migrations
-- [ ] 5.5 Optional: add npm script alias `test:api` → `test:e2e` for documentation clarity
+- [x] 5.1 Update `test/helpers/app-bootstrap.ts` — switch `createE2EApp()` to use `bootstrapTestDataSource()` / migrations instead of `synchronize: true`
+- [x] 5.2 Remove duplicate `TypeOrmModule.forRoot` from `createE2EApp()` where possible — rely on `AppModule` TypeORM config + test env vars
+- [x] 5.3 Remove `DATABASE_SYNCHRONIZE: 'true'` from E2E CI job env vars
+- [x] 5.4 Run `pnpm test:e2e` locally and in CI — all existing E2E specs green with migrations
+- [x] 5.5 Optional: add npm script alias `test:api` → `test:e2e` for documentation clarity
 
 ---
 
