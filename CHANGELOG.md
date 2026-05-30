@@ -1,6 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.1-alpha.0] - 2026-05-30
+
+### Bug Fixes
+- **spaces:** Address verify warnings and suggestions (48874f4)
+
+### Documentation
+- **openspec:** Add proposal, tasks, progress and verify report for spaces REST controller (18090c2)
+- **openspec:** Verify and archive spaces-rest-controller change (14de9bb)
+
+### Features
+- **spaces:** Application layer fixes for REST controller (PR1 of 2) (b98d6e1)
+- **spaces:** Add REST controller, DTOs, mapper and module wiring (PR2 of 2) (953aa05)
 ## [0.6.0-alpha.0] - 2026-05-29
 
 ### Bug Fixes
@@ -15,6 +27,9 @@ All notable changes to this project will be documented in this file.
 - **auth:** Rewrite OptionalJwtAuthGuard to skip via Reflector instead of soft passport handling (989a228)
 - **tenant-repo:** Handle string/number id in delete proxy (bfe2aed)
 - **migrations:** Fold username and profile columns into InitialSchema (9f008bd)
+
+### Chore
+- Release v0.6.0-alpha.0 (2ffa360)
 
 ### Documentation
 - **openspec:** Update config and skill registry with established conventions (6604370)
