@@ -3,7 +3,7 @@
 **Change**: spaces-rest-controller
 **Phase**: tasks
 **Date**: 2026-05-30
-**Status**: ready
+**Status**: complete
 **Spec**: `openspec/changes/spaces-rest-controller/spec.md`
 **Design**: `openspec/changes/spaces-rest-controller/design.md`
 
