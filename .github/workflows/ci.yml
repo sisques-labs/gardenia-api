@@ -81,3 +81,50 @@ jobs:
 
       - name: Run E2E tests
         run: pnpm test:e2e
+
+  integration:
+    name: Integration tests (Postgres)
+    runs-on: ubuntu-latest
+    needs: build
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: gardenia_test
+          POSTGRES_USER: gardenia
+          POSTGRES_PASSWORD: gardenia
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U gardenia -d gardenia_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_DRIVER: postgres
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5433
+      DATABASE_DATABASE: gardenia_test
+      DATABASE_USERNAME: gardenia
+      DATABASE_PASSWORD: gardenia
+      DATABASE_SYNCHRONIZE: "true"
+      JWT_SECRET: ci-test-jwt-secret
+      JWT_EXPIRES_IN: 1d
+      NODE_ENV: test
+
+    steps:
+      - name: Setup
+        uses: sisques-labs/workflows/.github/actions/setup@main
+        with:
+          node_version: "22"
+
+      - name: Install dependencies
+        uses: sisques-labs/workflows/.github/actions/install@main
+        with:
+          app_path: "."
+          frozen_lockfile: "true"
+
+      - name: Run integration tests
+        run: pnpm test:integration

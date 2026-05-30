@@ -45,17 +45,46 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
-## Run tests
+## Testing
+
+Three layers — fastest to slowest:
+
+| Layer | Command | DB required | What it covers |
+|-------|---------|-------------|----------------|
+| Unit | `pnpm test` | No | Domain, handlers, mocked repos |
+| Integration | `pnpm test:integration` | Yes | TypeORM repos, tenant scoping |
+| API E2E | `pnpm test:e2e` | Yes | Full app, HTTP/GraphQL |
+
+### Database setup (integration + E2E)
+
+Start the test Postgres container (port **5433**, database `gardenia_test`):
 
 ```bash
-# unit tests
-$ pnpm run test
+pnpm test:db:up
+```
 
-# e2e tests
-$ pnpm run test:e2e
+Stop it when done:
 
-# test coverage
-$ pnpm run test:cov
+```bash
+pnpm test:db:down
+```
+
+`pretest:integration` and `pretest:e2e` check that Postgres is reachable and print the compose command if not.
+
+### Commands
+
+```bash
+# unit tests (runs on pre-push)
+pnpm test
+
+# integration tests (repos + handlers, real Postgres)
+pnpm test:integration
+
+# API E2E tests (full AppModule + HTTP/GraphQL)
+pnpm test:e2e
+
+# coverage
+pnpm test:cov
 ```
 
 ## Deployment

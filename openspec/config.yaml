@@ -11,10 +11,11 @@ testing:
   test_command: "pnpm test"
   coverage_command: "pnpm test:cov"
   e2e_command: "pnpm test:e2e"
+  integration_command: "pnpm test:integration"
   detected: "2026-05-29"
   layers:
     unit: { available: true, tool: "jest + ts-jest" }
-    integration: { available: false, tool: null }
+    integration: { available: true, tool: "jest + postgres" }
     e2e: { available: true, tool: "jest + supertest" }
   coverage: { available: true, command: "pnpm test:cov" }
   quality:
@@ -54,8 +55,6 @@ rules:
     - Primitives type extends BasePrimitives; ViewModel extends BaseViewModel
     - Event data interfaces live in domain/events/interfaces/
     - ISpace/IUser etc. interfaces in domain/interfaces/ use value objects (not primitives)
-    tdd: true
-    test_command: "pnpm test"
   verify:
     test_command: "pnpm test"
     build_command: "pnpm build"
