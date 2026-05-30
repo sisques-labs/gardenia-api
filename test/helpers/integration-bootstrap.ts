@@ -14,6 +14,7 @@ import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persi
 import { authConfig } from '../../src/core/config/auth.config';
 import { SharedModule } from '../../src/shared/shared.module';
 import { SpaceContext } from '../../src/shared/space-context/space-context.service';
+import { bootstrapTestDataSource } from './test-data-source';
 
 const DB_HOST = process.env.DATABASE_HOST ?? 'localhost';
 const DB_PORT = parseInt(process.env.DATABASE_PORT ?? '5433', 10);
@@ -44,6 +45,8 @@ export interface IntegrationContext {
 export async function createIntegrationModule(
   options: IntegrationModuleOptions,
 ): Promise<IntegrationContext> {
+  await bootstrapTestDataSource();
+
   const moduleFixture = await Test.createTestingModule({
     imports: [
       ConfigModule.forRoot({
@@ -58,7 +61,7 @@ export async function createIntegrationModule(
         username: DB_USERNAME,
         password: DB_PASSWORD,
         entities: TEST_ENTITIES,
-        synchronize: true,
+        synchronize: false,
         logging: false,
       }),
       CqrsModule,

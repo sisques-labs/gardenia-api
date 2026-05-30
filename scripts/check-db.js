@@ -1,5 +1,9 @@
 'use strict';
 
+if (process.env.USE_TESTCONTAINERS === '1') {
+  process.exit(0);
+}
+
 const net = require('net');
 
 const host = process.env.DATABASE_HOST ?? 'localhost';
@@ -33,8 +37,8 @@ function printHelp() {
       'Start the test database with:',
       '  docker compose -f docker-compose.test.yml up -d',
       '',
-      'Or use the npm script:',
-      '  pnpm test:db:up',
+      'Or use Testcontainers (Docker required):',
+      '  USE_TESTCONTAINERS=1 pnpm test:integration',
       '',
     ].join('\n'),
   );

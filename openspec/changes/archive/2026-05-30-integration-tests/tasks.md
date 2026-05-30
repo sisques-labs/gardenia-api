@@ -3,7 +3,7 @@
 **Change**: integration-tests
 **Phase**: tasks
 **Date**: 2026-05-30
-**Status**: in-progress
+**Status**: complete
 **Spec**: `openspec/changes/integration-tests/specs/testing-infrastructure/spec.md`
 **Design**: `openspec/changes/integration-tests/design.md`
 
@@ -11,13 +11,13 @@
 
 ## Review Workload Forecast
 
-| Field | Value |
-|-------|-------|
-| Estimated changed lines | ~400–600 |
-| 400-line budget risk | Medium |
-| Chained PRs recommended | Yes — one PR per phase |
-| Suggested split | Phase 1 PR, Phase 2 PR, Phase 3 PR (optional 4–5 later) |
-| DB schema changes | None — test infrastructure only |
+| Field                   | Value                                                   |
+| ----------------------- | ------------------------------------------------------- |
+| Estimated changed lines | ~400–600                                                |
+| 400-line budget risk    | Medium                                                  |
+| Chained PRs recommended | Yes — one PR per phase                                  |
+| Suggested split         | Phase 1 PR, Phase 2 PR, Phase 3 PR (optional 4–5 later) |
+| DB schema changes       | None — test infrastructure only                         |
 
 ---
 
@@ -61,37 +61,38 @@ Phases 4 and 5 are independent of each other but both depend on Phase 3.
 
 ## 3. Migration parity
 
-- [ ] 3.1 Create `test/helpers/test-data-source.ts` with `bootstrapTestDataSource()` — builds `DataSource` from `src/database/data-source.ts` config, `synchronize: false`, runs `runMigrations()`
-- [ ] 3.2 Update `integration-bootstrap.ts` to use `bootstrapTestDataSource()` instead of `synchronize: true`
-- [ ] 3.3 Remove `DATABASE_SYNCHRONIZE: 'true'` from integration CI job env vars
-- [ ] 3.4 Run `pnpm test:integration` locally against migrations — all pilot specs green
-- [ ] 3.5 Add CI step or smoke check: migration apply succeeds before integration tests run (fail fast with clear error)
+- [x] 3.1 Create `test/helpers/test-data-source.ts` with `bootstrapTestDataSource()` — builds `DataSource` from `src/database/data-source.ts` config, `synchronize: false`, runs `runMigrations()`
+- [x] 3.2 Update `integration-bootstrap.ts` to use `bootstrapTestDataSource()` instead of `synchronize: true`
+- [x] 3.3 Remove `DATABASE_SYNCHRONIZE: 'true'` from integration CI job env vars
+- [x] 3.4 Run `pnpm test:integration` locally against migrations — all pilot specs green
+- [x] 3.5 Add CI step or smoke check: migration apply succeeds before integration tests run (fail fast with clear error)
 
 ---
 
 ## 4. Optional Testcontainers (local only)
 
-- [ ] 4.1 Add devDependency `@testcontainers/postgresql`
-- [ ] 4.2 Create `test/global-setup.ts` — when `USE_TESTCONTAINERS=1`, start Postgres container and set `process.env.DATABASE_PORT` to dynamic port
-- [ ] 4.3 Create `test/global-teardown.ts` — stop container on suite completion
-- [ ] 4.4 Wire `globalSetup` / `globalTeardown` in `jest-integration.json` (and optionally `jest-e2e.json`)
-- [ ] 4.5 Document `USE_TESTCONTAINERS=1` in README as optional local alternative to compose
-- [ ] 4.6 Verify: `USE_TESTCONTAINERS=1 pnpm test:integration` passes without manual `docker compose up`
+- [x] 4.1 Add devDependency `@testcontainers/postgresql`
+- [x] 4.2 Create `test/global-setup.ts` — when `USE_TESTCONTAINERS=1`, start Postgres container and set `process.env.DATABASE_PORT` to dynamic port
+- [x] 4.3 Create `test/global-teardown.ts` — stop container on suite completion
+- [x] 4.4 Wire `globalSetup` / `globalTeardown` in `jest-integration.json` (and optionally `jest-e2e.json`)
+- [x] 4.5 Document `USE_TESTCONTAINERS=1` in README as optional local alternative to compose
+- [x] 4.6 Verify: `USE_TESTCONTAINERS=1 pnpm test:integration` passes without manual `docker compose up`
 
 ---
 
 ## 5. E2E alignment
 
-- [ ] 5.1 Update `test/helpers/app-bootstrap.ts` — switch `createE2EApp()` to use `bootstrapTestDataSource()` / migrations instead of `synchronize: true`
-- [ ] 5.2 Remove duplicate `TypeOrmModule.forRoot` from `createE2EApp()` where possible — rely on `AppModule` TypeORM config + test env vars
-- [ ] 5.3 Remove `DATABASE_SYNCHRONIZE: 'true'` from E2E CI job env vars
-- [ ] 5.4 Run `pnpm test:e2e` locally and in CI — all existing E2E specs green with migrations
-- [ ] 5.5 Optional: add npm script alias `test:api` → `test:e2e` for documentation clarity
+- [x] 5.1 Update `test/helpers/app-bootstrap.ts` — switch `createE2EApp()` to use `bootstrapTestDataSource()` / migrations instead of `synchronize: true`
+- [x] 5.2 Remove duplicate `TypeOrmModule.forRoot` from `createE2EApp()` where possible — rely on `AppModule` TypeORM config + test env vars
+- [x] 5.3 Remove `DATABASE_SYNCHRONIZE: 'true'` from E2E CI job env vars
+- [x] 5.4 Run `pnpm test:e2e` locally and in CI — all existing E2E specs green with migrations
+- [x] 5.5 Optional: add npm script alias `test:api` → `test:e2e` for documentation clarity
 
 ---
 
 ## 6. Maintenance hardening (optional, post-adoption)
 
-- [ ] 6.1 Add ESLint `no-restricted-imports` rule blocking `@nestjs/testing` in `src/**/*.spec.ts`
-- [ ] 6.2 Add comment or constant in `db-reset.ts` documenting that the table list MUST be updated when new entities are added
-- [ ] 6.3 Archive change: run `/sdd-verify` then `/sdd-archive` to merge delta spec into `openspec/specs/testing-infrastructure/spec.md`
+- [x] 6.1 Add ESLint `no-restricted-imports` rule blocking `@nestjs/testing` in `src/**/*.spec.ts`
+- [x] 6.2 Add comment or constant in `db-reset.ts` documenting that the table list MUST be updated when new entities are added
+- [x] 6.3 Archive change: run `/sdd-verify` then `/sdd-archive` to merge delta spec into `openspec/specs/testing-infrastructure/spec.md`
+- [x] 6.4 Update openspec conventions to always include unit test, integration test, and e2e test when developing a new feature

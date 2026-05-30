@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
@@ -29,5 +30,6 @@ export class SpaceMembershipEntity {
   joinedAt!: Date;
 
   @ManyToOne(() => SpaceEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'space_id' })
   space?: SpaceEntity;
 }
