@@ -3,6 +3,22 @@
  * These match the values in docker-compose.test.yml and .env.test.
  */
 
+import { existsSync, readFileSync } from 'fs';
+
+import { TESTCONTAINERS_ENV_FILE } from './testcontainers-env';
+
+if (
+  process.env.USE_TESTCONTAINERS === '1' &&
+  existsSync(TESTCONTAINERS_ENV_FILE)
+) {
+  const testcontainersEnv = JSON.parse(
+    readFileSync(TESTCONTAINERS_ENV_FILE, 'utf8'),
+  ) as { DATABASE_HOST: string; DATABASE_PORT: string };
+
+  process.env.DATABASE_HOST = testcontainersEnv.DATABASE_HOST;
+  process.env.DATABASE_PORT = testcontainersEnv.DATABASE_PORT;
+}
+
 process.env.DATABASE_DRIVER = process.env.DATABASE_DRIVER ?? 'postgres';
 process.env.DATABASE_HOST = process.env.DATABASE_HOST ?? 'localhost';
 process.env.DATABASE_PORT = process.env.DATABASE_PORT ?? '5433';

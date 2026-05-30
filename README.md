@@ -71,6 +71,15 @@ pnpm test:db:down
 
 `pretest:integration` and `pretest:e2e` check that Postgres is reachable and print the compose command if not.
 
+**Optional — Testcontainers** (Docker required, no manual `docker compose up`):
+
+```bash
+USE_TESTCONTAINERS=1 pnpm test:integration
+USE_TESTCONTAINERS=1 pnpm test:e2e
+```
+
+Jest starts a disposable Postgres 16 container via `@testcontainers/postgresql` and wires the dynamic port automatically. CI continues to use GitHub Actions Postgres services — Testcontainers is local-only.
+
 ### Commands
 
 ```bash

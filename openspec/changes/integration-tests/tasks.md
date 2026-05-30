@@ -71,12 +71,12 @@ Phases 4 and 5 are independent of each other but both depend on Phase 3.
 
 ## 4. Optional Testcontainers (local only)
 
-- [ ] 4.1 Add devDependency `@testcontainers/postgresql`
-- [ ] 4.2 Create `test/global-setup.ts` — when `USE_TESTCONTAINERS=1`, start Postgres container and set `process.env.DATABASE_PORT` to dynamic port
-- [ ] 4.3 Create `test/global-teardown.ts` — stop container on suite completion
-- [ ] 4.4 Wire `globalSetup` / `globalTeardown` in `jest-integration.json` (and optionally `jest-e2e.json`)
-- [ ] 4.5 Document `USE_TESTCONTAINERS=1` in README as optional local alternative to compose
-- [ ] 4.6 Verify: `USE_TESTCONTAINERS=1 pnpm test:integration` passes without manual `docker compose up`
+- [x] 4.1 Add devDependency `@testcontainers/postgresql`
+- [x] 4.2 Create `test/global-setup.ts` — when `USE_TESTCONTAINERS=1`, start Postgres container and set `process.env.DATABASE_PORT` to dynamic port
+- [x] 4.3 Create `test/global-teardown.ts` — stop container on suite completion
+- [x] 4.4 Wire `globalSetup` / `globalTeardown` in `jest-integration.json` (and optionally `jest-e2e.json`)
+- [x] 4.5 Document `USE_TESTCONTAINERS=1` in README as optional local alternative to compose
+- [x] 4.6 Verify: `USE_TESTCONTAINERS=1 pnpm test:integration` passes without manual `docker compose up`
 
 ---
 

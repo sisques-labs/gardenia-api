@@ -11,6 +11,7 @@
     "^@core/(.*)$": "<rootDir>/src/core/$1"
   },
   "setupFiles": ["<rootDir>/test/helpers/env-setup.ts"],
+  "globalSetup": "<rootDir>/test/global-setup.ts",
   "testTimeout": 30000,
   "maxWorkers": 1,
   "passWithNoTests": true
