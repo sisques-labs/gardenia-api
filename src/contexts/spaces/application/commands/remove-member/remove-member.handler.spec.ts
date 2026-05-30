@@ -6,6 +6,7 @@ import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { LastOwnerRemovalException } from '@contexts/spaces/domain/exceptions/last-owner-removal.exception';
 import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
+import { NotSpaceOwnerException } from '@contexts/spaces/domain/exceptions/not-space-owner.exception';
 import { SpaceNotFoundException } from '@contexts/spaces/domain/exceptions/space-not-found.exception';
 import { ISpaceWriteRepository } from '@contexts/spaces/domain/repositories/write/space-write.repository';
 
@@ -103,8 +104,22 @@ describe('RemoveMemberCommandHandler', () => {
   });
 
   describe('authorization', () => {
-    it('should throw NotASpaceMemberException when requester is not the owner', async () => {
+    it('should throw NotSpaceOwnerException when requester is a member but not the owner', async () => {
       space.addMember(NON_OWNER_ID, MembershipRoleEnum.MEMBER);
+      assertSpaceExistsService.execute.mockResolvedValue(space);
+
+      await expect(
+        handler.execute(
+          new RemoveMemberCommand({
+            spaceId: SPACE_ID,
+            requestingUserId: NON_OWNER_ID,
+            targetUserId: MEMBER_ID,
+          }),
+        ),
+      ).rejects.toThrow(NotSpaceOwnerException);
+    });
+
+    it('should throw NotASpaceMemberException when requester is not a member at all', async () => {
       assertSpaceExistsService.execute.mockResolvedValue(space);
 
       await expect(

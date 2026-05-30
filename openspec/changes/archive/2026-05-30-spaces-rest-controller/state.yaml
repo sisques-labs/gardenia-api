@@ -1,0 +1,22 @@
+change: spaces-rest-controller
+status: complete
+created: 2026-05-30
+completed: 2026-05-30
+
+phases:
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: done
+  verify: done
+  archive: done
+
+delivery:
+  pr1_application_fixes: merged  # #93
+  pr2_rest_transport: merged  # #94
+  pr3_openspec_artifacts: merged  # #95
+
+specs_synced:
+  - delta: openspec/changes/archive/2026-05-30-spaces-rest-controller/spec.md
+    canonical: openspec/specs/spaces/spec.md

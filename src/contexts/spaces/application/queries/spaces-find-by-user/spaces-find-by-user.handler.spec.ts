@@ -18,6 +18,7 @@ describe('SpacesFindByUserQueryHandler', () => {
     spaceReadRepository = {
       findById: jest.fn(),
       findByCriteria: jest.fn(),
+      findByMember: jest.fn(),
       save: jest.fn(),
       delete: jest.fn(),
     } as jest.Mocked<ISpaceReadRepository>;
@@ -27,11 +28,11 @@ describe('SpacesFindByUserQueryHandler', () => {
 
   describe('empty list', () => {
     it('should return an empty paginated result when user has no spaces', async () => {
-      spaceReadRepository.findByCriteria.mockResolvedValue({
+      spaceReadRepository.findByMember.mockResolvedValue({
         items: [],
         total: 0,
         page: 1,
-        perPage: 10,
+        perPage: 1,
       } as any);
 
       const result = await handler.execute(
@@ -39,32 +40,34 @@ describe('SpacesFindByUserQueryHandler', () => {
       );
 
       expect(result.items).toEqual([]);
-      expect(spaceReadRepository.findByCriteria).toHaveBeenCalledTimes(1);
+      expect(spaceReadRepository.findByMember).toHaveBeenCalledTimes(1);
+      expect(spaceReadRepository.findByMember).toHaveBeenCalledWith(USER_ID);
+      expect(spaceReadRepository.findByCriteria).not.toHaveBeenCalled();
     });
   });
 
   describe('multiple results', () => {
-    it('should return spaces the user belongs to', async () => {
-      const space1 = new SpaceViewModel({
+    it('should return both owner-space and member-space for the user', async () => {
+      const ownerSpace = new SpaceViewModel({
         id: '550e8400-e29b-41d4-a716-446655440010',
-        name: 'Space 1',
+        name: 'My Own Space',
         ownerId: USER_ID,
         createdAt: NOW,
         updatedAt: NOW,
       });
-      const space2 = new SpaceViewModel({
+      const memberSpace = new SpaceViewModel({
         id: '550e8400-e29b-41d4-a716-446655440011',
-        name: 'Space 2',
+        name: 'Someone Elses Space',
         ownerId: ANOTHER_USER_ID,
         createdAt: NOW,
         updatedAt: NOW,
       });
 
-      spaceReadRepository.findByCriteria.mockResolvedValue({
-        items: [space1, space2],
+      spaceReadRepository.findByMember.mockResolvedValue({
+        items: [ownerSpace, memberSpace],
         total: 2,
         page: 1,
-        perPage: 10,
+        perPage: 2,
       } as any);
 
       const result = await handler.execute(
@@ -72,8 +75,10 @@ describe('SpacesFindByUserQueryHandler', () => {
       );
 
       expect(result.items).toHaveLength(2);
-      expect(result.items[0]).toBe(space1);
-      expect(result.items[1]).toBe(space2);
+      expect(result.items[0]).toBe(ownerSpace);
+      expect(result.items[1]).toBe(memberSpace);
+      expect(spaceReadRepository.findByMember).toHaveBeenCalledWith(USER_ID);
+      expect(spaceReadRepository.findByCriteria).not.toHaveBeenCalled();
     });
   });
 });
