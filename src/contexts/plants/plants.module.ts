@@ -38,6 +38,11 @@ const DOMAIN_BUILDERS = [PlantBuilder];
 
 const INFRASTRUCTURE_MAPPERS = [PlantTypeOrmMapper];
 
+const INFRASTRUCTURE_REPOSITORIES = [
+  { provide: PLANT_READ_REPOSITORY, useClass: PlantTypeOrmReadRepository },
+  { provide: PLANT_WRITE_REPOSITORY, useClass: PlantTypeOrmWriteRepository },
+];
+
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature([PlantTypeOrmEntity])],
   controllers: [],
@@ -47,8 +52,7 @@ const INFRASTRUCTURE_MAPPERS = [PlantTypeOrmMapper];
     ...APPLICATION_SERVICES,
     ...DOMAIN_BUILDERS,
     ...INFRASTRUCTURE_MAPPERS,
-    { provide: PLANT_READ_REPOSITORY, useClass: PlantTypeOrmReadRepository },
-    { provide: PLANT_WRITE_REPOSITORY, useClass: PlantTypeOrmWriteRepository },
+    ...INFRASTRUCTURE_REPOSITORIES,
   ],
   exports: [],
 })
