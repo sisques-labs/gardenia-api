@@ -3,6 +3,7 @@ import { SharedModule } from './shared/shared.module';
 import { AuthModule } from '@contexts/auth/auth.module';
 import { UsersModule } from '@contexts/users/users.module';
 import { SpacesModule } from '@contexts/spaces/spaces.module';
+import { PlantsModule } from '@contexts/plants/plants.module';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
 import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
@@ -45,6 +46,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     SpacesModule,
     AuthModule,
     UsersModule,
+    PlantsModule,
   ],
   providers: [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through
