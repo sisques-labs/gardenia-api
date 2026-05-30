@@ -25,6 +25,8 @@ import { SpaceTypeOrmWriteRepository } from './infrastructure/persistence/typeor
 import { SpaceContext } from '../../shared/space-context/space-context.service';
 import { SpaceGuard } from './transport/guards/space.guard';
 import { SpaceInterceptor } from './transport/interceptors/space.interceptor';
+import { SpacesController } from './transport/rest/controllers/spaces.controller';
+import { SpaceRestMapper } from './transport/rest/mappers/space/space.mapper';
 
 const COMMAND_HANDLERS = [
   CreateSpaceCommandHandler,
@@ -61,10 +63,13 @@ const INFRASTRUCTURE_MAPPERS = [
 
 const INFRASTRUCTURE_ENTITIES = [SpaceEntity, SpaceMembershipEntity];
 
-const TRANSPORT_PROVIDERS = [SpaceGuard, SpaceInterceptor];
+const TRANSPORT_PROVIDERS = [SpaceGuard, SpaceInterceptor, SpaceRestMapper];
+
+const REST_CONTROLLERS = [SpacesController];
 
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
+  controllers: [...REST_CONTROLLERS],
   providers: [
     SpaceContext,
     ...COMMAND_HANDLERS,
