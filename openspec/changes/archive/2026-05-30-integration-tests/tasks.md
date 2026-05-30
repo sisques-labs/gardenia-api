@@ -3,7 +3,7 @@
 **Change**: integration-tests
 **Phase**: tasks
 **Date**: 2026-05-30
-**Status**: in-progress
+**Status**: complete
 **Spec**: `openspec/changes/integration-tests/specs/testing-infrastructure/spec.md`
 **Design**: `openspec/changes/integration-tests/design.md`
 
@@ -92,7 +92,7 @@ Phases 4 and 5 are independent of each other but both depend on Phase 3.
 
 ## 6. Maintenance hardening (optional, post-adoption)
 
-- [ ] 6.1 Add ESLint `no-restricted-imports` rule blocking `@nestjs/testing` in `src/**/*.spec.ts`
-- [ ] 6.2 Add comment or constant in `db-reset.ts` documenting that the table list MUST be updated when new entities are added
-- [ ] 6.3 Archive change: run `/sdd-verify` then `/sdd-archive` to merge delta spec into `openspec/specs/testing-infrastructure/spec.md`
-- [ ] 6.4 Update openspec conventions to always inclue unit test integration test and e2e test when developing a new feature or doing something
+- [x] 6.1 Add ESLint `no-restricted-imports` rule blocking `@nestjs/testing` in `src/**/*.spec.ts`
+- [x] 6.2 Add comment or constant in `db-reset.ts` documenting that the table list MUST be updated when new entities are added
+- [x] 6.3 Archive change: run `/sdd-verify` then `/sdd-archive` to merge delta spec into `openspec/specs/testing-infrastructure/spec.md`
+- [x] 6.4 Update openspec conventions to always include unit test, integration test, and e2e test when developing a new feature
