@@ -1,0 +1,57 @@
+import { Inject, Logger } from '@nestjs/common';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
+
+import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
+import { PlantBuilder } from '@contexts/plants/domain/builders/plant.builder';
+import {
+  IPlantWriteRepository,
+  PLANT_WRITE_REPOSITORY,
+} from '@contexts/plants/domain/repositories/write/plant-write.repository';
+import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
+
+import { CreatePlantCommand } from './create-plant.command';
+
+@CommandHandler(CreatePlantCommand)
+export class CreatePlantCommandHandler
+  extends BaseCommandHandler<CreatePlantCommand, PlantAggregate>
+  implements ICommandHandler<CreatePlantCommand, string>
+{
+  private readonly logger = new Logger(CreatePlantCommandHandler.name);
+
+  constructor(
+    @Inject(PLANT_WRITE_REPOSITORY)
+    private readonly plantWriteRepository: IPlantWriteRepository,
+    private readonly plantBuilder: PlantBuilder,
+    private readonly spaceContext: SpaceContext,
+    eventBus: EventBus,
+  ) {
+    super(eventBus);
+  }
+
+  async execute(command: CreatePlantCommand): Promise<string> {
+    const now = new Date();
+
+    const plant = this.plantBuilder
+      .withId(UuidValueObject.generate().value)
+      .withName(command.name)
+      .withSpecies(command.species)
+      .withImageUrl(command.imageUrl)
+      .withUserId(command.userId)
+      .withSpaceId(this.spaceContext.require())
+      .withCreatedAt(now)
+      .withUpdatedAt(now)
+      .build();
+
+    plant.create();
+
+    await this.plantWriteRepository.save(plant);
+    await this.publishEvents(plant);
+
+    this.logger.log(
+      `Plant created: ${plant.id.value} by user: ${command.userId}`,
+    );
+
+    return plant.id.value;
+  }
+}

@@ -16,6 +16,8 @@ import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not
 import { NotSpaceOwnerException } from '@contexts/spaces/domain/exceptions/not-space-owner.exception';
 import { SpaceLimitExceededException } from '@contexts/spaces/domain/exceptions/space-limit-exceeded.exception';
 import { SpaceNotFoundException } from '@contexts/spaces/domain/exceptions/space-not-found.exception';
+import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
+import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
 import { UserAlreadyExistsException } from '@contexts/users/domain/exceptions/user-already-exists.exception';
 import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
 
@@ -56,14 +58,18 @@ export class BaseExceptionFilter
       exception instanceof AccountNotFoundException ||
       exception instanceof UserNotFoundException ||
       exception instanceof SpaceNotFoundException ||
-      exception instanceof NotASpaceMemberException
+      exception instanceof NotASpaceMemberException ||
+      exception instanceof PlantNotFoundException
     ) {
       return HttpStatus.NOT_FOUND; // 404
     }
     if (exception instanceof InvalidCredentialsException) {
       return HttpStatus.UNAUTHORIZED; // 401
     }
-    if (exception instanceof NotSpaceOwnerException) {
+    if (
+      exception instanceof NotSpaceOwnerException ||
+      exception instanceof NotPlantOwnerException
+    ) {
       return HttpStatus.FORBIDDEN; // 403
     }
     if (exception instanceof LastOwnerRemovalException) {

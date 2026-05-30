@@ -1,0 +1,115 @@
+import { EventBus } from '@nestjs/cqrs';
+import { DateValueObject } from '@sisques-labs/nestjs-kit';
+
+import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
+import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
+import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
+import { IPlantWriteRepository } from '@contexts/plants/domain/repositories/write/plant-write.repository';
+import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
+import { PlantNameValueObject } from '@contexts/plants/domain/value-objects/plant-name/plant-name.value-object';
+import { AssertPlantExistsService } from '../../services/write/assert-plant-exists/assert-plant-exists.service';
+
+import { DeletePlantCommand } from './delete-plant.command';
+import { DeletePlantCommandHandler } from './delete-plant.handler';
+
+const PLANT_ID = '550e8400-e29b-41d4-a716-446655440000';
+const OWNER_ID = '550e8400-e29b-41d4-a716-446655440001';
+const OTHER_USER_ID = '550e8400-e29b-41d4-a716-446655440099';
+const SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';
+const NOW = new Date('2024-01-01');
+
+const buildAggregate = (): PlantAggregate =>
+  new PlantAggregate({
+    id: new PlantIdValueObject(PLANT_ID),
+    name: new PlantNameValueObject('Rose'),
+    species: null,
+    imageUrl: null,
+    userId: OWNER_ID,
+    spaceId: SPACE_ID,
+    createdAt: new DateValueObject(NOW),
+    updatedAt: new DateValueObject(NOW),
+  });
+
+describe('DeletePlantCommandHandler', () => {
+  let handler: DeletePlantCommandHandler;
+  let writeRepository: jest.Mocked<IPlantWriteRepository>;
+  let assertPlantExistsService: jest.Mocked<AssertPlantExistsService>;
+  let eventBus: jest.Mocked<EventBus>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    writeRepository = {
+      findById: jest.fn(),
+      findByCriteria: jest.fn(),
+      save: jest.fn(),
+      delete: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<IPlantWriteRepository>;
+
+    assertPlantExistsService = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<AssertPlantExistsService>;
+
+    eventBus = {
+      publish: jest.fn(),
+      publishAll: jest.fn(),
+    } as unknown as jest.Mocked<EventBus>;
+
+    handler = new DeletePlantCommandHandler(
+      writeRepository,
+      assertPlantExistsService,
+      eventBus,
+    );
+  });
+
+  describe('happy path — owner deletes', () => {
+    it('should delete the plant and publish events', async () => {
+      const aggregate = buildAggregate();
+      assertPlantExistsService.execute.mockResolvedValue(aggregate);
+
+      const command = new DeletePlantCommand({
+        plantId: PLANT_ID,
+        requestingUserId: OWNER_ID,
+      });
+
+      await handler.execute(command);
+
+      expect(writeRepository.delete).toHaveBeenCalledWith(PLANT_ID);
+      expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('owner mismatch — throws NotPlantOwnerException', () => {
+    it('should throw NotPlantOwnerException when not the owner', async () => {
+      const aggregate = buildAggregate();
+      assertPlantExistsService.execute.mockResolvedValue(aggregate);
+
+      const command = new DeletePlantCommand({
+        plantId: PLANT_ID,
+        requestingUserId: OTHER_USER_ID,
+      });
+
+      await expect(handler.execute(command)).rejects.toThrow(
+        NotPlantOwnerException,
+      );
+      expect(writeRepository.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('plant not found — throws PlantNotFoundException', () => {
+    it('should propagate PlantNotFoundException from assertPlantExistsService', async () => {
+      assertPlantExistsService.execute.mockRejectedValue(
+        new PlantNotFoundException(PLANT_ID),
+      );
+
+      const command = new DeletePlantCommand({
+        plantId: PLANT_ID,
+        requestingUserId: OWNER_ID,
+      });
+
+      await expect(handler.execute(command)).rejects.toThrow(
+        PlantNotFoundException,
+      );
+    });
+  });
+});
