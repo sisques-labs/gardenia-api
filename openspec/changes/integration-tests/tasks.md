@@ -50,11 +50,11 @@ Phases 4 and 5 are independent of each other but both depend on Phase 3.
 
 ## 2. Pilot integration specs
 
-- [ ] 2.1 Create `test/integration/spaces/space-membership-typeorm-write.integration-spec.ts` — bootstrap `SpacesModule`, seed memberships in two spaces, assert tenant-scoped queries via `spaceContext.run()`
-- [ ] 2.2 Create `test/integration/auth/account-typeorm-write.integration-spec.ts` — bootstrap `AuthModule` (or minimal auth infra module), assert composite `(spaceId, email)` uniqueness: same email in different spaces succeeds, duplicate in same space fails
-- [ ] 2.3 Create `test/integration/users/user-typeorm-read.integration-spec.ts` — bootstrap `UsersModule`, seed users in two spaces, assert read repo returns only rows for active `SpaceContext`
-- [ ] 2.4 Ensure all pilot specs use `beforeEach(() => truncateAll(dataSource))` for isolation
-- [ ] 2.5 Run full suite locally: `pnpm test && pnpm test:integration && pnpm test:e2e` — all green
+- [x] 2.1 Create `test/integration/spaces/space-membership-typeorm-write.integration-spec.ts` — bootstrap `SpacesModule`, seed memberships in two spaces, assert tenant-scoped queries via `spaceContext.run()`
+- [x] 2.2 Create `test/integration/auth/account-typeorm-write.integration-spec.ts` — bootstrap `AuthModule` (or minimal auth infra module), assert composite `(spaceId, email)` uniqueness: same email in different spaces succeeds, duplicate in same space fails
+- [x] 2.3 Create `test/integration/users/user-typeorm-read.integration-spec.ts` — bootstrap `UsersModule`, seed users in two spaces, assert read repo returns only rows for active `SpaceContext`
+- [x] 2.4 Ensure all pilot specs use `beforeEach(() => truncateAll(dataSource))` for isolation
+- [x] 2.5 Run full suite locally: `pnpm test && pnpm test:integration && pnpm test:e2e` — all green
 - [ ] 2.6 Confirm CI integration job passes with pilot specs on a PR
 
 ---

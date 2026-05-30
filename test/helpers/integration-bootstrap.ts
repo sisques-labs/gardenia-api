@@ -1,14 +1,17 @@
 import { DynamicModule, Provider, Type } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getDataSourceToken, TypeOrmModule } from '@nestjs/typeorm';
 import { CqrsModule } from '@nestjs/cqrs';
 import { DataSource } from 'typeorm';
+import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
+import { authConfig } from '../../src/core/config/auth.config';
 import { SharedModule } from '../../src/shared/shared.module';
 import { SpaceContext } from '../../src/shared/space-context/space-context.service';
 
@@ -43,6 +46,10 @@ export async function createIntegrationModule(
 ): Promise<IntegrationContext> {
   const moduleFixture = await Test.createTestingModule({
     imports: [
+      ConfigModule.forRoot({
+        isGlobal: true,
+        load: [authConfig],
+      }),
       TypeOrmModule.forRoot({
         type: 'postgres',
         host: DB_HOST,
@@ -56,6 +63,7 @@ export async function createIntegrationModule(
       }),
       CqrsModule,
       SharedModule,
+      SharedGraphQLModule,
       ...options.imports,
     ],
     providers: options.providers ?? [],
