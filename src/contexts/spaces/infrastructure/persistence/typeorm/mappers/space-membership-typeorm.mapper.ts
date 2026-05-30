@@ -18,9 +18,7 @@ export class SpaceMembershipTypeOrmMapper {
       .build();
   }
 
-  public toPersistence(
-    membership: SpaceMembership,
-  ): Partial<SpaceMembershipEntity> {
+  public toPersistence(membership: SpaceMembership): SpaceMembershipEntity {
     const entity = new SpaceMembershipEntity();
     entity.userId = membership.userId;
     entity.spaceId = membership.spaceId;

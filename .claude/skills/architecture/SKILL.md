@@ -18,7 +18,17 @@ Apply this skill whenever creating or modifying any file under `src/contexts/` o
 3. **`MutationResponseGraphQLMapper` is global.** It is provided by `AppModule`. Never add it to a bounded-context module's providers.
 4. **Repository interfaces live in domain.** Infrastructure classes implement them; domain never imports from infrastructure.
 5. **No module compilation tests.** Do not create `*.module.spec.ts` files.
-6. **Unit tests = manual instantiation.** Use `jest.Mocked<T>`, co-located with source. No `@nestjs/testing` in unit specs.
+6. **Unit tests = manual instantiation.** Use `jest.Mocked<T>`, co-located with source. No `@nestjs/testing` in unit specs (enforced by ESLint `no-restricted-imports` on `src/**/*.spec.ts`).
+
+## Test Layers
+
+| Layer | Location | DB | `@nestjs/testing` |
+|-------|----------|-----|-------------------|
+| Unit | `src/**/*.spec.ts` | Mocked | **Forbidden** |
+| Integration | `test/integration/**/*.integration-spec.ts` | Real Postgres | **Allowed** |
+| API E2E | `test/**/*.e2e-spec.ts` | Real Postgres | **Allowed** |
+
+Integration specs bootstrap slim bounded-context modules via `test/helpers/integration-bootstrap.ts`. E2E specs use `test/helpers/app-bootstrap.ts` with full `AppModule`.
 
 ## Bounded Context Structure
 

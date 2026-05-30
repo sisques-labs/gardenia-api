@@ -3,7 +3,7 @@ schema: spec-driven
 context: |
   Tech stack: NestJS 10, TypeScript (strict), GraphQL (Apollo code-first) + REST, CQRS (@nestjs/cqrs), TypeORM + PostgreSQL, Jest, pnpm 9.15.4
   Architecture: DDD + CQRS + Hexagonal (Screaming Architecture). Bounded contexts: auth, users, spaces. Layers: domain / application / infrastructure / transport
-  Testing: Jest unit (co-located .spec.ts, jest.Mocked<T>) + E2E (test/jest-e2e.json). Coverage: pnpm test:cov
+  Testing: Jest unit (co-located .spec.ts, jest.Mocked<T>) + integration (test/integration/*.integration-spec.ts, real Postgres) + E2E (test/*.e2e-spec.ts, AppModule). Coverage: pnpm test:cov
   Style: Prettier + ESLint, Husky + lint-staged. Conventional Commits. No AI attribution in commits.
 
 testing:
@@ -11,10 +11,11 @@ testing:
   test_command: "pnpm test"
   coverage_command: "pnpm test:cov"
   e2e_command: "pnpm test:e2e"
+  integration_command: "pnpm test:integration"
   detected: "2026-05-29"
   layers:
     unit: { available: true, tool: "jest + ts-jest" }
-    integration: { available: false, tool: null }
+    integration: { available: true, tool: "jest + postgres" }
     e2e: { available: true, tool: "jest + supertest" }
   coverage: { available: true, command: "pnpm test:cov" }
   quality:
@@ -39,6 +40,7 @@ rules:
     - Each task must include migration plan if DB schema changes
   apply:
     - Follow existing DDD+CQRS+Hexagonal patterns (see architecture skill)
+    - When adding or changing a feature, include tests at all applicable layers: unit (src/**/*.spec.ts), integration (test/integration/**/*.integration-spec.ts for persistence/tenant boundaries), and API E2E (test/**/*.e2e-spec.ts for HTTP/GraphQL flows). Skip a layer only when clearly out of scope and document why in the PR.
     - NestJS modules: group providers into named const arrays (COMMAND_HANDLERS, QUERY_HANDLERS, APPLICATION_SERVICES, DOMAIN_BUILDERS, INFRASTRUCTURE_REPOSITORIES, INFRASTRUCTURE_MAPPERS, INFRASTRUCTURE_ENTITIES, TRANSPORT_PROVIDERS) and spread them in @Module. Always import CqrsModule. Use useClass (not useExisting) for repository DI tokens.
     - Constructor = hydration only; domain events from named instance methods only
     - Resolvers use CommandBus/QueryBus only — no direct service injection in transport
@@ -54,10 +56,10 @@ rules:
     - Primitives type extends BasePrimitives; ViewModel extends BaseViewModel
     - Event data interfaces live in domain/events/interfaces/
     - ISpace/IUser etc. interfaces in domain/interfaces/ use value objects (not primitives)
-    tdd: true
-    test_command: "pnpm test"
   verify:
     test_command: "pnpm test"
+    integration_command: "pnpm test:integration"
+    e2e_command: "pnpm test:e2e"
     build_command: "pnpm build"
     coverage_threshold: 80
   archive:
