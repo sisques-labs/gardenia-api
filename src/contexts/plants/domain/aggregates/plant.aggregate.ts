@@ -2,7 +2,7 @@ import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantImageUrlChangedEvent } from '../events/field-changed/plant-image-url-changed/plant-image-url-changed.event';
 import { PlantNameChangedEvent } from '../events/field-changed/plant-name-changed/plant-name-changed.event';
-import { PlantSpeciesChangedEvent } from '../events/field-changed/plant-species-changed/plant-species-changed.event';
+import { PlantSpeciesIdChangedEvent } from '../events/field-changed/plant-species-id-changed/plant-species-id-changed.event';
 import { PlantCreatedEvent } from '../events/plant-created/plant-created.event';
 import { PlantDeletedEvent } from '../events/plant-deleted/plant-deleted.event';
 import { PlantUpdatedEvent } from '../events/plant-updated/plant-updated.event';
@@ -10,13 +10,13 @@ import { IPlant } from '../interfaces/plant.interface';
 import { IPlantPrimitives } from '../primitives/plant.primitives';
 import { PlantIdValueObject } from '../value-objects/plant-id/plant-id.value-object';
 import { PlantImageUrlValueObject } from '../value-objects/plant-image-url/plant-image-url.value-object';
+import { PlantLinkedSpeciesIdValueObject } from '../value-objects/plant-linked-species-id/plant-linked-species-id.value-object';
 import { PlantNameValueObject } from '../value-objects/plant-name/plant-name.value-object';
-import { PlantSpeciesValueObject } from '../value-objects/plant-species/plant-species.value-object';
 
 export class PlantAggregate extends BaseAggregate {
   private readonly _id: PlantIdValueObject;
   private _name: PlantNameValueObject;
-  private _species: PlantSpeciesValueObject | null;
+  private _plantSpeciesId: PlantLinkedSpeciesIdValueObject | null;
   private _imageUrl: PlantImageUrlValueObject | null;
   private readonly _userId: UuidValueObject;
   private readonly _spaceId: UuidValueObject;
@@ -26,7 +26,7 @@ export class PlantAggregate extends BaseAggregate {
     super(props.createdAt, props.updatedAt);
     this._id = props.id;
     this._name = props.name;
-    this._species = props.species;
+    this._plantSpeciesId = props.plantSpeciesId;
     this._imageUrl = props.imageUrl;
     this._userId = props.userId;
     this._spaceId = props.spaceId;
@@ -55,15 +55,15 @@ export class PlantAggregate extends BaseAggregate {
 
   public update(props: {
     name?: PlantNameValueObject;
-    species?: PlantSpeciesValueObject | null;
+    plantSpeciesId?: PlantLinkedSpeciesIdValueObject | null;
     imageUrl?: PlantImageUrlValueObject | null;
   }): void {
     if (props.name !== undefined) {
       this.changeName(props.name);
     }
 
-    if (props.species !== undefined) {
-      this.changeSpecies(props.species);
+    if (props.plantSpeciesId !== undefined) {
+      this.changePlantSpeciesId(props.plantSpeciesId);
     }
 
     if (props.imageUrl !== undefined) {
@@ -122,23 +122,25 @@ export class PlantAggregate extends BaseAggregate {
     );
   }
 
-  private changeSpecies(newSpecies: PlantSpeciesValueObject | null): void {
-    const oldValue = this._species?.value ?? null;
-    const newValue = newSpecies?.value ?? null;
+  private changePlantSpeciesId(
+    newPlantSpeciesId: PlantLinkedSpeciesIdValueObject | null,
+  ): void {
+    const oldValue = this._plantSpeciesId?.value ?? null;
+    const newValue = newPlantSpeciesId?.value ?? null;
 
     if (oldValue === newValue) return;
 
-    this._species = newSpecies;
+    this._plantSpeciesId = newPlantSpeciesId;
     this.touch();
 
     this.apply(
-      new PlantSpeciesChangedEvent(
+      new PlantSpeciesIdChangedEvent(
         {
           aggregateRootId: this._id.value,
           aggregateRootType: PlantAggregate.name,
           entityId: this._id.value,
           entityType: PlantAggregate.name,
-          eventType: PlantSpeciesChangedEvent.name,
+          eventType: PlantSpeciesIdChangedEvent.name,
         },
         { id: this._id.value, oldValue, newValue },
       ),
@@ -172,7 +174,7 @@ export class PlantAggregate extends BaseAggregate {
     return {
       id: this._id.value,
       name: this._name.value,
-      species: this._species?.value ?? null,
+      plantSpeciesId: this._plantSpeciesId?.value ?? null,
       imageUrl: this._imageUrl?.value ?? null,
       userId: this._userId.value,
       spaceId: this._spaceId.value,
@@ -190,8 +192,8 @@ export class PlantAggregate extends BaseAggregate {
     return this._name;
   }
 
-  get species(): PlantSpeciesValueObject | null {
-    return this._species;
+  get plantSpeciesId(): PlantLinkedSpeciesIdValueObject | null {
+    return this._plantSpeciesId;
   }
 
   get imageUrl(): PlantImageUrlValueObject | null {

@@ -8,6 +8,7 @@ import {
   IPlantWriteRepository,
   PLANT_WRITE_REPOSITORY,
 } from '@contexts/plants/domain/repositories/write/plant-write.repository';
+import { AssertPlantLinkedSpeciesExistsService } from '../../services/write/assert-plant-linked-species-exists/assert-plant-linked-species-exists.service';
 import { AssertPlantExistsService } from '../../services/write/assert-plant-exists/assert-plant-exists.service';
 
 import { UpdatePlantCommand } from './update-plant.command';
@@ -23,6 +24,7 @@ export class UpdatePlantCommandHandler
     @Inject(PLANT_WRITE_REPOSITORY)
     private readonly plantWriteRepository: IPlantWriteRepository,
     private readonly assertPlantExistsService: AssertPlantExistsService,
+    private readonly assertPlantLinkedSpeciesExistsService: AssertPlantLinkedSpeciesExistsService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -38,9 +40,15 @@ export class UpdatePlantCommandHandler
       );
     }
 
+    if (command.plantSpeciesId) {
+      await this.assertPlantLinkedSpeciesExistsService.execute(
+        command.plantSpeciesId,
+      );
+    }
+
     plant.update({
       name: command.name,
-      species: command.species,
+      plantSpeciesId: command.plantSpeciesId,
       imageUrl: command.imageUrl,
     });
 

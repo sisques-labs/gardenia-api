@@ -9,6 +9,7 @@ import { CreatePlantCommandHandler } from './create-plant.handler';
 
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';
+const SPECIES_ID = '550e8400-e29b-41d4-a716-446655440003';
 
 describe('CreatePlantCommandHandler', () => {
   let handler: CreatePlantCommandHandler;
@@ -57,12 +58,17 @@ describe('CreatePlantCommandHandler', () => {
         ),
     };
 
+    const assertPlantLinkedSpeciesExistsService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    };
+
     handler = new CreatePlantCommandHandler(
       writeRepository,
       plantBuilder,
       spaceContext,
       commandBus,
       plantQrTargetUrlBuilder as never,
+      assertPlantLinkedSpeciesExistsService as never,
       eventBus,
     );
   });
@@ -103,11 +109,11 @@ describe('CreatePlantCommandHandler', () => {
       expect(spaceContext.require).toHaveBeenCalled();
     });
 
-    it('should create plant with species and imageUrl when provided', async () => {
+    it('should create plant with plantSpeciesId and imageUrl when provided', async () => {
       const command = new CreatePlantCommand({
         name: 'Rose',
         userId: USER_ID,
-        species: 'Rosa canina',
+        plantSpeciesId: SPECIES_ID,
         imageUrl: 'https://example.com/rose.jpg',
       });
 

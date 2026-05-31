@@ -1,5 +1,6 @@
 import { CreatePlantCommand } from '@contexts/plants/application/commands/create-plant/create-plant.command';
 import { PlantQrTargetUrlBuilderService } from '@contexts/plants/application/services/read/plant-qr-target-url-builder/plant-qr-target-url-builder.service';
+import { AssertPlantLinkedSpeciesExistsService } from '@contexts/plants/application/services/write/assert-plant-linked-species-exists/assert-plant-linked-species-exists.service';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { PlantBuilder } from '@contexts/plants/domain/builders/plant.builder';
 import {
@@ -31,12 +32,19 @@ export class CreatePlantCommandHandler
     private readonly spaceContext: SpaceContext,
     private readonly commandBus: CommandBus,
     private readonly plantQrTargetUrlBuilder: PlantQrTargetUrlBuilderService,
+    private readonly assertPlantLinkedSpeciesExistsService: AssertPlantLinkedSpeciesExistsService,
     eventBus: EventBus,
   ) {
     super(eventBus);
   }
 
   async execute(command: CreatePlantCommand): Promise<string> {
+    if (command.plantSpeciesId) {
+      await this.assertPlantLinkedSpeciesExistsService.execute(
+        command.plantSpeciesId,
+      );
+    }
+
     const now = new Date();
     const spaceId = this.spaceContext.require();
     const plantId = UuidValueObject.generate().value;
@@ -52,7 +60,7 @@ export class CreatePlantCommandHandler
     const plant = this.plantBuilder
       .withId(plantId)
       .withName(command.name.value)
-      .withSpecies(command.species?.value ?? null)
+      .withPlantSpeciesId(command.plantSpeciesId?.value ?? null)
       .withImageUrl(command.imageUrl?.value ?? null)
       .withUserId(command.userId.value)
       .withSpaceId(spaceId)

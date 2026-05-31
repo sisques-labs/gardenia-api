@@ -1,6 +1,7 @@
 import { PlantFindByIdQueryHandler } from '@contexts/plants/application/queries/plant-find-by-id/plant-find-by-id.handler';
 import { PlantFindByIdQuery } from '@contexts/plants/application/queries/plant-find-by-id/plant-find-by-id.query';
 import { EnrichPlantWithQrService } from '@contexts/plants/application/services/read/enrich-plant-with-qr/enrich-plant-with-qr.service';
+import { EnrichPlantWithSpeciesService } from '@contexts/plants/application/services/read/enrich-plant-with-species/enrich-plant-with-species.service';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
 import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
@@ -15,7 +16,7 @@ const buildViewModel = (): PlantViewModel =>
   new PlantViewModel({
     id: PLANT_ID,
     name: 'Rose',
-    species: null,
+    plantSpeciesId: null,
     imageUrl: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
@@ -27,7 +28,8 @@ const buildViewModel = (): PlantViewModel =>
 describe('PlantFindByIdQueryHandler', () => {
   let handler: PlantFindByIdQueryHandler;
   let assertService: jest.Mocked<AssertPlantViewModelExistsService>;
-  let enrichService: jest.Mocked<EnrichPlantWithQrService>;
+  let enrichSpeciesService: jest.Mocked<EnrichPlantWithSpeciesService>;
+  let enrichQrService: jest.Mocked<EnrichPlantWithQrService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -36,11 +38,19 @@ describe('PlantFindByIdQueryHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertPlantViewModelExistsService>;
 
-    enrichService = {
+    enrichSpeciesService = {
+      execute: jest.fn().mockImplementation((plant) => Promise.resolve(plant)),
+    } as unknown as jest.Mocked<EnrichPlantWithSpeciesService>;
+
+    enrichQrService = {
       execute: jest.fn().mockImplementation((plant) => Promise.resolve(plant)),
     } as unknown as jest.Mocked<EnrichPlantWithQrService>;
 
-    handler = new PlantFindByIdQueryHandler(assertService, enrichService);
+    handler = new PlantFindByIdQueryHandler(
+      assertService,
+      enrichSpeciesService,
+      enrichQrService,
+    );
   });
 
   describe('plant found', () => {
@@ -55,6 +65,8 @@ describe('PlantFindByIdQueryHandler', () => {
       expect(assertService.execute).toHaveBeenCalledWith(
         expect.any(PlantIdValueObject),
       );
+      expect(enrichSpeciesService.execute).toHaveBeenCalledWith(viewModel);
+      expect(enrichQrService.execute).toHaveBeenCalledWith(viewModel);
     });
   });
 

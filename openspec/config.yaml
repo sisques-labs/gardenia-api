@@ -2,7 +2,7 @@ schema: spec-driven
 
 context: |
   Tech stack: NestJS 10, TypeScript (strict), GraphQL (Apollo code-first) + REST, CQRS (@nestjs/cqrs), TypeORM + PostgreSQL, Jest, pnpm 9.15.4
-  Architecture: DDD + CQRS + Hexagonal (Screaming Architecture). Bounded contexts: auth, users, spaces. Layers: domain / application / infrastructure / transport
+  Architecture: DDD + CQRS + Hexagonal (Screaming Architecture). Bounded contexts: auth, users, spaces, plants, plant-species, qr. Layers: domain / application / infrastructure / transport
   Testing: Jest unit (co-located .spec.ts, jest.Mocked<T>) + integration (test/integration/*.integration-spec.ts, real Postgres) + E2E (test/*.e2e-spec.ts, AppModule). Coverage: pnpm test:cov
   Style: Prettier + ESLint, Husky + lint-staged. Conventional Commits. No AI attribution in commits.
 

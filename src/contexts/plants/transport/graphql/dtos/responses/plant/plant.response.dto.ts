@@ -27,6 +27,21 @@ export class PlantQrResponseDto {
   updatedAt!: Date;
 }
 
+@ObjectType('PlantSpeciesResponseDto')
+export class PlantSpeciesResponseDto {
+  @Field(() => ID, { description: 'UUID of the plant species catalog entry' })
+  id!: string;
+
+  @Field(() => String, { description: 'Globally unique species name' })
+  name!: string;
+
+  @Field(() => Date, { description: 'When the catalog entry was created' })
+  createdAt!: Date;
+
+  @Field(() => Date, { description: 'When the catalog entry was last updated' })
+  updatedAt!: Date;
+}
+
 @ObjectType('PlantResponseDto')
 export class PlantResponseDto {
   @Field(() => ID, { description: 'The id of the plant' })
@@ -35,11 +50,17 @@ export class PlantResponseDto {
   @Field(() => String, { description: 'The name of the plant' })
   name!: string;
 
-  @Field(() => String, {
+  @Field(() => ID, {
     nullable: true,
-    description: 'The species of the plant',
+    description: 'UUID of the linked plant species catalog entry',
   })
-  species?: string | null;
+  plantSpeciesId?: string | null;
+
+  @Field(() => PlantSpeciesResponseDto, {
+    nullable: true,
+    description: 'Resolved plant species catalog entry',
+  })
+  species?: PlantSpeciesResponseDto | null;
 
   @Field(() => String, {
     nullable: true,

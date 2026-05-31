@@ -1,6 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [Unreleased]
+
+### Breaking Changes
+
+- **plants:** Replace free-text `species` field with `plantSpeciesId` (UUID FK to `plant_species` catalog). REST and GraphQL request/response shapes now expose `plantSpeciesId` and a nested `species` object on reads instead of a string species name.
+
+### Features
+
+- **plant-species:** Global species name catalog with REST and GraphQL CRUD, globally unique names (case-insensitive), and delete guard when plants reference an entry.
+- **plants:** Link plants to catalog via `plantSpeciesId` with read-side enrichment (`IPlantSpeciesPort`, mirroring QR pattern).
+
 ## [0.8.0-alpha.0] - 2026-05-31
 
 ### Bug Fixes

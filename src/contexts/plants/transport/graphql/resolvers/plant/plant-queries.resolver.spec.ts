@@ -19,7 +19,7 @@ describe('PlantQueriesResolver', () => {
   const mockVm = new PlantViewModel({
     id: PLANT_ID,
     name: 'Rose',
-    species: null,
+    plantSpeciesId: null,
     imageUrl: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
@@ -45,7 +45,7 @@ describe('PlantQueriesResolver', () => {
     mapper.toResponseDtoFromViewModel.mockReturnValueOnce({
       id: PLANT_ID,
       name: 'Rose',
-      species: null,
+      plantSpeciesId: null,
       imageUrl: null,
       userId: USER_ID,
       spaceId: SPACE_ID,
@@ -69,7 +69,7 @@ describe('PlantQueriesResolver', () => {
         {
           id: PLANT_ID,
           name: 'Rose',
-          species: null,
+          plantSpeciesId: null,
           imageUrl: null,
           userId: USER_ID,
           spaceId: SPACE_ID,

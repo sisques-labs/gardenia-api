@@ -1,7 +1,7 @@
 export interface IPlantEventData {
   id: string;
   name: string;
-  species: string | null;
+  plantSpeciesId: string | null;
   imageUrl: string | null;
   userId: string;
   spaceId: string;

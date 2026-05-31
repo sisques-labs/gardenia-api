@@ -64,7 +64,7 @@ export class PlantsController {
     const plantId = await this.commandBus.execute<CreatePlantCommand, string>(
       new CreatePlantCommand({
         name: dto.name,
-        species: dto.species,
+        plantSpeciesId: dto.plantSpeciesId,
         imageUrl: dto.imageUrl,
         userId: user.userId,
       }),
@@ -140,7 +140,7 @@ export class PlantsController {
       new UpdatePlantCommand({
         plantId: id,
         name: dto.name,
-        species: dto.species,
+        plantSpeciesId: dto.plantSpeciesId,
         imageUrl: dto.imageUrl,
         requestingUserId: user.userId,
       }),

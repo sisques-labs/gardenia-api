@@ -22,7 +22,7 @@ const buildAggregate = (): PlantAggregate =>
   new PlantAggregate({
     id: new PlantIdValueObject(PLANT_ID),
     name: new PlantNameValueObject('Rose'),
-    species: null,
+    plantSpeciesId: null,
     imageUrl: null,
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
@@ -56,9 +56,14 @@ describe('UpdatePlantCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
+    const assertPlantLinkedSpeciesExistsService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    };
+
     handler = new UpdatePlantCommandHandler(
       writeRepository,
       assertPlantExistsService,
+      assertPlantLinkedSpeciesExistsService as never,
       eventBus,
     );
   });

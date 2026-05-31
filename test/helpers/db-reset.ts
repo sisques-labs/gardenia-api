@@ -10,6 +10,7 @@ export const TRUNCATE_TABLES = [
   'users',
   'spaces',
   'space_memberships',
+  'plant_species',
   'plants',
   'qrs',
 ] as const;

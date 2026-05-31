@@ -18,11 +18,11 @@ export class PlantUpdateRequestDto {
 
   @Field(() => String, {
     nullable: true,
-    description: 'The species of the plant',
+    description: 'UUID of the plant species catalog entry; null to unlink',
   })
   @IsOptional()
-  @IsString()
-  species?: string | null;
+  @IsUUID()
+  plantSpeciesId?: string | null;
 
   @Field(() => String, {
     nullable: true,

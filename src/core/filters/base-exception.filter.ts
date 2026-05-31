@@ -17,6 +17,10 @@ import { NotSpaceOwnerException } from '@contexts/spaces/domain/exceptions/not-s
 import { SpaceLimitExceededException } from '@contexts/spaces/domain/exceptions/space-limit-exceeded.exception';
 import { SpaceNotFoundException } from '@contexts/spaces/domain/exceptions/space-not-found.exception';
 import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
+import { PlantSpeciesInUseException } from '@contexts/plant-species/domain/exceptions/plant-species-in-use.exception';
+import { PlantSpeciesNameAlreadyExistsException } from '@contexts/plant-species/domain/exceptions/plant-species-name-already-exists.exception';
+import { PlantSpeciesNotFoundException } from '@contexts/plant-species/domain/exceptions/plant-species-not-found.exception';
+import { PlantLinkedSpeciesNotFoundException } from '@contexts/plants/domain/exceptions/plant-linked-species-not-found.exception';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
 import { QrNotFoundException } from '@contexts/qr/domain/exceptions/qr-not-found.exception';
 import { UserAlreadyExistsException } from '@contexts/users/domain/exceptions/user-already-exists.exception';
@@ -51,7 +55,9 @@ export class BaseExceptionFilter
       exception instanceof AccountAlreadyExistsException ||
       exception instanceof UserAlreadyExistsException ||
       exception instanceof SpaceLimitExceededException ||
-      exception instanceof DuplicateMembershipException
+      exception instanceof DuplicateMembershipException ||
+      exception instanceof PlantSpeciesNameAlreadyExistsException ||
+      exception instanceof PlantSpeciesInUseException
     ) {
       return HttpStatus.CONFLICT; // 409
     }
@@ -61,7 +67,9 @@ export class BaseExceptionFilter
       exception instanceof SpaceNotFoundException ||
       exception instanceof NotASpaceMemberException ||
       exception instanceof PlantNotFoundException ||
-      exception instanceof QrNotFoundException
+      exception instanceof QrNotFoundException ||
+      exception instanceof PlantSpeciesNotFoundException ||
+      exception instanceof PlantLinkedSpeciesNotFoundException
     ) {
       return HttpStatus.NOT_FOUND; // 404
     }

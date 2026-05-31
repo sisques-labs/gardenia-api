@@ -14,7 +14,7 @@ const buildViewModel = (): PlantViewModel =>
   new PlantViewModel({
     id: PLANT_ID,
     name: 'Rose',
-    species: null,
+    plantSpeciesId: null,
     imageUrl: null,
     userId: USER_ID,
     spaceId: SPACE_ID,

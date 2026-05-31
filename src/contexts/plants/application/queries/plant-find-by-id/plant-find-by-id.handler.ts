@@ -1,6 +1,7 @@
 import { PlantFindByIdQuery } from '@contexts/plants/application/queries/plant-find-by-id/plant-find-by-id.query';
 import { AssertPlantViewModelExistsService } from '@contexts/plants/application/services/read/assert-plant-view-model-exists/assert-plant-view-model-exists.service';
 import { EnrichPlantWithQrService } from '@contexts/plants/application/services/read/enrich-plant-with-qr/enrich-plant-with-qr.service';
+import { EnrichPlantWithSpeciesService } from '@contexts/plants/application/services/read/enrich-plant-with-species/enrich-plant-with-species.service';
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
 import { Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
@@ -14,6 +15,7 @@ export class PlantFindByIdQueryHandler implements IQueryHandler<
 
   constructor(
     private readonly assertPlantViewModelExistsService: AssertPlantViewModelExistsService,
+    private readonly enrichPlantWithSpeciesService: EnrichPlantWithSpeciesService,
     private readonly enrichPlantWithQrService: EnrichPlantWithQrService,
   ) {}
 
@@ -26,6 +28,8 @@ export class PlantFindByIdQueryHandler implements IQueryHandler<
       query.plantId,
     );
 
-    return this.enrichPlantWithQrService.execute(plant);
+    const withSpecies = await this.enrichPlantWithSpeciesService.execute(plant);
+
+    return this.enrichPlantWithQrService.execute(withSpecies);
   }
 }
