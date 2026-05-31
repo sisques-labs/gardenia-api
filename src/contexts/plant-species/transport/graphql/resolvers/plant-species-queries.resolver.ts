@@ -28,7 +28,7 @@ export class PlantSpeciesQueriesResolver {
   ) {}
 
   @Query(() => PlantSpeciesResponseDto)
-  async plantSpecies(
+  async plantSpeciesFindById(
     @Args('input') input: PlantSpeciesFindByIdRequestDto,
   ): Promise<PlantSpeciesResponseDto> {
     this.logger.log(`Finding plant species by id: ${input.id}`);
@@ -41,7 +41,7 @@ export class PlantSpeciesQueriesResolver {
   }
 
   @Query(() => PaginatedPlantSpeciesResultDto)
-  async plantSpeciesList(
+  async plantSpeciesFindByCriteria(
     @Args('input', { nullable: true })
     input?: PlantSpeciesFindByCriteriaRequestDto,
   ): Promise<PaginatedPlantSpeciesResultDto> {
