@@ -11,6 +11,7 @@ import { AccountObject } from '@contexts/auth/transport/graphql/objects/account.
 import { UseGuards } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Query, Resolver } from '@nestjs/graphql';
+import { SkipSpace } from '../../../../../../shared/decorators/skip-space.decorator';
 import {
   Criteria,
   FilterOperator,
@@ -25,6 +26,7 @@ export class AuthQueriesResolver {
   ) {}
 
   @Query(() => AccountObject)
+  @SkipSpace()
   @UseGuards(JwtAuthGuard)
   async me(@CurrentUser() user: CurrentUserPayload): Promise<AccountObject> {
     const result = await this.queryBus.execute<

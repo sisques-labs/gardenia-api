@@ -65,6 +65,7 @@ export class AuthController {
   ) {}
 
   @Get('me')
+  @SkipSpace()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get the authenticated account' })
@@ -183,6 +184,7 @@ export class AuthController {
   }
 
   @Patch('password')
+  @SkipSpace()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Change the authenticated account password' })
@@ -205,6 +207,7 @@ export class AuthController {
   }
 
   @Delete('account')
+  @SkipSpace()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete the authenticated account' })

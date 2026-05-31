@@ -113,6 +113,7 @@ export class AuthMutationsResolver {
   }
 
   @Mutation(() => MutationResponseDto)
+  @SkipSpace()
   @UseGuards(JwtAuthGuard)
   async changePassword(
     @Args('input') input: ChangePasswordInput,
@@ -132,6 +133,7 @@ export class AuthMutationsResolver {
   }
 
   @Mutation(() => Boolean)
+  @SkipSpace()
   @UseGuards(JwtAuthGuard)
   async deleteAccount(
     @CurrentUser() user: CurrentUserPayload,

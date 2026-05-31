@@ -21,13 +21,11 @@ describe('Auth GET /api/auth/me (e2e)', () => {
 
   describe('happy path', () => {
     it('returns 200 with account fields and no passwordHash', async () => {
-      const registerRes = await ctx
+      await ctx
         .http()
         .post('/api/auth/register')
         .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
         .expect(201);
-
-      const { spaceId } = registerRes.body as { spaceId: string };
 
       const loginRes = await ctx
         .http()
@@ -41,7 +39,6 @@ describe('Auth GET /api/auth/me (e2e)', () => {
         .http()
         .get('/api/auth/me')
         .set('Authorization', `Bearer ${accessToken}`)
-        .set('X-Space-ID', spaceId)
         .expect(200);
 
       expect(res.body).toHaveProperty('id');
@@ -50,6 +47,28 @@ describe('Auth GET /api/auth/me (e2e)', () => {
       expect(res.body).toHaveProperty('createdAt');
       expect(res.body).toHaveProperty('updatedAt');
       expect(res.body).not.toHaveProperty('passwordHash');
+    });
+
+    it('returns 200 without X-Space-ID header', async () => {
+      await ctx
+        .http()
+        .post('/api/auth/register')
+        .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
+        .expect(201);
+
+      const loginRes = await ctx
+        .http()
+        .post('/api/auth/login')
+        .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
+        .expect(200);
+
+      const { accessToken } = loginRes.body as { accessToken: string };
+
+      await ctx
+        .http()
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
     });
   });
 
