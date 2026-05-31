@@ -1,5 +1,4 @@
 import { CreatePlantCommand } from '@contexts/plants/application/commands/create-plant/create-plant.command';
-import { SetPlantQrIdCommand } from '@contexts/plants/application/commands/set-plant-qr-id/set-plant-qr-id.command';
 import { PlantQrTargetUrlBuilderService } from '@contexts/plants/application/services/read/plant-qr-target-url-builder/plant-qr-target-url-builder.service';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { PlantBuilder } from '@contexts/plants/domain/builders/plant.builder';
@@ -39,14 +38,25 @@ export class CreatePlantCommandHandler
 
   async execute(command: CreatePlantCommand): Promise<string> {
     const now = new Date();
+    const spaceId = this.spaceContext.require();
+    const plantId = UuidValueObject.generate().value;
+
+    const targetUrl = await this.plantQrTargetUrlBuilder.execute({
+      plantId,
+      spaceId,
+    });
+    const qrId = await this.commandBus.execute<CreateQrCommand, string>(
+      new CreateQrCommand({ targetUrl, spaceId }),
+    );
 
     const plant = this.plantBuilder
-      .withId(UuidValueObject.generate().value)
+      .withId(plantId)
       .withName(command.name.value)
       .withSpecies(command.species?.value ?? null)
       .withImageUrl(command.imageUrl?.value ?? null)
       .withUserId(command.userId.value)
-      .withSpaceId(this.spaceContext.require())
+      .withSpaceId(spaceId)
+      .withQrId(qrId)
       .withCreatedAt(now)
       .withUpdatedAt(now)
       .build();
@@ -55,19 +65,6 @@ export class CreatePlantCommandHandler
 
     await this.plantWriteRepository.save(plant);
     await this.publishEvents(plant);
-
-    const spaceId = this.spaceContext.require();
-    const targetUrl = await this.plantQrTargetUrlBuilder.execute({
-      plantId: plant.id.value,
-      spaceId,
-    });
-    const qrId = await this.commandBus.execute<CreateQrCommand, string>(
-      new CreateQrCommand({ targetUrl, spaceId }),
-    );
-
-    await this.commandBus.execute(
-      new SetPlantQrIdCommand({ plantId: plant.id.value, qrId }),
-    );
 
     this.logger.log(
       `Plant created: ${plant.id.value} by user: ${command.userId.value}`,

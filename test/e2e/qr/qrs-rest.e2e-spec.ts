@@ -63,19 +63,19 @@ describe('QR REST API (e2e)', () => {
 
     const body = createRes.body as {
       id: string;
-      qrId: string;
-      targetUrl: string;
+      qr: { id: string; targetUrl: string };
     };
 
-    expect(body.qrId).toBeDefined();
-    expect(body.targetUrl).toBe(
+    expect(body.qr).toBeDefined();
+    expect(body.qr.id).toBeDefined();
+    expect(body.qr.targetUrl).toBe(
       `${QR_BASE_URL}/plants/${body.id}?spaceId=${auth.spaceId}`,
     );
 
     return {
       plantId: body.id,
-      qrId: body.qrId,
-      targetUrl: body.targetUrl,
+      qrId: body.qr.id,
+      targetUrl: body.qr.targetUrl,
     };
   }
 
