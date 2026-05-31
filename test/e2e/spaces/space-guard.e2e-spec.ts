@@ -22,12 +22,12 @@ describe('SpaceGuard enforcement (e2e)', () => {
 
   describe('7.2 — Missing X-Space-ID header → 400', () => {
     it('returns 400 when no X-Space-ID is provided on a guarded endpoint', async () => {
-      // Register and login to get a valid JWT
-      await ctx
+      const regA = await ctx
         .http()
         .post('/api/auth/register')
         .send({ email: EMAIL_A, password: PASSWORD })
         .expect(201);
+      const { spaceId: spaceIdA } = regA.body as { spaceId: string };
 
       const loginRes = await ctx
         .http()
@@ -37,10 +37,10 @@ describe('SpaceGuard enforcement (e2e)', () => {
 
       const { accessToken } = loginRes.body as { accessToken: string };
 
-      // Make a guarded request WITHOUT X-Space-ID
+      // GET /api/spaces/:id has no @SkipSpace() — SpaceGuard enforces the header
       await ctx
         .http()
-        .get('/api/auth/me')
+        .get(`/api/spaces/${spaceIdA}`)
         .set('Authorization', `Bearer ${accessToken}`)
         // intentionally no X-Space-ID
         .expect(400);
@@ -76,7 +76,7 @@ describe('SpaceGuard enforcement (e2e)', () => {
       // User A attempts to use Space B's ID — they are NOT a member of Space B
       await ctx
         .http()
-        .get('/api/auth/me')
+        .get(`/api/spaces/${spaceIdA}`)
         .set('Authorization', `Bearer ${tokenA}`)
         .set('X-Space-ID', spaceIdB)
         .expect(403);
@@ -84,7 +84,7 @@ describe('SpaceGuard enforcement (e2e)', () => {
       // Sanity check: User A can access Space A just fine
       await ctx
         .http()
-        .get('/api/auth/me')
+        .get(`/api/spaces/${spaceIdA}`)
         .set('Authorization', `Bearer ${tokenA}`)
         .set('X-Space-ID', spaceIdA)
         .expect(200);

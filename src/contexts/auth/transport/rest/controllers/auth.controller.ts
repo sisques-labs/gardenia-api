@@ -56,6 +56,7 @@ import { RegisterAccountDto } from '../dtos/register-account.dto';
 
 @ApiTags('auth')
 @ApiBearerAuth()
+@SkipSpace()
 @Controller('auth')
 export class AuthController {
   constructor(
