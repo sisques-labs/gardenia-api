@@ -1,7 +1,47 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.8.0-alpha.0] - 2026-05-31
+
+### Bug Fixes
+- **plants:** Create QR before persisting plant to satisfy FK constraint (be7639f)
+
+### Chore
+- **openspec:** Archive plant-qr-generation change (8deb241)
+- **openspec:** Add logging convention to apply rules (ab4a63e)
+- **openspec:** Sync delta specs to main specs for plant-qr-generation (473009c)
+
+### Features
+- **qr:** Add plant-linked QR bounded context (d20756c)
+- **plant:** Add logging to PlantFindByIdQueryHandler (4cbd437)
+- **plant:** Enhance logging in EnrichPlantWithQrService (90ce75b)
+- **plant:** Add withTargetUrl method to PlantBuilder (d8af588)
+- **qr:** Add logging to query handlers, REST controller and PNG generator (bd2cb39)
+- **plants:** Add nested qr view model to plant read responses (bf274ce)
+- **plants:** Enhance QR integration with view model decoupling (3293816)
+
+### Refactor
+- **qr:** Generic QRs, plant-owned links, and DB cascade FKs (4a36aec)
+- **qr:** Consolidate migrations and dual plant-delete cascade (5ce20d4)
+- **plant:** Reorganize imports in plant-find-by-criteria handler (4c8eb2a)
+- **plant:** Streamline import statements in plant-find-by-id handler (7fabddf)
+- **plants:** Align PlantQrTargetUrlBuilder with IBaseService (72cac29)
+- **plant:** Update import statements in plant.builder.ts for consistency (203fbe1)
+- **tsconfig:** Add path alias for shared module (7ca9309)
+- **plant:** Utilize PlantBuilder in EnrichPlantWithQrService for improved object construction (5553e7e)
+- **qr:** Replace relative imports with @ path aliases (714e2f8)
+- **plant:** Update import statement in plant.view-model.ts to use absolute path alias (5cea65f)
+- **qr:** Use value objects in commands and queries (8855a52)
+- **qr:** Replace generation primitive with QrGenerationValueObject (d18f1d3)
+- **plants:** Extract IPlantQrPrimitives for PlantQrViewModel constructor (31347f2)
+
+### Testing
+- **qr:** Add unit and e2e coverage for plant QR module (c480680)
+- **qr:** Add missing test coverage for qr bounded context (f8e6c08)
 ## [0.7.1-alpha.0] - 2026-05-31
+
+### Chore
+- Release v0.7.1-alpha.0 (8cb2acf)
 
 ### Features
 - **spaces:** Add GraphQL transport layer (59389d1)
