@@ -27,6 +27,18 @@ export class PlantResponseDto {
   @Field(() => String, { description: 'The id of the space' })
   spaceId!: string;
 
+  @Field(() => String, {
+    nullable: true,
+    description: 'The id of the linked QR record',
+  })
+  qrId?: string | null;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Deep link URL encoded in the QR',
+  })
+  targetUrl?: string | null;
+
   @Field(() => Date, { description: 'When the plant was created' })
   createdAt!: Date;
 

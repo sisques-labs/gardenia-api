@@ -3,11 +3,13 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CreatePlantCommandHandler } from './application/commands/create-plant/create-plant.handler';
+import { SetPlantQrIdCommandHandler } from './application/commands/set-plant-qr-id/set-plant-qr-id.handler';
 import { DeletePlantCommandHandler } from './application/commands/delete-plant/delete-plant.handler';
 import { UpdatePlantCommandHandler } from './application/commands/update-plant/update-plant.handler';
 import { PlantFindByCriteriaQueryHandler } from './application/queries/plant-find-by-criteria/plant-find-by-criteria.handler';
 import { PlantFindByIdQueryHandler } from './application/queries/plant-find-by-id/plant-find-by-id.handler';
 import { AssertPlantViewModelExistsService } from './application/services/read/assert-plant-view-model-exists/assert-plant-view-model-exists.service';
+import { EnrichPlantWithQrService } from './application/services/read/enrich-plant-with-qr/enrich-plant-with-qr.service';
 import { AssertPlantExistsService } from './application/services/write/assert-plant-exists/assert-plant-exists.service';
 import { PlantBuilder } from './domain/builders/plant.builder';
 import { PLANT_READ_REPOSITORY } from './domain/repositories/read/plant-read.repository';
@@ -27,6 +29,7 @@ const COMMAND_HANDLERS = [
   CreatePlantCommandHandler,
   UpdatePlantCommandHandler,
   DeletePlantCommandHandler,
+  SetPlantQrIdCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -37,6 +40,7 @@ const QUERY_HANDLERS = [
 const APPLICATION_SERVICES = [
   AssertPlantViewModelExistsService,
   AssertPlantExistsService,
+  EnrichPlantWithQrService,
 ];
 
 const DOMAIN_BUILDERS = [PlantBuilder];

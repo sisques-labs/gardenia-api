@@ -17,6 +17,7 @@ export class PlantTypeOrmMapper {
       .withImageUrl(entity.imageUrl ?? null)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
+      .withQrId(entity.qrId ?? null)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -32,6 +33,7 @@ export class PlantTypeOrmMapper {
     entity.imageUrl = primitives.imageUrl;
     entity.userId = primitives.userId;
     entity.spaceId = primitives.spaceId;
+    entity.qrId = primitives.qrId;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
 
@@ -46,6 +48,7 @@ export class PlantTypeOrmMapper {
       .withImageUrl(entity.imageUrl ?? null)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
+      .withQrId(entity.qrId ?? null)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .buildViewModel();

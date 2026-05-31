@@ -23,6 +23,7 @@ describe('PlantGraphQLMapper', () => {
         imageUrl: 'https://example.com/rose.jpg',
         userId: USER_ID,
         spaceId: SPACE_ID,
+        qrId: null,
         createdAt: now,
         updatedAt: now,
       });
@@ -47,6 +48,7 @@ describe('PlantGraphQLMapper', () => {
         imageUrl: null,
         userId: USER_ID,
         spaceId: SPACE_ID,
+        qrId: null,
         createdAt: now,
         updatedAt: now,
       });
@@ -68,6 +70,7 @@ describe('PlantGraphQLMapper', () => {
         imageUrl: null,
         userId: USER_ID,
         spaceId: SPACE_ID,
+        qrId: null,
         createdAt: now,
         updatedAt: now,
       });

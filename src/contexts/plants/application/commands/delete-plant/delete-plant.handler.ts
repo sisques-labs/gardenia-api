@@ -1,5 +1,11 @@
 import { Inject, Logger } from '@nestjs/common';
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import {
+  CommandBus,
+  CommandHandler,
+  EventBus,
+  ICommandHandler,
+} from '@nestjs/cqrs';
+import { DeleteQrByPlantIdCommand } from '@contexts/qr/application/commands/delete-qr-by-plant-id/delete-qr-by-plant-id.command';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
@@ -23,6 +29,7 @@ export class DeletePlantCommandHandler
     @Inject(PLANT_WRITE_REPOSITORY)
     private readonly plantWriteRepository: IPlantWriteRepository,
     private readonly assertPlantExistsService: AssertPlantExistsService,
+    private readonly commandBus: CommandBus,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -39,6 +46,10 @@ export class DeletePlantCommandHandler
     }
 
     plant.delete();
+
+    await this.commandBus.execute(
+      new DeleteQrByPlantIdCommand({ plantId: plant.id.value }),
+    );
 
     await this.plantWriteRepository.delete(plant.id.value);
     await this.publishEvents(plant);

@@ -24,6 +24,7 @@ describe('PlantRestMapper', () => {
       imageUrl: 'https://example.com/rose.jpg',
       userId: USER_ID,
       spaceId: SPACE_ID,
+      qrId: null,
       createdAt: now,
       updatedAt: now,
     });
@@ -49,6 +50,7 @@ describe('PlantRestMapper', () => {
       imageUrl: null,
       userId: USER_ID_2,
       spaceId: SPACE_ID_2,
+      qrId: null,
       createdAt: now,
       updatedAt: now,
     });

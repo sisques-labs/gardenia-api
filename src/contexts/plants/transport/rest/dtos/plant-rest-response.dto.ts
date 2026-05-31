@@ -37,6 +37,16 @@ export class PlantRestResponseDto {
   })
   spaceId!: string;
 
+  @ApiPropertyOptional({
+    description: 'UUID of the linked QR record',
+  })
+  qrId?: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Deep link URL encoded in the QR',
+  })
+  targetUrl?: string | null;
+
   @ApiProperty({
     description: 'When the plant was created',
   })

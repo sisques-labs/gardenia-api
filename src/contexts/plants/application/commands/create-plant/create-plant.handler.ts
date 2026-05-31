@@ -1,5 +1,11 @@
 import { Inject, Logger } from '@nestjs/common';
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import {
+  CommandBus,
+  CommandHandler,
+  EventBus,
+  ICommandHandler,
+} from '@nestjs/cqrs';
+import { CreateQrForPlantCommand } from '@contexts/qr/application/commands/create-qr-for-plant/create-qr-for-plant.command';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
@@ -10,6 +16,7 @@ import {
 } from '@contexts/plants/domain/repositories/write/plant-write.repository';
 import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
 
+import { SetPlantQrIdCommand } from '../set-plant-qr-id/set-plant-qr-id.command';
 import { CreatePlantCommand } from './create-plant.command';
 
 @CommandHandler(CreatePlantCommand)
@@ -24,6 +31,7 @@ export class CreatePlantCommandHandler
     private readonly plantWriteRepository: IPlantWriteRepository,
     private readonly plantBuilder: PlantBuilder,
     private readonly spaceContext: SpaceContext,
+    private readonly commandBus: CommandBus,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -47,6 +55,18 @@ export class CreatePlantCommandHandler
 
     await this.plantWriteRepository.save(plant);
     await this.publishEvents(plant);
+
+    const spaceId = this.spaceContext.require();
+    const qrId = await this.commandBus.execute<CreateQrForPlantCommand, string>(
+      new CreateQrForPlantCommand({
+        plantId: plant.id.value,
+        spaceId,
+      }),
+    );
+
+    await this.commandBus.execute(
+      new SetPlantQrIdCommand({ plantId: plant.id.value, qrId }),
+    );
 
     this.logger.log(
       `Plant created: ${plant.id.value} by user: ${command.userId.value}`,

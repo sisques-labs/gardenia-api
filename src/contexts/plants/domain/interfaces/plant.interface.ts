@@ -12,6 +12,7 @@ export interface IPlant {
   imageUrl: PlantImageUrlValueObject | null;
   userId: UuidValueObject;
   spaceId: UuidValueObject;
+  qrId: UuidValueObject | null;
   createdAt: DateValueObject;
   updatedAt: DateValueObject;
 }

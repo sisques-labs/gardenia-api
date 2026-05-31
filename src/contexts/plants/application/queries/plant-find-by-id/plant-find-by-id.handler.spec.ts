@@ -2,6 +2,7 @@ import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant
 import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
 import { AssertPlantViewModelExistsService } from '../../services/read/assert-plant-view-model-exists/assert-plant-view-model-exists.service';
+import { EnrichPlantWithQrService } from '../../services/read/enrich-plant-with-qr/enrich-plant-with-qr.service';
 
 import { PlantFindByIdQuery } from './plant-find-by-id.query';
 import { PlantFindByIdQueryHandler } from './plant-find-by-id.handler';
@@ -19,6 +20,7 @@ const buildViewModel = (): PlantViewModel =>
     imageUrl: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
+    qrId: null,
     createdAt: NOW,
     updatedAt: NOW,
   });
@@ -26,6 +28,7 @@ const buildViewModel = (): PlantViewModel =>
 describe('PlantFindByIdQueryHandler', () => {
   let handler: PlantFindByIdQueryHandler;
   let assertService: jest.Mocked<AssertPlantViewModelExistsService>;
+  let enrichService: jest.Mocked<EnrichPlantWithQrService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -34,7 +37,11 @@ describe('PlantFindByIdQueryHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertPlantViewModelExistsService>;
 
-    handler = new PlantFindByIdQueryHandler(assertService);
+    enrichService = {
+      execute: jest.fn().mockImplementation((plant) => Promise.resolve(plant)),
+    } as unknown as jest.Mocked<EnrichPlantWithQrService>;
+
+    handler = new PlantFindByIdQueryHandler(assertService, enrichService);
   });
 
   describe('plant found', () => {

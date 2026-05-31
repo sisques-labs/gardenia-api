@@ -12,6 +12,8 @@ import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistenc
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
+import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
+import { appConfig } from '../../src/core/config/app.config';
 import { authConfig } from '../../src/core/config/auth.config';
 import { SharedModule } from '../../src/shared/shared.module';
 import { SpaceContext } from '../../src/shared/space-context/space-context.service';
@@ -30,6 +32,7 @@ const TEST_ENTITIES = [
   SpaceEntity,
   SpaceMembershipEntity,
   PlantTypeOrmEntity,
+  QrTypeOrmEntity,
 ];
 
 export interface IntegrationModuleOptions {
@@ -53,7 +56,7 @@ export async function createIntegrationModule(
     imports: [
       ConfigModule.forRoot({
         isGlobal: true,
-        load: [authConfig],
+        load: [authConfig, appConfig],
       }),
       TypeOrmModule.forRoot({
         type: 'postgres',

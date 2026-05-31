@@ -1,4 +1,4 @@
-import { EventBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
@@ -26,6 +26,7 @@ const buildAggregate = (): PlantAggregate =>
     imageUrl: null,
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
+    qrId: null,
     createdAt: new DateValueObject(NOW),
     updatedAt: new DateValueObject(NOW),
   });
@@ -35,6 +36,7 @@ describe('DeletePlantCommandHandler', () => {
   let writeRepository: jest.Mocked<IPlantWriteRepository>;
   let assertPlantExistsService: jest.Mocked<AssertPlantExistsService>;
   let eventBus: jest.Mocked<EventBus>;
+  let commandBus: jest.Mocked<CommandBus>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,9 +57,14 @@ describe('DeletePlantCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
+    commandBus = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<CommandBus>;
+
     handler = new DeletePlantCommandHandler(
       writeRepository,
       assertPlantExistsService,
+      commandBus,
       eventBus,
     );
   });

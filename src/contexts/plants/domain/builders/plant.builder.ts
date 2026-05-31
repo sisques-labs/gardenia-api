@@ -20,6 +20,7 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
   private _imageUrl: string | null = null;
   private _userId!: string;
   private _spaceId!: string;
+  private _qrId: string | null = null;
 
   withName(name: string): this {
     this._name = name;
@@ -46,6 +47,11 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
     return this;
   }
 
+  withQrId(qrId: string | null): this {
+    this._qrId = qrId;
+    return this;
+  }
+
   public override build(): PlantAggregate {
     this.validate();
     return new PlantAggregate({
@@ -61,6 +67,7 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
           : null,
       userId: new UuidValueObject(this._userId),
       spaceId: new UuidValueObject(this._spaceId),
+      qrId: this._qrId != null ? new UuidValueObject(this._qrId) : null,
       createdAt: new DateValueObject(this._createdAt),
       updatedAt: new DateValueObject(this._updatedAt),
     });
@@ -75,6 +82,7 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
       imageUrl: this._imageUrl,
       userId: this._userId,
       spaceId: this._spaceId,
+      qrId: this._qrId,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });

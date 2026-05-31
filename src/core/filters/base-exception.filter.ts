@@ -18,6 +18,8 @@ import { SpaceLimitExceededException } from '@contexts/spaces/domain/exceptions/
 import { SpaceNotFoundException } from '@contexts/spaces/domain/exceptions/space-not-found.exception';
 import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
+import { QrAlreadyExistsForPlantException } from '@contexts/qr/domain/exceptions/qr-already-exists-for-plant.exception';
+import { QrNotFoundException } from '@contexts/qr/domain/exceptions/qr-not-found.exception';
 import { UserAlreadyExistsException } from '@contexts/users/domain/exceptions/user-already-exists.exception';
 import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
 
@@ -50,7 +52,8 @@ export class BaseExceptionFilter
       exception instanceof AccountAlreadyExistsException ||
       exception instanceof UserAlreadyExistsException ||
       exception instanceof SpaceLimitExceededException ||
-      exception instanceof DuplicateMembershipException
+      exception instanceof DuplicateMembershipException ||
+      exception instanceof QrAlreadyExistsForPlantException
     ) {
       return HttpStatus.CONFLICT; // 409
     }
@@ -59,7 +62,8 @@ export class BaseExceptionFilter
       exception instanceof UserNotFoundException ||
       exception instanceof SpaceNotFoundException ||
       exception instanceof NotASpaceMemberException ||
-      exception instanceof PlantNotFoundException
+      exception instanceof PlantNotFoundException ||
+      exception instanceof QrNotFoundException
     ) {
       return HttpStatus.NOT_FOUND; // 404
     }
