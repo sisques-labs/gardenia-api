@@ -1,6 +1,7 @@
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { QrCreatedEvent } from '@contexts/qr/domain/events/qr-created/qr-created.event';
+import { QrDeletedEvent } from '@contexts/qr/domain/events/qr-deleted/qr-deleted.event';
 import { QrRegeneratedEvent } from '@contexts/qr/domain/events/qr-regenerated/qr-regenerated.event';
 import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
 import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
@@ -39,5 +40,14 @@ describe('QrAggregate', () => {
     expect(qr.generation).toBe(2);
     const events = qr.getUncommittedEvents();
     expect(events[0]).toBeInstanceOf(QrRegeneratedEvent);
+  });
+
+  it('delete() emits QrDeletedEvent', () => {
+    const qr = buildQr();
+    qr.delete();
+
+    const events = qr.getUncommittedEvents();
+    expect(events).toHaveLength(1);
+    expect(events[0]).toBeInstanceOf(QrDeletedEvent);
   });
 });
