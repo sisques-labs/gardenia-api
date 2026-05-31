@@ -1,7 +1,27 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.9.0-alpha.0] - 2026-05-31
 
+### Bug Fixes
+- **app:** Resolve webpack bootstrap failure after plant-species (020017b)
+- **plant-species:** Address PR review comments (d1450c5)
+- **plant-species:** Rename graphql queries to match project naming convention (a12a5de)
+
+### Chore
+- **changelog:** Revert unreleased section (c20ab44)
+
+### Documentation
+- **qr:** Add module README for new contributors (2e5ba43)
+
+### Features
+- **plant-species:** Add global catalog and link plants via plantSpeciesId (252f355)
+
+### Refactor
+- **plant-species:** Use @contexts path aliases for all intra-module imports (06f53ab)
+
+### Testing
+- **plant-species:** Update aggregate spec for changeName() event order (d9117d4)
 ## [0.8.0-alpha.0] - 2026-05-31
 
 ### Bug Fixes
@@ -11,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - **openspec:** Archive plant-qr-generation change (8deb241)
 - **openspec:** Add logging convention to apply rules (ab4a63e)
 - **openspec:** Sync delta specs to main specs for plant-qr-generation (473009c)
+- Release v0.8.0-alpha.0 (78f7653)
 
 ### Features
 - **qr:** Add plant-linked QR bounded context (d20756c)
