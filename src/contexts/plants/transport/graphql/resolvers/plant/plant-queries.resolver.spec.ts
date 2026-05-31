@@ -73,7 +73,7 @@ describe('PlantQueriesResolver', () => {
           imageUrl: null,
           userId: USER_ID,
           spaceId: SPACE_ID,
-          qrId: null,
+          qr: null,
           createdAt: now,
           updatedAt: now,
         },

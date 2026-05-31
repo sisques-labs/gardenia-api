@@ -1,3 +1,4 @@
+import { PlantQrViewModel } from '@contexts/plants/domain/view-models/plant-qr.view-model';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
 import { PlantImageUrlValueObject } from '@contexts/plants/domain/value-objects/plant-image-url/plant-image-url.value-object';
@@ -20,7 +21,7 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
   private _userId!: string;
   private _spaceId!: string;
   private _qrId: string | null = null;
-  private _targetUrl: string | null = null;
+  private _qr: PlantQrViewModel | null = null;
 
   withName(name: string): this {
     this._name = name;
@@ -52,8 +53,8 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
     return this;
   }
 
-  withTargetUrl(targetUrl: string | null): this {
-    this._targetUrl = targetUrl;
+  withQr(qr: PlantQrViewModel | null): this {
+    this._qr = qr;
     return this;
   }
 
@@ -88,7 +89,7 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
       userId: this._userId,
       spaceId: this._spaceId,
       qrId: this._qrId,
-      targetUrl: this._targetUrl,
+      qr: this._qr,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });

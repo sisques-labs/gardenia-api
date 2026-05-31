@@ -1,9 +1,10 @@
 import { PlantBuilder } from '@contexts/plants/domain/builders/plant.builder';
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
-import { QrFindByIdQuery } from '@contexts/qr/application/queries/qr-find-by-id/qr-find-by-id.query';
-import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
-import { Injectable, Logger } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
+import {
+  IPlantQrPort,
+  PLANT_QR_PORT,
+} from '@contexts/plants/application/ports/plant-qr.port';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class EnrichPlantWithQrService {
@@ -11,7 +12,7 @@ export class EnrichPlantWithQrService {
 
   constructor(
     private readonly plantBuilder: PlantBuilder,
-    private readonly queryBus: QueryBus,
+    @Inject(PLANT_QR_PORT) private readonly qrPort: IPlantQrPort,
   ) {}
 
   async execute(plant: PlantViewModel): Promise<PlantViewModel> {
@@ -22,11 +23,14 @@ export class EnrichPlantWithQrService {
       return plant;
     }
 
-    const qr = await this.queryBus.execute<QrFindByIdQuery, QrViewModel>(
-      new QrFindByIdQuery({ qrId: plant.qrId }),
-    );
+    const qrData = await this.qrPort.findByQrId(plant.qrId);
 
-    this.logger.debug(`QR ${qr.id} found for plant ${plant.id}`);
+    if (!qrData) {
+      this.logger.warn(`No QR data found for qrId ${plant.qrId}`);
+      return plant;
+    }
+
+    this.logger.debug(`QR ${qrData.id} found for plant ${plant.id}`);
 
     return this.plantBuilder
       .withId(plant.id)
@@ -35,8 +39,8 @@ export class EnrichPlantWithQrService {
       .withImageUrl(plant.imageUrl)
       .withUserId(plant.userId)
       .withSpaceId(plant.spaceId)
-      .withQrId(qr.id)
-      .withTargetUrl(qr.targetUrl)
+      .withQrId(plant.qrId)
+      .withQr(qrData)
       .withCreatedAt(plant.createdAt)
       .withUpdatedAt(plant.updatedAt)
       .buildViewModel();

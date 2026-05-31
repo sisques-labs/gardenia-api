@@ -1,5 +1,31 @@
 import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+
+@ObjectType('PlantQrResponseDto')
+export class PlantQrResponseDto {
+  @Field(() => ID, { description: 'UUID of the QR record' })
+  id!: string;
+
+  @Field(() => String, { description: 'UUID of the space' })
+  spaceId!: string;
+
+  @Field(() => String, { description: 'Deep link URL encoded in the QR' })
+  targetUrl!: string;
+
+  @Field(() => Int, {
+    description: 'Number of times the QR has been regenerated',
+  })
+  generation!: number;
+
+  @Field(() => String, { description: 'Base64-encoded PNG of the QR image' })
+  image!: string;
+
+  @Field(() => Date, { description: 'When the QR was created' })
+  createdAt!: Date;
+
+  @Field(() => Date, { description: 'When the QR was last updated' })
+  updatedAt!: Date;
+}
 
 @ObjectType('PlantResponseDto')
 export class PlantResponseDto {
@@ -27,17 +53,11 @@ export class PlantResponseDto {
   @Field(() => String, { description: 'The id of the space' })
   spaceId!: string;
 
-  @Field(() => String, {
+  @Field(() => PlantQrResponseDto, {
     nullable: true,
-    description: 'The id of the linked QR record',
+    description: 'QR code associated with this plant',
   })
-  qrId?: string | null;
-
-  @Field(() => String, {
-    nullable: true,
-    description: 'Deep link URL encoded in the QR',
-  })
-  targetUrl?: string | null;
+  qr?: PlantQrResponseDto | null;
 
   @Field(() => Date, { description: 'When the plant was created' })
   createdAt!: Date;

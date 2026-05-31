@@ -1,5 +1,28 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class PlantQrRestResponseDto {
+  @ApiProperty({ description: 'UUID of the QR record' })
+  id!: string;
+
+  @ApiProperty({ description: 'UUID of the space' })
+  spaceId!: string;
+
+  @ApiProperty({ description: 'Deep link URL encoded in the QR' })
+  targetUrl!: string;
+
+  @ApiProperty({ description: 'Number of times the QR has been regenerated' })
+  generation!: number;
+
+  @ApiProperty({ description: 'Base64-encoded PNG of the QR image' })
+  image!: string;
+
+  @ApiProperty({ description: 'When the QR was created' })
+  createdAt!: Date;
+
+  @ApiProperty({ description: 'When the QR was last updated' })
+  updatedAt!: Date;
+}
+
 export class PlantRestResponseDto {
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440000',
@@ -38,14 +61,10 @@ export class PlantRestResponseDto {
   spaceId!: string;
 
   @ApiPropertyOptional({
-    description: 'UUID of the linked QR record',
+    description: 'QR code associated with this plant',
+    type: PlantQrRestResponseDto,
   })
-  qrId?: string | null;
-
-  @ApiPropertyOptional({
-    description: 'Deep link URL encoded in the QR',
-  })
-  targetUrl?: string | null;
+  qr?: PlantQrRestResponseDto | null;
 
   @ApiProperty({
     description: 'When the plant was created',
