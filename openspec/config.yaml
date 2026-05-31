@@ -49,7 +49,7 @@ rules:
     - No module spec files; unit tests use jest.Mocked<T>, no @nestjs/testing
     - Value objects named {Name}ValueObject (not VO); extend UuidValueObject/StringValueObject/EnumValueObject from @sisques-labs/nestjs-kit
     - Enums live in domain/enums/, enum value objects extend EnumValueObject<typeof EnumType>
-    - Commands have {Name}CommandInput interface; fields are value objects built in constructor
+    - Commands have {Name}CommandInput interface with primitive fields (string, number, etc.); the Command class fields MUST be value objects (e.g. QrIdValueObject, UuidValueObject) constructed from the input in the constructor. Same rule applies to Queries.
     - Queries have {Name}QueryInput type alias or use Criteria for list queries
     - Aggregates constructed via Builder (BaseBuilder from nestjs-kit); NO static factory methods
     - Assert services (assert-{entity}-exists, assert-{entity}-view-model-exists) in application/services/write|read/; handlers use them instead of raw findById + manual throw. Inject by class type only — no @Inject() decorator needed for concrete classes.

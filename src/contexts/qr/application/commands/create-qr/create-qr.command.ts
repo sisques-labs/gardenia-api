@@ -1,14 +1,18 @@
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
+
+import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
+
 export interface CreateQrCommandInput {
   targetUrl: string;
   spaceId: string;
 }
 
 export class CreateQrCommand {
-  public readonly targetUrl: string;
-  public readonly spaceId: string;
+  public readonly targetUrl: QrTargetUrlValueObject;
+  public readonly spaceId: UuidValueObject;
 
   constructor(input: CreateQrCommandInput) {
-    this.targetUrl = input.targetUrl;
-    this.spaceId = input.spaceId;
+    this.targetUrl = new QrTargetUrlValueObject(input.targetUrl);
+    this.spaceId = new UuidValueObject(input.spaceId);
   }
 }

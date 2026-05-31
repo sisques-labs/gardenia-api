@@ -12,7 +12,6 @@ import {
   IQrWriteRepository,
   QR_WRITE_REPOSITORY,
 } from '@contexts/qr/domain/repositories/write/qr-write.repository';
-import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
 
 import { CreateQrCommand } from './create-qr.command';
 
@@ -35,14 +34,15 @@ export class CreateQrCommandHandler
   }
 
   async execute(command: CreateQrCommand): Promise<string> {
-    const targetUrl = new QrTargetUrlValueObject(command.targetUrl).value;
-    const pngImage = await this.qrPngGenerator.generate(targetUrl);
+    const pngImage = await this.qrPngGenerator.generate(
+      command.targetUrl.value,
+    );
     const now = new Date();
 
     const qr = this.qrBuilder
       .withId(UuidValueObject.generate().value)
-      .withSpaceId(command.spaceId)
-      .withTargetUrl(targetUrl)
+      .withSpaceId(command.spaceId.value)
+      .withTargetUrl(command.targetUrl.value)
       .withGeneration(1)
       .withCreatedAt(now)
       .withUpdatedAt(now)

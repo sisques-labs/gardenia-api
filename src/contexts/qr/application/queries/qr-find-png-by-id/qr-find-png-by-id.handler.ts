@@ -22,9 +22,9 @@ export class QrFindPngByIdQueryHandler implements IQueryHandler<
   ) {}
 
   async execute(query: QrFindPngByIdQuery): Promise<Buffer> {
-    this.logger.log(`Finding QR PNG by id: ${query.qrId}`);
-    const png = await this.qrReadRepository.findPngById(query.qrId);
-    if (!png) throw new QrNotFoundException(query.qrId);
+    this.logger.log(`Finding QR PNG by id: ${query.qrId.value}`);
+    const png = await this.qrReadRepository.findPngById(query.qrId.value);
+    if (!png) throw new QrNotFoundException(query.qrId.value);
 
     return png;
   }

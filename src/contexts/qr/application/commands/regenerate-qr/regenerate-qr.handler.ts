@@ -11,7 +11,6 @@ import {
   IQrWriteRepository,
   QR_WRITE_REPOSITORY,
 } from '@contexts/qr/domain/repositories/write/qr-write.repository';
-import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
 import { AssertQrExistsService } from '@contexts/qr/application/services/write/assert-qr-exists/assert-qr-exists.service';
 
 import { RegenerateQrCommand } from './regenerate-qr.command';
@@ -35,9 +34,7 @@ export class RegenerateQrCommandHandler
   }
 
   async execute(command: RegenerateQrCommand): Promise<void> {
-    const qr = await this.assertQrExistsService.execute(
-      new QrIdValueObject(command.qrId),
-    );
+    const qr = await this.assertQrExistsService.execute(command.qrId);
 
     const pngImage = await this.qrPngGenerator.generate(qr.targetUrl.value);
     qr.regenerate();
@@ -45,6 +42,6 @@ export class RegenerateQrCommandHandler
     await this.qrWriteRepository.save(qr, pngImage);
     await this.publishEvents(qr);
 
-    this.logger.log(`QR regenerated: ${command.qrId}`);
+    this.logger.log(`QR regenerated: ${command.qrId.value}`);
   }
 }

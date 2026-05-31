@@ -7,7 +7,6 @@ import {
   IQrWriteRepository,
   QR_WRITE_REPOSITORY,
 } from '@contexts/qr/domain/repositories/write/qr-write.repository';
-import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
 import { AssertQrExistsService } from '@contexts/qr/application/services/write/assert-qr-exists/assert-qr-exists.service';
 
 import { DeleteQrCommand } from './delete-qr.command';
@@ -29,14 +28,12 @@ export class DeleteQrCommandHandler
   }
 
   async execute(command: DeleteQrCommand): Promise<void> {
-    const qr = await this.assertQrExistsService.execute(
-      new QrIdValueObject(command.qrId),
-    );
+    const qr = await this.assertQrExistsService.execute(command.qrId);
 
     qr.delete();
-    await this.qrWriteRepository.delete(command.qrId);
+    await this.qrWriteRepository.delete(command.qrId.value);
     await this.publishEvents(qr);
 
-    this.logger.log(`QR deleted: ${command.qrId}`);
+    this.logger.log(`QR deleted: ${command.qrId.value}`);
   }
 }
