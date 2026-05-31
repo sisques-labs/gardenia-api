@@ -1,3 +1,5 @@
+import './transport/graphql/enums/space/space-registered-enums.graphql';
+
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -25,6 +27,9 @@ import { SpaceTypeOrmWriteRepository } from './infrastructure/persistence/typeor
 import { SpaceContext } from '../../shared/space-context/space-context.service';
 import { SpaceGuard } from './transport/guards/space.guard';
 import { SpaceInterceptor } from './transport/interceptors/space.interceptor';
+import { SpaceGraphQLMapper } from './transport/graphql/mappers/space/space.mapper';
+import { SpaceMutationsResolver } from './transport/graphql/resolvers/space/space-mutations.resolver';
+import { SpaceQueriesResolver } from './transport/graphql/resolvers/space/space-queries.resolver';
 import { SpacesController } from './transport/rest/controllers/spaces.controller';
 import { SpaceRestMapper } from './transport/rest/mappers/space/space.mapper';
 
@@ -63,6 +68,12 @@ const INFRASTRUCTURE_MAPPERS = [
 
 const INFRASTRUCTURE_ENTITIES = [SpaceEntity, SpaceMembershipEntity];
 
+const GRAPHQL_PROVIDERS = [
+  SpaceQueriesResolver,
+  SpaceMutationsResolver,
+  SpaceGraphQLMapper,
+];
+
 const TRANSPORT_PROVIDERS = [SpaceGuard, SpaceInterceptor, SpaceRestMapper];
 
 const REST_CONTROLLERS = [SpacesController];
@@ -78,6 +89,7 @@ const REST_CONTROLLERS = [SpacesController];
     ...DOMAIN_BUILDERS,
     ...INFRASTRUCTURE_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
+    ...GRAPHQL_PROVIDERS,
     ...TRANSPORT_PROVIDERS,
   ],
   exports: [],
