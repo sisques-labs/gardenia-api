@@ -3,6 +3,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Logger,
   Param,
   ParseUUIDPipe,
   Post,
@@ -31,6 +32,8 @@ import { QrRestMapper } from '@contexts/qr/transport/rest/mappers/qr/qr.mapper';
 @ApiBearerAuth()
 @Controller('qrs')
 export class QrsController {
+  private readonly logger = new Logger(QrsController.name);
+
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
@@ -45,6 +48,7 @@ export class QrsController {
   async downloadImage(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<StreamableFile> {
+    this.logger.log(`Downloading QR PNG image: ${id}`);
     const buffer = await this.queryBus.execute<QrFindPngByIdQuery, Buffer>(
       new QrFindPngByIdQuery({ qrId: id }),
     );
@@ -59,6 +63,7 @@ export class QrsController {
   async findById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<QrRestResponseDto> {
+    this.logger.log(`Finding QR by id: ${id}`);
     const result = await this.queryBus.execute<QrFindByIdQuery, QrViewModel>(
       new QrFindByIdQuery({ qrId: id }),
     );
@@ -71,6 +76,7 @@ export class QrsController {
   @ApiOperation({ summary: 'Regenerate QR PNG (same URL)' })
   @ApiResponse({ status: 204, description: 'QR regenerated' })
   async regenerate(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    this.logger.log(`Regenerating QR: ${id}`);
     await this.commandBus.execute(new RegenerateQrCommand({ qrId: id }));
   }
 }

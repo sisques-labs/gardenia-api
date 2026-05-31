@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
 import { QrNotFoundException } from '@contexts/qr/domain/exceptions/qr-not-found.exception';
@@ -14,12 +14,15 @@ export class QrFindPngByIdQueryHandler implements IQueryHandler<
   QrFindPngByIdQuery,
   Buffer
 > {
+  private readonly logger = new Logger(QrFindPngByIdQueryHandler.name);
+
   constructor(
     @Inject(QR_READ_REPOSITORY)
     private readonly qrReadRepository: IQrReadRepository,
   ) {}
 
   async execute(query: QrFindPngByIdQuery): Promise<Buffer> {
+    this.logger.log(`Finding QR PNG by id: ${query.qrId}`);
     const png = await this.qrReadRepository.findPngById(query.qrId);
     if (!png) throw new QrNotFoundException(query.qrId);
 
