@@ -1,10 +1,8 @@
-import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-
+import { PlantFindByIdQuery } from '@contexts/plants/application/queries/plant-find-by-id/plant-find-by-id.query';
+import { AssertPlantViewModelExistsService } from '@contexts/plants/application/services/read/assert-plant-view-model-exists/assert-plant-view-model-exists.service';
+import { EnrichPlantWithQrService } from '@contexts/plants/application/services/read/enrich-plant-with-qr/enrich-plant-with-qr.service';
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
-import { AssertPlantViewModelExistsService } from '../../services/read/assert-plant-view-model-exists/assert-plant-view-model-exists.service';
-import { EnrichPlantWithQrService } from '../../services/read/enrich-plant-with-qr/enrich-plant-with-qr.service';
-
-import { PlantFindByIdQuery } from './plant-find-by-id.query';
+import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
 @QueryHandler(PlantFindByIdQuery)
 export class PlantFindByIdQueryHandler implements IQueryHandler<
