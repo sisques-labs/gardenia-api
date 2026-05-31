@@ -1,5 +1,6 @@
 import { DateValueObject } from '@sisques-labs/nestjs-kit';
 
+import { PlantSpeciesNameChangedEvent } from '@contexts/plant-species/domain/events/field-changed/plant-species-name-changed/plant-species-name-changed.event';
 import { PlantSpeciesCreatedEvent } from '@contexts/plant-species/domain/events/plant-species-created/plant-species-created.event';
 import { PlantSpeciesDeletedEvent } from '@contexts/plant-species/domain/events/plant-species-deleted/plant-species-deleted.event';
 import { PlantSpeciesUpdatedEvent } from '@contexts/plant-species/domain/events/plant-species-updated/plant-species-updated.event';
@@ -28,12 +29,23 @@ describe('PlantSpeciesAggregate', () => {
     expect(events[0]).toBeInstanceOf(PlantSpeciesCreatedEvent);
   });
 
-  it('update() changes name and emits PlantSpeciesUpdatedEvent', () => {
+  it('update() changes name and emits PlantSpeciesNameChangedEvent + PlantSpeciesUpdatedEvent', () => {
     const plantSpecies = buildPlantSpecies();
     plantSpecies.update({ name: new PlantSpeciesNameValueObject('Basil') });
 
     expect(plantSpecies.name.value).toBe('Basil');
     const events = plantSpecies.getUncommittedEvents();
+    expect(events).toHaveLength(2);
+    expect(events[0]).toBeInstanceOf(PlantSpeciesNameChangedEvent);
+    expect(events[1]).toBeInstanceOf(PlantSpeciesUpdatedEvent);
+  });
+
+  it('update() emits only PlantSpeciesUpdatedEvent when name does not change', () => {
+    const plantSpecies = buildPlantSpecies();
+    plantSpecies.update({ name: new PlantSpeciesNameValueObject('Monstera') });
+
+    const events = plantSpecies.getUncommittedEvents();
+    expect(events).toHaveLength(1);
     expect(events[0]).toBeInstanceOf(PlantSpeciesUpdatedEvent);
   });
 
