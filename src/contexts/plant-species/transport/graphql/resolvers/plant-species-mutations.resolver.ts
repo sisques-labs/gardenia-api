@@ -1,5 +1,5 @@
 import { Logger, UseGuards } from '@nestjs/common';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CommandBus } from '@nestjs/cqrs';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import {
   MutationResponseDto,
@@ -10,17 +10,11 @@ import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guar
 import { CreatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/create-plant-species/create-plant-species.command';
 import { DeletePlantSpeciesCommand } from '@contexts/plant-species/application/commands/delete-plant-species/delete-plant-species.command';
 import { UpdatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/update-plant-species/update-plant-species.command';
-import { PlantSpeciesFindByIdQuery } from '@contexts/plant-species/application/queries/plant-species-find-by-id/plant-species-find-by-id.query';
-import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 import { SkipSpace } from '@shared/decorators/skip-space.decorator';
 
-import {
-  PlantSpeciesCreateRequestDto,
-  PlantSpeciesDeleteRequestDto,
-  PlantSpeciesUpdateRequestDto,
-} from '../dtos/requests/plant-species-mutation.request.dto';
-import { PlantSpeciesResponseDto } from '../dtos/responses/plant-species.response.dto';
-import { PlantSpeciesGraphQLMapper } from '../mappers/plant-species.mapper';
+import { PlantSpeciesCreateRequestDto } from '../dtos/requests/plant-species-create.request.dto';
+import { PlantSpeciesDeleteRequestDto } from '../dtos/requests/plant-species-delete.request.dto';
+import { PlantSpeciesUpdateRequestDto } from '../dtos/requests/plant-species-update.request.dto';
 
 @Resolver()
 @SkipSpace()
@@ -30,15 +24,13 @@ export class PlantSpeciesMutationsResolver {
 
   constructor(
     private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
-    private readonly plantSpeciesGraphQLMapper: PlantSpeciesGraphQLMapper,
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
   ) {}
 
-  @Mutation(() => PlantSpeciesResponseDto)
+  @Mutation(() => MutationResponseDto)
   async createPlantSpecies(
     @Args('input') input: PlantSpeciesCreateRequestDto,
-  ): Promise<PlantSpeciesResponseDto> {
+  ): Promise<MutationResponseDto> {
     this.logger.log(`Creating plant species: ${input.name}`);
 
     const plantSpeciesId = await this.commandBus.execute<
@@ -46,30 +38,28 @@ export class PlantSpeciesMutationsResolver {
       string
     >(new CreatePlantSpeciesCommand({ name: input.name }));
 
-    const vm = await this.queryBus.execute<
-      PlantSpeciesFindByIdQuery,
-      PlantSpeciesViewModel
-    >(new PlantSpeciesFindByIdQuery({ plantSpeciesId }));
-
-    return this.plantSpeciesGraphQLMapper.toResponseDtoFromViewModel(vm);
+    return this.mutationResponseGraphQLMapper.toResponseDto({
+      success: true,
+      message: 'Plant species created successfully',
+      id: plantSpeciesId,
+    });
   }
 
-  @Mutation(() => PlantSpeciesResponseDto)
+  @Mutation(() => MutationResponseDto)
   async updatePlantSpecies(
     @Args('input') input: PlantSpeciesUpdateRequestDto,
-  ): Promise<PlantSpeciesResponseDto> {
+  ): Promise<MutationResponseDto> {
     this.logger.log(`Updating plant species: ${input.id}`);
 
     await this.commandBus.execute(
       new UpdatePlantSpeciesCommand({ id: input.id, name: input.name }),
     );
 
-    const vm = await this.queryBus.execute<
-      PlantSpeciesFindByIdQuery,
-      PlantSpeciesViewModel
-    >(new PlantSpeciesFindByIdQuery({ plantSpeciesId: input.id }));
-
-    return this.plantSpeciesGraphQLMapper.toResponseDtoFromViewModel(vm);
+    return this.mutationResponseGraphQLMapper.toResponseDto({
+      success: true,
+      message: 'Plant species updated successfully',
+      id: input.id,
+    });
   }
 
   @Mutation(() => MutationResponseDto)

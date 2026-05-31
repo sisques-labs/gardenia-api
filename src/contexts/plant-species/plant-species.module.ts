@@ -59,6 +59,9 @@ const INFRASTRUCTURE_REPOSITORIES = [
     provide: PLANT_SPECIES_WRITE_REPOSITORY,
     useClass: PlantSpeciesTypeOrmWriteRepository,
   },
+];
+
+const INFRASTRUCTURE_ADAPTERS = [
   {
     provide: PLANT_SPECIES_REFERENCE_PORT,
     useClass: PlantSpeciesReferenceAdapter,
@@ -84,6 +87,7 @@ const GRAPHQL_PROVIDERS = [
     ...DOMAIN_BUILDERS,
     ...INFRASTRUCTURE_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
+    ...INFRASTRUCTURE_ADAPTERS,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
   ],

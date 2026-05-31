@@ -1,5 +1,6 @@
 import { BaseAggregate } from '@sisques-labs/nestjs-kit';
 
+import { PlantSpeciesNameChangedEvent } from '../events/field-changed/plant-species-name-changed/plant-species-name-changed.event';
 import { PlantSpeciesCreatedEvent } from '../events/plant-species-created/plant-species-created.event';
 import { PlantSpeciesDeletedEvent } from '../events/plant-species-deleted/plant-species-deleted.event';
 import { PlantSpeciesUpdatedEvent } from '../events/plant-species-updated/plant-species-updated.event';
@@ -34,9 +35,8 @@ export class PlantSpeciesAggregate extends BaseAggregate {
   }
 
   public update(props: { name?: PlantSpeciesNameValueObject }): void {
-    if (props.name) {
-      this._name = props.name;
-      this.touch();
+    if (props.name !== undefined) {
+      this.changeName(props.name);
     }
 
     this.apply(
@@ -49,6 +49,29 @@ export class PlantSpeciesAggregate extends BaseAggregate {
           eventType: PlantSpeciesUpdatedEvent.name,
         },
         this.toPrimitives(),
+      ),
+    );
+  }
+
+  private changeName(newName: PlantSpeciesNameValueObject): void {
+    const oldValue = this._name.value;
+    const newValue = newName.value;
+
+    if (oldValue === newValue) return;
+
+    this._name = newName;
+    this.touch();
+
+    this.apply(
+      new PlantSpeciesNameChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: PlantSpeciesAggregate.name,
+          entityId: this._id.value,
+          entityType: PlantSpeciesAggregate.name,
+          eventType: PlantSpeciesNameChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
       ),
     );
   }

@@ -1,3 +1,3 @@
-import { IPlantSpeciesPrimitives } from '../../primitives/plant-species.primitives';
+import { IPlantSpeciesPrimitives } from '@contexts/plant-species/domain/primitives/plant-species.primitives';
 
 export type IPlantSpeciesEventData = IPlantSpeciesPrimitives;
