@@ -52,6 +52,11 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
     return this;
   }
 
+  withTargetUrl(targetUrl: string | null): this {
+    this._targetUrl = targetUrl;
+    return this;
+  }
+
   public override build(): PlantAggregate {
     this.validate();
     return new PlantAggregate({
@@ -83,6 +88,7 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
       userId: this._userId,
       spaceId: this._spaceId,
       qrId: this._qrId,
+      targetUrl: this._targetUrl,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });
