@@ -5,10 +5,10 @@ import {
   FieldIsRequiredException,
 } from '@sisques-labs/nestjs-kit';
 
-import { PlantSpeciesAggregate } from '../aggregates/plant-species.aggregate';
-import { PlantSpeciesIdValueObject } from '../value-objects/plant-species-id/plant-species-id.value-object';
-import { PlantSpeciesNameValueObject } from '../value-objects/plant-species-name/plant-species-name.value-object';
-import { PlantSpeciesViewModel } from '../view-models/plant-species.view-model';
+import { PlantSpeciesAggregate } from '@contexts/plant-species/domain/aggregates/plant-species.aggregate';
+import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+import { PlantSpeciesNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-name/plant-species-name.value-object';
+import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 
 @Injectable()
 export class PlantSpeciesBuilder extends BaseBuilder<

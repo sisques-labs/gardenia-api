@@ -8,13 +8,13 @@ import { PlantSpeciesFindByCriteriaQuery } from '@contexts/plant-species/applica
 import { PlantSpeciesFindByIdQuery } from '@contexts/plant-species/application/queries/plant-species-find-by-id/plant-species-find-by-id.query';
 import { SkipSpace } from '@shared/decorators/skip-space.decorator';
 
-import { PlantSpeciesFindByCriteriaRequestDto } from '../dtos/requests/plant-species-find-by-criteria.request.dto';
-import { PlantSpeciesFindByIdRequestDto } from '../dtos/requests/plant-species-find-by-id.request.dto';
+import { PlantSpeciesFindByCriteriaRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-find-by-criteria.request.dto';
+import { PlantSpeciesFindByIdRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-find-by-id.request.dto';
 import {
   PaginatedPlantSpeciesResultDto,
   PlantSpeciesResponseDto,
-} from '../dtos/responses/plant-species.response.dto';
-import { PlantSpeciesGraphQLMapper } from '../mappers/plant-species.mapper';
+} from '@contexts/plant-species/transport/graphql/dtos/responses/plant-species.response.dto';
+import { PlantSpeciesGraphQLMapper } from '@contexts/plant-species/transport/graphql/mappers/plant-species.mapper';
 
 @Resolver()
 @SkipSpace()

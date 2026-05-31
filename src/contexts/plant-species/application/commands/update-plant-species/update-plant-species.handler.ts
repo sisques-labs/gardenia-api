@@ -7,8 +7,8 @@ import {
   IPlantSpeciesWriteRepository,
   PLANT_SPECIES_WRITE_REPOSITORY,
 } from '@contexts/plant-species/domain/repositories/write/plant-species-write.repository';
-import { AssertPlantSpeciesExistsService } from '../../services/write/assert-plant-species-exists/assert-plant-species-exists.service';
-import { AssertPlantSpeciesNameAvailableService } from '../../services/write/assert-plant-species-name-available/assert-plant-species-name-available.service';
+import { AssertPlantSpeciesExistsService } from '@contexts/plant-species/application/services/write/assert-plant-species-exists/assert-plant-species-exists.service';
+import { AssertPlantSpeciesNameAvailableService } from '@contexts/plant-species/application/services/write/assert-plant-species-name-available/assert-plant-species-name-available.service';
 
 import { UpdatePlantSpeciesCommand } from './update-plant-species.command';
 

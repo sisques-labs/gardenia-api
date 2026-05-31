@@ -6,7 +6,7 @@ import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-model
 import {
   PaginatedPlantSpeciesResultDto,
   PlantSpeciesResponseDto,
-} from '../dtos/responses/plant-species.response.dto';
+} from '@contexts/plant-species/transport/graphql/dtos/responses/plant-species.response.dto';
 
 @Injectable()
 export class PlantSpeciesGraphQLMapper {

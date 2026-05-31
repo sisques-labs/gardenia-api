@@ -1,6 +1,6 @@
 import { BaseViewModel } from '@sisques-labs/nestjs-kit';
 
-import { IPlantSpeciesPrimitives } from '../primitives/plant-species.primitives';
+import { IPlantSpeciesPrimitives } from '@contexts/plant-species/domain/primitives/plant-species.primitives';
 
 export class PlantSpeciesViewModel extends BaseViewModel {
   public readonly name: string;

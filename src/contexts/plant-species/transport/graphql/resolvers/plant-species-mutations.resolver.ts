@@ -12,9 +12,9 @@ import { DeletePlantSpeciesCommand } from '@contexts/plant-species/application/c
 import { UpdatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/update-plant-species/update-plant-species.command';
 import { SkipSpace } from '@shared/decorators/skip-space.decorator';
 
-import { PlantSpeciesCreateRequestDto } from '../dtos/requests/plant-species-create.request.dto';
-import { PlantSpeciesDeleteRequestDto } from '../dtos/requests/plant-species-delete.request.dto';
-import { PlantSpeciesUpdateRequestDto } from '../dtos/requests/plant-species-update.request.dto';
+import { PlantSpeciesCreateRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-create.request.dto';
+import { PlantSpeciesDeleteRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-delete.request.dto';
+import { PlantSpeciesUpdateRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-update.request.dto';
 
 @Resolver()
 @SkipSpace()

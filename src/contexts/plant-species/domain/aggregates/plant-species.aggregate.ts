@@ -1,13 +1,13 @@
 import { BaseAggregate } from '@sisques-labs/nestjs-kit';
 
-import { PlantSpeciesNameChangedEvent } from '../events/field-changed/plant-species-name-changed/plant-species-name-changed.event';
-import { PlantSpeciesCreatedEvent } from '../events/plant-species-created/plant-species-created.event';
-import { PlantSpeciesDeletedEvent } from '../events/plant-species-deleted/plant-species-deleted.event';
-import { PlantSpeciesUpdatedEvent } from '../events/plant-species-updated/plant-species-updated.event';
-import { IPlantSpecies } from '../interfaces/plant-species.interface';
-import { IPlantSpeciesPrimitives } from '../primitives/plant-species.primitives';
-import { PlantSpeciesIdValueObject } from '../value-objects/plant-species-id/plant-species-id.value-object';
-import { PlantSpeciesNameValueObject } from '../value-objects/plant-species-name/plant-species-name.value-object';
+import { PlantSpeciesNameChangedEvent } from '@contexts/plant-species/domain/events/field-changed/plant-species-name-changed/plant-species-name-changed.event';
+import { PlantSpeciesCreatedEvent } from '@contexts/plant-species/domain/events/plant-species-created/plant-species-created.event';
+import { PlantSpeciesDeletedEvent } from '@contexts/plant-species/domain/events/plant-species-deleted/plant-species-deleted.event';
+import { PlantSpeciesUpdatedEvent } from '@contexts/plant-species/domain/events/plant-species-updated/plant-species-updated.event';
+import { IPlantSpecies } from '@contexts/plant-species/domain/interfaces/plant-species.interface';
+import { IPlantSpeciesPrimitives } from '@contexts/plant-species/domain/primitives/plant-species.primitives';
+import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+import { PlantSpeciesNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-name/plant-species-name.value-object';
 
 export class PlantSpeciesAggregate extends BaseAggregate {
   private readonly _id: PlantSpeciesIdValueObject;

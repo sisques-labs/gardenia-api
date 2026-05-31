@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { PlantSpeciesAggregate } from '@contexts/plant-species/domain/aggregates/plant-species.aggregate';
 import { PlantSpeciesBuilder } from '@contexts/plant-species/domain/builders/plant-species.builder';
-import { PlantSpeciesTypeOrmEntity } from '../entities/plant-species.entity';
+import { PlantSpeciesTypeOrmEntity } from '@contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
 
 @Injectable()
 export class PlantSpeciesTypeOrmMapper {

@@ -28,10 +28,10 @@ import { PlantSpeciesFindByIdQuery } from '@contexts/plant-species/application/q
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 import { SkipSpace } from '@shared/decorators/skip-space.decorator';
 
-import { CreatePlantSpeciesDto } from '../dtos/create-plant-species.dto';
-import { PlantSpeciesRestResponseDto } from '../dtos/plant-species-rest-response.dto';
-import { UpdatePlantSpeciesDto } from '../dtos/update-plant-species.dto';
-import { PlantSpeciesRestMapper } from '../mappers/plant-species/plant-species.mapper';
+import { CreatePlantSpeciesDto } from '@contexts/plant-species/transport/rest/dtos/create-plant-species.dto';
+import { PlantSpeciesRestResponseDto } from '@contexts/plant-species/transport/rest/dtos/plant-species-rest-response.dto';
+import { UpdatePlantSpeciesDto } from '@contexts/plant-species/transport/rest/dtos/update-plant-species.dto';
+import { PlantSpeciesRestMapper } from '@contexts/plant-species/transport/rest/mappers/plant-species/plant-species.mapper';
 
 @ApiTags('plant-species')
 @ApiBearerAuth()

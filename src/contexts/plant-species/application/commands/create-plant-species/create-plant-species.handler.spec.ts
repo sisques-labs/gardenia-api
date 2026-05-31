@@ -2,7 +2,7 @@ import { EventBus } from '@nestjs/cqrs';
 
 import { PlantSpeciesBuilder } from '@contexts/plant-species/domain/builders/plant-species.builder';
 import { IPlantSpeciesWriteRepository } from '@contexts/plant-species/domain/repositories/write/plant-species-write.repository';
-import { AssertPlantSpeciesNameAvailableService } from '../../services/write/assert-plant-species-name-available/assert-plant-species-name-available.service';
+import { AssertPlantSpeciesNameAvailableService } from '@contexts/plant-species/application/services/write/assert-plant-species-name-available/assert-plant-species-name-available.service';
 
 import { CreatePlantSpeciesCommand } from './create-plant-species.command';
 import { CreatePlantSpeciesCommandHandler } from './create-plant-species.handler';

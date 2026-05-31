@@ -9,8 +9,8 @@ import { Repository } from 'typeorm';
 
 import { IPlantSpeciesReadRepository } from '@contexts/plant-species/domain/repositories/read/plant-species-read.repository';
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
-import { PlantSpeciesTypeOrmEntity } from '../entities/plant-species.entity';
-import { PlantSpeciesTypeOrmMapper } from '../mappers/plant-species-typeorm.mapper';
+import { PlantSpeciesTypeOrmEntity } from '@contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
+import { PlantSpeciesTypeOrmMapper } from '@contexts/plant-species/infrastructure/persistence/typeorm/mappers/plant-species-typeorm.mapper';
 
 @Injectable()
 export class PlantSpeciesTypeOrmReadRepository

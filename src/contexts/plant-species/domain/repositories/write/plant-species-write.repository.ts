@@ -1,6 +1,6 @@
 import { IBaseWriteRepository } from '@sisques-labs/nestjs-kit';
 
-import { PlantSpeciesAggregate } from '../../aggregates/plant-species.aggregate';
+import { PlantSpeciesAggregate } from '@contexts/plant-species/domain/aggregates/plant-species.aggregate';
 
 export const PLANT_SPECIES_WRITE_REPOSITORY = Symbol(
   'PLANT_SPECIES_WRITE_REPOSITORY',

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 
-import { PlantSpeciesRestResponseDto } from '../../dtos/plant-species-rest-response.dto';
+import { PlantSpeciesRestResponseDto } from '@contexts/plant-species/transport/rest/dtos/plant-species-rest-response.dto';
 
 @Injectable()
 export class PlantSpeciesRestMapper {
