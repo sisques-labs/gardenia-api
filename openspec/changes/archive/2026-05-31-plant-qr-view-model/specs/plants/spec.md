@@ -1,9 +1,8 @@
-# Plants — QR Integration & View Model Decoupling
+# Delta for Plants — QR View Model + Port Decoupling
 
-**Source changes:** plant-qr-generation (archived 2026-05-31) + plant-qr-view-model (archived 2026-05-31)  
-**Last updated:** 2026-05-31
-
-This canonical spec consolidates QR linking and port decoupling requirements for the `plants` bounded context.
+**Change:** plant-qr-view-model
+**Base spec:** `openspec/specs/plants/spec.md`
+**Date:** 2026-05-31
 
 ---
 
@@ -51,6 +50,8 @@ The spec MUST cover: enrichment when QR exists, enrichment when QR is absent, an
 
 ---
 
+## MODIFIED Requirements
+
 ### Requirement: Plant QR Link Fields
 
 The `PlantAggregate`, `IPlantPrimitives`, and plant persistence entity MUST support an optional `qrId` (UUID string or null).
@@ -58,6 +59,8 @@ The `PlantAggregate`, `IPlantPrimitives`, and plant persistence entity MUST supp
 `PlantViewModel` MUST support an optional `qr: PlantQrViewModel | null` field. The `qr` object is enrichment-only and MUST NOT be persisted in `IPlantPrimitives` or the TypeORM entity.
 
 Plant REST and GraphQL read responses MUST include a nested `qr` object with all `PlantQrViewModel` fields when a QR is linked, or `null` when no QR is linked.
+
+(Previously: only `qrId` and `targetUrl` were flat fields; `qr` object was not present.)
 
 #### Scenario: Plant with QR returns qr object including image
 
@@ -79,81 +82,6 @@ Plant REST and GraphQL read responses MUST include a nested `qr` object with all
 
 ---
 
-### Requirement: SetPlantQrId Command
-
-The system MUST provide an internal command SetPlantQrId that sets `plants.qr_id` for a given plantId.
-
-The command MUST be invocable only for plants in the active space.
-
-#### Scenario: qr_id set after QR creation
-
-- **GIVEN** a persisted plant without qrId
-- **WHEN** SetPlantQrId is dispatched with a valid qrId
-- **THEN** the plant row is updated with qr_id
-
----
-
-## MODIFIED Requirements
-
-### Requirement: CreatePlant Command
-
-The system MUST allow any authenticated space member to create a plant.
-
-The command MUST accept `name` (required), `species` (optional), `imageUrl` (optional), and `userId` (from `@CurrentUser`). `spaceId` MUST be sourced from `SpaceContext` ALS — never from the request payload.
-
-On success the handler MUST emit `PlantCreated`, persist the plant, then MUST orchestrate QR creation by:
-
-1. Building `targetUrl` as `{QR_BASE_URL}/plants/{plantId}?spaceId={spaceId}` (plants application layer).
-2. Dispatching `CreateQrCommand` with `targetUrl` and `spaceId`.
-3. Dispatching `SetPlantQrIdCommand` with the returned `qrId`.
-4. Returning the new `plantId`.
-
-If `CreateQrCommand` fails after the plant is saved, the handler MUST propagate the error (plant may exist without QR until a follow-up fix — documented operational risk).
-
-#### Scenario: Happy path — plant created with QR
-
-- **GIVEN** an authenticated user who is a member of the active space
-- **WHEN** CreatePlant is dispatched with a valid name
-- **THEN** a PlantAggregate is persisted, PlantCreated is emitted, a linked QR is created, plants.qr_id is set, and plantId is returned
-
-#### Scenario: Name missing — rejected
-
-- **GIVEN** an authenticated user in an active space
-- **WHEN** CreatePlant is dispatched with an empty name
-- **THEN** a 400 Bad Request is returned and no aggregate is persisted
-
----
-
-### Requirement: DeletePlant Command — Owner Only
-
-The system MUST allow only the plant owner to delete a plant.
-
-The handler MUST load the plant from the tenant-scoped repository, compare `plant.userId` with `requestingUserId`, and throw `NotPlantOwnerException` when they differ.
-
-When `plant.qrId` is set, the handler MUST dispatch `DeleteQrCommand` before deleting the plant row. The database trigger `TRG_plants_delete_linked_qr` remains as a safety net for orphan prevention.
-
-On success the handler MUST emit `PlantDeleted`.
-
-#### Scenario: Owner deletes plant and QR
-
-- **GIVEN** an authenticated user who owns the target plant with a linked QR
-- **WHEN** DeletePlant is dispatched
-- **THEN** the linked QR is deleted, the plant is removed, PlantDeleted is emitted, and 200 is returned
-
-#### Scenario: Non-owner delete rejected
-
-- **GIVEN** an authenticated user who does NOT own the target plant
-- **WHEN** DeletePlant is dispatched
-- **THEN** NotPlantOwnerException is thrown and a 403 is returned
-
-#### Scenario: Plant not found
-
-- **GIVEN** a plantId that does not exist in the active space
-- **WHEN** DeletePlant is dispatched
-- **THEN** PlantNotFoundException is thrown and a 404 is returned
-
----
-
 ### Requirement: REST Transport
 
 The system MUST expose the following endpoints, all guarded by `JwtAuthGuard` and `SpaceGuard`:
@@ -167,6 +95,8 @@ The system MUST expose the following endpoints, all guarded by `JwtAuthGuard` an
 | DELETE | /plants/:id | DeletePlant | 200 |
 
 All endpoints MUST require `X-Space-ID` header (no `@SkipSpace`). `@CurrentUser` supplies `userId` for mutation commands. Response bodies MUST use `PlantRestResponseDto` mapped from `PlantViewModel`, including a nested `qr: PlantQrRestResponseDto | null`.
+
+(Previously: response included flat `qrId` and `targetUrl` but not the nested `qr` object.)
 
 ---
 
@@ -182,12 +112,12 @@ The system MUST expose GraphQL operations guarded by `JwtAuthGuard` and `SpaceGu
 
 Schema MUST be generated via `autoSchemaFile` (code-first). Both resolvers MUST dispatch exclusively via `CommandBus`/`QueryBus`.
 
+(Previously: `PlantType` included flat `qrId` and `targetUrl` but not the nested `qr` object.)
+
 ---
 
-## Out of Scope
+## Out of Scope (plant-qr-view-model delta)
 
-- Changing `IPlantPrimitives` or the TypeORM entity — `qr` is enrichment-only, not persisted
-- Solving N+1 / 2N query pattern in `FindPlantsByCriteria` (accepted tradeoff from plant-qr-view-model)
+- Changing `IPlantPrimitives` or the TypeORM entity (`qr` is enrichment-only, not persisted)
+- Solving N+1 / 2N query pattern in `FindPlantsByCriteria` (accepted tradeoff)
 - QR caching, payload compression, or image-size limits
-- Backfill QR for plants created before plant-qr-generation change
-- Owner-only restriction on `qrRegenerate` (any space member may regenerate via QR endpoints unless a future rule adds owner check)
