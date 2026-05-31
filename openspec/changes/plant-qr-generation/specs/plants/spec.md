@@ -83,7 +83,7 @@ The system MUST allow only the plant owner to delete a plant.
 
 The handler MUST load the plant from the tenant-scoped repository, compare `plant.userId` with `requestingUserId`, and throw `NotPlantOwnerException` when they differ.
 
-The handler MUST delete the plant row only; linked QR rows MUST be removed by DB `ON DELETE CASCADE` via `qrs.plant_id` (application-level `DeleteQrCommand` is not required for this flow).
+When `plant.qrId` is set, the handler MUST dispatch `DeleteQrCommand` before deleting the plant row. The database trigger `TRG_plants_delete_linked_qr` remains as a safety net for orphan prevention.
 
 On success the handler MUST emit `PlantDeleted`.
 

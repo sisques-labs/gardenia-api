@@ -14,10 +14,6 @@ export class QrTypeOrmEntity {
   @Column({ name: 'space_id', type: 'uuid', nullable: false })
   spaceId!: string;
 
-  /** Persistence-only FK to plants; not mapped to QrAggregate. */
-  @Column({ name: 'plant_id', type: 'uuid', nullable: true })
-  plantId!: string | null;
-
   @Column({
     name: 'target_url',
     type: 'varchar',

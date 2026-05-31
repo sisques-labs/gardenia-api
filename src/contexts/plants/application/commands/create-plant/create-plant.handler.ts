@@ -64,7 +64,7 @@ export class CreatePlantCommandHandler
       spaceId,
     );
     const qrId = await this.commandBus.execute<CreateQrCommand, string>(
-      new CreateQrCommand({ targetUrl, spaceId, plantId: plant.id.value }),
+      new CreateQrCommand({ targetUrl, spaceId }),
     );
 
     await this.commandBus.execute(

@@ -50,11 +50,7 @@ export class CreateQrCommandHandler
 
     qr.create();
 
-    await this.qrWriteRepository.save(
-      qr,
-      pngImage,
-      command.plantId ? { plantId: command.plantId } : undefined,
-    );
+    await this.qrWriteRepository.save(qr, pngImage);
     await this.publishEvents(qr);
 
     this.logger.log(`QR created: ${qr.id.value}`);

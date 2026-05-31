@@ -75,7 +75,7 @@
 
 ### 3.1 Schema and domain
 
-- [x] 3.1 Migration `{timestamp}-AddQrIdToPlants.ts` — nullable `qr_id` on `plants`
+- [x] 3.1 Migration `{timestamp}-LinkPlantsToQrs.ts` — `plants.qr_id`, FK, delete trigger
 - [x] 3.2 Add `qrId` to `PlantTypeOrmEntity`, aggregate, primitives, view-model, builder, mappers
 
 ### 3.2 Application orchestration

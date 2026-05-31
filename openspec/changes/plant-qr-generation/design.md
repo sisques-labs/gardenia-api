@@ -45,15 +45,15 @@
 
 ---
 
-### ADR-2: Link on plants + persistence FK on `qrs.plant_id`
+### ADR-2: Link only on `plants.qr_id` + DB trigger
 
 **Decision:**
 
-- `plants.qr_id` UUID nullable — denormalized pointer for fast reads; FK → `qrs(id) ON DELETE SET NULL`.
-- `qrs.plant_id` UUID nullable UNIQUE — persistence-only (not on `QrAggregate`); FK → `plants(id) ON DELETE CASCADE` so deleting a plant removes its QR at DB level.
-- `CreateQrCommand` may pass optional `plantId` only when persisting plant-owned QRs.
+- `plants.qr_id` UUID nullable UNIQUE — FK → `qrs(id) ON DELETE SET NULL`.
+- `qrs` has **no** `plant_id` column; the QR aggregate stays generic.
+- `BEFORE DELETE` trigger on `plants` deletes the linked QR row when `qr_id` is set.
 
-**Rationale:** Domain stays generic; DB enforces no orphan QRs for plant-linked rows. Future non-plant QRs leave `plant_id` null.
+**Rationale:** Referential integrity and orphan prevention without denormalizing plant identity onto `qrs`.
 
 ---
 
@@ -229,7 +229,7 @@ CREATE INDEX idx_qrs_space_id ON qrs(space_id);
 ### Migrations
 
 1. `{timestamp}-CreateQrs.ts`
-2. `{timestamp}-AddQrIdToPlants.ts` — `qr_id UUID NULL` (no FK constraint required per plants convention, or optional FK to `qrs.id`)
+2. `{timestamp}-LinkPlantsToQrs.ts` — `plants.qr_id`, FK to `qrs`, unique constraint, delete trigger
 
 ### Plants changes
 
@@ -237,7 +237,7 @@ CREATE INDEX idx_qrs_space_id ON qrs(space_id);
 - `PlantAggregate` / primitives / view-model: optional `qrId`
 - `SetPlantQrIdCommand` in plants application layer
 - `CreatePlantCommandHandler`: orchestration (see ADR-3)
-- `DeletePlantCommandHandler`: `DeleteQrCommand({ qrId })` when `plant.qrId` is set
+- `DeletePlantCommandHandler`: `DeleteQrCommand` when `plant.qrId` is set, then delete plant (DB trigger as safety net)
 - `PlantQrTargetUrlBuilderService` in plants application layer
 
 ---
@@ -306,7 +306,7 @@ package.json                              (+ qrcode)
 
 ## Migration Plan
 
-1. Deploy migration `CreateQrs` + `AddQrIdToPlants` (nullable `qr_id` — safe for existing rows).
+1. Deploy migration `CreateQrs` + `LinkPlantsToQrs` (nullable `qr_id` — safe for existing rows).
 2. Deploy API with `QrModule`; new plants get QR automatically.
 3. Existing plants: `qr_id` NULL until backfill (out of scope).
 

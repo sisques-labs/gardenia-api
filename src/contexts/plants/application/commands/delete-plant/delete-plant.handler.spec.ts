@@ -1,4 +1,4 @@
-import { EventBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
@@ -38,6 +38,7 @@ describe('DeletePlantCommandHandler', () => {
   let writeRepository: jest.Mocked<IPlantWriteRepository>;
   let assertPlantExistsService: jest.Mocked<AssertPlantExistsService>;
   let eventBus: jest.Mocked<EventBus>;
+  let commandBus: jest.Mocked<CommandBus>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -58,9 +59,14 @@ describe('DeletePlantCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
+    commandBus = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<CommandBus>;
+
     handler = new DeletePlantCommandHandler(
       writeRepository,
       assertPlantExistsService,
+      commandBus,
       eventBus,
     );
   });
@@ -77,6 +83,7 @@ describe('DeletePlantCommandHandler', () => {
 
       await handler.execute(command);
 
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
       expect(writeRepository.delete).toHaveBeenCalledWith(PLANT_ID);
       expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
@@ -92,6 +99,7 @@ describe('DeletePlantCommandHandler', () => {
 
       await handler.execute(command);
 
+      expect(commandBus.execute).not.toHaveBeenCalled();
       expect(writeRepository.delete).toHaveBeenCalledWith(PLANT_ID);
     });
   });

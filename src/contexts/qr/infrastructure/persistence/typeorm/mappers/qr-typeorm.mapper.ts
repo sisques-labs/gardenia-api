@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common';
 import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
 import { QrBuilder } from '@contexts/qr/domain/builders/qr.builder';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
-import { QrSaveOptions } from '@contexts/qr/domain/repositories/write/qr-write.repository';
 import { QrTypeOrmEntity } from '../entities/qr.entity';
 
 @Injectable()
@@ -21,11 +20,7 @@ export class QrTypeOrmMapper {
       .build();
   }
 
-  public toEntity(
-    aggregate: QrAggregate,
-    pngImage: Buffer,
-    options?: QrSaveOptions,
-  ): QrTypeOrmEntity {
+  public toEntity(aggregate: QrAggregate, pngImage: Buffer): QrTypeOrmEntity {
     const primitives = aggregate.toPrimitives();
     const entity = new QrTypeOrmEntity();
 
@@ -34,10 +29,6 @@ export class QrTypeOrmMapper {
     entity.targetUrl = primitives.targetUrl;
     entity.generation = primitives.generation;
     entity.pngImage = pngImage;
-    entity.plantId = null;
-    if (options?.plantId !== undefined) {
-      entity.plantId = options.plantId;
-    }
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
 
