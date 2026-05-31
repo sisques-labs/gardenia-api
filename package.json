@@ -120,7 +120,8 @@
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^@contexts/(.*)$": "<rootDir>/contexts/$1",
-      "^@core/(.*)$": "<rootDir>/core/$1"
+      "^@core/(.*)$": "<rootDir>/core/$1",
+      "^@shared/(.*)$": "<rootDir>/shared/$1"
     }
   },
   "lint-staged": {
