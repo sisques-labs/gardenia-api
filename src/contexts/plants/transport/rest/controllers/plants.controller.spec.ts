@@ -23,6 +23,7 @@ describe('PlantsController', () => {
     imageUrl: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
+    qrId: null,
     createdAt: now,
     updatedAt: now,
   });

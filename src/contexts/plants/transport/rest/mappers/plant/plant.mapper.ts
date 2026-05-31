@@ -14,6 +14,7 @@ export class PlantRestMapper {
     dto.imageUrl = vm.imageUrl;
     dto.userId = vm.userId;
     dto.spaceId = vm.spaceId;
+    dto.qr = vm.qr ?? null;
     dto.createdAt = vm.createdAt;
     dto.updatedAt = vm.updatedAt;
     return dto;

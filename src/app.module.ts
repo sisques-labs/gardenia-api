@@ -4,6 +4,8 @@ import { AuthModule } from '@contexts/auth/auth.module';
 import { UsersModule } from '@contexts/users/users.module';
 import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { PlantsModule } from '@contexts/plants/plants.module';
+import { QrModule } from '@contexts/qr/qr.module';
+import { appConfig } from '@core/config/app.config';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
 import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
@@ -26,7 +28,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     SharedGraphQLModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [postgresConfig, authConfig],
+      load: [postgresConfig, authConfig, appConfig],
       cache: true,
     }),
     TypeOrmModule.forRootAsync({
@@ -46,6 +48,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     SpacesModule,
     AuthModule,
     UsersModule,
+    QrModule,
     PlantsModule,
   ],
   providers: [

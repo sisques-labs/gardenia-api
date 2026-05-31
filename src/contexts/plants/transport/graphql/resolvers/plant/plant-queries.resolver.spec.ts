@@ -23,6 +23,7 @@ describe('PlantQueriesResolver', () => {
     imageUrl: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
+    qrId: null,
     createdAt: now,
     updatedAt: now,
   });
@@ -72,6 +73,7 @@ describe('PlantQueriesResolver', () => {
           imageUrl: null,
           userId: USER_ID,
           spaceId: SPACE_ID,
+          qr: null,
           createdAt: now,
           updatedAt: now,
         },

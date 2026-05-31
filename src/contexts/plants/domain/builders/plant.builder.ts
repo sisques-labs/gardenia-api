@@ -1,3 +1,10 @@
+import { PlantQrViewModel } from '@contexts/plants/domain/view-models/plant-qr.view-model';
+import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
+import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
+import { PlantImageUrlValueObject } from '@contexts/plants/domain/value-objects/plant-image-url/plant-image-url.value-object';
+import { PlantNameValueObject } from '@contexts/plants/domain/value-objects/plant-name/plant-name.value-object';
+import { PlantSpeciesValueObject } from '@contexts/plants/domain/value-objects/plant-species/plant-species.value-object';
+import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
 import { Injectable } from '@nestjs/common';
 import {
   BaseBuilder,
@@ -6,13 +13,6 @@ import {
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
-import { PlantAggregate } from '../aggregates/plant.aggregate';
-import { PlantIdValueObject } from '../value-objects/plant-id/plant-id.value-object';
-import { PlantImageUrlValueObject } from '../value-objects/plant-image-url/plant-image-url.value-object';
-import { PlantNameValueObject } from '../value-objects/plant-name/plant-name.value-object';
-import { PlantSpeciesValueObject } from '../value-objects/plant-species/plant-species.value-object';
-import { PlantViewModel } from '../view-models/plant.view-model';
-
 @Injectable()
 export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
   private _name!: string;
@@ -20,6 +20,8 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
   private _imageUrl: string | null = null;
   private _userId!: string;
   private _spaceId!: string;
+  private _qrId: string | null = null;
+  private _qr: PlantQrViewModel | null = null;
 
   withName(name: string): this {
     this._name = name;
@@ -46,6 +48,16 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
     return this;
   }
 
+  withQrId(qrId: string | null): this {
+    this._qrId = qrId;
+    return this;
+  }
+
+  withQr(qr: PlantQrViewModel | null): this {
+    this._qr = qr;
+    return this;
+  }
+
   public override build(): PlantAggregate {
     this.validate();
     return new PlantAggregate({
@@ -61,6 +73,7 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
           : null,
       userId: new UuidValueObject(this._userId),
       spaceId: new UuidValueObject(this._spaceId),
+      qrId: this._qrId != null ? new UuidValueObject(this._qrId) : null,
       createdAt: new DateValueObject(this._createdAt),
       updatedAt: new DateValueObject(this._updatedAt),
     });
@@ -75,6 +88,8 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
       imageUrl: this._imageUrl,
       userId: this._userId,
       spaceId: this._spaceId,
+      qrId: this._qrId,
+      qr: this._qr,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });

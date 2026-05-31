@@ -1,4 +1,4 @@
-import { EventBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
@@ -18,7 +18,9 @@ const OTHER_USER_ID = '550e8400-e29b-41d4-a716-446655440099';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';
 const NOW = new Date('2024-01-01');
 
-const buildAggregate = (): PlantAggregate =>
+const QR_ID = '660e8400-e29b-41d4-a716-446655440099';
+
+const buildAggregate = (qrId: string | null = QR_ID): PlantAggregate =>
   new PlantAggregate({
     id: new PlantIdValueObject(PLANT_ID),
     name: new PlantNameValueObject('Rose'),
@@ -26,6 +28,7 @@ const buildAggregate = (): PlantAggregate =>
     imageUrl: null,
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
+    qrId: qrId ? new UuidValueObject(qrId) : null,
     createdAt: new DateValueObject(NOW),
     updatedAt: new DateValueObject(NOW),
   });
@@ -35,6 +38,7 @@ describe('DeletePlantCommandHandler', () => {
   let writeRepository: jest.Mocked<IPlantWriteRepository>;
   let assertPlantExistsService: jest.Mocked<AssertPlantExistsService>;
   let eventBus: jest.Mocked<EventBus>;
+  let commandBus: jest.Mocked<CommandBus>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,9 +59,14 @@ describe('DeletePlantCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
+    commandBus = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<CommandBus>;
+
     handler = new DeletePlantCommandHandler(
       writeRepository,
       assertPlantExistsService,
+      commandBus,
       eventBus,
     );
   });
@@ -74,8 +83,24 @@ describe('DeletePlantCommandHandler', () => {
 
       await handler.execute(command);
 
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
       expect(writeRepository.delete).toHaveBeenCalledWith(PLANT_ID);
       expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should delete plant when no qrId is linked', async () => {
+      const aggregate = buildAggregate(null);
+      assertPlantExistsService.execute.mockResolvedValue(aggregate);
+
+      const command = new DeletePlantCommand({
+        plantId: PLANT_ID,
+        requestingUserId: OWNER_ID,
+      });
+
+      await handler.execute(command);
+
+      expect(commandBus.execute).not.toHaveBeenCalled();
+      expect(writeRepository.delete).toHaveBeenCalledWith(PLANT_ID);
     });
   });
 

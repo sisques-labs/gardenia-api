@@ -1,4 +1,4 @@
-import { EventBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus } from '@nestjs/cqrs';
 
 import { PlantBuilder } from '@contexts/plants/domain/builders/plant.builder';
 import { IPlantWriteRepository } from '@contexts/plants/domain/repositories/write/plant-write.repository';
@@ -16,6 +16,7 @@ describe('CreatePlantCommandHandler', () => {
   let eventBus: jest.Mocked<EventBus>;
   let plantBuilder: PlantBuilder;
   let spaceContext: jest.Mocked<SpaceContext>;
+  let commandBus: jest.Mocked<CommandBus>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -41,10 +42,27 @@ describe('CreatePlantCommandHandler', () => {
       clear: jest.fn(),
     } as unknown as jest.Mocked<SpaceContext>;
 
+    commandBus = {
+      execute: jest
+        .fn()
+        .mockResolvedValueOnce('660e8400-e29b-41d4-a716-446655440099')
+        .mockResolvedValueOnce(undefined),
+    } as unknown as jest.Mocked<CommandBus>;
+
+    const plantQrTargetUrlBuilder = {
+      execute: jest
+        .fn()
+        .mockResolvedValue(
+          `http://localhost:3000/plants/mock?spaceId=${SPACE_ID}`,
+        ),
+    };
+
     handler = new CreatePlantCommandHandler(
       writeRepository,
       plantBuilder,
       spaceContext,
+      commandBus,
+      plantQrTargetUrlBuilder as never,
       eventBus,
     );
   });

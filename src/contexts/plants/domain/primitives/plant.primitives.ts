@@ -6,4 +6,5 @@ export type IPlantPrimitives = BasePrimitives & {
   imageUrl: string | null;
   userId: string;
   spaceId: string;
+  qrId: string | null;
 };

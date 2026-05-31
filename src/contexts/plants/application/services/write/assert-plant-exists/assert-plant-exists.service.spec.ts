@@ -21,6 +21,7 @@ const buildAggregate = (): PlantAggregate =>
     imageUrl: null,
     userId: new UuidValueObject(USER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
+    qrId: null,
     createdAt: new DateValueObject(NOW),
     updatedAt: new DateValueObject(NOW),
   });

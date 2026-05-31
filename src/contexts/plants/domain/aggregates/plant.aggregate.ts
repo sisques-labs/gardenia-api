@@ -20,6 +20,7 @@ export class PlantAggregate extends BaseAggregate {
   private _imageUrl: PlantImageUrlValueObject | null;
   private readonly _userId: UuidValueObject;
   private readonly _spaceId: UuidValueObject;
+  private _qrId: UuidValueObject | null;
 
   constructor(props: IPlant) {
     super(props.createdAt, props.updatedAt);
@@ -29,6 +30,12 @@ export class PlantAggregate extends BaseAggregate {
     this._imageUrl = props.imageUrl;
     this._userId = props.userId;
     this._spaceId = props.spaceId;
+    this._qrId = props.qrId;
+  }
+
+  public linkQr(qrId: UuidValueObject): void {
+    this._qrId = qrId;
+    this.touch();
   }
 
   public create(): void {
@@ -169,6 +176,7 @@ export class PlantAggregate extends BaseAggregate {
       imageUrl: this._imageUrl?.value ?? null,
       userId: this._userId.value,
       spaceId: this._spaceId.value,
+      qrId: this._qrId?.value ?? null,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };
@@ -196,5 +204,9 @@ export class PlantAggregate extends BaseAggregate {
 
   get spaceId(): UuidValueObject {
     return this._spaceId;
+  }
+
+  get qrId(): UuidValueObject | null {
+    return this._qrId;
   }
 }
