@@ -20,6 +20,7 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
   private _userId!: string;
   private _spaceId!: string;
   private _qrId: string | null = null;
+  private _targetUrl: string | null = null;
 
   withName(name: string): this {
     this._name = name;
