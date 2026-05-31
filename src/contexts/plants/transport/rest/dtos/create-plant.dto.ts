@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreatePlantDto {
   @ApiProperty({
@@ -11,12 +11,12 @@ export class CreatePlantDto {
   name!: string;
 
   @ApiPropertyOptional({
-    example: 'Rosa canina',
-    description: 'Species of the plant',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'UUID of the plant species catalog entry',
   })
   @IsOptional()
-  @IsString()
-  species?: string;
+  @IsUUID()
+  plantSpeciesId?: string;
 
   @ApiPropertyOptional({
     example: 'https://example.com/plant.jpg',

@@ -28,7 +28,7 @@ function makePlantViewModel(qrId: string | null): PlantViewModel {
   return new PlantViewModel({
     id: PLANT_ID,
     name: 'Rose',
-    species: 'Rosa canina',
+    plantSpeciesId: null,
     imageUrl: null,
     userId: USER_ID,
     spaceId: SPACE_ID,

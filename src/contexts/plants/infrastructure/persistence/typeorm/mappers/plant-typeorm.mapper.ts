@@ -13,7 +13,7 @@ export class PlantTypeOrmMapper {
     return this.plantBuilder
       .withId(entity.id)
       .withName(entity.name)
-      .withSpecies(entity.species ?? null)
+      .withPlantSpeciesId(entity.plantSpeciesId ?? null)
       .withImageUrl(entity.imageUrl ?? null)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
@@ -29,7 +29,7 @@ export class PlantTypeOrmMapper {
 
     entity.id = primitives.id;
     entity.name = primitives.name;
-    entity.species = primitives.species;
+    entity.plantSpeciesId = primitives.plantSpeciesId;
     entity.imageUrl = primitives.imageUrl;
     entity.userId = primitives.userId;
     entity.spaceId = primitives.spaceId;
@@ -44,7 +44,7 @@ export class PlantTypeOrmMapper {
     return this.plantBuilder
       .withId(entity.id)
       .withName(entity.name)
-      .withSpecies(entity.species ?? null)
+      .withPlantSpeciesId(entity.plantSpeciesId ?? null)
       .withImageUrl(entity.imageUrl ?? null)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)

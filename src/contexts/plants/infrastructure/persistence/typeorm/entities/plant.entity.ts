@@ -14,8 +14,8 @@ export class PlantTypeOrmEntity {
   @Column({ type: 'varchar', length: 100, nullable: false })
   name!: string;
 
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  species!: string | null;
+  @Column({ name: 'plant_species_id', type: 'uuid', nullable: true })
+  plantSpeciesId!: string | null;
 
   @Column({ name: 'image_url', type: 'varchar', length: 500, nullable: true })
   imageUrl!: string | null;

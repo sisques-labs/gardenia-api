@@ -11,6 +11,7 @@ import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persis
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
+import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
 import { appConfig } from '../../src/core/config/app.config';
@@ -31,6 +32,7 @@ const TEST_ENTITIES = [
   UserTypeOrmEntity,
   SpaceEntity,
   SpaceMembershipEntity,
+  PlantSpeciesTypeOrmEntity,
   PlantTypeOrmEntity,
   QrTypeOrmEntity,
 ];

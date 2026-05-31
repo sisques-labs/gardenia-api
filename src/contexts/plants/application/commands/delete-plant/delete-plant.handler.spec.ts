@@ -24,7 +24,7 @@ const buildAggregate = (qrId: string | null = QR_ID): PlantAggregate =>
   new PlantAggregate({
     id: new PlantIdValueObject(PLANT_ID),
     name: new PlantNameValueObject('Rose'),
-    species: null,
+    plantSpeciesId: null,
     imageUrl: null,
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),

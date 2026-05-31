@@ -6,6 +6,7 @@ import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-m
 import {
   PaginatedPlantResultDto,
   PlantResponseDto,
+  PlantLinkedSpeciesResponseDto,
 } from '../../dtos/responses/plant/plant.response.dto';
 
 @Injectable()
@@ -18,7 +19,8 @@ export class PlantGraphQLMapper {
     return {
       id: vm.id,
       name: vm.name,
-      species: vm.species,
+      plantSpeciesId: vm.plantSpeciesId,
+      species: vm.species ? this.toSpeciesResponse(vm.species) : null,
       imageUrl: vm.imageUrl,
       userId: vm.userId,
       spaceId: vm.spaceId,
@@ -39,6 +41,17 @@ export class PlantGraphQLMapper {
       page: paginatedResult.page,
       perPage: paginatedResult.perPage,
       totalPages: paginatedResult.totalPages,
+    };
+  }
+
+  private toSpeciesResponse(
+    species: NonNullable<PlantViewModel['species']>,
+  ): PlantLinkedSpeciesResponseDto {
+    return {
+      id: species.id,
+      name: species.name,
+      createdAt: species.createdAt,
+      updatedAt: species.updatedAt,
     };
   }
 }

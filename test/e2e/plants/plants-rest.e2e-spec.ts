@@ -79,7 +79,16 @@ describe('Plants REST API (e2e)', () => {
       expect(res.body.qr.targetUrl).toContain(`spaceId=${owner.spaceId}`);
     });
 
-    it('201 — creates a plant with species and imageUrl', async () => {
+    it('201 — creates a plant with plantSpeciesId and imageUrl', async () => {
+      const speciesRes = await ctx
+        .http()
+        .post('/api/plant-species')
+        .set('Authorization', `Bearer ${owner.token}`)
+        .send({ name: 'Rosa canina' })
+        .expect(201);
+
+      const { id: plantSpeciesId } = speciesRes.body as { id: string };
+
       const res = await ctx
         .http()
         .post('/api/plants')
@@ -87,15 +96,19 @@ describe('Plants REST API (e2e)', () => {
         .set('X-Space-ID', owner.spaceId)
         .send({
           name: 'Rose',
-          species: 'Rosa canina',
+          plantSpeciesId,
           imageUrl: 'https://example.com/rose.jpg',
         })
         .expect(201);
 
       expect(res.body).toMatchObject({
         name: 'Rose',
-        species: 'Rosa canina',
+        plantSpeciesId,
         imageUrl: 'https://example.com/rose.jpg',
+      });
+      expect(res.body.species).toMatchObject({
+        id: plantSpeciesId,
+        name: 'Rosa canina',
       });
     });
 

@@ -5,6 +5,7 @@ import { UsersModule } from '@contexts/users/users.module';
 import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { PlantsModule } from '@contexts/plants/plants.module';
 import { QrModule } from '@contexts/qr/qr.module';
+import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
 import { appConfig } from '@core/config/app.config';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
@@ -49,6 +50,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     AuthModule,
     UsersModule,
     QrModule,
+    PlantSpeciesModule,
     PlantsModule,
   ],
   providers: [

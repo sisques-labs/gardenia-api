@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 @InputType('PlantCreateRequestDto')
 export class PlantCreateRequestDto {
@@ -10,11 +10,11 @@ export class PlantCreateRequestDto {
 
   @Field(() => String, {
     nullable: true,
-    description: 'The species of the plant',
+    description: 'UUID of the plant species catalog entry',
   })
   @IsOptional()
-  @IsString()
-  species?: string | null;
+  @IsUUID()
+  plantSpeciesId?: string | null;
 
   @Field(() => String, {
     nullable: true,

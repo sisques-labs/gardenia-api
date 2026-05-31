@@ -35,6 +35,7 @@ export class EnrichPlantWithQrService {
     return this.plantBuilder
       .withId(plant.id)
       .withName(plant.name)
+      .withPlantSpeciesId(plant.plantSpeciesId)
       .withSpecies(plant.species)
       .withImageUrl(plant.imageUrl)
       .withUserId(plant.userId)

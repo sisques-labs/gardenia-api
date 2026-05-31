@@ -12,6 +12,7 @@ describe('PlantsController', () => {
   let mapper: jest.Mocked<PlantRestMapper>;
 
   const PLANT_ID = 'a1b2c3d4-e5f6-4890-abcd-ef1234567890';
+  const SPECIES_ID = '550e8400-e29b-41d4-a716-446655440003';
   const USER_ID = 'b2c3d4e5-f6a7-4901-bcde-f12345678901';
   const SPACE_ID = 'c3d4e5f6-a7b8-4012-cdef-123456789012';
   const now = new Date('2024-01-01T00:00:00Z');
@@ -19,7 +20,7 @@ describe('PlantsController', () => {
   const mockVm = new PlantViewModel({
     id: PLANT_ID,
     name: 'Rose',
-    species: 'Rosa canina',
+    plantSpeciesId: SPECIES_ID,
     imageUrl: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
@@ -46,7 +47,7 @@ describe('PlantsController', () => {
     mapper.toResponse.mockReturnValueOnce({
       id: PLANT_ID,
       name: 'Rose',
-      species: 'Rosa canina',
+      plantSpeciesId: SPECIES_ID,
       imageUrl: null,
       userId: USER_ID,
       spaceId: SPACE_ID,
@@ -56,7 +57,7 @@ describe('PlantsController', () => {
 
     const dto = new CreatePlantDto();
     dto.name = 'Rose';
-    dto.species = 'Rosa canina';
+    dto.plantSpeciesId = SPECIES_ID;
 
     const result = await controller.createPlant(dto, {
       userId: USER_ID,
@@ -74,7 +75,7 @@ describe('PlantsController', () => {
     mapper.toResponse.mockReturnValueOnce({
       id: PLANT_ID,
       name: 'Rose',
-      species: 'Rosa canina',
+      plantSpeciesId: SPECIES_ID,
       imageUrl: null,
       userId: USER_ID,
       spaceId: SPACE_ID,
@@ -88,14 +89,28 @@ describe('PlantsController', () => {
     expect(result.id).toBe(PLANT_ID);
   });
 
-  it('deletePlant dispatches DeletePlantCommand', async () => {
+  it('updatePlant dispatches UpdatePlantCommand and returns mapped response', async () => {
     commandBus.execute.mockResolvedValueOnce(undefined);
-
-    await controller.deletePlant(PLANT_ID, {
+    queryBus.execute.mockResolvedValueOnce(mockVm);
+    mapper.toResponse.mockReturnValueOnce({
+      id: PLANT_ID,
+      name: 'Tulip',
+      plantSpeciesId: null,
+      imageUrl: null,
       userId: USER_ID,
-      email: 'user@example.com',
+      spaceId: SPACE_ID,
+      createdAt: now,
+      updatedAt: now,
     });
 
+    const result = await controller.updatePlant(
+      PLANT_ID,
+      { name: 'Tulip' },
+      { userId: USER_ID, email: 'user@example.com' },
+    );
+
     expect(commandBus.execute).toHaveBeenCalledTimes(1);
+    expect(queryBus.execute).toHaveBeenCalledTimes(1);
+    expect(result.name).toBe('Tulip');
   });
 });

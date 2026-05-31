@@ -23,6 +23,20 @@ export class PlantQrRestResponseDto {
   updatedAt!: Date;
 }
 
+export class PlantSpeciesRestResponseDto {
+  @ApiProperty({ description: 'UUID of the plant species catalog entry' })
+  id!: string;
+
+  @ApiProperty({ description: 'Globally unique species name' })
+  name!: string;
+
+  @ApiProperty({ description: 'When the catalog entry was created' })
+  createdAt!: Date;
+
+  @ApiProperty({ description: 'When the catalog entry was last updated' })
+  updatedAt!: Date;
+}
+
 export class PlantRestResponseDto {
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440000',
@@ -37,10 +51,16 @@ export class PlantRestResponseDto {
   name!: string;
 
   @ApiPropertyOptional({
-    example: 'Rosa canina',
-    description: 'Species of the plant',
+    example: '550e8400-e29b-41d4-a716-446655440001',
+    description: 'UUID of the linked plant species catalog entry',
   })
-  species?: string | null;
+  plantSpeciesId?: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Resolved plant species catalog entry',
+    type: PlantSpeciesRestResponseDto,
+  })
+  species?: PlantSpeciesRestResponseDto | null;
 
   @ApiPropertyOptional({
     example: 'https://example.com/plant.jpg',

@@ -2,13 +2,13 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantIdValueObject } from '../value-objects/plant-id/plant-id.value-object';
 import { PlantImageUrlValueObject } from '../value-objects/plant-image-url/plant-image-url.value-object';
+import { PlantLinkedSpeciesIdValueObject } from '../value-objects/plant-linked-species-id/plant-linked-species-id.value-object';
 import { PlantNameValueObject } from '../value-objects/plant-name/plant-name.value-object';
-import { PlantSpeciesValueObject } from '../value-objects/plant-species/plant-species.value-object';
 
 export interface IPlant {
   id: PlantIdValueObject;
   name: PlantNameValueObject;
-  species: PlantSpeciesValueObject | null;
+  plantSpeciesId: PlantLinkedSpeciesIdValueObject | null;
   imageUrl: PlantImageUrlValueObject | null;
   userId: UuidValueObject;
   spaceId: UuidValueObject;

@@ -5,6 +5,7 @@ import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persis
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
+import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
 import { InitialSchema1779729423499 } from '../../src/database/migrations/1779729423499-InitialSchema';
@@ -16,6 +17,8 @@ import { AddSpaceIdToUsers1780000000004 } from '../../src/database/migrations/17
 import { CreatePlants1780000000005 } from '../../src/database/migrations/1780000000005-CreatePlants';
 import { CreateQrs1780000000006 } from '../../src/database/migrations/1780000000006-CreateQrs';
 import { LinkPlantsToQrs1780000000007 } from '../../src/database/migrations/1780000000007-LinkPlantsToQrs';
+import { CreatePlantSpecies1780000000008 } from '../../src/database/migrations/1780000000008-CreatePlantSpecies';
+import { AlterPlantsPlantSpeciesId1780000000009 } from '../../src/database/migrations/1780000000009-AlterPlantsPlantSpeciesId';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -23,6 +26,7 @@ const TEST_ENTITIES = [
   UserTypeOrmEntity,
   SpaceEntity,
   SpaceMembershipEntity,
+  PlantSpeciesTypeOrmEntity,
   PlantTypeOrmEntity,
   QrTypeOrmEntity,
 ];
@@ -37,6 +41,8 @@ const TEST_MIGRATIONS = [
   CreatePlants1780000000005,
   CreateQrs1780000000006,
   LinkPlantsToQrs1780000000007,
+  CreatePlantSpecies1780000000008,
+  AlterPlantsPlantSpeciesId1780000000009,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

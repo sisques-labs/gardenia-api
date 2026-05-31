@@ -84,14 +84,15 @@ describe('PlantTypeOrmWriteRepository (integration)', () => {
       });
     });
 
-    it('persists optional fields (species and imageUrl)', async () => {
+    it('persists optional fields (plantSpeciesId and imageUrl)', async () => {
+      const speciesId = randomUUID();
       let plantId: string;
 
       await ctx.spaceContext.run(spaceAId, async () => {
         const plant = new PlantBuilder()
           .withId(randomUUID())
           .withName('Cactus')
-          .withSpecies('Opuntia')
+          .withPlantSpeciesId(speciesId)
           .withImageUrl('https://example.com/cactus.jpg')
           .withUserId(randomUUID())
           .withSpaceId(PLACEHOLDER_SPACE_ID)
@@ -106,7 +107,7 @@ describe('PlantTypeOrmWriteRepository (integration)', () => {
       await ctx.spaceContext.run(spaceAId, async () => {
         const found = await plantWriteRepo.findById(plantId);
         expect(found).not.toBeNull();
-        expect(found!.species?.value).toBe('Opuntia');
+        expect(found!.plantSpeciesId?.value).toBe(speciesId);
         expect(found!.imageUrl?.value).toBe('https://example.com/cactus.jpg');
       });
     });

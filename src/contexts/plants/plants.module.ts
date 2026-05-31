@@ -3,7 +3,9 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { PLANT_QR_PORT } from '@contexts/plants/application/ports/plant-qr.port';
+import { PLANT_SPECIES_PORT } from '@contexts/plants/application/ports/plant-species.port';
 import { PlantQrAdapter } from '@contexts/plants/infrastructure/adapters/plant-qr.adapter';
+import { PlantSpeciesAdapter } from '@contexts/plants/infrastructure/adapters/plant-species.adapter';
 import { CreatePlantCommandHandler } from './application/commands/create-plant/create-plant.handler';
 import { DeletePlantCommandHandler } from './application/commands/delete-plant/delete-plant.handler';
 import { SetPlantQrIdCommandHandler } from './application/commands/set-plant-qr-id/set-plant-qr-id.handler';
@@ -12,9 +14,12 @@ import { PlantFindByCriteriaQueryHandler } from './application/queries/plant-fin
 import { PlantFindByIdQueryHandler } from './application/queries/plant-find-by-id/plant-find-by-id.handler';
 import { AssertPlantViewModelExistsService } from './application/services/read/assert-plant-view-model-exists/assert-plant-view-model-exists.service';
 import { EnrichPlantWithQrService } from './application/services/read/enrich-plant-with-qr/enrich-plant-with-qr.service';
+import { EnrichPlantWithSpeciesService } from './application/services/read/enrich-plant-with-species/enrich-plant-with-species.service';
 import { PlantQrTargetUrlBuilderService } from './application/services/read/plant-qr-target-url-builder/plant-qr-target-url-builder.service';
 import { AssertPlantExistsService } from './application/services/write/assert-plant-exists/assert-plant-exists.service';
+import { AssertPlantLinkedSpeciesExistsService } from './application/services/write/assert-plant-linked-species-exists/assert-plant-linked-species-exists.service';
 import { PlantQrBuilder } from './domain/builders/plant-qr.builder';
+import { PlantSpeciesBuilder } from './domain/builders/plant-species.builder';
 import { PlantBuilder } from './domain/builders/plant.builder';
 import { PLANT_READ_REPOSITORY } from './domain/repositories/read/plant-read.repository';
 import { PLANT_WRITE_REPOSITORY } from './domain/repositories/write/plant-write.repository';
@@ -44,11 +49,13 @@ const QUERY_HANDLERS = [
 const APPLICATION_SERVICES = [
   AssertPlantViewModelExistsService,
   AssertPlantExistsService,
+  EnrichPlantWithSpeciesService,
   EnrichPlantWithQrService,
   PlantQrTargetUrlBuilderService,
+  AssertPlantLinkedSpeciesExistsService,
 ];
 
-const DOMAIN_BUILDERS = [PlantBuilder, PlantQrBuilder];
+const DOMAIN_BUILDERS = [PlantBuilder, PlantQrBuilder, PlantSpeciesBuilder];
 
 const INFRASTRUCTURE_MAPPERS = [PlantTypeOrmMapper];
 
@@ -59,6 +66,7 @@ const INFRASTRUCTURE_REPOSITORIES = [
 
 const INFRASTRUCTURE_ADAPTERS = [
   { provide: PLANT_QR_PORT, useClass: PlantQrAdapter },
+  { provide: PLANT_SPECIES_PORT, useClass: PlantSpeciesAdapter },
 ];
 
 const REST_CONTROLLERS = [PlantsController];
