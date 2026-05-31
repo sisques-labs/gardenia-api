@@ -9,10 +9,10 @@ Why now: the `plants` bounded context is complete (REST + GraphQL, tenant-scoped
 ## What Changes
 
 - Introduce new bounded context **`qr`** under `src/contexts/qr/` (DDD + CQRS + Hexagonal).
-- New table **`qrs`**: `id`, `plant_id` (UNIQUE), `space_id`, `target_url`, `png_image` (BYTEA), `generation`, timestamps.
+- New table **`qrs`**: `id`, `space_id`, `target_url`, `png_image` (BYTEA), `generation`, timestamps (no `plant_id` — QRs are generic).
 - Add nullable **`qr_id`** column on **`plants`** table and aggregate/view-model/DTO fields.
 - Config **`QR_BASE_URL`** (required at boot; localhost acceptable in dev).
-- **Auto-create** QR on `CreatePlant` via synchronous `CommandBus` orchestration (`CreateQrForPlantCommand` → `SetPlantQrIdCommand`).
+- **Auto-create** QR on `CreatePlant` via synchronous `CommandBus` orchestration (`CreateQrCommand` with plant-built `targetUrl` → `SetPlantQrIdCommand`).
 - **Regenerate** command: same `id` + `target_url`, replace PNG, increment `generation`.
 - **Delete cascade**: removing a plant deletes its linked QR.
 - REST + GraphQL transport for QR metadata; REST `GET /qrs/:id/image` returns `image/png`.
@@ -30,7 +30,7 @@ Why now: the `plants` bounded context is complete (REST + GraphQL, tenant-scoped
 
 ### New Capabilities
 
-- `qr`: QR aggregate lifecycle — create for plant, read metadata, download PNG, regenerate, delete by plant; tenant-scoped via `space_id`; PNG in PostgreSQL BYTEA.
+- `qr`: Generic QR aggregate — create with caller-supplied `targetUrl`, read metadata, download PNG, regenerate, delete by `qrId`; tenant-scoped via `space_id`; PNG in PostgreSQL BYTEA.
 
 ### Modified Capabilities
 
@@ -53,10 +53,9 @@ Why now: the `plants` bounded context is complete (REST + GraphQL, tenant-scoped
 |--------|------|---------|
 | GET | `/api/qrs/:id` | QR metadata |
 | GET | `/api/qrs/:id/image` | PNG download |
-| GET | `/api/qrs/by-plant/:plantId` | Lookup by plant |
 | POST | `/api/qrs/:id/regenerate` | New PNG, same URL |
 
-GraphQL: `qrFindById`, `qrFindByPlantId`, `qrRegenerate`.
+GraphQL: `qrFindById`, `qrRegenerate`. Plant lookup uses `plantFindById` (`qrId` + `targetUrl` on plant).
 
 ### Dependencies
 

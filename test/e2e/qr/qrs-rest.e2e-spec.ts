@@ -79,15 +79,15 @@ describe('QR REST API (e2e)', () => {
     };
   }
 
-  describe('POST /api/plants (QR auto-create)', () => {
+  describe('POST /api/plants (QR auto-create via plants)', () => {
     it('201 — plant response includes qrId and targetUrl', async () => {
       await createPlantWithQr();
     });
   });
 
   describe('GET /api/qrs/:id', () => {
-    it('200 — returns QR metadata', async () => {
-      const { qrId, plantId, targetUrl } = await createPlantWithQr();
+    it('200 — returns QR metadata without plant reference', async () => {
+      const { qrId, targetUrl } = await createPlantWithQr();
 
       const res = await ctx
         .http()
@@ -98,26 +98,11 @@ describe('QR REST API (e2e)', () => {
 
       expect(res.body).toMatchObject({
         id: qrId,
-        plantId,
         spaceId: auth.spaceId,
         targetUrl,
         generation: 1,
       });
-    });
-  });
-
-  describe('GET /api/qrs/by-plant/:plantId', () => {
-    it('200 — returns QR for plant', async () => {
-      const { plantId, qrId } = await createPlantWithQr();
-
-      const res = await ctx
-        .http()
-        .get(`/api/qrs/by-plant/${plantId}`)
-        .set('Authorization', `Bearer ${auth.token}`)
-        .set('X-Space-ID', auth.spaceId)
-        .expect(200);
-
-      expect(res.body).toMatchObject({ id: qrId, plantId });
+      expect(res.body.plantId).toBeUndefined();
     });
   });
 
@@ -171,7 +156,7 @@ describe('QR REST API (e2e)', () => {
     });
   });
 
-  describe('DELETE /api/plants/:id (QR cascade)', () => {
+  describe('DELETE /api/plants/:id (QR cascade via plants)', () => {
     it('204 — removes linked QR', async () => {
       const { plantId, qrId } = await createPlantWithQr();
 
@@ -188,15 +173,6 @@ describe('QR REST API (e2e)', () => {
         .set('Authorization', `Bearer ${auth.token}`)
         .set('X-Space-ID', auth.spaceId)
         .expect(404);
-
-      const byPlant = await ctx
-        .http()
-        .get(`/api/qrs/by-plant/${plantId}`)
-        .set('Authorization', `Bearer ${auth.token}`)
-        .set('X-Space-ID', auth.spaceId)
-        .expect(200);
-
-      expect(byPlant.body?.id).toBeUndefined();
     });
   });
 });

@@ -18,7 +18,7 @@
 **Goals:**
 
 - New `qr` bounded context with `QrAggregate`, persistence, REST + GraphQL.
-- 1:1 plant ↔ QR with `qrs.plant_id` UNIQUE and `plants.qr_id`.
+- 1:1 plant ↔ QR via `plants.qr_id` only; `qrs` rows are generic (no `plant_id`).
 - Auto-create QR on plant create; cascade delete on plant delete.
 - Regenerate PNG in place (stable URL for printed labels).
 - `QR_BASE_URL` config validated at boot.
@@ -29,7 +29,7 @@
 - S3 / filesystem PNG storage.
 - PNG bytes in GraphQL plant types or default plant list payloads.
 - Backfill migration for legacy plants (separate change).
-- QR types for non-plant entities.
+- Additional consumer types beyond plants (plants is first consumer only).
 
 ---
 
@@ -45,14 +45,15 @@
 
 ---
 
-### ADR-2: Dual FK (qrs.plant_id + plants.qr_id)
+### ADR-2: Link on plants + persistence FK on `qrs.plant_id`
 
 **Decision:**
 
-- `qrs.plant_id` UUID UNIQUE NOT NULL — canonical 1:1 from QR side.
-- `plants.qr_id` UUID nullable — denormalized pointer for fast plant reads.
+- `plants.qr_id` UUID nullable — denormalized pointer for fast reads; FK → `qrs(id) ON DELETE SET NULL`.
+- `qrs.plant_id` UUID nullable UNIQUE — persistence-only (not on `QrAggregate`); FK → `plants(id) ON DELETE CASCADE` so deleting a plant removes its QR at DB level.
+- `CreateQrCommand` may pass optional `plantId` only when persisting plant-owned QRs.
 
-**Rationale:** Queries by plant are common; avoid join-only lookups on every plant list.
+**Rationale:** Domain stays generic; DB enforces no orphan QRs for plant-linked rows. Future non-plant QRs leave `plant_id` null.
 
 ---
 
@@ -62,9 +63,10 @@
 
 ```text
 1. save plant + publish PlantCreated events
-2. qrId = await commandBus.execute(CreateQrForPlantCommand({ plantId, spaceId }))
-3. await commandBus.execute(SetPlantQrIdCommand({ plantId, qrId }))
-4. return plantId
+2. targetUrl = PlantQrTargetUrlBuilder.build(plantId, spaceId)
+3. qrId = await commandBus.execute(CreateQrCommand({ targetUrl, spaceId }))
+4. await commandBus.execute(SetPlantQrIdCommand({ plantId, qrId }))
+5. return plantId
 ```
 
 **Rationale:** No `@EventsHandler` pattern in repo; auth already chains commands; create response can include `qrId` without eventual consistency.
@@ -79,8 +81,8 @@
 CreatePlantHandler                    QrModule
       │                                  │
       ├─ save plant ─────────────────────┤
-      ├─ CreateQrForPlantCommand ───────►│ create QrAggregate
-      │                                  │ generate URL + PNG
+      ├─ CreateQrCommand ────────────────►│ create QrAggregate
+      │   (targetUrl from plants)        │ generate PNG
       │◄──────────── qrId ───────────────┤ persist qrs
       ├─ SetPlantQrIdCommand ───────────►│ update plants.qr_id
       └─ return plantId
@@ -114,10 +116,10 @@ CreatePlantHandler                    QrModule
 
 ### ADR-6: Target URL shape
 
-**Decision:** `{QR_BASE_URL}/plants/{plantId}?spaceId={spaceId}`
+**Decision:** Plants build `{QR_BASE_URL}/plants/{plantId}?spaceId={spaceId}` via `PlantQrTargetUrlBuilderService` and pass it to `CreateQrCommand`.
 
 - `QR_BASE_URL` from `src/core/config/app.config.ts` (trim trailing slash).
-- Persisted at create time in `qrs.target_url`.
+- Persisted in `qrs.target_url` as supplied by the caller.
 - **Not** an API URL (`/api/plants/...`).
 
 **Config:** Application MUST fail boot if `QR_BASE_URL` is unset.
@@ -132,7 +134,7 @@ AppModule
   └── QrModule       (exports command classes for CommandBus)
 ```
 
-- `CreateQrForPlantCommand`, `SetPlantQrIdCommand`, `DeleteQrByPlantIdCommand` registered in respective modules.
+- `CreateQrCommand`, `SetPlantQrIdCommand`, `DeleteQrCommand` registered in respective modules.
 - QR repos use `createTenantRepository(rawRepo, spaceContext)` on `space_id`.
 
 ---
@@ -141,7 +143,7 @@ AppModule
 
 | Surface | Returns |
 |---------|---------|
-| `GET /qrs/:id` | JSON metadata (`id`, `plantId`, `spaceId`, `targetUrl`, `generation`, timestamps) |
+| `GET /qrs/:id` | JSON metadata (`id`, `spaceId`, `targetUrl`, `generation`, timestamps) |
 | `GET /qrs/:id/image` | `image/png` (`StreamableFile`) |
 | GraphQL queries | Metadata only (no bytes) |
 
@@ -154,7 +156,6 @@ AppModule
 **Fields (private):**
 
 - `_id: QrIdValueObject`
-- `_plantId: UuidValueObject` (readonly)
 - `_spaceId: UuidValueObject` (readonly)
 - `_targetUrl: QrTargetUrlValueObject`
 - `_generation: number` (starts at 1)
@@ -179,8 +180,6 @@ AppModule
 | Exception | HTTP |
 |-----------|------|
 | `QrNotFoundException` | 404 |
-| `QrAlreadyExistsForPlantException` | 409 |
-| `QrPlantNotInSpaceException` | 403 |
 
 Register all in `base-exception.filter.ts`.
 
@@ -192,16 +191,15 @@ Register all in `base-exception.filter.ts`.
 
 | Command | Handler responsibility |
 |---------|------------------------|
-| `CreateQrForPlantCommand` | Assert no existing QR for plant; build URL; generate PNG; save; return `qrId` |
+| `CreateQrCommand` | Accept `targetUrl` + `spaceId`; generate PNG; save; return `qrId` |
 | `RegenerateQrCommand` | Load QR; regenerate PNG; `aggregate.regenerate()`; save |
-| `DeleteQrByPlantIdCommand` | Find by `plant_id`; delete row |
+| `DeleteQrCommand` | Delete by `qrId` (idempotent) |
 
 ### Queries
 
 | Query | Returns |
 |-------|---------|
 | `QrFindByIdQuery` | `QrViewModel` (no bytes) |
-| `QrFindByPlantIdQuery` | `QrViewModel \| null` |
 | `QrFindPngByIdQuery` | `Buffer` (infra read repo) |
 
 ### Services
@@ -218,7 +216,6 @@ Register all in `base-exception.filter.ts`.
 ```sql
 CREATE TABLE qrs (
   id UUID PRIMARY KEY,
-  plant_id UUID NOT NULL UNIQUE,
   space_id UUID NOT NULL,
   target_url VARCHAR(2000) NOT NULL,
   png_image BYTEA NOT NULL,
@@ -240,7 +237,8 @@ CREATE INDEX idx_qrs_space_id ON qrs(space_id);
 - `PlantAggregate` / primitives / view-model: optional `qrId`
 - `SetPlantQrIdCommand` in plants application layer
 - `CreatePlantCommandHandler`: orchestration (see ADR-3)
-- `DeletePlantCommandHandler`: `DeleteQrByPlantIdCommand` before or after plant delete
+- `DeletePlantCommandHandler`: `DeleteQrCommand({ qrId })` when `plant.qrId` is set
+- `PlantQrTargetUrlBuilderService` in plants application layer
 
 ---
 
@@ -268,7 +266,7 @@ src/contexts/qr/transport/
 | `PlantRestResponseDto` | `qrId?: string`, `targetUrl?: string` |
 | `PlantResponseDto` (GraphQL) | same |
 
-Populate via join/lookup in query handlers or optional `EnrichPlantWithQrService` in plants read layer calling `QrFindByPlantIdQuery` — design prefers **read-side enrichment in plant query handlers** to avoid N+1 in list (batch by `qrId` or left join in read repo v2; MVP: per-item lookup acceptable if list size small, or include `target_url` denormalized on plant VM later).
+Populate via `EnrichPlantWithQrService` calling `QrFindByIdQuery` when `plant.qrId` is set — batch by `qrId` list in list handlers when N+1 becomes an issue.
 
 **MVP recommendation:** store `qrId` on plant; resolve `targetUrl` via single QR query in `PlantFindById`; for criteria list, batch fetch QR metadata by `qrId` list in handler.
 

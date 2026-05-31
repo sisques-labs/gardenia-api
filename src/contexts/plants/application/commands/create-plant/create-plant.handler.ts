@@ -5,7 +5,8 @@ import {
   EventBus,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { CreateQrForPlantCommand } from '@contexts/qr/application/commands/create-qr-for-plant/create-qr-for-plant.command';
+import { CreateQrCommand } from '@contexts/qr/application/commands/create-qr/create-qr.command';
+import { PlantQrTargetUrlBuilderService } from '../../services/read/plant-qr-target-url-builder/plant-qr-target-url-builder.service';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
@@ -32,6 +33,7 @@ export class CreatePlantCommandHandler
     private readonly plantBuilder: PlantBuilder,
     private readonly spaceContext: SpaceContext,
     private readonly commandBus: CommandBus,
+    private readonly plantQrTargetUrlBuilder: PlantQrTargetUrlBuilderService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -57,11 +59,12 @@ export class CreatePlantCommandHandler
     await this.publishEvents(plant);
 
     const spaceId = this.spaceContext.require();
-    const qrId = await this.commandBus.execute<CreateQrForPlantCommand, string>(
-      new CreateQrForPlantCommand({
-        plantId: plant.id.value,
-        spaceId,
-      }),
+    const targetUrl = this.plantQrTargetUrlBuilder.build(
+      plant.id.value,
+      spaceId,
+    );
+    const qrId = await this.commandBus.execute<CreateQrCommand, string>(
+      new CreateQrCommand({ targetUrl, spaceId, plantId: plant.id.value }),
     );
 
     await this.commandBus.execute(

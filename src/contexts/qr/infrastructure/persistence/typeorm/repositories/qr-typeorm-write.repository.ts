@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
-import { IQrWriteRepository } from '@contexts/qr/domain/repositories/write/qr-write.repository';
+import {
+  IQrWriteRepository,
+  QrSaveOptions,
+} from '@contexts/qr/domain/repositories/write/qr-write.repository';
 import { SpaceContext } from '../../../../../../shared/space-context/space-context.service';
 import { createTenantRepository } from '../../../../../../shared/tenant-repository/create-tenant-repository.factory';
 import { QrTypeOrmEntity } from '../entities/qr.entity';
@@ -27,18 +30,27 @@ export class QrTypeOrmWriteRepository implements IQrWriteRepository {
     return entity ? this.mapper.toAggregate(entity) : null;
   }
 
-  async findByPlantId(plantId: string): Promise<QrAggregate | null> {
-    const entity = await this.repository.findOne({ where: { plantId } });
-    return entity ? this.mapper.toAggregate(entity) : null;
-  }
+  async save(
+    aggregate: QrAggregate,
+    pngImage: Buffer,
+    options?: QrSaveOptions,
+  ): Promise<QrAggregate> {
+    const entity = this.mapper.toEntity(aggregate, pngImage, options);
 
-  async save(aggregate: QrAggregate, pngImage: Buffer): Promise<QrAggregate> {
-    const entity = this.mapper.toEntity(aggregate, pngImage);
+    if (!options?.plantId) {
+      const existing = await this.repository.findOne({
+        where: { id: entity.id },
+      });
+      if (existing) {
+        entity.plantId = existing.plantId;
+      }
+    }
+
     await this.repository.save(entity);
     return this.mapper.toAggregate(entity);
   }
 
-  async deleteByPlantId(plantId: string): Promise<void> {
-    await this.repository.delete({ plantId });
+  async delete(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 }

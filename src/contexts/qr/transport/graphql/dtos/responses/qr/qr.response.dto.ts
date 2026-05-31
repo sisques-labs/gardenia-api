@@ -6,9 +6,6 @@ export class QrResponseDto {
   id!: string;
 
   @Field(() => ID)
-  plantId!: string;
-
-  @Field(() => ID)
   spaceId!: string;
 
   @Field(() => String)

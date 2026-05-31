@@ -16,6 +16,8 @@ import { AddSpaceIdToUsers1780000000004 } from '../../src/database/migrations/17
 import { CreatePlants1780000000005 } from '../../src/database/migrations/1780000000005-CreatePlants';
 import { CreateQrs1780000000006 } from '../../src/database/migrations/1780000000006-CreateQrs';
 import { AddQrIdToPlants1780000000007 } from '../../src/database/migrations/1780000000007-AddQrIdToPlants';
+import { DropPlantIdFromQrs1780000000008 } from '../../src/database/migrations/1780000000008-DropPlantIdFromQrs';
+import { AddPlantQrForeignKeys1780000000009 } from '../../src/database/migrations/1780000000009-AddPlantQrForeignKeys';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -37,6 +39,8 @@ const TEST_MIGRATIONS = [
   CreatePlants1780000000005,
   CreateQrs1780000000006,
   AddQrIdToPlants1780000000007,
+  DropPlantIdFromQrs1780000000008,
+  AddPlantQrForeignKeys1780000000009,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

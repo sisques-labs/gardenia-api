@@ -49,11 +49,20 @@ describe('CreatePlantCommandHandler', () => {
         .mockResolvedValueOnce(undefined),
     } as unknown as jest.Mocked<CommandBus>;
 
+    const plantQrTargetUrlBuilder = {
+      build: jest
+        .fn()
+        .mockReturnValue(
+          `http://localhost:3000/plants/mock?spaceId=${SPACE_ID}`,
+        ),
+    };
+
     handler = new CreatePlantCommandHandler(
       writeRepository,
       plantBuilder,
       spaceContext,
       commandBus,
+      plantQrTargetUrlBuilder as never,
       eventBus,
     );
   });

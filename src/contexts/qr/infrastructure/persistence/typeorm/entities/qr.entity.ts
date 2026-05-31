@@ -11,11 +11,12 @@ export class QrTypeOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'plant_id', type: 'uuid', nullable: false, unique: true })
-  plantId!: string;
-
   @Column({ name: 'space_id', type: 'uuid', nullable: false })
   spaceId!: string;
+
+  /** Persistence-only FK to plants; not mapped to QrAggregate. */
+  @Column({ name: 'plant_id', type: 'uuid', nullable: true })
+  plantId!: string | null;
 
   @Column({
     name: 'target_url',

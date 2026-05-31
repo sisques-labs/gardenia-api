@@ -27,11 +27,6 @@ export class QrTypeOrmReadRepository implements IQrReadRepository {
     return entity ? this.mapper.toViewModel(entity) : null;
   }
 
-  async findByPlantId(plantId: string): Promise<QrViewModel | null> {
-    const entity = await this.repository.findOne({ where: { plantId } });
-    return entity ? this.mapper.toViewModel(entity) : null;
-  }
-
   async findPngById(id: string): Promise<Buffer | null> {
     const entity = await this.repository.findOne({
       where: { id },

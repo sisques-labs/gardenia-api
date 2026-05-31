@@ -7,17 +7,15 @@ import { QrTargetUrlValueObject } from '../value-objects/qr-target-url/qr-target
 import { QrAggregate } from './qr.aggregate';
 
 const QR_ID = '550e8400-e29b-41d4-a716-446655440000';
-const PLANT_ID = '550e8400-e29b-41d4-a716-446655440001';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';
 const NOW = new Date('2024-01-01');
 
 const buildQr = (): QrAggregate =>
   new QrAggregate({
     id: new QrIdValueObject(QR_ID),
-    plantId: new UuidValueObject(PLANT_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     targetUrl: new QrTargetUrlValueObject(
-      `http://localhost:3000/plants/${PLANT_ID}?spaceId=${SPACE_ID}`,
+      `http://localhost:3000/plants/example?spaceId=${SPACE_ID}`,
     ),
     generation: 1,
     createdAt: new DateValueObject(NOW),

@@ -8,7 +8,6 @@ export class QrGraphQLMapper {
   toResponseDtoFromViewModel(vm: QrViewModel): QrResponseDto {
     return {
       id: vm.id,
-      plantId: vm.plantId,
       spaceId: vm.spaceId,
       targetUrl: vm.targetUrl,
       generation: vm.generation,

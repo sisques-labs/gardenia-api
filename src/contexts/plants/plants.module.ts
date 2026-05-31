@@ -10,6 +10,7 @@ import { PlantFindByCriteriaQueryHandler } from './application/queries/plant-fin
 import { PlantFindByIdQueryHandler } from './application/queries/plant-find-by-id/plant-find-by-id.handler';
 import { AssertPlantViewModelExistsService } from './application/services/read/assert-plant-view-model-exists/assert-plant-view-model-exists.service';
 import { EnrichPlantWithQrService } from './application/services/read/enrich-plant-with-qr/enrich-plant-with-qr.service';
+import { PlantQrTargetUrlBuilderService } from './application/services/read/plant-qr-target-url-builder/plant-qr-target-url-builder.service';
 import { AssertPlantExistsService } from './application/services/write/assert-plant-exists/assert-plant-exists.service';
 import { PlantBuilder } from './domain/builders/plant.builder';
 import { PLANT_READ_REPOSITORY } from './domain/repositories/read/plant-read.repository';
@@ -41,6 +42,7 @@ const APPLICATION_SERVICES = [
   AssertPlantViewModelExistsService,
   AssertPlantExistsService,
   EnrichPlantWithQrService,
+  PlantQrTargetUrlBuilderService,
 ];
 
 const DOMAIN_BUILDERS = [PlantBuilder];

@@ -13,15 +13,9 @@ import { QrViewModel } from '../view-models/qr.view-model';
 
 @Injectable()
 export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
-  private _plantId!: string;
   private _spaceId!: string;
   private _targetUrl!: string;
   private _generation = 1;
-
-  withPlantId(plantId: string): this {
-    this._plantId = plantId;
-    return this;
-  }
 
   withSpaceId(spaceId: string): this {
     this._spaceId = spaceId;
@@ -42,7 +36,6 @@ export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
     this.validate();
     return new QrAggregate({
       id: new QrIdValueObject(this._id),
-      plantId: new UuidValueObject(this._plantId),
       spaceId: new UuidValueObject(this._spaceId),
       targetUrl: new QrTargetUrlValueObject(this._targetUrl),
       generation: this._generation,
@@ -55,7 +48,6 @@ export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
     this.validate();
     return new QrViewModel({
       id: this._id,
-      plantId: this._plantId,
       spaceId: this._spaceId,
       targetUrl: this._targetUrl,
       generation: this._generation,
@@ -66,7 +58,6 @@ export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
 
   public override validate(): void {
     super.validate();
-    if (!this._plantId) throw new FieldIsRequiredException('plantId');
     if (!this._spaceId) throw new FieldIsRequiredException('spaceId');
     if (!this._targetUrl) throw new FieldIsRequiredException('targetUrl');
   }

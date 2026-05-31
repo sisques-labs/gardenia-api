@@ -16,10 +16,9 @@ import { truncateAll } from '../../helpers/db-reset';
 const NOW = new Date('2024-06-01T00:00:00.000Z');
 const PLACEHOLDER_SPACE_ID = randomUUID();
 
-function buildQr(plantId: string, targetUrl: string) {
+function buildQr(targetUrl: string) {
   return new QrBuilder()
     .withId(randomUUID())
-    .withPlantId(plantId)
     .withSpaceId(PLACEHOLDER_SPACE_ID)
     .withTargetUrl(targetUrl)
     .withGeneration(1)
@@ -48,53 +47,56 @@ describe('QrTypeOrmWriteRepository (integration)', () => {
     await truncateAll(ctx.dataSource);
   });
 
-  it('persists QR with PNG and finds by plant id', async () => {
-    const plantId = randomUUID();
-    const targetUrl = `http://localhost:3000/plants/${plantId}?spaceId=${spaceAId}`;
+  it('persists QR with PNG and finds by id', async () => {
+    const targetUrl = `http://localhost:3000/resource/${randomUUID()}`;
     const png = Buffer.from('fake-png');
 
+    let qrId: string;
+
     await ctx.spaceContext.run(spaceAId, async () => {
-      const qr = buildQr(plantId, targetUrl);
+      const qr = buildQr(targetUrl);
       qr.create();
       const saved = await qrWriteRepo.save(qr, png);
 
-      expect(saved.id.value).toBe(qr.id.value);
       expect(saved.targetUrl.value).toBe(targetUrl);
+      qrId = saved.id.value;
+    });
 
-      const found = await qrWriteRepo.findByPlantId(plantId);
+    await ctx.spaceContext.run(spaceAId, async () => {
+      const found = await qrWriteRepo.findById(qrId!);
       expect(found).not.toBeNull();
-      expect(found!.plantId.value).toBe(plantId);
+      expect(found!.targetUrl.value).toBe(targetUrl);
     });
   });
 
-  it('findByPlantId returns null for QR in another space', async () => {
-    const plantId = randomUUID();
-    const targetUrl = `http://localhost:3000/plants/${plantId}?spaceId=${spaceAId}`;
+  it('findById returns null for QR in another space', async () => {
+    const targetUrl = `http://localhost:3000/resource/${randomUUID()}`;
+    let qrId: string;
 
     await ctx.spaceContext.run(spaceAId, async () => {
-      const qr = buildQr(plantId, targetUrl);
+      const qr = buildQr(targetUrl);
       qr.create();
-      await qrWriteRepo.save(qr, Buffer.from('png'));
+      const saved = await qrWriteRepo.save(qr, Buffer.from('png'));
+      qrId = saved.id.value;
     });
 
     await ctx.spaceContext.run(spaceBId, async () => {
-      const found = await qrWriteRepo.findByPlantId(plantId);
+      const found = await qrWriteRepo.findById(qrId!);
       expect(found).toBeNull();
     });
   });
 
-  it('deleteByPlantId removes the QR row', async () => {
-    const plantId = randomUUID();
-    const targetUrl = `http://localhost:3000/plants/${plantId}?spaceId=${spaceAId}`;
+  it('delete removes the QR row', async () => {
+    const targetUrl = `http://localhost:3000/resource/${randomUUID()}`;
 
     await ctx.spaceContext.run(spaceAId, async () => {
-      const qr = buildQr(plantId, targetUrl);
+      const qr = buildQr(targetUrl);
       qr.create();
-      await qrWriteRepo.save(qr, Buffer.from('png'));
+      const saved = await qrWriteRepo.save(qr, Buffer.from('png'));
 
-      await qrWriteRepo.deleteByPlantId(plantId);
+      await qrWriteRepo.delete(saved.id.value);
 
-      const found = await qrWriteRepo.findByPlantId(plantId);
+      const found = await qrWriteRepo.findById(saved.id.value);
       expect(found).toBeNull();
     });
   });

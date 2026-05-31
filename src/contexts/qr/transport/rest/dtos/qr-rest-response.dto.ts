@@ -5,9 +5,6 @@ export class QrRestResponseDto {
   id!: string;
 
   @ApiProperty()
-  plantId!: string;
-
-  @ApiProperty()
   spaceId!: string;
 
   @ApiProperty()

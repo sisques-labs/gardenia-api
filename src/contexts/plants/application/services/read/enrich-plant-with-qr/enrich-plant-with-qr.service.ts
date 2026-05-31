@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
-import { QrFindByPlantIdQuery } from '@contexts/qr/application/queries/qr-find-by-plant-id/qr-find-by-plant-id.query';
+import { QrFindByIdQuery } from '@contexts/qr/application/queries/qr-find-by-id/qr-find-by-id.query';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
 
@@ -10,14 +10,13 @@ export class EnrichPlantWithQrService {
   constructor(private readonly queryBus: QueryBus) {}
 
   async execute(plant: PlantViewModel): Promise<PlantViewModel> {
-    const qr = await this.queryBus.execute<
-      QrFindByPlantIdQuery,
-      QrViewModel | null
-    >(new QrFindByPlantIdQuery({ plantId: plant.id }));
-
-    if (!qr) {
+    if (!plant.qrId) {
       return plant;
     }
+
+    const qr = await this.queryBus.execute<QrFindByIdQuery, QrViewModel>(
+      new QrFindByIdQuery({ qrId: plant.qrId }),
+    );
 
     return new PlantViewModel({
       id: plant.id,

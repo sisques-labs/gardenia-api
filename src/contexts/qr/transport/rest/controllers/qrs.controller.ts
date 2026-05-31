@@ -21,7 +21,6 @@ import {
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { RegenerateQrCommand } from '@contexts/qr/application/commands/regenerate-qr/regenerate-qr.command';
 import { QrFindByIdQuery } from '@contexts/qr/application/queries/qr-find-by-id/qr-find-by-id.query';
-import { QrFindByPlantIdQuery } from '@contexts/qr/application/queries/qr-find-by-plant-id/qr-find-by-plant-id.query';
 import { QrFindPngByIdQuery } from '@contexts/qr/application/queries/qr-find-png-by-id/qr-find-png-by-id.query';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
@@ -37,21 +36,6 @@ export class QrsController {
     private readonly queryBus: QueryBus,
     private readonly qrRestMapper: QrRestMapper,
   ) {}
-
-  @Get('by-plant/:plantId')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get QR metadata by plant id' })
-  @ApiResponse({ status: 200, type: QrRestResponseDto })
-  async findByPlantId(
-    @Param('plantId', ParseUUIDPipe) plantId: string,
-  ): Promise<QrRestResponseDto | null> {
-    const result = await this.queryBus.execute<
-      QrFindByPlantIdQuery,
-      QrViewModel | null
-    >(new QrFindByPlantIdQuery({ plantId }));
-
-    return result ? this.qrRestMapper.toResponseDto(result) : null;
-  }
 
   @Get(':id/image')
   @UseGuards(JwtAuthGuard)

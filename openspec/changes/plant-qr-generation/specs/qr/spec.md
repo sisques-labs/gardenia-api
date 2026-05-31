@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This spec governs the **`qr`** bounded context — persisted QR records linked 1:1 to plants. Each record stores a **frontend deep link** (`target_url`) and a **PNG image** (`png_image`). Operations are tenant-scoped by `space_id`. Scanning is handled by the frontend with existing JWT + space guards; this context does **not** expose anonymous public endpoints in MVP.
+This spec governs the **`qr`** bounded context — persisted QR records that encode arbitrary **frontend deep links** (`target_url`) plus a **PNG image** (`png_image`). QRs are **not** tied to plants in this context; consumers (e.g. `plants`) link via their own `qr_id` field. Operations are tenant-scoped by `space_id`. Scanning is handled by the frontend with existing JWT + space guards; this context does **not** expose anonymous public endpoints in MVP.
 
 ---
 
@@ -10,13 +10,15 @@ This spec governs the **`qr`** bounded context — persisted QR records linked 1
 
 ### Requirement: QrAggregate Identity and Fields
 
-The QrAggregate MUST carry: `id` (UUID), `plantId` (UUID, unique per QR), `spaceId` (UUID, tenant), `targetUrl` (non-empty string, max 2000 chars), and `generation` (positive integer, starts at 1).
+The QrAggregate MUST carry: `id` (UUID), `spaceId` (UUID, tenant), `targetUrl` (non-empty string, max 2000 chars), and `generation` (positive integer, starts at 1).
+
+The aggregate MUST NOT reference `plantId` or any other consumer entity.
 
 The aggregate MUST NOT hold PNG bytes — binary data lives only in infrastructure persistence.
 
 #### Scenario: Valid QR aggregate created
 
-- **GIVEN** a plantId, spaceId, and a valid targetUrl
+- **GIVEN** a spaceId and a valid targetUrl
 - **WHEN** a QrAggregate is built and `create()` is called
 - **THEN** the aggregate is valid and QrCreatedEvent is emitted
 
@@ -28,30 +30,24 @@ The aggregate MUST NOT hold PNG bytes — binary data lives only in infrastructu
 
 ---
 
-### Requirement: CreateQrForPlant Command
+### Requirement: CreateQr Command
 
-The system MUST allow creating exactly one QR per plant.
+The system MUST allow creating a QR when given a caller-supplied `targetUrl` and `spaceId`.
 
-The command MUST accept `plantId` and `spaceId`. The handler MUST:
+The handler MUST:
 
-1. Assert no QR already exists for `plantId` (throw `QrAlreadyExistsForPlantException` if duplicate).
-2. Build `targetUrl` as `{QR_BASE_URL}/plants/{plantId}?spaceId={spaceId}` where `QR_BASE_URL` comes from application config.
-3. Generate a PNG encoding `targetUrl` via the QR PNG generator port.
-4. Persist the QR row including BYTEA PNG.
-5. Emit `QrCreatedEvent`.
-6. Return the new `qrId`.
+1. Generate a PNG encoding `targetUrl` via the QR PNG generator port.
+2. Persist the QR row including BYTEA PNG.
+3. Emit `QrCreatedEvent`.
+4. Return the new `qrId`.
 
-#### Scenario: Happy path — QR created for plant
+The `qr` context MUST NOT build plant-specific URLs; callers (e.g. `plants`) supply `targetUrl`.
 
-- **GIVEN** a plantId with no existing QR in the active space
-- **WHEN** CreateQrForPlant is dispatched
+#### Scenario: Happy path — QR created
+
+- **GIVEN** a valid targetUrl and spaceId
+- **WHEN** CreateQr is dispatched
 - **THEN** a QR row is persisted, QrCreatedEvent is emitted, and qrId is returned
-
-#### Scenario: Duplicate QR for same plant rejected
-
-- **GIVEN** a plantId that already has a QR
-- **WHEN** CreateQrForPlant is dispatched again for the same plantId
-- **THEN** QrAlreadyExistsForPlantException is thrown and HTTP 409 is returned
 
 ---
 
@@ -81,42 +77,36 @@ The handler MUST:
 
 ---
 
-### Requirement: DeleteQrByPlantId Command
+### Requirement: DeleteQr Command
 
-The system MUST delete the QR linked to a plant when invoked.
+The system MUST delete a QR by `qrId` when invoked.
 
-If no QR exists for the plant, the command MUST complete without error (idempotent).
+If the QR does not exist, the command MUST complete without error (idempotent).
 
-#### Scenario: QR deleted for plant
+#### Scenario: QR deleted by id
 
-- **GIVEN** a plant with a linked QR
-- **WHEN** DeleteQrByPlantId is dispatched with that plantId
+- **GIVEN** an existing qrId in the active space
+- **WHEN** DeleteQr is dispatched with that qrId
 - **THEN** the QR row is removed and QrDeletedEvent is emitted
 
-#### Scenario: No QR for plant — no-op
+#### Scenario: Missing QR — no-op
 
-- **GIVEN** a plant with qr_id null and no qrs row
-- **WHEN** DeleteQrByPlantId is dispatched
+- **GIVEN** a qrId that does not exist
+- **WHEN** DeleteQr is dispatched
 - **THEN** the command completes successfully with no side effects
 
 ---
 
-### Requirement: QrFindById and QrFindByPlantId Queries
+### Requirement: QrFindById Query
 
-The system MUST return QrViewModel metadata (id, plantId, spaceId, targetUrl, generation, createdAt, updatedAt) scoped to the active space.
+The system MUST return QrViewModel metadata (id, spaceId, targetUrl, generation, createdAt, updatedAt) scoped to the active space.
 
-QrViewModel MUST NOT include PNG bytes.
+QrViewModel MUST NOT include PNG bytes or plant references.
 
 #### Scenario: Find by id — found
 
 - **GIVEN** a qrId in the active space
 - **WHEN** QrFindById is dispatched
-- **THEN** QrViewModel is returned
-
-#### Scenario: Find by plant id — found
-
-- **GIVEN** a plant with a linked QR in the active space
-- **WHEN** QrFindByPlantId is dispatched
 - **THEN** QrViewModel is returned
 
 #### Scenario: Cross-space QR invisible
@@ -155,8 +145,9 @@ The system MUST expose the following REST endpoints, all guarded by JwtAuthGuard
 |--------|------|---------|
 | GET | /qrs/:id | QrFindById |
 | GET | /qrs/:id/image | Qr PNG download |
-| GET | /qrs/by-plant/:plantId | QrFindByPlantId |
 | POST | /qrs/:id/regenerate | RegenerateQr |
+
+Lookup by plant is **not** exposed in the `qr` context; use `PlantFindById` (plants owns `qr_id`).
 
 #### Scenario: Regenerate via REST
 
@@ -170,22 +161,16 @@ The system MUST expose the following REST endpoints, all guarded by JwtAuthGuard
 
 The system MUST expose:
 
-- **Queries:** `qrFindById(id: ID!): QrType`, `qrFindByPlantId(plantId: ID!): QrType`
+- **Query:** `qrFindById(id: ID!): QrType`
 - **Mutation:** `qrRegenerate(id: ID!): MutationResponseDto`
 
-Resolvers MUST dispatch exclusively via QueryBus/CommandBus. GraphQL types MUST NOT expose PNG bytes.
-
-#### Scenario: GraphQL find by plant id
-
-- **GIVEN** a plant with linked QR
-- **WHEN** qrFindByPlantId is queried with valid auth and space
-- **THEN** QrType with targetUrl and generation is returned
+Resolvers MUST dispatch exclusively via QueryBus/CommandBus. GraphQL types MUST NOT expose PNG bytes or plantId.
 
 ---
 
 ### Requirement: QR Base URL Configuration
 
-The application MUST require `QR_BASE_URL` to be set at boot.
+`QR_BASE_URL` is required at application boot for **consumers** that build deep links (e.g. `plants`). The `qr` bounded context does not read plant routes from config when creating a QR — it only persists the `targetUrl` provided by the caller.
 
 If `QR_BASE_URL` is missing, the application MUST fail to start with a clear configuration error.
 
@@ -209,6 +194,6 @@ If `QR_BASE_URL` is missing, the application MUST fail to start with a clear con
 ## Out of Scope
 
 - Public/anonymous QR resolution API
-- Signed tokens, QR for non-plant entities
+- `plantId` (or other entity ids) on `qrs` table or QrAggregate
 - S3 or filesystem PNG storage
 - Base64 PNG in GraphQL responses

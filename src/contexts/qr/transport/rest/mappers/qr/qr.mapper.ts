@@ -8,7 +8,6 @@ export class QrRestMapper {
   toResponseDto(viewModel: QrViewModel): QrRestResponseDto {
     const dto = new QrRestResponseDto();
     dto.id = viewModel.id;
-    dto.plantId = viewModel.plantId;
     dto.spaceId = viewModel.spaceId;
     dto.targetUrl = viewModel.targetUrl;
     dto.generation = viewModel.generation;

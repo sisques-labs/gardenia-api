@@ -4,13 +4,11 @@ import { StreamableFile } from '@nestjs/common';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 import { RegenerateQrCommand } from '@contexts/qr/application/commands/regenerate-qr/regenerate-qr.command';
 import { QrFindByIdQuery } from '@contexts/qr/application/queries/qr-find-by-id/qr-find-by-id.query';
-import { QrFindByPlantIdQuery } from '@contexts/qr/application/queries/qr-find-by-plant-id/qr-find-by-plant-id.query';
 import { QrFindPngByIdQuery } from '@contexts/qr/application/queries/qr-find-png-by-id/qr-find-png-by-id.query';
 import { QrRestMapper } from '../mappers/qr/qr.mapper';
 import { QrsController } from './qrs.controller';
 
 const QR_ID = 'a1b2c3d4-e5f6-4890-abcd-ef1234567890';
-const PLANT_ID = 'b2c3d4e5-f6a7-4901-bcde-f12345678901';
 const SPACE_ID = 'c3d4e5f6-a7b8-4012-cdef-123456789012';
 
 describe('QrsController', () => {
@@ -22,9 +20,8 @@ describe('QrsController', () => {
   const now = new Date('2024-01-01T00:00:00Z');
   const mockVm = new QrViewModel({
     id: QR_ID,
-    plantId: PLANT_ID,
     spaceId: SPACE_ID,
-    targetUrl: `http://localhost:3000/plants/${PLANT_ID}?spaceId=${SPACE_ID}`,
+    targetUrl: 'http://localhost:3000/plants/example?spaceId=abc',
     generation: 1,
     createdAt: now,
     updatedAt: now,
@@ -46,7 +43,6 @@ describe('QrsController', () => {
     queryBus.execute.mockResolvedValueOnce(mockVm);
     mapper.toResponseDto.mockReturnValueOnce({
       id: QR_ID,
-      plantId: PLANT_ID,
       spaceId: SPACE_ID,
       targetUrl: mockVm.targetUrl,
       generation: 1,
@@ -58,34 +54,6 @@ describe('QrsController', () => {
 
     expect(queryBus.execute).toHaveBeenCalledWith(expect.any(QrFindByIdQuery));
     expect(result.id).toBe(QR_ID);
-  });
-
-  it('findByPlantId dispatches QrFindByPlantIdQuery', async () => {
-    queryBus.execute.mockResolvedValueOnce(mockVm);
-    mapper.toResponseDto.mockReturnValueOnce({
-      id: QR_ID,
-      plantId: PLANT_ID,
-      spaceId: SPACE_ID,
-      targetUrl: mockVm.targetUrl,
-      generation: 1,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    await controller.findByPlantId(PLANT_ID);
-
-    expect(queryBus.execute).toHaveBeenCalledWith(
-      expect.any(QrFindByPlantIdQuery),
-    );
-  });
-
-  it('findByPlantId returns null when query returns null', async () => {
-    queryBus.execute.mockResolvedValueOnce(null);
-
-    const result = await controller.findByPlantId(PLANT_ID);
-
-    expect(result).toBeNull();
-    expect(mapper.toResponseDto).not.toHaveBeenCalled();
   });
 
   it('downloadImage dispatches QrFindPngByIdQuery and returns StreamableFile', async () => {

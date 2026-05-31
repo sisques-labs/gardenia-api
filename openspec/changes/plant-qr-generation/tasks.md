@@ -25,21 +25,21 @@
 - [x] 1.3 Create `QrAggregate`, `IQr`, `IQrPrimitives`, `QrViewModel`, `QrBuilder`
 - [x] 1.4 Create VOs: `QrIdValueObject`, `QrTargetUrlValueObject`
 - [x] 1.5 Create events: `QrCreatedEvent`, `QrRegeneratedEvent`, `QrDeletedEvent`
-- [x] 1.6 Create exceptions: `QrNotFoundException`, `QrAlreadyExistsForPlantException` — register in `base-exception.filter.ts`
+- [x] 1.6 Create exceptions: `QrNotFoundException` — register in `base-exception.filter.ts`
 - [x] 1.7 Create read/write repository interfaces + DI tokens
 
 ### 1.3 Application layer
 
-- [x] 1.8 Create `CreateQrForPlantCommand` + handler (URL build, PNG gen, save)
+- [x] 1.8 Create `CreateQrCommand` + handler (caller `targetUrl`, PNG gen, save)
 - [x] 1.9 Create `RegenerateQrCommand` + handler
-- [x] 1.10 Create `DeleteQrByPlantIdCommand` + handler
-- [x] 1.11 Create `QrFindByIdQuery`, `QrFindByPlantIdQuery`, `QrFindPngByIdQuery` + handlers
+- [x] 1.10 Create `DeleteQrCommand` + handler
+- [x] 1.11 Create `QrFindByIdQuery`, `QrFindPngByIdQuery` + handlers
 - [x] 1.12 Create `IQrPngGenerator` port + `AssertQrExists` / `AssertQrViewModelExists` services
 - [x] 1.13 Unit specs: aggregate, handlers (mocked repos + PNG generator)
 
 ### 1.4 Infrastructure
 
-- [x] 1.14 Create `QrTypeOrmEntity` (`qrs` table: id, plant_id UNIQUE, space_id, target_url, png_image BYTEA, generation, timestamps)
+- [x] 1.14 Create `QrTypeOrmEntity` (`qrs` table: id, space_id, target_url, png_image BYTEA, generation, timestamps)
 - [x] 1.15 Create migration `{timestamp}-CreateQrs.ts`
 - [x] 1.16 Create `QrTypeOrmMapper`, read/write repositories with `createTenantRepository`
 - [x] 1.17 Create `QrPngGeneratorService` implementing `IQrPngGenerator` using `qrcode`
@@ -53,14 +53,14 @@
 
 ### 2.1 REST
 
-- [x] 2.1 Create `QrsController` — `GET /:id`, `GET /:id/image`, `GET /by-plant/:plantId`, `POST /:id/regenerate`
+- [x] 2.1 Create `QrsController` — `GET /:id`, `GET /:id/image`, `POST /:id/regenerate`
 - [x] 2.2 Create REST DTOs + `QrRestMapper` + response types (metadata only)
 - [x] 2.3 Unit specs: controller (mocked buses), mapper
 
 ### 2.2 GraphQL
 
 - [x] 2.4 Create `QrResponseDto`, `qr-registered-enums.graphql.ts` scaffold
-- [x] 2.5 Create `QrQueriesResolver` (`qrFindById`, `qrFindByPlantId`)
+- [x] 2.5 Create `QrQueriesResolver` (`qrFindById`)
 - [x] 2.6 Create `QrMutationsResolver` (`qrRegenerate`)
 - [x] 2.7 Create `QrGraphQLMapper` + unit specs
 - [x] 2.8 Wire `GRAPHQL_PROVIDERS` + `REST_PROVIDERS` in `qr.module.ts`

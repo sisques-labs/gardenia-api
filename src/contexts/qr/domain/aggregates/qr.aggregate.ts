@@ -10,7 +10,6 @@ import { QrTargetUrlValueObject } from '../value-objects/qr-target-url/qr-target
 
 export class QrAggregate extends BaseAggregate {
   private readonly _id: QrIdValueObject;
-  private readonly _plantId: UuidValueObject;
   private readonly _spaceId: UuidValueObject;
   private readonly _targetUrl: QrTargetUrlValueObject;
   private _generation: number;
@@ -18,7 +17,6 @@ export class QrAggregate extends BaseAggregate {
   constructor(props: IQr) {
     super(props.createdAt, props.updatedAt);
     this._id = props.id;
-    this._plantId = props.plantId;
     this._spaceId = props.spaceId;
     this._targetUrl = props.targetUrl;
     this._generation = props.generation;
@@ -74,7 +72,6 @@ export class QrAggregate extends BaseAggregate {
   public toPrimitives(): IQrPrimitives {
     return {
       id: this._id.value,
-      plantId: this._plantId.value,
       spaceId: this._spaceId.value,
       targetUrl: this._targetUrl.value,
       generation: this._generation,
@@ -85,10 +82,6 @@ export class QrAggregate extends BaseAggregate {
 
   get id(): QrIdValueObject {
     return this._id;
-  }
-
-  get plantId(): UuidValueObject {
-    return this._plantId;
   }
 
   get spaceId(): UuidValueObject {

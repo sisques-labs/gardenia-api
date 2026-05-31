@@ -56,11 +56,12 @@ The command MUST accept `name` (required), `species` (optional), `imageUrl` (opt
 
 On success the handler MUST emit `PlantCreated`, persist the plant, then MUST orchestrate QR creation by:
 
-1. Dispatching `CreateQrForPlantCommand` with `plantId` and `spaceId`.
-2. Dispatching `SetPlantQrIdCommand` with the returned `qrId`.
-3. Returning the new `plantId`.
+1. Building `targetUrl` as `{QR_BASE_URL}/plants/{plantId}?spaceId={spaceId}` (plants application layer).
+2. Dispatching `CreateQrCommand` with `targetUrl` and `spaceId`.
+3. Dispatching `SetPlantQrIdCommand` with the returned `qrId`.
+4. Returning the new `plantId`.
 
-If `CreateQrForPlantCommand` fails after the plant is saved, the handler MUST propagate the error (plant may exist without QR until a follow-up fix — documented operational risk).
+If `CreateQrCommand` fails after the plant is saved, the handler MUST propagate the error (plant may exist without QR until a follow-up fix — documented operational risk).
 
 #### Scenario: Happy path — plant created with QR
 
@@ -82,7 +83,7 @@ The system MUST allow only the plant owner to delete a plant.
 
 The handler MUST load the plant from the tenant-scoped repository, compare `plant.userId` with `requestingUserId`, and throw `NotPlantOwnerException` when they differ.
 
-Before or after removing the plant aggregate, the handler MUST dispatch `DeleteQrByPlantIdCommand` for the plant's id to remove any linked QR (idempotent).
+The handler MUST delete the plant row only; linked QR rows MUST be removed by DB `ON DELETE CASCADE` via `qrs.plant_id` (application-level `DeleteQrCommand` is not required for this flow).
 
 On success the handler MUST emit `PlantDeleted`.
 

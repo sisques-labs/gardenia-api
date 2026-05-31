@@ -2,13 +2,11 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { CreateQrForPlantCommandHandler } from './application/commands/create-qr-for-plant/create-qr-for-plant.handler';
-import { DeleteQrByPlantIdCommandHandler } from './application/commands/delete-qr-by-plant-id/delete-qr-by-plant-id.handler';
+import { CreateQrCommandHandler } from './application/commands/create-qr/create-qr.handler';
+import { DeleteQrCommandHandler } from './application/commands/delete-qr/delete-qr.handler';
 import { RegenerateQrCommandHandler } from './application/commands/regenerate-qr/regenerate-qr.handler';
 import { QrFindByIdQueryHandler } from './application/queries/qr-find-by-id/qr-find-by-id.handler';
-import { QrFindByPlantIdQueryHandler } from './application/queries/qr-find-by-plant-id/qr-find-by-plant-id.handler';
 import { QrFindPngByIdQueryHandler } from './application/queries/qr-find-png-by-id/qr-find-png-by-id.handler';
-import { QrTargetUrlBuilderService } from './application/services/read/qr-target-url-builder/qr-target-url-builder.service';
 import { AssertQrViewModelExistsService } from './application/services/read/assert-qr-view-model-exists/assert-qr-view-model-exists.service';
 import { AssertQrExistsService } from './application/services/write/assert-qr-exists/assert-qr-exists.service';
 import { QrBuilder } from './domain/builders/qr.builder';
@@ -28,21 +26,16 @@ import { QrMutationsResolver } from './transport/graphql/resolvers/qr/qr-mutatio
 import './transport/graphql/enums/qr/qr-registered-enums.graphql';
 
 const COMMAND_HANDLERS = [
-  CreateQrForPlantCommandHandler,
+  CreateQrCommandHandler,
   RegenerateQrCommandHandler,
-  DeleteQrByPlantIdCommandHandler,
+  DeleteQrCommandHandler,
 ];
 
-const QUERY_HANDLERS = [
-  QrFindByIdQueryHandler,
-  QrFindByPlantIdQueryHandler,
-  QrFindPngByIdQueryHandler,
-];
+const QUERY_HANDLERS = [QrFindByIdQueryHandler, QrFindPngByIdQueryHandler];
 
 const APPLICATION_SERVICES = [
   AssertQrViewModelExistsService,
   AssertQrExistsService,
-  QrTargetUrlBuilderService,
 ];
 
 const DOMAIN_BUILDERS = [QrBuilder];

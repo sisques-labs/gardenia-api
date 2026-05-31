@@ -5,7 +5,6 @@ import { QrTargetUrlValueObject } from '../value-objects/qr-target-url/qr-target
 
 export interface IQr {
   id: QrIdValueObject;
-  plantId: UuidValueObject;
   spaceId: UuidValueObject;
   targetUrl: QrTargetUrlValueObject;
   generation: number;
