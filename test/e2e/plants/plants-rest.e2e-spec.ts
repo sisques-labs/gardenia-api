@@ -73,6 +73,9 @@ describe('Plants REST API (e2e)', () => {
         spaceId: owner.spaceId,
       });
       expect(res.body.id).toBeDefined();
+      expect(res.body.qrId).toBeDefined();
+      expect(res.body.targetUrl).toContain(`/plants/${res.body.id}`);
+      expect(res.body.targetUrl).toContain(`spaceId=${owner.spaceId}`);
     });
 
     it('201 — creates a plant with species and imageUrl', async () => {

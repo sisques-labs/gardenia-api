@@ -54,20 +54,20 @@
 ### 2.1 REST
 
 - [x] 2.1 Create `QrsController` — `GET /:id`, `GET /:id/image`, `GET /by-plant/:plantId`, `POST /:id/regenerate`
-- [ ] 2.2 Create REST DTOs + `QrRestMapper` + response types (metadata only)
-- [ ] 2.3 Unit specs: controller (mocked buses), mapper
+- [x] 2.2 Create REST DTOs + `QrRestMapper` + response types (metadata only)
+- [x] 2.3 Unit specs: controller (mocked buses), mapper
 
 ### 2.2 GraphQL
 
-- [ ] 2.4 Create `QrResponseDto`, `qr-registered-enums.graphql.ts` scaffold
-- [ ] 2.5 Create `QrQueriesResolver` (`qrFindById`, `qrFindByPlantId`)
-- [ ] 2.6 Create `QrMutationsResolver` (`qrRegenerate`)
-- [ ] 2.7 Create `QrGraphQLMapper` + unit specs
-- [ ] 2.8 Wire `GRAPHQL_PROVIDERS` + `REST_PROVIDERS` in `qr.module.ts`
+- [x] 2.4 Create `QrResponseDto`, `qr-registered-enums.graphql.ts` scaffold
+- [x] 2.5 Create `QrQueriesResolver` (`qrFindById`, `qrFindByPlantId`)
+- [x] 2.6 Create `QrMutationsResolver` (`qrRegenerate`)
+- [x] 2.7 Create `QrGraphQLMapper` + unit specs
+- [x] 2.8 Wire `GRAPHQL_PROVIDERS` + `REST_PROVIDERS` in `qr.module.ts`
 
 ### 2.3 E2E (qr-only)
 
-- [ ] 2.9 E2E: create plant fixture path or seed QR via command — GET metadata + GET image PNG (`test/e2e/qr/` or extend plants e2e in PR3)
+- [x] 2.9 E2E: create plant fixture path or seed QR via command — GET metadata + GET image PNG (`test/e2e/qr/` or extend plants e2e in PR3)
 
 ---
 
@@ -75,27 +75,27 @@
 
 ### 3.1 Schema and domain
 
-- [ ] 3.1 Migration `{timestamp}-AddQrIdToPlants.ts` — nullable `qr_id` on `plants`
-- [ ] 3.2 Add `qrId` to `PlantTypeOrmEntity`, aggregate, primitives, view-model, builder, mappers
+- [x] 3.1 Migration `{timestamp}-AddQrIdToPlants.ts` — nullable `qr_id` on `plants`
+- [x] 3.2 Add `qrId` to `PlantTypeOrmEntity`, aggregate, primitives, view-model, builder, mappers
 
 ### 3.2 Application orchestration
 
-- [ ] 3.3 Create `SetPlantQrIdCommand` + handler
-- [ ] 3.4 Modify `CreatePlantCommandHandler` — after save: `CreateQrForPlantCommand` → `SetPlantQrIdCommand`
-- [ ] 3.5 Modify `DeletePlantCommandHandler` — dispatch `DeleteQrByPlantIdCommand`
-- [ ] 3.6 Enrich `PlantFindById` / `PlantFindByCriteria` handlers with `targetUrl` (via `QrFindByPlantId` or batch)
-- [ ] 3.7 Unit specs: create-plant orchestration (mock CommandBus), delete cascade
+- [x] 3.3 Create `SetPlantQrIdCommand` + handler
+- [x] 3.4 Modify `CreatePlantCommandHandler` — after save: `CreateQrForPlantCommand` → `SetPlantQrIdCommand`
+- [x] 3.5 Modify `DeletePlantCommandHandler` — dispatch `DeleteQrByPlantIdCommand`
+- [x] 3.6 Enrich `PlantFindById` / `PlantFindByCriteria` handlers with `targetUrl` (via `QrFindByPlantId` or batch)
+- [x] 3.7 Unit specs: create-plant orchestration (mock CommandBus), delete cascade
 
 ### 3.3 Transport
 
-- [ ] 3.8 Add `qrId`, `targetUrl` to `PlantRestResponseDto` + REST mapper
-- [ ] 3.9 Add `qrId`, `targetUrl` to `PlantResponseDto` + GraphQL mapper
-- [ ] 3.10 Update transport unit specs
+- [x] 3.8 Add `qrId`, `targetUrl` to `PlantRestResponseDto` + REST mapper
+- [x] 3.9 Add `qrId`, `targetUrl` to `PlantResponseDto` + GraphQL mapper
+- [x] 3.10 Update transport unit specs
 
 ### 3.4 E2E
 
-- [ ] 3.11 E2E: POST /plants → response includes qrId + targetUrl; GET /qrs/:id/image returns PNG
-- [ ] 3.12 E2E: POST /qrs/:id/regenerate increments generation; DELETE /plants removes QR
+- [x] 3.11 E2E: POST /plants → response includes qrId + targetUrl; GET /qrs/:id/image returns PNG
+- [x] 3.12 E2E: POST /qrs/:id/regenerate increments generation; DELETE /plants removes QR
 
 ---
 
