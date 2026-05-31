@@ -50,6 +50,7 @@ rules:
     - Value objects named {Name}ValueObject (not VO); extend UuidValueObject/StringValueObject/EnumValueObject from @sisques-labs/nestjs-kit
     - Enums live in domain/enums/, enum value objects extend EnumValueObject<typeof EnumType>
     - Commands have {Name}CommandInput interface with primitive fields (string, number, etc.); the Command class fields MUST be value objects (e.g. QrIdValueObject, UuidValueObject) constructed from the input in the constructor. Same rule applies to Queries.
+    - Aggregate fields MUST always be value objects — never raw primitives (string, number, boolean). Use StringValueObject, NumberValueObject, UuidValueObject or a domain-specific subclass from @sisques-labs/nestjs-kit. Builders receive primitives and wrap them in VOs; toPrimitives() unwraps with .value. IBasePrimitives and ViewModels hold primitives (correct — they are the serialized form).
     - Queries have {Name}QueryInput type alias or use Criteria for list queries
     - Aggregates constructed via Builder (BaseBuilder from nestjs-kit); NO static factory methods
     - Assert services (assert-{entity}-exists, assert-{entity}-view-model-exists) in application/services/write|read/; handlers use them instead of raw findById + manual throw. Inject by class type only — no @Inject() decorator needed for concrete classes.

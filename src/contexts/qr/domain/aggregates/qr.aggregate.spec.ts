@@ -3,6 +3,7 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { QrCreatedEvent } from '@contexts/qr/domain/events/qr-created/qr-created.event';
 import { QrDeletedEvent } from '@contexts/qr/domain/events/qr-deleted/qr-deleted.event';
 import { QrRegeneratedEvent } from '@contexts/qr/domain/events/qr-regenerated/qr-regenerated.event';
+import { QrGenerationValueObject } from '@contexts/qr/domain/value-objects/qr-generation/qr-generation.value-object';
 import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
 import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
 import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
@@ -18,7 +19,7 @@ const buildQr = (): QrAggregate =>
     targetUrl: new QrTargetUrlValueObject(
       `http://localhost:3000/plants/example?spaceId=${SPACE_ID}`,
     ),
-    generation: 1,
+    generation: new QrGenerationValueObject(1),
     createdAt: new DateValueObject(NOW),
     updatedAt: new DateValueObject(NOW),
   });
@@ -37,7 +38,7 @@ describe('QrAggregate', () => {
     const qr = buildQr();
     qr.regenerate();
 
-    expect(qr.generation).toBe(2);
+    expect(qr.generation.value).toBe(2);
     const events = qr.getUncommittedEvents();
     expect(events[0]).toBeInstanceOf(QrRegeneratedEvent);
   });

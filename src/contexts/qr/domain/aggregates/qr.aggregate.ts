@@ -5,6 +5,7 @@ import { QrDeletedEvent } from '@contexts/qr/domain/events/qr-deleted/qr-deleted
 import { QrRegeneratedEvent } from '@contexts/qr/domain/events/qr-regenerated/qr-regenerated.event';
 import { IQr } from '@contexts/qr/domain/interfaces/qr.interface';
 import { IQrPrimitives } from '@contexts/qr/domain/primitives/qr.primitives';
+import { QrGenerationValueObject } from '@contexts/qr/domain/value-objects/qr-generation/qr-generation.value-object';
 import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
 import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
 
@@ -12,7 +13,7 @@ export class QrAggregate extends BaseAggregate {
   private readonly _id: QrIdValueObject;
   private readonly _spaceId: UuidValueObject;
   private readonly _targetUrl: QrTargetUrlValueObject;
-  private _generation: number;
+  private _generation: QrGenerationValueObject;
 
   constructor(props: IQr) {
     super(props.createdAt, props.updatedAt);
@@ -38,7 +39,7 @@ export class QrAggregate extends BaseAggregate {
   }
 
   public regenerate(): void {
-    this._generation += 1;
+    this._generation = this._generation.increment();
     this.touch();
     this.apply(
       new QrRegeneratedEvent(
@@ -74,7 +75,7 @@ export class QrAggregate extends BaseAggregate {
       id: this._id.value,
       spaceId: this._spaceId.value,
       targetUrl: this._targetUrl.value,
-      generation: this._generation,
+      generation: this._generation.value,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };
@@ -92,7 +93,7 @@ export class QrAggregate extends BaseAggregate {
     return this._targetUrl;
   }
 
-  get generation(): number {
+  get generation(): QrGenerationValueObject {
     return this._generation;
   }
 }

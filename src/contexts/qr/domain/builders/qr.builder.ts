@@ -7,6 +7,7 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
+import { QrGenerationValueObject } from '@contexts/qr/domain/value-objects/qr-generation/qr-generation.value-object';
 import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
 import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
@@ -38,7 +39,7 @@ export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
       id: new QrIdValueObject(this._id),
       spaceId: new UuidValueObject(this._spaceId),
       targetUrl: new QrTargetUrlValueObject(this._targetUrl),
-      generation: this._generation,
+      generation: new QrGenerationValueObject(this._generation),
       createdAt: new DateValueObject(this._createdAt),
       updatedAt: new DateValueObject(this._updatedAt),
     });

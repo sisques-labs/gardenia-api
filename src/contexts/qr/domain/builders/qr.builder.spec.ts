@@ -34,7 +34,7 @@ describe('QrBuilder', () => {
       expect(aggregate.id.value).toBe(QR_ID);
       expect(aggregate.spaceId.value).toBe(SPACE_ID);
       expect(aggregate.targetUrl.value).toBe(TARGET_URL);
-      expect(aggregate.generation).toBe(1);
+      expect(aggregate.generation.value).toBe(1);
     });
 
     it('throws FieldIsRequiredException when spaceId is missing', () => {
@@ -74,13 +74,13 @@ describe('QrBuilder', () => {
     it('defaults generation to 1 when not set', () => {
       const aggregate = buildFull(builder).build();
 
-      expect(aggregate.generation).toBe(1);
+      expect(aggregate.generation.value).toBe(1);
     });
 
     it('uses the provided generation value', () => {
       const aggregate = buildFull(builder).withGeneration(5).build();
 
-      expect(aggregate.generation).toBe(5);
+      expect(aggregate.generation.value).toBe(5);
     });
   });
 });
