@@ -6,10 +6,10 @@ import {
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
-import { QrAggregate } from '../aggregates/qr.aggregate';
-import { QrIdValueObject } from '../value-objects/qr-id/qr-id.value-object';
-import { QrTargetUrlValueObject } from '../value-objects/qr-target-url/qr-target-url.value-object';
-import { QrViewModel } from '../view-models/qr.view-model';
+import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
+import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
+import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
+import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
 @Injectable()
 export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {

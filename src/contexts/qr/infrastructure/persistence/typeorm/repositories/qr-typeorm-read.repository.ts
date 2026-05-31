@@ -4,10 +4,10 @@ import { Repository } from 'typeorm';
 
 import { IQrReadRepository } from '@contexts/qr/domain/repositories/read/qr-read.repository';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
-import { SpaceContext } from '../../../../../../shared/space-context/space-context.service';
-import { createTenantRepository } from '../../../../../../shared/tenant-repository/create-tenant-repository.factory';
-import { QrTypeOrmEntity } from '../entities/qr.entity';
-import { QrTypeOrmMapper } from '../mappers/qr-typeorm.mapper';
+import { SpaceContext } from '@shared/space-context/space-context.service';
+import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
+import { QrTypeOrmEntity } from '@contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
+import { QrTypeOrmMapper } from '@contexts/qr/infrastructure/persistence/typeorm/mappers/qr-typeorm.mapper';
 
 @Injectable()
 export class QrTypeOrmReadRepository implements IQrReadRepository {

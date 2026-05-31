@@ -1,6 +1,6 @@
 import { BaseViewModel } from '@sisques-labs/nestjs-kit';
 
-import { IQrPrimitives } from '../primitives/qr.primitives';
+import { IQrPrimitives } from '@contexts/qr/domain/primitives/qr.primitives';
 
 export class QrViewModel extends BaseViewModel {
   public readonly spaceId: string;

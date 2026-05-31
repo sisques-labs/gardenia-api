@@ -8,7 +8,7 @@ import {
 
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { RegenerateQrCommand } from '@contexts/qr/application/commands/regenerate-qr/regenerate-qr.command';
-import { QrRegenerateRequestDto } from '../../dtos/requests/qr/qr-regenerate.request.dto';
+import { QrRegenerateRequestDto } from '@contexts/qr/transport/graphql/dtos/requests/qr/qr-regenerate.request.dto';
 
 @Resolver()
 @UseGuards(JwtAuthGuard)

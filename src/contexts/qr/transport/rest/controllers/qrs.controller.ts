@@ -24,8 +24,8 @@ import { QrFindByIdQuery } from '@contexts/qr/application/queries/qr-find-by-id/
 import { QrFindPngByIdQuery } from '@contexts/qr/application/queries/qr-find-png-by-id/qr-find-png-by-id.query';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
-import { QrRestResponseDto } from '../dtos/qr-rest-response.dto';
-import { QrRestMapper } from '../mappers/qr/qr.mapper';
+import { QrRestResponseDto } from '@contexts/qr/transport/rest/dtos/qr-rest-response.dto';
+import { QrRestMapper } from '@contexts/qr/transport/rest/mappers/qr/qr.mapper';
 
 @ApiTags('qrs')
 @ApiBearerAuth()

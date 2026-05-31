@@ -8,7 +8,7 @@ import {
   QR_WRITE_REPOSITORY,
 } from '@contexts/qr/domain/repositories/write/qr-write.repository';
 import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
-import { AssertQrExistsService } from '../../services/write/assert-qr-exists/assert-qr-exists.service';
+import { AssertQrExistsService } from '@contexts/qr/application/services/write/assert-qr-exists/assert-qr-exists.service';
 
 import { DeleteQrCommand } from './delete-qr.command';
 

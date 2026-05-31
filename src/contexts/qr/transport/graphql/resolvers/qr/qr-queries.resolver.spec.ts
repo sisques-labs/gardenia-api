@@ -1,8 +1,8 @@
 import { QueryBus } from '@nestjs/cqrs';
 
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
-import { QrFindByIdRequestDto } from '../../dtos/requests/qr/qr-find-by-id.request.dto';
-import { QrGraphQLMapper } from '../../mappers/qr/qr.mapper';
+import { QrFindByIdRequestDto } from '@contexts/qr/transport/graphql/dtos/requests/qr/qr-find-by-id.request.dto';
+import { QrGraphQLMapper } from '@contexts/qr/transport/graphql/mappers/qr/qr.mapper';
 import { QrQueriesResolver } from './qr-queries.resolver';
 
 const QR_ID = 'a1b2c3d4-e5f6-4890-abcd-ef1234567890';

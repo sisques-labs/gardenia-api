@@ -1,4 +1,4 @@
-import { QrAggregate } from '../../aggregates/qr.aggregate';
+import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
 
 export const QR_WRITE_REPOSITORY = Symbol('QR_WRITE_REPOSITORY');
 

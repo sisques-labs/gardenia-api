@@ -4,10 +4,10 @@ import { Repository } from 'typeorm';
 
 import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
 import { IQrWriteRepository } from '@contexts/qr/domain/repositories/write/qr-write.repository';
-import { SpaceContext } from '../../../../../../shared/space-context/space-context.service';
-import { createTenantRepository } from '../../../../../../shared/tenant-repository/create-tenant-repository.factory';
-import { QrTypeOrmEntity } from '../entities/qr.entity';
-import { QrTypeOrmMapper } from '../mappers/qr-typeorm.mapper';
+import { SpaceContext } from '@shared/space-context/space-context.service';
+import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
+import { QrTypeOrmEntity } from '@contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
+import { QrTypeOrmMapper } from '@contexts/qr/infrastructure/persistence/typeorm/mappers/qr-typeorm.mapper';
 
 @Injectable()
 export class QrTypeOrmWriteRepository implements IQrWriteRepository {

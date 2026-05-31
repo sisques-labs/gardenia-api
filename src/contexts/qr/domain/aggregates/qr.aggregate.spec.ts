@@ -1,10 +1,10 @@
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
-import { QrCreatedEvent } from '../events/qr-created/qr-created.event';
-import { QrRegeneratedEvent } from '../events/qr-regenerated/qr-regenerated.event';
-import { QrIdValueObject } from '../value-objects/qr-id/qr-id.value-object';
-import { QrTargetUrlValueObject } from '../value-objects/qr-target-url/qr-target-url.value-object';
-import { QrAggregate } from './qr.aggregate';
+import { QrCreatedEvent } from '@contexts/qr/domain/events/qr-created/qr-created.event';
+import { QrRegeneratedEvent } from '@contexts/qr/domain/events/qr-regenerated/qr-regenerated.event';
+import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
+import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
+import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
 
 const QR_ID = '550e8400-e29b-41d4-a716-446655440000';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';

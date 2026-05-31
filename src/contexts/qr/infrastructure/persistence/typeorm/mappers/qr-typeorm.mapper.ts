@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
 import { QrBuilder } from '@contexts/qr/domain/builders/qr.builder';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
-import { QrTypeOrmEntity } from '../entities/qr.entity';
+import { QrTypeOrmEntity } from '@contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
 
 @Injectable()
 export class QrTypeOrmMapper {

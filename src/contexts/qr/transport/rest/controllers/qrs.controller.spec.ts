@@ -5,7 +5,7 @@ import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 import { RegenerateQrCommand } from '@contexts/qr/application/commands/regenerate-qr/regenerate-qr.command';
 import { QrFindByIdQuery } from '@contexts/qr/application/queries/qr-find-by-id/qr-find-by-id.query';
 import { QrFindPngByIdQuery } from '@contexts/qr/application/queries/qr-find-png-by-id/qr-find-png-by-id.query';
-import { QrRestMapper } from '../mappers/qr/qr.mapper';
+import { QrRestMapper } from '@contexts/qr/transport/rest/mappers/qr/qr.mapper';
 import { QrsController } from './qrs.controller';
 
 const QR_ID = 'a1b2c3d4-e5f6-4890-abcd-ef1234567890';

@@ -1,12 +1,12 @@
 import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
-import { QrCreatedEvent } from '../events/qr-created/qr-created.event';
-import { QrDeletedEvent } from '../events/qr-deleted/qr-deleted.event';
-import { QrRegeneratedEvent } from '../events/qr-regenerated/qr-regenerated.event';
-import { IQr } from '../interfaces/qr.interface';
-import { IQrPrimitives } from '../primitives/qr.primitives';
-import { QrIdValueObject } from '../value-objects/qr-id/qr-id.value-object';
-import { QrTargetUrlValueObject } from '../value-objects/qr-target-url/qr-target-url.value-object';
+import { QrCreatedEvent } from '@contexts/qr/domain/events/qr-created/qr-created.event';
+import { QrDeletedEvent } from '@contexts/qr/domain/events/qr-deleted/qr-deleted.event';
+import { QrRegeneratedEvent } from '@contexts/qr/domain/events/qr-regenerated/qr-regenerated.event';
+import { IQr } from '@contexts/qr/domain/interfaces/qr.interface';
+import { IQrPrimitives } from '@contexts/qr/domain/primitives/qr.primitives';
+import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
+import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
 
 export class QrAggregate extends BaseAggregate {
   private readonly _id: QrIdValueObject;

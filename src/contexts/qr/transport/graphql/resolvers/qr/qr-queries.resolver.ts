@@ -5,9 +5,9 @@ import { Args, Query, Resolver } from '@nestjs/graphql';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { QrFindByIdQuery } from '@contexts/qr/application/queries/qr-find-by-id/qr-find-by-id.query';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
-import { QrFindByIdRequestDto } from '../../dtos/requests/qr/qr-find-by-id.request.dto';
-import { QrResponseDto } from '../../dtos/responses/qr/qr.response.dto';
-import { QrGraphQLMapper } from '../../mappers/qr/qr.mapper';
+import { QrFindByIdRequestDto } from '@contexts/qr/transport/graphql/dtos/requests/qr/qr-find-by-id.request.dto';
+import { QrResponseDto } from '@contexts/qr/transport/graphql/dtos/responses/qr/qr.response.dto';
+import { QrGraphQLMapper } from '@contexts/qr/transport/graphql/mappers/qr/qr.mapper';
 
 @Resolver()
 export class QrQueriesResolver {

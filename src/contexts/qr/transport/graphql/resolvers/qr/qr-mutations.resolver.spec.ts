@@ -2,7 +2,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
 
 import { RegenerateQrCommand } from '@contexts/qr/application/commands/regenerate-qr/regenerate-qr.command';
-import { QrRegenerateRequestDto } from '../../dtos/requests/qr/qr-regenerate.request.dto';
+import { QrRegenerateRequestDto } from '@contexts/qr/transport/graphql/dtos/requests/qr/qr-regenerate.request.dto';
 import { QrMutationsResolver } from './qr-mutations.resolver';
 
 const QR_ID = 'a1b2c3d4-e5f6-4890-abcd-ef1234567890';

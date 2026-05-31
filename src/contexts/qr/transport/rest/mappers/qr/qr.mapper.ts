@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
-import { QrRestResponseDto } from '../../dtos/qr-rest-response.dto';
+import { QrRestResponseDto } from '@contexts/qr/transport/rest/dtos/qr-rest-response.dto';
 
 @Injectable()
 export class QrRestMapper {
