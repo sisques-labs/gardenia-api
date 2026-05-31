@@ -1,11 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.1-alpha.0] - 2026-05-31
+
+### Features
+- **spaces:** Add GraphQL transport layer (59389d1)
 ## [0.7.0-alpha.0] - 2026-05-30
 
 ### Bug Fixes
 - **plants:** Use value objects in commands, interface, and aggregate; add field-changed events (935ce7e)
 - **plants:** Extract repository bindings into INFRASTRUCTURE_REPOSITORIES constant (9f0b9c7)
+
+### Chore
+- Release v0.7.0-alpha.0 (5a18bb1)
 
 ### Documentation
 - **integration-tests:** Update task documentation and add new convention for testing (83e8298)
