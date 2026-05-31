@@ -1,3 +1,5 @@
+import { IPlantQrPrimitives } from '@contexts/plants/domain/primitives/plant-qr.primitives';
+
 export class PlantQrViewModel {
   public readonly id: string;
   public readonly spaceId: string;
@@ -7,15 +9,7 @@ export class PlantQrViewModel {
   public readonly createdAt: Date;
   public readonly updatedAt: Date;
 
-  constructor(props: {
-    id: string;
-    spaceId: string;
-    targetUrl: string;
-    generation: number;
-    image: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }) {
+  constructor(props: IPlantQrPrimitives) {
     this.id = props.id;
     this.spaceId = props.spaceId;
     this.targetUrl = props.targetUrl;
