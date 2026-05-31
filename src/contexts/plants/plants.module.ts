@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
 import { PLANT_QR_PORT } from '@contexts/plants/application/ports/plant-qr.port';
 import { PLANT_SPECIES_PORT } from '@contexts/plants/application/ports/plant-species.port';
 import { PlantQrAdapter } from '@contexts/plants/infrastructure/adapters/plant-qr.adapter';
@@ -79,11 +78,7 @@ const GRAPHQL_PROVIDERS = [
 ];
 
 @Module({
-  imports: [
-    CqrsModule,
-    PlantSpeciesModule,
-    TypeOrmModule.forFeature([PlantTypeOrmEntity]),
-  ],
+  imports: [CqrsModule, TypeOrmModule.forFeature([PlantTypeOrmEntity])],
   controllers: [...REST_CONTROLLERS],
   providers: [
     ...COMMAND_HANDLERS,

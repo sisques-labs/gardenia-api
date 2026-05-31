@@ -6,7 +6,7 @@ import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-m
 import {
   PaginatedPlantResultDto,
   PlantResponseDto,
-  PlantSpeciesResponseDto,
+  PlantLinkedSpeciesResponseDto,
 } from '../../dtos/responses/plant/plant.response.dto';
 
 @Injectable()
@@ -46,7 +46,7 @@ export class PlantGraphQLMapper {
 
   private toSpeciesResponse(
     species: NonNullable<PlantViewModel['species']>,
-  ): PlantSpeciesResponseDto {
+  ): PlantLinkedSpeciesResponseDto {
     return {
       id: species.id,
       name: species.name,

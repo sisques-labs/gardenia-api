@@ -37,6 +37,11 @@ async function bootstrap() {
 
   app.enableCors({ origin: true, credentials: true });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`Gardenia API listening on http://localhost:${port}/api`);
 }
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  console.error('Failed to start Gardenia API', error);
+  process.exit(1);
+});
