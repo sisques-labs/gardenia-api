@@ -16,6 +16,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { Reflector } from '@nestjs/core';
 
 import { MembershipFindByUserAndSpaceQuery } from '@contexts/spaces/application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.query';
+import { IDENTITY_ONLY_KEY } from '../../../../shared/decorators/identity-only.decorator';
 import { SKIP_SPACE_KEY } from '../../../../shared/decorators/skip-space.decorator';
 
 @Injectable()
@@ -26,12 +27,12 @@ export class SpaceGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const skipSpace = this.reflector.getAllAndOverride<boolean>(
-      SKIP_SPACE_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const targets = [context.getHandler(), context.getClass()];
+    const skip =
+      this.reflector.getAllAndOverride<boolean>(SKIP_SPACE_KEY, targets) ||
+      this.reflector.getAllAndOverride<boolean>(IDENTITY_ONLY_KEY, targets);
 
-    if (skipSpace) return true;
+    if (skip) return true;
 
     const req = this.getRequest(context);
 

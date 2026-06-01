@@ -10,7 +10,6 @@ import {
   Req,
   Res,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
@@ -35,7 +34,6 @@ import {
   CurrentUser,
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
-import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { AccountRestMapper } from '@contexts/auth/transport/rest/mappers/account/account.mapper';
 import { AccountRestResponseDto } from '@contexts/auth/transport/rest/dtos/account-rest-response.dto';
 import {
@@ -49,6 +47,7 @@ import {
   setRefreshCookie,
 } from '@contexts/auth/transport/shared/cookie.helper';
 
+import { IdentityOnly } from '../../../../../shared/decorators/identity-only.decorator';
 import { SkipSpace } from '../../../../../shared/decorators/skip-space.decorator';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
 import { LoginUserDto } from '../dtos/login-user.dto';
@@ -65,8 +64,8 @@ export class AuthController {
   ) {}
 
   @Get('me')
+  @IdentityOnly()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get the authenticated account' })
   @ApiResponse({
     status: 200,
@@ -165,8 +164,7 @@ export class AuthController {
   }
 
   @Post('logout-all')
-  @SkipSpace()
-  @UseGuards(JwtAuthGuard)
+  @IdentityOnly()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout from all sessions' })
@@ -183,8 +181,8 @@ export class AuthController {
   }
 
   @Patch('password')
+  @IdentityOnly()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Change the authenticated account password' })
   @ApiResponse({ status: 204, description: 'Password changed successfully' })
   @ApiResponse({
@@ -205,8 +203,8 @@ export class AuthController {
   }
 
   @Delete('account')
+  @IdentityOnly()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete the authenticated account' })
   @ApiResponse({ status: 204, description: 'Account deleted successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })

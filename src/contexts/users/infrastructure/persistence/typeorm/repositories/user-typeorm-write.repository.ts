@@ -11,6 +11,7 @@ import { createTenantRepository } from '../../../../../../shared/tenant-reposito
 
 @Injectable()
 export class UserTypeOrmWriteRepository implements IUserWriteRepository {
+  private readonly rawRepository: Repository<UserTypeOrmEntity>;
   private readonly repository: Repository<UserTypeOrmEntity>;
 
   constructor(
@@ -19,11 +20,14 @@ export class UserTypeOrmWriteRepository implements IUserWriteRepository {
     rawRepository: Repository<UserTypeOrmEntity>,
     private readonly spaceContext: SpaceContext,
   ) {
+    this.rawRepository = rawRepository;
     this.repository = createTenantRepository(rawRepository, spaceContext);
   }
 
+  // UUID-based lookups are globally unique — tenant filter is redundant and
+  // breaks identity-scoped flows (delete-account) that run without ALS context.
   async findById(id: string): Promise<UserAggregate | null> {
-    const entity = await this.repository.findOne({ where: { id } });
+    const entity = await this.rawRepository.findOne({ where: { id } });
     return entity ? this.userTypeOrmMapper.toAggregate(entity) : null;
   }
 
@@ -40,6 +44,6 @@ export class UserTypeOrmWriteRepository implements IUserWriteRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
+    await this.rawRepository.delete(id);
   }
 }

@@ -123,13 +123,13 @@ describe('AccountTypeOrmWriteRepository', () => {
   });
 
   describe('delete', () => {
-    it('should call repo.delete with the given id and inject spaceId', async () => {
+    it('should call repo.delete with the given id only — bypasses tenant isolation', async () => {
       typeOrmRepo.delete.mockResolvedValue({ affected: 1, raw: {} });
 
       await repository.delete('550e8400-e29b-41d4-a716-446655440000');
 
       expect(typeOrmRepo.delete).toHaveBeenCalledWith(
-        expect.objectContaining({ spaceId: SPACE_ID }),
+        '550e8400-e29b-41d4-a716-446655440000',
       );
     });
   });

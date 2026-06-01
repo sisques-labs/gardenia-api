@@ -40,7 +40,7 @@ describe('SpaceGuard enforcement (e2e)', () => {
       // Make a guarded request WITHOUT X-Space-ID
       await ctx
         .http()
-        .get('/api/auth/me')
+        .get('/api/plants')
         .set('Authorization', `Bearer ${accessToken}`)
         // intentionally no X-Space-ID
         .expect(400);
@@ -76,7 +76,7 @@ describe('SpaceGuard enforcement (e2e)', () => {
       // User A attempts to use Space B's ID — they are NOT a member of Space B
       await ctx
         .http()
-        .get('/api/auth/me')
+        .get('/api/plants')
         .set('Authorization', `Bearer ${tokenA}`)
         .set('X-Space-ID', spaceIdB)
         .expect(403);
@@ -84,7 +84,7 @@ describe('SpaceGuard enforcement (e2e)', () => {
       // Sanity check: User A can access Space A just fine
       await ctx
         .http()
-        .get('/api/auth/me')
+        .get('/api/plants')
         .set('Authorization', `Bearer ${tokenA}`)
         .set('X-Space-ID', spaceIdA)
         .expect(200);

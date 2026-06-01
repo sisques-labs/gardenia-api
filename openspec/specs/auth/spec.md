@@ -80,7 +80,54 @@ This spec describes only the delta — what MUST change in the `auth` bounded co
 
 ---
 
-## 5. No Other Auth Behavior Changes
+## 5. Identity-Scoped Auth Endpoints
+
+### 5.1 Definition
+
+Certain auth endpoints operate on the **authenticated user's identity**, not on a specific Space. These endpoints MUST NOT require an `X-Space-ID` header.
+
+| Endpoint | Description |
+|---|---|
+| `GET /auth/me` | Returns the authenticated account |
+| `DELETE /auth/account` | Deletes the authenticated account |
+| `PATCH /auth/password` | Changes the authenticated account's password |
+| `POST /auth/logout-all` | Revokes all sessions for the authenticated user |
+
+### 5.2 `@IdentityOnly()` Decorator
+
+- Identity-scoped endpoints MUST be decorated with `@IdentityOnly()` at the method level.
+- `@IdentityOnly()` MUST NOT suppress JWT validation — a valid Bearer token is still required.
+- `@IdentityOnly()` tells `SpaceGuard` to skip the `X-Space-ID` check without exposing the endpoint as fully public.
+- `@IdentityOnly()` MUST NOT be confused with `@SkipSpace()`, which skips **both** `SpaceGuard` and JWT validation (used for `register`, `login`, `refresh`).
+
+**Given** an authenticated user calls `GET /auth/me` without an `X-Space-ID` header  
+**When** the request is processed  
+**Then** the response status MUST be `200` with the account data  
+**And** `SpaceGuard` MUST NOT reject the request
+
+**Given** a request with no or invalid JWT calls `GET /auth/me`  
+**When** the request is processed  
+**Then** the response status MUST be `401 Unauthorized`
+
+### 5.3 Tenant Isolation Bypass in Auth/User Repositories
+
+Because identity-scoped endpoints run without ALS space context, UUID-based repository operations MUST bypass the tenant proxy.
+
+**Decision (confirmed 2026-06-01):** users can belong to multiple spaces — accounts and users ARE space-scoped entities. `spaceId` MUST remain on both tables. However, ID-based lookups and deletes do not need tenant filtering because UUID uniqueness guarantees the correct row regardless of space.
+
+The following operations MUST use the raw (non-proxied) repository:
+
+| Repository | Methods using rawRepo |
+|---|---|
+| `AccountTypeOrmReadRepository` | `findById`, `findByCriteria` |
+| `AccountTypeOrmWriteRepository` | `delete` |
+| `UserTypeOrmWriteRepository` | `findById`, `delete` |
+
+`save()` in all repositories MUST continue to use the tenant proxy — space context is required when creating accounts and users.
+
+---
+
+## 6. No Other Auth Behavior Changes
 
 - Password hashing, token signing, refresh logic, and logout MUST remain unchanged.
 - `JwtStrategy.validate()` continues to return `{ userId, email }` — the `CurrentUserPayload` interface MUST NOT gain a `spaceId` field.

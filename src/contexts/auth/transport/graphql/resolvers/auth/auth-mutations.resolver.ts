@@ -9,7 +9,6 @@ import {
   CurrentUser,
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
-import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import {
   REFRESH_COOKIE_NAME,
   clearRefreshCookie,
@@ -19,9 +18,10 @@ import { ChangePasswordInput } from '@contexts/auth/transport/graphql/dtos/chang
 import { LoginUserInput } from '@contexts/auth/transport/graphql/dtos/login-user.input';
 import { RegisterAccountInput } from '@contexts/auth/transport/graphql/dtos/register-account.input';
 import { AuthPayloadObject } from '@contexts/auth/transport/graphql/objects/auth-payload.object';
-import { UnauthorizedException, UseGuards } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import { IdentityOnly } from '../../../../../../shared/decorators/identity-only.decorator';
 import { SkipSpace } from '../../../../../../shared/decorators/skip-space.decorator';
 import {
   MutationResponseDto,
@@ -98,9 +98,8 @@ export class AuthMutationsResolver {
     return true;
   }
 
-  @SkipSpace()
-  @UseGuards(JwtAuthGuard)
   @Mutation(() => Boolean)
+  @IdentityOnly()
   async logoutAll(
     @CurrentUser() user: CurrentUserPayload,
     @Context() ctx: any,
@@ -113,7 +112,7 @@ export class AuthMutationsResolver {
   }
 
   @Mutation(() => MutationResponseDto)
-  @UseGuards(JwtAuthGuard)
+  @IdentityOnly()
   async changePassword(
     @Args('input') input: ChangePasswordInput,
     @CurrentUser() user: CurrentUserPayload,
@@ -132,7 +131,7 @@ export class AuthMutationsResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
+  @IdentityOnly()
   async deleteAccount(
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<boolean> {
