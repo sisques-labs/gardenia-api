@@ -87,7 +87,7 @@ describe('UserTypeOrmWriteRepository', () => {
       );
     });
 
-    it('should inject spaceId into findOne where clause for findById', async () => {
+    it('should NOT inject spaceId into findById — UUID lookups bypass tenant isolation', async () => {
       const entity = buildEntity();
       const user = buildUser();
 
@@ -97,9 +97,7 @@ describe('UserTypeOrmWriteRepository', () => {
       await repository.findById(USER_ID);
 
       expect(typeOrmRepo.findOne).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ spaceId: SPACE_ID }),
-        }),
+        expect.objectContaining({ where: { id: USER_ID } }),
       );
     });
   });
@@ -136,15 +134,13 @@ describe('UserTypeOrmWriteRepository', () => {
   });
 
   describe('delete()', () => {
-    it('should call TypeORM delete once with spaceId injected', async () => {
+    it('should call TypeORM delete once by id only — UUID deletes bypass tenant isolation', async () => {
       typeOrmRepo.delete.mockResolvedValue({ affected: 1, raw: {} });
 
       await repository.delete(USER_ID);
 
       expect(typeOrmRepo.delete).toHaveBeenCalledTimes(1);
-      expect(typeOrmRepo.delete).toHaveBeenCalledWith(
-        expect.objectContaining({ spaceId: SPACE_ID }),
-      );
+      expect(typeOrmRepo.delete).toHaveBeenCalledWith(USER_ID);
     });
 
     it('should resolve without throwing when delete succeeds', async () => {
@@ -164,11 +160,9 @@ describe('UserTypeOrmWriteRepository', () => {
 
       const result = await repository.findById(USER_ID);
 
-      expect(typeOrmRepo.findOne).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ id: USER_ID, spaceId: SPACE_ID }),
-        }),
-      );
+      expect(typeOrmRepo.findOne).toHaveBeenCalledWith({
+        where: { id: USER_ID },
+      });
       expect(result).toBe(user);
     });
 

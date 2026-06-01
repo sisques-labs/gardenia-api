@@ -36,7 +36,7 @@ export class AccountTypeOrmWriteRepository implements IAccountWriteRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.repo.delete(id);
+    await this.rawRepo.delete(id);
   }
 
   async save(account: AccountAggregate): Promise<AccountAggregate> {
