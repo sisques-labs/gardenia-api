@@ -5,12 +5,11 @@ import {
   CurrentUser,
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
-import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { AccountGraphQLMapper } from '@contexts/auth/transport/graphql/mappers/account/account.mapper';
 import { AccountObject } from '@contexts/auth/transport/graphql/objects/account.object';
-import { UseGuards } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Query, Resolver } from '@nestjs/graphql';
+import { IdentityOnly } from '../../../../../../shared/decorators/identity-only.decorator';
 import {
   Criteria,
   FilterOperator,
@@ -25,7 +24,7 @@ export class AuthQueriesResolver {
   ) {}
 
   @Query(() => AccountObject)
-  @UseGuards(JwtAuthGuard)
+  @IdentityOnly()
   async me(@CurrentUser() user: CurrentUserPayload): Promise<AccountObject> {
     const result = await this.queryBus.execute<
       AccountFindByCriteriaQuery,

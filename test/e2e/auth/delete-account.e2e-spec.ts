@@ -21,13 +21,11 @@ describe('Auth DELETE /api/auth/account (e2e)', () => {
 
   describe('happy path', () => {
     it('returns 204 when authenticated user deletes their account', async () => {
-      const registerRes = await ctx
+      await ctx
         .http()
         .post('/api/auth/register')
         .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
         .expect(201);
-
-      const { spaceId } = registerRes.body as { spaceId: string };
 
       const loginRes = await ctx
         .http()
@@ -41,18 +39,15 @@ describe('Auth DELETE /api/auth/account (e2e)', () => {
         .http()
         .delete('/api/auth/account')
         .set('Authorization', `Bearer ${accessToken}`)
-        .set('X-Space-ID', spaceId)
         .expect(204);
     });
 
     it('login fails after account deletion', async () => {
-      const registerRes = await ctx
+      await ctx
         .http()
         .post('/api/auth/register')
         .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
         .expect(201);
-
-      const { spaceId } = registerRes.body as { spaceId: string };
 
       const loginRes = await ctx
         .http()
@@ -66,7 +61,6 @@ describe('Auth DELETE /api/auth/account (e2e)', () => {
         .http()
         .delete('/api/auth/account')
         .set('Authorization', `Bearer ${accessToken}`)
-        .set('X-Space-ID', spaceId)
         .expect(204);
 
       await ctx
