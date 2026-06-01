@@ -113,15 +113,27 @@ This spec describes the delta — what MUST be true after the multi-tenancy chan
 - A user MUST NOT read or write data belonging to a Space they are not a member of, through any application-layer path.
 - This guarantee is enforced at two layers:
   1. **Transport** (`SpaceGuard`): validates the `X-Space-ID` header and the user's `SpaceMembership` before the request reaches any handler.
-  2. **Infrastructure** (`BaseTenantRepository`): appends `spaceId` to every query; the domain layer MUST NOT contain tenant-aware logic.
-- There MUST be no repository method that returns cross-Space data without an explicit, documented bypass (which is out of scope for this change).
+  2. **Infrastructure** (`createTenantRepository`): appends `spaceId` to every query; the domain layer MUST NOT contain tenant-aware logic.
+- Authorized bypasses are permitted ONLY when:
+  - The lookup is by a globally-unique UUID (no cross-space ambiguity is possible), AND
+  - The endpoint is decorated with `@IdentityOnly()` (see auth spec §5), AND
+  - The bypass is explicitly documented in the repository implementation.
+- No other cross-space bypass is permitted.
 
 ---
 
 ## 6. `SpaceGuard` Behavior
 
 - `SpaceGuard` MUST be applied globally (or on all routes that require tenant context).
-- Routes explicitly excluded from `SpaceGuard` (e.g., `POST /auth/register`, `POST /auth/login`) MUST be documented in the transport layer.
+- Routes excluded from `SpaceGuard` MUST use one of two explicitly declared skip markers:
+
+| Decorator | When to use | JWT required? |
+|---|---|---|
+| `@SkipSpace()` | Fully public auth routes (`register`, `login`, `refresh`, `logout`) | No |
+| `@IdentityOnly()` | Identity-scoped routes that require JWT but no space context (`me`, `delete-account`, `change-password`, `logout-all`) | Yes |
+
+- `SpaceGuard` MUST check both `SKIP_SPACE_KEY` and `IDENTITY_ONLY_KEY` metadata keys and skip space validation if either is set.
+- `OptionalJwtAuthGuard` (APP_GUARD) MUST only skip JWT validation for `@SkipSpace()` routes. `@IdentityOnly()` routes MUST still enforce JWT authentication.
 
 **Given** an incoming request with no `X-Space-ID` header  
 **When** `SpaceGuard` evaluates the request  
@@ -145,9 +157,10 @@ This spec describes the delta — what MUST be true after the multi-tenancy chan
 ## 7. `SpaceContext` (AsyncLocalStorage)
 
 - `SpaceContext` MUST be a request-scoped service backed by `AsyncLocalStorage`.
-- `SpaceContext` MUST expose at minimum: `set(spaceId: string): void` and `get(): string | undefined`.
-- `SpaceContext` MUST be populated by `SpaceGuard` before any repository call executes in the request lifecycle.
-- Repositories (`BaseTenantRepository`) MUST call `SpaceContext.get()` on every query. If the returned value is `undefined` or empty, the repository MUST throw a `SpaceContextMissingException` and MUST NOT execute the query. This is the **fail-closed** contract.
+- `SpaceContext` MUST expose: `run(spaceId, fn)`, `get(): string | undefined`, and `require(): string`.
+- `SpaceContext` MUST be populated by `SpaceInterceptor` (wraps the handler via `next.handle()`) after `SpaceGuard` validates the space membership.
+- Tenant-scoped repositories (`createTenantRepository` proxy) MUST call `SpaceContext.require()` on every query. If the ALS store is empty, `require()` MUST throw `SpaceContextMissingException`. This is the **fail-closed** contract.
+- Identity-scoped repositories (see auth spec §5.3) MUST use the raw (non-proxied) TypeORM repository for UUID-based lookups and deletes, bypassing the tenant proxy entirely.
 - No part of the domain layer MAY import or reference `SpaceContext` directly.
 
 ---
