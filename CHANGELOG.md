@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.9.1-alpha.0] - 2026-06-01
+
+### Bug Fixes
+- **auth:** Bypass SpaceGuard on identity-scoped endpoints without @UseGuards (c81e393)
+- **auth:** Bypass tenant isolation for identity-scoped account/user ops (6fd091c)
+
+### Documentation
+- **openspec:** Document @IdentityOnly decorator and tenant bypass pattern (5a84898)
 ## [0.9.0-alpha.0] - 2026-05-31
 
 ### Bug Fixes
@@ -10,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### Chore
 - **changelog:** Revert unreleased section (c20ab44)
+- Release v0.9.0-alpha.0 (2bd31e5)
 
 ### Documentation
 - **qr:** Add module README for new contributors (2e5ba43)
