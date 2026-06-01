@@ -1,3 +1,4 @@
+import { HealthModule } from '@core/health/health.module';
 import { SupportModule } from './support/support.module';
 import { SharedModule } from './shared/shared.module';
 import { AuthModule } from '@contexts/auth/auth.module';
@@ -46,6 +47,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
         res,
       }),
     }),
+    HealthModule,
     SpacesModule,
     AuthModule,
     UsersModule,
