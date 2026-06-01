@@ -1,11 +1,21 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.10.0-alpha.0] - 2026-06-01
+
+### Chore
+- **openspec:** Archive health-module change artifacts (d31f923)
+
+### Features
+- **health:** Add liveness health check endpoint (25c605c)
 ## [0.9.1-alpha.0] - 2026-06-01
 
 ### Bug Fixes
 - **auth:** Bypass SpaceGuard on identity-scoped endpoints without @UseGuards (c81e393)
 - **auth:** Bypass tenant isolation for identity-scoped account/user ops (6fd091c)
+
+### Chore
+- Release v0.9.1-alpha.0 (6a7896b)
 
 ### Documentation
 - **openspec:** Document @IdentityOnly decorator and tenant bypass pattern (5a84898)
