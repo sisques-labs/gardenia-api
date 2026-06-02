@@ -50,6 +50,7 @@ describe('PlantGraphQLMapper', () => {
         userId: USER_ID,
         spaceId: SPACE_ID,
         qrId: null,
+        plantingSpotId: null,
         createdAt: NOW,
         updatedAt: NOW,
       });
@@ -77,6 +78,7 @@ describe('PlantGraphQLMapper', () => {
         userId: USER_ID,
         spaceId: SPACE_ID,
         qrId: null,
+        plantingSpotId: null,
         createdAt: NOW,
         updatedAt: NOW,
       });
@@ -100,6 +102,7 @@ describe('PlantGraphQLMapper', () => {
         spaceId: SPACE_ID,
         qrId: QR_ID,
         qr: makeQrData(),
+        plantingSpotId: null,
         createdAt: NOW,
         updatedAt: NOW,
       });
@@ -109,6 +112,47 @@ describe('PlantGraphQLMapper', () => {
       expect(dto.qr).not.toBeNull();
       expect(dto.qr!.id).toBe(QR_ID);
       expect(dto.qr!.image).toBe('aGVsbG93b3JsZA==');
+    });
+
+    it('maps plantingSpotId when present', () => {
+      const SPOT_ID = 'e5f6a7b8-c9d0-4234-ef01-345678901234';
+      const vm = new PlantViewModel({
+        id: PLANT_ID,
+        name: 'Rose',
+        plantSpeciesId: null,
+        species: null,
+        imageUrl: null,
+        userId: USER_ID,
+        spaceId: SPACE_ID,
+        qrId: null,
+        plantingSpotId: SPOT_ID,
+        createdAt: NOW,
+        updatedAt: NOW,
+      });
+
+      const dto = mapper.toResponseDtoFromViewModel(vm);
+
+      expect(dto.plantingSpotId).toBe(SPOT_ID);
+    });
+
+    it('maps plantingSpotId as null when absent', () => {
+      const vm = new PlantViewModel({
+        id: PLANT_ID,
+        name: 'Rose',
+        plantSpeciesId: null,
+        species: null,
+        imageUrl: null,
+        userId: USER_ID,
+        spaceId: SPACE_ID,
+        qrId: null,
+        plantingSpotId: null,
+        createdAt: NOW,
+        updatedAt: NOW,
+      });
+
+      const dto = mapper.toResponseDtoFromViewModel(vm);
+
+      expect(dto.plantingSpotId).toBeNull();
     });
 
     it('maps qr as null when absent', () => {
@@ -121,6 +165,7 @@ describe('PlantGraphQLMapper', () => {
         userId: USER_ID,
         spaceId: SPACE_ID,
         qrId: null,
+        plantingSpotId: null,
         createdAt: NOW,
         updatedAt: NOW,
       });
@@ -142,6 +187,7 @@ describe('PlantGraphQLMapper', () => {
         userId: USER_ID,
         spaceId: SPACE_ID,
         qrId: null,
+        plantingSpotId: null,
         createdAt: NOW,
         updatedAt: NOW,
       });

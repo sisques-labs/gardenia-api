@@ -21,6 +21,7 @@ export class PlantAggregate extends BaseAggregate {
   private readonly _userId: UuidValueObject;
   private readonly _spaceId: UuidValueObject;
   private _qrId: UuidValueObject | null;
+  private _plantingSpotId: UuidValueObject | null;
 
   constructor(props: IPlant) {
     super(props.createdAt, props.updatedAt);
@@ -31,6 +32,7 @@ export class PlantAggregate extends BaseAggregate {
     this._userId = props.userId;
     this._spaceId = props.spaceId;
     this._qrId = props.qrId;
+    this._plantingSpotId = props.plantingSpotId;
   }
 
   public linkQr(qrId: UuidValueObject): void {
@@ -179,6 +181,7 @@ export class PlantAggregate extends BaseAggregate {
       userId: this._userId.value,
       spaceId: this._spaceId.value,
       qrId: this._qrId?.value ?? null,
+      plantingSpotId: this._plantingSpotId?.value ?? null,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };
@@ -210,5 +213,9 @@ export class PlantAggregate extends BaseAggregate {
 
   get qrId(): UuidValueObject | null {
     return this._qrId;
+  }
+
+  get plantingSpotId(): UuidValueObject | null {
+    return this._plantingSpotId;
   }
 }

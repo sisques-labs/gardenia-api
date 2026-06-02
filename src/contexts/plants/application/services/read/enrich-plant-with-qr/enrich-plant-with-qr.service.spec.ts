@@ -33,6 +33,7 @@ function makePlantViewModel(qrId: string | null): PlantViewModel {
     userId: USER_ID,
     spaceId: SPACE_ID,
     qrId,
+    plantingSpotId: null,
     createdAt: NOW,
     updatedAt: NOW,
   });

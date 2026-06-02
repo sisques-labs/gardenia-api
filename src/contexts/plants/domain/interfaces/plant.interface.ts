@@ -13,6 +13,7 @@ export interface IPlant {
   userId: UuidValueObject;
   spaceId: UuidValueObject;
   qrId: UuidValueObject | null;
+  plantingSpotId: UuidValueObject | null;
   createdAt: DateValueObject;
   updatedAt: DateValueObject;
 }

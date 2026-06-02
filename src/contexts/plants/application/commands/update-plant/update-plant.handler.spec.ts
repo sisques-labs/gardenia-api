@@ -27,6 +27,7 @@ const buildAggregate = (): PlantAggregate =>
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     qrId: null,
+    plantingSpotId: null,
     createdAt: new DateValueObject(NOW),
     updatedAt: new DateValueObject(NOW),
   });

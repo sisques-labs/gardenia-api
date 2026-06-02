@@ -29,6 +29,9 @@ export class PlantTypeOrmEntity {
   @Column({ name: 'qr_id', type: 'uuid', nullable: true })
   qrId!: string | null;
 
+  @Column({ name: 'planting_spot_id', type: 'uuid', nullable: true })
+  plantingSpotId!: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt!: Date;
 

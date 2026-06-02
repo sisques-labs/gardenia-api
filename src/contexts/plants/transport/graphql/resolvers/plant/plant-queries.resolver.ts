@@ -13,7 +13,7 @@ import {
 } from '../../dtos/responses/plant/plant.response.dto';
 import { PlantGraphQLMapper } from '../../mappers/plant/plant.mapper';
 
-@Resolver()
+@Resolver(() => PlantResponseDto)
 export class PlantQueriesResolver {
   private readonly logger = new Logger(PlantQueriesResolver.name);
 

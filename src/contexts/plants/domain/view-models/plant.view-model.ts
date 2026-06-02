@@ -1,4 +1,5 @@
 import { IPlantPrimitives } from '@contexts/plants/domain/primitives/plant.primitives';
+import { PlantPlantingSpotViewModel } from '@contexts/plants/domain/view-models/plant-planting-spot.view-model';
 import { PlantQrViewModel } from '@contexts/plants/domain/view-models/plant-qr.view-model';
 import { PlantSpeciesViewModel } from '@contexts/plants/domain/view-models/plant-species.view-model';
 import { BaseViewModel } from '@sisques-labs/nestjs-kit';
@@ -12,11 +13,14 @@ export class PlantViewModel extends BaseViewModel {
   public readonly spaceId: string;
   public readonly qrId: string | null;
   public readonly qr: PlantQrViewModel | null;
+  public readonly plantingSpotId: string | null;
+  public readonly plantingSpot: PlantPlantingSpotViewModel | null;
 
   constructor(
     props: IPlantPrimitives & {
       species?: PlantSpeciesViewModel | null;
       qr?: PlantQrViewModel | null;
+      plantingSpot?: PlantPlantingSpotViewModel | null;
     },
   ) {
     super(props.id, props.createdAt, props.updatedAt);
@@ -28,5 +32,7 @@ export class PlantViewModel extends BaseViewModel {
     this.spaceId = props.spaceId;
     this.qrId = props.qrId;
     this.qr = props.qr ?? null;
+    this.plantingSpotId = props.plantingSpotId;
+    this.plantingSpot = props.plantingSpot ?? null;
   }
 }

@@ -19,6 +19,7 @@ const buildViewModel = (): PlantViewModel =>
     userId: USER_ID,
     spaceId: SPACE_ID,
     qrId: null,
+    plantingSpotId: null,
     createdAt: NOW,
     updatedAt: NOW,
   });

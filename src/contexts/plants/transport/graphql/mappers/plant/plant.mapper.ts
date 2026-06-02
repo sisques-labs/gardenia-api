@@ -25,6 +25,7 @@ export class PlantGraphQLMapper {
       userId: vm.userId,
       spaceId: vm.spaceId,
       qr: vm.qr ?? null,
+      plantingSpotId: vm.plantingSpotId,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
     };

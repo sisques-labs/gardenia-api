@@ -1,3 +1,4 @@
+import { PlantPlantingSpotViewModel } from '@contexts/plants/domain/view-models/plant-planting-spot.view-model';
 import { PlantQrViewModel } from '@contexts/plants/domain/view-models/plant-qr.view-model';
 import { PlantSpeciesViewModel } from '@contexts/plants/domain/view-models/plant-species.view-model';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
@@ -24,6 +25,8 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
   private _qrId: string | null = null;
   private _qr: PlantQrViewModel | null = null;
   private _species: PlantSpeciesViewModel | null = null;
+  private _plantingSpotId: string | null = null;
+  private _plantingSpot: PlantPlantingSpotViewModel | null = null;
 
   withName(name: string): this {
     this._name = name;
@@ -65,6 +68,16 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
     return this;
   }
 
+  withPlantingSpotId(plantingSpotId: string | null): this {
+    this._plantingSpotId = plantingSpotId;
+    return this;
+  }
+
+  withPlantingSpot(plantingSpot: PlantPlantingSpotViewModel | null): this {
+    this._plantingSpot = plantingSpot;
+    return this;
+  }
+
   public override build(): PlantAggregate {
     this.validate();
     return new PlantAggregate({
@@ -81,6 +94,10 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
       userId: new UuidValueObject(this._userId),
       spaceId: new UuidValueObject(this._spaceId),
       qrId: this._qrId != null ? new UuidValueObject(this._qrId) : null,
+      plantingSpotId:
+        this._plantingSpotId != null
+          ? new UuidValueObject(this._plantingSpotId)
+          : null,
       createdAt: new DateValueObject(this._createdAt),
       updatedAt: new DateValueObject(this._updatedAt),
     });
@@ -98,6 +115,8 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
       spaceId: this._spaceId,
       qrId: this._qrId,
       qr: this._qr,
+      plantingSpotId: this._plantingSpotId,
+      plantingSpot: this._plantingSpot,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });

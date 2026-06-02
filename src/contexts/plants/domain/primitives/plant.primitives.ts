@@ -7,4 +7,5 @@ export type IPlantPrimitives = BasePrimitives & {
   userId: string;
   spaceId: string;
   qrId: string | null;
+  plantingSpotId: string | null;
 };
