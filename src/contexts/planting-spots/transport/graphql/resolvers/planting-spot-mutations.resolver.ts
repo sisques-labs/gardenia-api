@@ -1,6 +1,8 @@
-import { Logger } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+
+import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
@@ -16,6 +18,7 @@ import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/
 import { CreatePlantingSpotGraphQLDto } from '../dtos/requests/create-planting-spot-graphql.dto';
 import { UpdatePlantingSpotGraphQLDto } from '../dtos/requests/update-planting-spot-graphql.dto';
 
+@UseGuards(JwtAuthGuard)
 @Resolver()
 export class PlantingSpotMutationsResolver {
   private readonly logger = new Logger(PlantingSpotMutationsResolver.name);
