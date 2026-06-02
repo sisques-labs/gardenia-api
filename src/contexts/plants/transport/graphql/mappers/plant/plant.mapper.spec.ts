@@ -109,6 +109,7 @@ describe('PlantGraphQLMapper', () => {
 
       const dto = mapper.toResponseDtoFromViewModel(vm);
 
+      expect(dto.qrId).toBe(QR_ID);
       expect(dto.qr).not.toBeNull();
       expect(dto.qr!.id).toBe(QR_ID);
       expect(dto.qr!.image).toBe('aGVsbG93b3JsZA==');
