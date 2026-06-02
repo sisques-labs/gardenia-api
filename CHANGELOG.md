@@ -1,10 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.10.1-alpha.0] - 2026-06-02
+
+### Bug Fixes
+- **auth:** Set refresh_token cookie path to / for middleware visibility (00ee60d)
+
+### Chore
+- **dependabot:** Target dedicated updates branch (a43b3db)
+- **ci:** Validate multi-arch docker smoke build (cc9fe28)
 ## [0.10.0-alpha.0] - 2026-06-01
 
 ### Chore
 - **openspec:** Archive health-module change artifacts (d31f923)
+- Release v0.10.0-alpha.0 (654fbea)
 
 ### Features
 - **health:** Add liveness health check endpoint (25c605c)
