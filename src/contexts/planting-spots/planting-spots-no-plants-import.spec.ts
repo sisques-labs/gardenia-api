@@ -2,6 +2,7 @@
  * Static test — SC-16: Dependency Constraint
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * The planting-spots bounded context MUST NOT import from src/contexts/plants/,
  * EXCEPT for infrastructure adapters that implement cross-context ports via
  * QueryBus (deliberate Phase 2 coupling points).
@@ -13,6 +14,8 @@
  * Forbidden everywhere else: domain, application, transport layers must not
  * depend on the plants context.
 =======
+=======
+>>>>>>> 8fdd5d9 (feat(planting-spots): add e2e and integration tests)
  * The planting-spots bounded context MUST NOT import from src/contexts/plants/.
  * This test scans all TypeScript source files under src/contexts/planting-spots/
  * and asserts no file contains an import referencing src/contexts/plants/ or
@@ -20,12 +23,16 @@
  *
  * Direction of coupling: plants → planting-spots (Phase 2).
  * planting-spots → plants coupling is strictly forbidden in Phase 1.
+<<<<<<< HEAD
+>>>>>>> 8fdd5d9 (feat(planting-spots): add e2e and integration tests)
+=======
 >>>>>>> 8fdd5d9 (feat(planting-spots): add e2e and integration tests)
  */
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 const ALLOWED_PATHS = ['infrastructure/adapters/'];
 
@@ -34,12 +41,17 @@ describe('planting-spots bounded context — dependency constraint (SC-16)', () 
     const contextDir = join(__dirname);
 
 =======
+=======
+>>>>>>> 8fdd5d9 (feat(planting-spots): add e2e and integration tests)
 describe('planting-spots bounded context — dependency constraint (SC-16)', () => {
   it('has no import from src/contexts/plants/ or @contexts/plants', () => {
     // Resolve the planting-spots directory relative to this file
     const contextDir = join(__dirname);
 
     // Use find to get all .ts files (excluding this spec file itself)
+<<<<<<< HEAD
+>>>>>>> 8fdd5d9 (feat(planting-spots): add e2e and integration tests)
+=======
 >>>>>>> 8fdd5d9 (feat(planting-spots): add e2e and integration tests)
     const output = execSync(
       `find "${contextDir}" -name "*.ts" -not -name "*.spec.ts" -not -name "*.e2e-spec.ts"`,
@@ -55,6 +67,7 @@ describe('planting-spots bounded context — dependency constraint (SC-16)', () 
 
     for (const file of files) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       const relativePath = file.replace(contextDir + '/', '');
 
       if (ALLOWED_PATHS.some((allowed) => relativePath.startsWith(allowed))) {
@@ -63,6 +76,11 @@ describe('planting-spots bounded context — dependency constraint (SC-16)', () 
 
       const content = readFileSync(file, 'utf8');
 
+=======
+      const content = readFileSync(file, 'utf8');
+
+      // Match any import containing @contexts/plants or contexts/plants
+>>>>>>> 8fdd5d9 (feat(planting-spots): add e2e and integration tests)
 =======
       const content = readFileSync(file, 'utf8');
 
@@ -78,7 +96,11 @@ describe('planting-spots bounded context — dependency constraint (SC-16)', () 
 
       if (hasPlantImport) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         violations.push(relativePath);
+=======
+        violations.push(file.replace(contextDir + '/', ''));
+>>>>>>> 8fdd5d9 (feat(planting-spots): add e2e and integration tests)
 =======
         violations.push(file.replace(contextDir + '/', ''));
 >>>>>>> 8fdd5d9 (feat(planting-spots): add e2e and integration tests)
