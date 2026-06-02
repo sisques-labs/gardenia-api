@@ -1,11 +1,11 @@
-# Dependabot version updates — PRs target `main`, run twice per month (~every two weeks).
+# Dependabot version updates — PRs target `dependabot/updates`, run twice per month (~every two weeks).
 # https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
-    target-branch: main
+    target-branch: dependabot/updates
     schedule:
       interval: cron
       cronjob: "0 9 1,15 * *"
@@ -14,7 +14,7 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
-    target-branch: main
+    target-branch: dependabot/updates
     schedule:
       interval: cron
       cronjob: "0 9 1,15 * *"
@@ -22,7 +22,7 @@ updates:
 
   - package-ecosystem: docker
     directory: /
-    target-branch: main
+    target-branch: dependabot/updates
     schedule:
       interval: cron
       cronjob: "0 9 1,15 * *"
