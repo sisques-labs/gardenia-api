@@ -5,6 +5,7 @@ import { AuthModule } from '@contexts/auth/auth.module';
 import { UsersModule } from '@contexts/users/users.module';
 import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { PlantsModule } from '@contexts/plants/plants.module';
+import { PlantingSpotsModule } from '@contexts/planting-spots/planting-spots.module';
 import { QrModule } from '@contexts/qr/qr.module';
 import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
 import { appConfig } from '@core/config/app.config';
@@ -54,6 +55,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     QrModule,
     PlantSpeciesModule,
     PlantsModule,
+    PlantingSpotsModule,
   ],
   providers: [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through

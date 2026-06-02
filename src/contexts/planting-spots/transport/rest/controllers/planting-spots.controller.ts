@@ -1,0 +1,210 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+
+import {
+  CurrentUser,
+  CurrentUserPayload,
+} from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
+import { CreatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/create-planting-spot/create-planting-spot.command';
+import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.command';
+import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
+import { PlantingSpotFindByCriteriaQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.query';
+import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
+import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
+
+import { CreatePlantingSpotDto } from '../dtos/create-planting-spot.dto';
+import { PlantingSpotRestResponseDto } from '../dtos/planting-spot-rest-response.dto';
+import { UpdatePlantingSpotDto } from '../dtos/update-planting-spot.dto';
+import { PlantingSpotRestMapper } from '../mappers/planting-spot/planting-spot.mapper';
+
+interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+}
+
+@ApiTags('planting-spots')
+@ApiBearerAuth()
+@Controller('planting-spots')
+@UseGuards(JwtAuthGuard)
+export class PlantingSpotsController {
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+    private readonly plantingSpotRestMapper: PlantingSpotRestMapper,
+  ) {}
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a new planting spot' })
+  @ApiResponse({
+    status: 201,
+    description: 'Planting spot created successfully',
+    type: PlantingSpotRestResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input or missing X-Space-ID',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async createPlantingSpot(
+    @Body() dto: CreatePlantingSpotDto,
+    @CurrentUser() user: CurrentUserPayload,
+    @Headers('x-space-id') spaceId: string,
+  ): Promise<PlantingSpotRestResponseDto> {
+    const spotId = await this.commandBus.execute<
+      CreatePlantingSpotCommand,
+      string
+    >(
+      new CreatePlantingSpotCommand({
+        name: dto.name,
+        type: dto.type,
+        description: dto.description,
+        userId: user.userId,
+        spaceId,
+      }),
+    );
+
+    const vm = await this.queryBus.execute<
+      PlantingSpotFindByIdQuery,
+      PlantingSpotViewModel
+    >(new PlantingSpotFindByIdQuery({ spotId, spaceId }));
+
+    return this.plantingSpotRestMapper.toResponse(vm);
+  }
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List all planting spots in the current space' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all planting spots in the space',
+  })
+  @ApiResponse({ status: 400, description: 'Missing X-Space-ID' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async listPlantingSpots(
+    @Headers('x-space-id') spaceId: string,
+  ): Promise<PaginatedResult<PlantingSpotRestResponseDto>> {
+    const result = await this.queryBus.execute<
+      PlantingSpotFindByCriteriaQuery,
+      PaginatedResult<PlantingSpotViewModel>
+    >(new PlantingSpotFindByCriteriaQuery({ spaceId }));
+
+    const items = result.items.map((vm) =>
+      this.plantingSpotRestMapper.toResponse(vm),
+    );
+
+    return {
+      items,
+      total: result.total,
+      page: result.page,
+      perPage: result.perPage,
+      totalPages: result.totalPages,
+    };
+  }
+
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get a planting spot by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the planting spot',
+    type: PlantingSpotRestResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Planting spot not found' })
+  async getPlantingSpot(
+    @Param('id') id: string,
+    @Headers('x-space-id') spaceId: string,
+  ): Promise<PlantingSpotRestResponseDto> {
+    const vm = await this.queryBus.execute<
+      PlantingSpotFindByIdQuery,
+      PlantingSpotViewModel
+    >(new PlantingSpotFindByIdQuery({ spotId: id, spaceId }));
+
+    return this.plantingSpotRestMapper.toResponse(vm);
+  }
+
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update a planting spot' })
+  @ApiResponse({
+    status: 200,
+    description: 'Planting spot updated successfully',
+    type: PlantingSpotRestResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not the owner' })
+  @ApiResponse({ status: 404, description: 'Planting spot not found' })
+  async updatePlantingSpot(
+    @Param('id') id: string,
+    @Body() dto: UpdatePlantingSpotDto,
+    @CurrentUser() user: CurrentUserPayload,
+    @Headers('x-space-id') spaceId: string,
+  ): Promise<PlantingSpotRestResponseDto> {
+    await this.commandBus.execute(
+      new UpdatePlantingSpotCommand({
+        spotId: id,
+        name: dto.name,
+        type: dto.type,
+        description: dto.description,
+        requestingUserId: user.userId,
+        spaceId,
+      }),
+    );
+
+    const vm = await this.queryBus.execute<
+      PlantingSpotFindByIdQuery,
+      PlantingSpotViewModel
+    >(new PlantingSpotFindByIdQuery({ spotId: id, spaceId }));
+
+    return this.plantingSpotRestMapper.toResponse(vm);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a planting spot' })
+  @ApiResponse({
+    status: 204,
+    description: 'Planting spot deleted successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not the owner' })
+  @ApiResponse({ status: 404, description: 'Planting spot not found' })
+  @ApiResponse({ status: 409, description: 'Planting spot is in use' })
+  async deletePlantingSpot(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+    @Headers('x-space-id') spaceId: string,
+  ): Promise<void> {
+    await this.commandBus.execute(
+      new DeletePlantingSpotCommand({
+        spotId: id,
+        requestingUserId: user.userId,
+        spaceId,
+      }),
+    );
+  }
+}
