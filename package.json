@@ -54,7 +54,7 @@
     "@sisques-labs/nestjs-kit": "^0.10.2",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1",
+    "class-validator": "^0.14.4",
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
     "graphql": "^16.14.0",
