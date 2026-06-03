@@ -1,5 +1,6 @@
 import { IPlantingSpotPort } from '@contexts/plants/application/ports/planting-spot.port';
 import { PlantPlantingSpotViewModel } from '@contexts/plants/domain/view-models/plant-planting-spot.view-model';
+import { PlantGraphQLMapper } from '../../mappers/plant/plant.mapper';
 import { PlantResponseDto } from '../../dtos/responses/plant/plant.response.dto';
 import { PlantResolvedFieldsResolver } from './plant-resolved-fields.resolver';
 
@@ -41,7 +42,10 @@ describe('PlantResolvedFieldsResolver', () => {
     plantingSpotPort = {
       findById: jest.fn(),
     } as jest.Mocked<IPlantingSpotPort>;
-    resolver = new PlantResolvedFieldsResolver(plantingSpotPort);
+    resolver = new PlantResolvedFieldsResolver(
+      plantingSpotPort,
+      new PlantGraphQLMapper(),
+    );
   });
 
   it('resolves plantingSpot when plantingSpotId is set', async () => {
