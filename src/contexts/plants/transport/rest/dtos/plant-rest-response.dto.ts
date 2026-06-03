@@ -1,42 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class PlantQrRestResponseDto {
-  @ApiProperty({ description: 'UUID of the QR record' })
-  id!: string;
-
-  @ApiProperty({ description: 'UUID of the space' })
-  spaceId!: string;
-
-  @ApiProperty({ description: 'Deep link URL encoded in the QR' })
-  targetUrl!: string;
-
-  @ApiProperty({ description: 'Number of times the QR has been regenerated' })
-  generation!: number;
-
-  @ApiProperty({ description: 'Base64-encoded PNG of the QR image' })
-  image!: string;
-
-  @ApiProperty({ description: 'When the QR was created' })
-  createdAt!: Date;
-
-  @ApiProperty({ description: 'When the QR was last updated' })
-  updatedAt!: Date;
-}
-
-export class PlantSpeciesRestResponseDto {
-  @ApiProperty({ description: 'UUID of the plant species catalog entry' })
-  id!: string;
-
-  @ApiProperty({ description: 'Globally unique species name' })
-  name!: string;
-
-  @ApiProperty({ description: 'When the catalog entry was created' })
-  createdAt!: Date;
-
-  @ApiProperty({ description: 'When the catalog entry was last updated' })
-  updatedAt!: Date;
-}
-
 export class PlantRestResponseDto {
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440000',
@@ -57,12 +20,6 @@ export class PlantRestResponseDto {
   plantSpeciesId?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Resolved plant species catalog entry',
-    type: PlantSpeciesRestResponseDto,
-  })
-  species?: PlantSpeciesRestResponseDto | null;
-
-  @ApiPropertyOptional({
     example: 'https://example.com/plant.jpg',
     description: 'Image URL of the plant',
   })
@@ -81,18 +38,14 @@ export class PlantRestResponseDto {
   spaceId!: string;
 
   @ApiPropertyOptional({
-    description: 'QR code associated with this plant',
-    type: PlantQrRestResponseDto,
+    example: 'd4e5f6a7-b8c9-4123-defa-234567890123',
+    description: 'UUID of the linked QR code (resolve via GraphQL qr field)',
   })
-  qr?: PlantQrRestResponseDto | null;
+  qrId?: string | null;
 
-  @ApiProperty({
-    description: 'When the plant was created',
-  })
+  @ApiProperty({ description: 'When the plant was created' })
   createdAt!: Date;
 
-  @ApiProperty({
-    description: 'When the plant was last updated',
-  })
+  @ApiProperty({ description: 'When the plant was last updated' })
   updatedAt!: Date;
 }
