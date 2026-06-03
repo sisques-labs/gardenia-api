@@ -1,4 +1,9 @@
-import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
+import {
+  Criteria,
+  FilterOperator,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
+
 import { IPlantingSpotReadRepository } from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
 
@@ -20,6 +25,9 @@ const buildViewModel = (type: string): PlantingSpotViewModel =>
     updatedAt: NOW,
   });
 
+const buildCriteria = (filters: Criteria['filters'] = []) =>
+  new Criteria(filters, undefined, undefined);
+
 describe('PlantingSpotFindByCriteriaQueryHandler', () => {
   let handler: PlantingSpotFindByCriteriaQueryHandler;
   let readRepository: jest.Mocked<IPlantingSpotReadRepository>;
@@ -30,57 +38,50 @@ describe('PlantingSpotFindByCriteriaQueryHandler', () => {
     readRepository = {
       findById: jest.fn(),
       findByCriteria: jest.fn(),
+      save: jest.fn(),
+      delete: jest.fn(),
     } as jest.Mocked<IPlantingSpotReadRepository>;
 
     handler = new PlantingSpotFindByCriteriaQueryHandler(readRepository);
   });
 
-  describe('returns spots scoped to spaceId', () => {
-    it('should return all spots for the given space', async () => {
-      const vm1 = buildViewModel(PlantingSpotTypeEnum.POT);
-      const vm2 = buildViewModel(PlantingSpotTypeEnum.RAISED_BED);
-      readRepository.findByCriteria.mockResolvedValue([vm1, vm2]);
+  it('delegates to repository and returns paginated result', async () => {
+    const vm = buildViewModel('POT');
+    const paginated = new PaginatedResult([vm], 1, 1, 20);
+    readRepository.findByCriteria.mockResolvedValue(paginated);
 
-      const query = new PlantingSpotFindByCriteriaQuery({
-        spaceId: SPACE_ID,
-      });
-      const result = await handler.execute(query);
-
-      expect(result).toHaveLength(2);
-      expect(readRepository.findByCriteria).toHaveBeenCalledWith(
-        expect.objectContaining({ spaceId: SPACE_ID }),
-      );
+    const query = new PlantingSpotFindByCriteriaQuery({
+      criteria: buildCriteria(),
     });
+    const result = await handler.execute(query);
+
+    expect(result).toBe(paginated);
+    expect(readRepository.findByCriteria).toHaveBeenCalledWith(query.criteria);
   });
 
-  describe('type filter', () => {
-    it('should pass type filter to repository', async () => {
-      const vm1 = buildViewModel(PlantingSpotTypeEnum.POT);
-      readRepository.findByCriteria.mockResolvedValue([vm1]);
+  it('passes criteria filters to repository', async () => {
+    const paginated = new PaginatedResult([], 0, 1, 20);
+    readRepository.findByCriteria.mockResolvedValue(paginated);
 
-      const query = new PlantingSpotFindByCriteriaQuery({
-        spaceId: SPACE_ID,
-        type: PlantingSpotTypeEnum.POT,
-      });
-      const result = await handler.execute(query);
+    const criteria = buildCriteria([
+      { field: 'type', operator: FilterOperator.EQUALS, value: 'RAISED_BED' },
+    ]);
+    const query = new PlantingSpotFindByCriteriaQuery({ criteria });
+    await handler.execute(query);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].type).toBe(PlantingSpotTypeEnum.POT);
-      expect(readRepository.findByCriteria).toHaveBeenCalledWith(
-        expect.objectContaining({ type: PlantingSpotTypeEnum.POT }),
-      );
-    });
+    expect(readRepository.findByCriteria).toHaveBeenCalledWith(criteria);
   });
 
-  describe('empty result', () => {
-    it('should return empty array without throwing when no spots found', async () => {
-      readRepository.findByCriteria.mockResolvedValue([]);
+  it('returns empty paginated result when no spots found', async () => {
+    const paginated = new PaginatedResult([], 0, 1, 20);
+    readRepository.findByCriteria.mockResolvedValue(paginated);
 
-      const query = new PlantingSpotFindByCriteriaQuery({ spaceId: SPACE_ID });
-      const result = await handler.execute(query);
-
-      expect(result).toEqual([]);
-      expect(readRepository.findByCriteria).toHaveBeenCalledTimes(1);
+    const query = new PlantingSpotFindByCriteriaQuery({
+      criteria: buildCriteria(),
     });
+    const result = await handler.execute(query);
+
+    expect(result.items).toHaveLength(0);
+    expect(result.total).toBe(0);
   });
 });

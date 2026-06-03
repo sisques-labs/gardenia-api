@@ -1,7 +1,7 @@
 export enum PlantingSpotTypeEnum {
-  RAISED_BED = 'raised_bed',
-  POT = 'pot',
-  CONTAINER = 'container',
-  FIELD_SECTION = 'field_section',
-  OTHER = 'other',
+  RAISED_BED = 'RAISED_BED',
+  POT = 'POT',
+  CONTAINER = 'CONTAINER',
+  FIELD_SECTION = 'FIELD_SECTION',
+  OTHER = 'OTHER',
 }

@@ -1,10 +1,3 @@
-export interface IPlantingSpotEventData {
-  id: string;
-  name: string;
-  type: string;
-  description: string | null;
-  userId: string;
-  spaceId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { IPlantingSpotPrimitives } from '@contexts/planting-spots/domain/primitives/planting-spot.primitives';
+
+export type IPlantingSpotEventData = IPlantingSpotPrimitives;

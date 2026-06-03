@@ -1,5 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
 import {
   IPlantingSpotReadRepository,
@@ -12,7 +13,7 @@ import { PlantingSpotFindByCriteriaQuery } from './planting-spot-find-by-criteri
 @QueryHandler(PlantingSpotFindByCriteriaQuery)
 export class PlantingSpotFindByCriteriaQueryHandler implements IQueryHandler<
   PlantingSpotFindByCriteriaQuery,
-  PlantingSpotViewModel[]
+  PaginatedResult<PlantingSpotViewModel>
 > {
   private readonly logger = new Logger(
     PlantingSpotFindByCriteriaQueryHandler.name,
@@ -25,11 +26,8 @@ export class PlantingSpotFindByCriteriaQueryHandler implements IQueryHandler<
 
   async execute(
     query: PlantingSpotFindByCriteriaQuery,
-  ): Promise<PlantingSpotViewModel[]> {
-    this.logger.log(
-      `Executing PlantingSpotFindByCriteriaQuery for space ${query.criteria.spaceId}`,
-    );
-
+  ): Promise<PaginatedResult<PlantingSpotViewModel>> {
+    this.logger.log('Executing PlantingSpotFindByCriteriaQuery');
     return this.plantingSpotReadRepository.findByCriteria(query.criteria);
   }
 }

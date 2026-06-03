@@ -15,14 +15,8 @@ export class AssertPlantingSpotExistsService {
     private readonly plantingSpotWriteRepository: IPlantingSpotWriteRepository,
   ) {}
 
-  async execute(
-    id: PlantingSpotIdValueObject,
-    spaceId: string,
-  ): Promise<PlantingSpotAggregate> {
-    const spot = await this.plantingSpotWriteRepository.findById(
-      id.value,
-      spaceId,
-    );
+  async execute(id: PlantingSpotIdValueObject): Promise<PlantingSpotAggregate> {
+    const spot = await this.plantingSpotWriteRepository.findById(id.value);
     if (!spot) throw new PlantingSpotNotFoundException(id.value);
 
     return spot;

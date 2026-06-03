@@ -33,7 +33,6 @@ export class DeletePlantingSpotCommandHandler
   async execute(command: DeletePlantingSpotCommand): Promise<void> {
     const spot = await this.assertPlantingSpotExistsService.execute(
       command.spotId,
-      command.spaceId.value,
     );
 
     if (spot.userId.value !== command.requestingUserId.value) {

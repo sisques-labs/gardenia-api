@@ -22,6 +22,7 @@ describe('CreatePlantingSpotCommandHandler', () => {
     writeRepository = {
       save: jest.fn().mockResolvedValue(undefined),
       findById: jest.fn(),
+      findByCriteria: jest.fn(),
       delete: jest.fn(),
     } as jest.Mocked<IPlantingSpotWriteRepository>;
 

@@ -24,9 +24,6 @@ export class PlantingSpotFindByIdQueryHandler implements IQueryHandler<
       `Executing PlantingSpotFindByIdQuery for spot ${query.spotId.value}`,
     );
 
-    return this.assertPlantingSpotViewModelExistsService.execute(
-      query.spotId,
-      query.spaceId.value,
-    );
+    return this.assertPlantingSpotViewModelExistsService.execute(query.spotId);
   }
 }

@@ -1,12 +1,15 @@
 import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { IPlantingSpotPrimitives } from '@contexts/planting-spots/domain/primitives/planting-spot.primitives';
 import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
 
-export interface DeletePlantingSpotCommandInput {
+export type DeletePlantingSpotCommandInput = Pick<
+  IPlantingSpotPrimitives,
+  'spaceId'
+> & {
   spotId: string;
   requestingUserId: string;
-  spaceId: string;
-}
+};
 
 export class DeletePlantingSpotCommand {
   public readonly spotId: PlantingSpotIdValueObject;

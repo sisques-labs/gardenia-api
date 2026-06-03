@@ -37,6 +37,7 @@ describe('AssertPlantingSpotExistsService', () => {
     writeRepository = {
       save: jest.fn(),
       findById: jest.fn(),
+      findByCriteria: jest.fn(),
       delete: jest.fn(),
     } as jest.Mocked<IPlantingSpotWriteRepository>;
 
@@ -50,11 +51,10 @@ describe('AssertPlantingSpotExistsService', () => {
 
       const result = await service.execute(
         new PlantingSpotIdValueObject(SPOT_ID),
-        SPACE_ID,
       );
 
       expect(result).toBe(aggregate);
-      expect(writeRepository.findById).toHaveBeenCalledWith(SPOT_ID, SPACE_ID);
+      expect(writeRepository.findById).toHaveBeenCalledWith(SPOT_ID);
     });
   });
 
@@ -63,7 +63,7 @@ describe('AssertPlantingSpotExistsService', () => {
       writeRepository.findById.mockResolvedValue(null);
 
       await expect(
-        service.execute(new PlantingSpotIdValueObject(SPOT_ID), SPACE_ID),
+        service.execute(new PlantingSpotIdValueObject(SPOT_ID)),
       ).rejects.toThrow(PlantingSpotNotFoundException);
     });
 
@@ -71,7 +71,7 @@ describe('AssertPlantingSpotExistsService', () => {
       writeRepository.findById.mockResolvedValue(null);
 
       await expect(
-        service.execute(new PlantingSpotIdValueObject(SPOT_ID), SPACE_ID),
+        service.execute(new PlantingSpotIdValueObject(SPOT_ID)),
       ).rejects.toThrow(SPOT_ID);
     });
   });

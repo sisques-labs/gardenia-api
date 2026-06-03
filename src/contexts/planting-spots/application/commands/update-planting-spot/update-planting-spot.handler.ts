@@ -31,7 +31,6 @@ export class UpdatePlantingSpotCommandHandler
   async execute(command: UpdatePlantingSpotCommand): Promise<void> {
     const spot = await this.assertPlantingSpotExistsService.execute(
       command.spotId,
-      command.spaceId.value,
     );
 
     if (spot.userId.value !== command.requestingUserId.value) {
