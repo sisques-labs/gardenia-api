@@ -1,43 +1,43 @@
+import {
+  CurrentUser,
+  CurrentUserPayload,
+} from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
+import { CreatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/create-planting-spot/create-planting-spot.command';
+import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.command';
+import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
+import { PlantingSpotCreateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-create.request.dto';
+import { PlantingSpotDeleteRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-delete.request.dto';
+import { PlantingSpotUpdateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-update.request.dto';
 import { Logger, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
-
-import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
+import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { SpaceContext } from '@shared/space-context/space-context.service';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
 } from '@sisques-labs/nestjs-kit';
 
-import {
-  CurrentUser,
-  CurrentUserPayload,
-} from '@contexts/auth/infrastructure/decorators/current-user.decorator';
-import { CreatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/create-planting-spot/create-planting-spot.command';
-import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.command';
-import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
-import { CreatePlantingSpotGraphQLDto } from '../dtos/requests/create-planting-spot-graphql.dto';
-import { UpdatePlantingSpotGraphQLDto } from '../dtos/requests/update-planting-spot-graphql.dto';
-
 @UseGuards(JwtAuthGuard)
 @Resolver()
+@UseGuards(JwtAuthGuard)
 export class PlantingSpotMutationsResolver {
   private readonly logger = new Logger(PlantingSpotMutationsResolver.name);
 
   constructor(
     private readonly commandBus: CommandBus,
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
+    private readonly spaceContext: SpaceContext,
   ) {}
 
   @Mutation(() => MutationResponseDto)
-  async createPlantingSpot(
-    @Args('input') input: CreatePlantingSpotGraphQLDto,
+  async plantingSpotCreate(
+    @Args('input') input: PlantingSpotCreateRequestDto,
     @CurrentUser() user: CurrentUserPayload,
-    @Context('req') req: { headers?: { 'x-space-id'?: string } } | string,
   ): Promise<MutationResponseDto> {
-    const spaceId =
-      typeof req === 'string' ? req : (req?.headers?.['x-space-id'] ?? '');
     this.logger.log(`Creating planting spot for user: ${user.userId}`);
 
+    const spaceId = this.spaceContext.require();
     const spotId = await this.commandBus.execute<
       CreatePlantingSpotCommand,
       string
@@ -59,20 +59,18 @@ export class PlantingSpotMutationsResolver {
   }
 
   @Mutation(() => MutationResponseDto)
-  async updatePlantingSpot(
-    @Args('input') input: UpdatePlantingSpotGraphQLDto,
+  async plantingSpotUpdate(
+    @Args('input') input: PlantingSpotUpdateRequestDto,
     @CurrentUser() user: CurrentUserPayload,
-    @Context('req') req: { headers?: { 'x-space-id'?: string } } | string,
   ): Promise<MutationResponseDto> {
-    const spaceId =
-      typeof req === 'string' ? req : (req?.headers?.['x-space-id'] ?? '');
     this.logger.log(
       `Updating planting spot ${input.id} for user: ${user.userId}`,
     );
 
+    const spaceId = this.spaceContext.require();
     await this.commandBus.execute(
       new UpdatePlantingSpotCommand({
-        spotId: input.id,
+        id: input.id,
         name: input.name,
         type: input.type,
         description: input.description,
@@ -89,18 +87,18 @@ export class PlantingSpotMutationsResolver {
   }
 
   @Mutation(() => MutationResponseDto)
-  async deletePlantingSpot(
-    @Args('id') id: string,
+  async plantingSpotDelete(
+    @Args('input') input: PlantingSpotDeleteRequestDto,
     @CurrentUser() user: CurrentUserPayload,
-    @Context('req') req: { headers?: { 'x-space-id'?: string } } | string,
   ): Promise<MutationResponseDto> {
-    const spaceId =
-      typeof req === 'string' ? req : (req?.headers?.['x-space-id'] ?? '');
-    this.logger.log(`Deleting planting spot ${id} for user: ${user.userId}`);
+    this.logger.log(
+      `Deleting planting spot ${input.id} for user: ${user.userId}`,
+    );
 
+    const spaceId = this.spaceContext.require();
     await this.commandBus.execute(
       new DeletePlantingSpotCommand({
-        spotId: id,
+        id: input.id,
         requestingUserId: user.userId,
         spaceId,
       }),
@@ -109,7 +107,7 @@ export class PlantingSpotMutationsResolver {
     return this.mutationResponseGraphQLMapper.toResponseDto({
       success: true,
       message: 'Planting spot deleted successfully',
-      id,
+      id: input.id,
     });
   }
 }

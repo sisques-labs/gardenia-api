@@ -1,18 +1,15 @@
-import { UuidValueObject } from '@sisques-labs/nestjs-kit';
-
+import { IPlantingSpotPrimitives } from '@contexts/planting-spots/domain/primitives/planting-spot.primitives';
 import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
 
-export interface PlantingSpotFindByIdQueryInput {
-  spotId: string;
-  spaceId: string;
-}
+export type PlantingSpotFindByIdQueryInput = Pick<
+  IPlantingSpotPrimitives,
+  'id'
+>;
 
 export class PlantingSpotFindByIdQuery {
-  public readonly spotId: PlantingSpotIdValueObject;
-  public readonly spaceId: UuidValueObject;
+  public readonly id: PlantingSpotIdValueObject;
 
   constructor(input: PlantingSpotFindByIdQueryInput) {
-    this.spotId = new PlantingSpotIdValueObject(input.spotId);
-    this.spaceId = new UuidValueObject(input.spaceId);
+    this.id = new PlantingSpotIdValueObject(input.id);
   }
 }

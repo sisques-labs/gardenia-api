@@ -29,14 +29,12 @@ export class UpdatePlantingSpotCommandHandler
   }
 
   async execute(command: UpdatePlantingSpotCommand): Promise<void> {
-    const spot = await this.assertPlantingSpotExistsService.execute(
-      command.spotId,
-    );
+    const spot = await this.assertPlantingSpotExistsService.execute(command.id);
 
     if (spot.userId.value !== command.requestingUserId.value) {
       throw new PlantingSpotForbiddenException(
         command.requestingUserId.value,
-        command.spotId.value,
+        command.id.value,
       );
     }
 
@@ -50,7 +48,7 @@ export class UpdatePlantingSpotCommandHandler
     await this.publishEvents(spot);
 
     this.logger.log(
-      `PlantingSpot updated: ${command.spotId.value} by user: ${command.requestingUserId.value}`,
+      `PlantingSpot updated: ${command.id.value} by user: ${command.requestingUserId.value}`,
     );
   }
 }

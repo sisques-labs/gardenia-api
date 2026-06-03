@@ -46,12 +46,8 @@ export class PlantingSpotTypeOrmReadRepository
       take: limit,
     });
 
-    return new PaginatedResult(
-      entities.map((e) => this.toViewModel(e)),
-      total,
-      page,
-      limit,
-    );
+    const items = entities.map((e) => this.mapper.toViewModel(e));
+    return new PaginatedResult(items, total, page, limit);
   }
 
   async save(_viewModel: PlantingSpotViewModel): Promise<void> {}
@@ -63,7 +59,6 @@ export class PlantingSpotTypeOrmReadRepository
   private toViewModel(
     entity: PlantingSpotTypeOrmEntity,
   ): PlantingSpotViewModel {
-    const aggregate = this.mapper.toDomain(entity);
-    return new PlantingSpotViewModel(aggregate.toPrimitives());
+    return this.mapper.toViewModel(entity);
   }
 }
