@@ -20,8 +20,8 @@ import { PlantingSpotTypeOrmReadRepository } from './infrastructure/persistence/
 import { PlantingSpotTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-write.repository';
 import './transport/graphql/enums/planting-spot-registered-enums.graphql';
 import { PlantingSpotGraphQLMapper } from './transport/graphql/mappers/planting-spot/planting-spot.mapper';
-import { PlantingSpotMutationsResolver } from './transport/graphql/resolvers/planting-spot-mutations.resolver';
-import { PlantingSpotQueriesResolver } from './transport/graphql/resolvers/planting-spot-queries.resolver';
+import { PlantingSpotMutationsResolver } from './transport/graphql/resolvers/planting-spot/mutations/planting-spot-mutations.resolver';
+import { PlantingSpotQueriesResolver } from './transport/graphql/resolvers/planting-spot/queries/planting-spot-queries.resolver';
 import { PlantingSpotsController } from './transport/rest/controllers/planting-spots.controller';
 import { PlantingSpotRestMapper } from './transport/rest/mappers/planting-spot/planting-spot.mapper';
 

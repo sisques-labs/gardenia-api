@@ -42,10 +42,7 @@ describe('PlantingSpotFindByIdQueryHandler', () => {
       const viewModel = buildViewModel();
       assertService.execute.mockResolvedValue(viewModel);
 
-      const query = new PlantingSpotFindByIdQuery({
-        id: SPOT_ID,
-        spaceId: SPACE_ID,
-      });
+      const query = new PlantingSpotFindByIdQuery({ id: SPOT_ID });
       const result = await handler.execute(query);
 
       expect(result).toBe(viewModel);
@@ -59,10 +56,7 @@ describe('PlantingSpotFindByIdQueryHandler', () => {
         new PlantingSpotNotFoundException(SPOT_ID),
       );
 
-      const query = new PlantingSpotFindByIdQuery({
-        id: SPOT_ID,
-        spaceId: SPACE_ID,
-      });
+      const query = new PlantingSpotFindByIdQuery({ id: SPOT_ID });
 
       await expect(handler.execute(query)).rejects.toThrow(
         PlantingSpotNotFoundException,

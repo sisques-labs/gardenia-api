@@ -9,9 +9,9 @@ import {
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 
-@InputType('UpdatePlantingSpotInput')
-export class UpdatePlantingSpotGraphQLDto {
-  @Field(() => String, { description: 'The ID of the planting spot to update' })
+@InputType('PlantingSpotUpdateRequestDto')
+export class PlantingSpotUpdateRequestDto {
+  @Field(() => String, { description: 'The id of the planting spot to update' })
   @IsUUID()
   @IsNotEmpty()
   id!: string;
