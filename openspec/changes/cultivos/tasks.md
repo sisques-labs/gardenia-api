@@ -100,15 +100,15 @@ Chain strategy: pending
 
 ## Phase 6: Tests
 
-- [ ] 6.1 Unit — `planting-spot-type.value-object.spec.ts`: valid enum accepted; invalid string throws domain error (SC-02)
-- [ ] 6.2 Unit — `planting-spot.aggregate.spec.ts`: `create()` emits `PlantingSpotCreated`; `update()` emits `PlantingSpotUpdated` + field events; `delete()` emits `PlantingSpotDeleted`
-- [ ] 6.3 Unit — `assert-planting-spot-not-in-use.service.spec.ts`: count=0 passes; count=1 throws `PlantingSpotInUseException` (SC-08)
-- [ ] 6.4 Unit — `create-planting-spot.handler.spec.ts`: happy path saves + emits event (SC-01); invalid type rejected (SC-02)
-- [ ] 6.5 Unit — `update-planting-spot.handler.spec.ts`: owner updates (SC-04); non-owner → 403 (SC-05); wrong space → 404 (SC-06)
-- [ ] 6.6 Unit — `delete-planting-spot.handler.spec.ts`: owner + count=0 deletes (SC-07); count>0 → 409 (SC-08); non-owner → 403 (SC-09)
-- [ ] 6.7 Unit — `planting-spot-find-by-id.handler.spec.ts`: found in space (SC-10); wrong space → 404 (SC-11)
-- [ ] 6.8 Unit — `planting-spot-find-by-criteria.handler.spec.ts`: returns own space only (SC-12); type filter (SC-13); empty list → 200 (SC-14)
-- [ ] 6.9 Integration — `planting-spot-tenant-isolation.spec.ts`: spot under S1 invisible under S2 using real `createTenantRepository` (SC-15)
-- [ ] 6.10 Integration — `planting-spot-type-filter.spec.ts`: `findByCriteria({type:'pot'})` returns only pot spots (SC-13)
-- [ ] 6.11 E2E — `planting-spots.e2e.spec.ts`: REST CRUD behind `JwtAuthGuard`+`SpaceGuard`; missing `X-Space-ID` → 400 (SC-03); creates, reads, updates, deletes; GraphQL equivalent operations
-- [ ] 6.12 Static — `planting-spots-no-plants-import.spec.ts`: scan `src/contexts/planting-spots/**` — assert no import from `src/contexts/plants/` (SC-16)
+- [x] 6.1 Unit — `planting-spot-type.value-object.spec.ts`: valid enum accepted; invalid string throws domain error (SC-02)
+- [x] 6.2 Unit — `planting-spot.aggregate.spec.ts`: `create()` emits `PlantingSpotCreated`; `update()` emits `PlantingSpotUpdated` + field events; `delete()` emits `PlantingSpotDeleted`
+- [x] 6.3 Unit — `assert-planting-spot-not-in-use.service.spec.ts`: count=0 passes; count=1 throws `PlantingSpotInUseException` (SC-08)
+- [x] 6.4 Unit — `create-planting-spot.handler.spec.ts`: happy path saves + emits event (SC-01); invalid type rejected (SC-02)
+- [x] 6.5 Unit — `update-planting-spot.handler.spec.ts`: owner updates (SC-04); non-owner → 403 (SC-05); wrong space → 404 (SC-06)
+- [x] 6.6 Unit — `delete-planting-spot.handler.spec.ts`: owner + count=0 deletes (SC-07); count>0 → 409 (SC-08); non-owner → 403 (SC-09)
+- [x] 6.7 Unit — `planting-spot-find-by-id.handler.spec.ts`: found in space (SC-10); wrong space → 404 (SC-11)
+- [x] 6.8 Unit — `planting-spot-find-by-criteria.handler.spec.ts`: returns own space only (SC-12); type filter (SC-13); empty list → 200 (SC-14)
+- [x] 6.9 Integration — `planting-spot-typeorm-write.repository.integration-spec.ts` + `planting-spot-typeorm-read.repository.integration-spec.ts`: tenant isolation SC-15, type filter SC-13, findById SC-14 using real `createTenantRepository`
+- [x] 6.10 Integration — covered in `planting-spot-typeorm-read.repository.integration-spec.ts`: `findByCriteria({type:'pot'})` returns only pot spots (SC-13)
+- [x] 6.11 E2E — `planting-spots-rest.e2e-spec.ts`: REST CRUD behind `JwtAuthGuard`+`SpaceGuard`; invalid type → 400 (SC-02); creates, reads, updates, deletes; tenant isolation → 404 (SC-11, SC-12)
+- [x] 6.12 Static — `planting-spots-no-plants-import.spec.ts`: scan `src/contexts/planting-spots/**` — assert no import from `src/contexts/plants/` (SC-16)

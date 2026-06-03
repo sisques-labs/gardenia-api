@@ -1,25 +1,25 @@
+import {
+  CurrentUser,
+  CurrentUserPayload,
+} from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CreatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/create-planting-spot/create-planting-spot.command';
 import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.command';
 import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
 import { PlantingSpotCreateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-create.request.dto';
 import { PlantingSpotDeleteRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-delete.request.dto';
 import { PlantingSpotUpdateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-update.request.dto';
-import {
-  CurrentUser,
-  CurrentUserPayload,
-} from '@contexts/auth/infrastructure/decorators/current-user.decorator';
-import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { Logger, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { SpaceContext } from '@shared/space-context/space-context.service';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
 } from '@sisques-labs/nestjs-kit';
-import { SpaceContext } from '@shared/space-context/space-context.service';
 
-@Resolver()
 @UseGuards(JwtAuthGuard)
+@Resolver()
 export class PlantingSpotMutationsResolver {
   private readonly logger = new Logger(PlantingSpotMutationsResolver.name);
 
