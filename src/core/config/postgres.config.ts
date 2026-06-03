@@ -13,7 +13,7 @@ export const postgresConfig = registerAs(
     database: process.env.DATABASE_DATABASE,
     synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
     autoLoadEntities: true,
-    migrationsRun: process.env.DATABASE_MIGRATIONS_RUN === 'true',
+    migrationsRun: process.env.DATABASE_MIGRATIONS_RUN !== 'false',
     migrations: [join(__dirname, '../../database/migrations/*{.ts,.js}')],
   }),
 );
