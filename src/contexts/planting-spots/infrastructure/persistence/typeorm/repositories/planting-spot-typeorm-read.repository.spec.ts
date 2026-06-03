@@ -1,3 +1,4 @@
+import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
 import { PlantingSpotBuilder } from '@contexts/planting-spots/domain/builders/planting-spot.builder';
@@ -34,7 +35,7 @@ describe('PlantingSpotTypeOrmReadRepository', () => {
   beforeEach(() => {
     rawRepo = {
       findOne: jest.fn(),
-      find: jest.fn(),
+      findAndCount: jest.fn(),
     } as unknown as jest.Mocked<Repository<PlantingSpotTypeOrmEntity>>;
 
     mapper = new PlantingSpotTypeOrmMapper(new PlantingSpotBuilder());
@@ -54,7 +55,7 @@ describe('PlantingSpotTypeOrmReadRepository', () => {
     it('should return a PlantingSpotViewModel when entity is found', async () => {
       rawRepo.findOne.mockResolvedValue(buildSpotEntity());
 
-      const result = await repository.findById(SPOT_ID, SPACE_ID);
+      const result = await repository.findById(SPOT_ID);
 
       expect(result).toBeInstanceOf(PlantingSpotViewModel);
       expect(result?.id).toBe(SPOT_ID);
@@ -63,41 +64,42 @@ describe('PlantingSpotTypeOrmReadRepository', () => {
     it('should return null when entity is not found', async () => {
       rawRepo.findOne.mockResolvedValue(null);
 
-      const result = await repository.findById('nonexistent', SPACE_ID);
+      const result = await repository.findById('nonexistent');
 
       expect(result).toBeNull();
     });
   });
 
   describe('findByCriteria()', () => {
-    it('should return an array of PlantingSpotViewModels for the given spaceId', async () => {
-      rawRepo.find.mockResolvedValue([buildSpotEntity()]);
+    const emptyCriteria = new Criteria(undefined, undefined, undefined);
 
-      const result = await repository.findByCriteria({ spaceId: SPACE_ID });
+    it('should return a PaginatedResult with view models', async () => {
+      rawRepo.findAndCount.mockResolvedValue([[buildSpotEntity()], 1]);
 
-      expect(result).toHaveLength(1);
-      expect(result[0]).toBeInstanceOf(PlantingSpotViewModel);
+      const result = await repository.findByCriteria(emptyCriteria);
+
+      expect(result).toBeInstanceOf(PaginatedResult);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]).toBeInstanceOf(PlantingSpotViewModel);
+      expect(result.total).toBe(1);
     });
 
-    it('should return an empty array when no entities match', async () => {
-      rawRepo.find.mockResolvedValue([]);
+    it('should return empty paginated result when no entities match', async () => {
+      rawRepo.findAndCount.mockResolvedValue([[], 0]);
 
-      const result = await repository.findByCriteria({ spaceId: SPACE_ID });
+      const result = await repository.findByCriteria(emptyCriteria);
 
-      expect(result).toHaveLength(0);
+      expect(result.items).toHaveLength(0);
+      expect(result.total).toBe(0);
     });
 
-    it('should pass type filter when provided', async () => {
+    it('should return correct type value from entity', async () => {
       const potEntity = buildSpotEntity({ type: PlantingSpotTypeEnum.POT });
-      rawRepo.find.mockResolvedValue([potEntity]);
+      rawRepo.findAndCount.mockResolvedValue([[potEntity], 1]);
 
-      const result = await repository.findByCriteria({
-        spaceId: SPACE_ID,
-        type: PlantingSpotTypeEnum.POT,
-      });
+      const result = await repository.findByCriteria(emptyCriteria);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].type).toBe(PlantingSpotTypeEnum.POT);
+      expect(result.items[0].type).toBe(PlantingSpotTypeEnum.POT);
     });
   });
 });

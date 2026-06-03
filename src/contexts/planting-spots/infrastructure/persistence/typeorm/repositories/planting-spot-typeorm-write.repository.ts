@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import {
+  BaseDatabaseRepository,
+  Criteria,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
 import { PlantingSpotAggregate } from '@contexts/planting-spots/domain/aggregates/planting-spot.aggregate';
@@ -10,7 +15,10 @@ import { PlantingSpotTypeOrmEntity } from '../entities/planting-spot.entity';
 import { PlantingSpotTypeOrmMapper } from '../mappers/planting-spot-typeorm.mapper';
 
 @Injectable()
-export class PlantingSpotTypeOrmWriteRepository implements IPlantingSpotWriteRepository {
+export class PlantingSpotTypeOrmWriteRepository
+  extends BaseDatabaseRepository
+  implements IPlantingSpotWriteRepository
+{
   private readonly repository: Repository<PlantingSpotTypeOrmEntity>;
 
   constructor(
@@ -19,20 +27,33 @@ export class PlantingSpotTypeOrmWriteRepository implements IPlantingSpotWriteRep
     rawRepo: Repository<PlantingSpotTypeOrmEntity>,
     private readonly spaceContext: SpaceContext,
   ) {
+    super();
     this.repository = createTenantRepository(rawRepo, spaceContext);
   }
 
-  async save(aggregate: PlantingSpotAggregate): Promise<void> {
+  async save(aggregate: PlantingSpotAggregate): Promise<PlantingSpotAggregate> {
     const entity = this.mapper.toPersistence(aggregate);
-    await this.repository.save(entity);
+    const saved = await this.repository.save(entity);
+    return this.mapper.toDomain(saved);
   }
 
-  async findById(
-    id: string,
-    spaceId: string,
-  ): Promise<PlantingSpotAggregate | null> {
-    const entity = await this.repository.findOne({ where: { id, spaceId } });
+  async findById(id: string): Promise<PlantingSpotAggregate | null> {
+    const entity = await this.repository.findOne({ where: { id } });
     return entity ? this.mapper.toDomain(entity) : null;
+  }
+
+  async findByCriteria(
+    criteria: Criteria,
+  ): Promise<PaginatedResult<PlantingSpotAggregate>> {
+    const { page, limit, skip } = await this.calculatePagination(criteria);
+
+    const [entities, total] = await this.repository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const items = entities.map((e) => this.mapper.toDomain(e));
+    return new PaginatedResult(items, total, page, limit);
   }
 
   async delete(id: string): Promise<void> {

@@ -44,6 +44,7 @@ describe('PlantingSpotTypeOrmWriteRepository', () => {
     rawRepo = {
       save: jest.fn(),
       findOne: jest.fn(),
+      findAndCount: jest.fn(),
       delete: jest.fn(),
     } as unknown as jest.Mocked<Repository<PlantingSpotTypeOrmEntity>>;
 
@@ -76,7 +77,7 @@ describe('PlantingSpotTypeOrmWriteRepository', () => {
     it('should return an aggregate when the entity is found', async () => {
       rawRepo.findOne.mockResolvedValue(buildSpotEntity());
 
-      const result = await repository.findById(SPOT_ID, SPACE_ID);
+      const result = await repository.findById(SPOT_ID);
 
       expect(result).not.toBeNull();
       expect(result?.toPrimitives().id).toBe(SPOT_ID);
@@ -85,7 +86,7 @@ describe('PlantingSpotTypeOrmWriteRepository', () => {
     it('should return null when the entity is not found', async () => {
       rawRepo.findOne.mockResolvedValue(null);
 
-      const result = await repository.findById('nonexistent', SPACE_ID);
+      const result = await repository.findById('nonexistent');
 
       expect(result).toBeNull();
     });

@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
-
 import {
-  IPlantingSpotReadRepository,
-  PlantingSpotCriteria,
-} from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
+  BaseDatabaseRepository,
+  Criteria,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
+import { Repository } from 'typeorm';
+
+import { IPlantingSpotReadRepository } from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
@@ -13,7 +15,10 @@ import { PlantingSpotTypeOrmEntity } from '../entities/planting-spot.entity';
 import { PlantingSpotTypeOrmMapper } from '../mappers/planting-spot-typeorm.mapper';
 
 @Injectable()
-export class PlantingSpotTypeOrmReadRepository implements IPlantingSpotReadRepository {
+export class PlantingSpotTypeOrmReadRepository
+  extends BaseDatabaseRepository
+  implements IPlantingSpotReadRepository
+{
   private readonly repository: Repository<PlantingSpotTypeOrmEntity>;
 
   constructor(
@@ -22,39 +27,37 @@ export class PlantingSpotTypeOrmReadRepository implements IPlantingSpotReadRepos
     private readonly mapper: PlantingSpotTypeOrmMapper,
     private readonly spaceContext: SpaceContext,
   ) {
+    super();
     this.repository = createTenantRepository(rawRepo, spaceContext);
   }
 
-  async findById(
-    id: string,
-    spaceId: string,
-  ): Promise<PlantingSpotViewModel | null> {
-    const entity = await this.repository.findOne({ where: { id, spaceId } });
+  async findById(id: string): Promise<PlantingSpotViewModel | null> {
+    const entity = await this.repository.findOne({ where: { id } });
     return entity ? this.toViewModel(entity) : null;
   }
 
   async findByCriteria(
-    criteria: PlantingSpotCriteria,
-  ): Promise<PlantingSpotViewModel[]> {
-    const where: FindOptionsWhere<PlantingSpotTypeOrmEntity> = {
-      spaceId: criteria.spaceId,
-    };
+    criteria: Criteria,
+  ): Promise<PaginatedResult<PlantingSpotViewModel>> {
+    const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    if (criteria.type !== undefined) {
-      where.type = criteria.type;
-    }
-
-    const page = criteria.page ?? 1;
-    const limit = Math.min(criteria.limit ?? 20, 100);
-    const skip = (page - 1) * limit;
-
-    const entities = await this.repository.find({
-      where,
+    const [entities, total] = await this.repository.findAndCount({
       skip,
       take: limit,
     });
 
-    return entities.map((e) => this.toViewModel(e));
+    return new PaginatedResult(
+      entities.map((e) => this.toViewModel(e)),
+      total,
+      page,
+      limit,
+    );
+  }
+
+  async save(_viewModel: PlantingSpotViewModel): Promise<void> {}
+
+  async delete(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 
   private toViewModel(
