@@ -6,6 +6,7 @@ import {
   IPlantingSpotPort,
   PLANTING_SPOT_PORT,
 } from '@contexts/plants/application/ports/planting-spot.port';
+import { PlantGraphQLMapper } from '../../mappers/plant/plant.mapper';
 import {
   PlantLinkedPlantingSpotResponseDto,
   PlantResponseDto,
@@ -17,6 +18,7 @@ export class PlantResolvedFieldsResolver {
   constructor(
     @Inject(PLANTING_SPOT_PORT)
     private readonly plantingSpotPort: IPlantingSpotPort,
+    private readonly plantGraphQLMapper: PlantGraphQLMapper,
   ) {}
 
   @ResolveField('plantingSpot', () => PlantLinkedPlantingSpotResponseDto, {
@@ -34,15 +36,6 @@ export class PlantResolvedFieldsResolver {
 
     if (!vm) return null;
 
-    return {
-      id: vm.id,
-      name: vm.name,
-      type: vm.type,
-      description: vm.description ?? null,
-      userId: vm.userId,
-      spaceId: vm.spaceId,
-      createdAt: vm.createdAt,
-      updatedAt: vm.updatedAt,
-    };
+    return this.plantGraphQLMapper.toLinkedPlantingSpotResponseDto(vm);
   }
 }
