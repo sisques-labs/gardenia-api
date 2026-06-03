@@ -33,7 +33,7 @@ describe('PlantingSpotAdapter', () => {
   it('dispatches PlantingSpotFindByIdQuery and maps result to PlantPlantingSpotViewModel', async () => {
     queryBus.execute.mockResolvedValueOnce(makeSpotViewModel());
 
-    const result = await adapter.findById(SPOT_ID, SPACE_ID);
+    const result = await adapter.findById(SPOT_ID);
 
     expect(result).not.toBeNull();
     expect(result!.id).toBe(SPOT_ID);
@@ -54,7 +54,7 @@ describe('PlantingSpotAdapter', () => {
   it('returns null when query throws (spot not found)', async () => {
     queryBus.execute.mockRejectedValueOnce(new Error('Spot not found'));
 
-    const result = await adapter.findById(SPOT_ID, SPACE_ID);
+    const result = await adapter.findById(SPOT_ID);
 
     expect(result).toBeNull();
   });
@@ -62,7 +62,7 @@ describe('PlantingSpotAdapter', () => {
   it('returns null when query resolves null', async () => {
     queryBus.execute.mockResolvedValueOnce(null);
 
-    const result = await adapter.findById(SPOT_ID, SPACE_ID);
+    const result = await adapter.findById(SPOT_ID);
 
     expect(result).toBeNull();
   });
@@ -80,7 +80,7 @@ describe('PlantingSpotAdapter', () => {
     });
     queryBus.execute.mockResolvedValueOnce(vm);
 
-    const result = await adapter.findById(SPOT_ID, SPACE_ID);
+    const result = await adapter.findById(SPOT_ID);
 
     expect(result).not.toBeNull();
     expect(result!.description).toBeNull();
