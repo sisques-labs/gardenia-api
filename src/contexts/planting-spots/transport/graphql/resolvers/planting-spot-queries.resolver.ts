@@ -1,6 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Context, Query, Resolver } from '@nestjs/graphql';
+import {
+  Criteria,
+  FilterOperator,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 
 import { PlantingSpotFindByCriteriaQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.query';
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
@@ -11,14 +16,6 @@ import {
   PlantingSpotResponseDto,
 } from '../dtos/responses/planting-spot.response.dto';
 import { PlantingSpotGraphQLMapper } from '../mappers/planting-spot/planting-spot.mapper';
-
-interface PaginatedResult<T> {
-  items: T[];
-  total: number;
-  page: number;
-  perPage: number;
-  totalPages: number;
-}
 
 @Resolver()
 export class PlantingSpotQueriesResolver {
@@ -48,11 +45,8 @@ export class PlantingSpotQueriesResolver {
 
   @Query(() => PaginatedPlantingSpotResultDto)
   async plantingSpots(
-    @Context('req') req: { headers?: { 'x-space-id'?: string } } | string,
     @Args('input', { nullable: true }) input?: FindByCriteriaGraphQLDto,
   ): Promise<PaginatedPlantingSpotResultDto> {
-    const spaceId =
-      typeof req === 'string' ? req : (req?.headers?.['x-space-id'] ?? '');
     this.logger.log(
       `Finding planting spots by criteria: ${JSON.stringify(input)}`,
     );
@@ -62,10 +56,21 @@ export class PlantingSpotQueriesResolver {
       PaginatedResult<PlantingSpotViewModel>
     >(
       new PlantingSpotFindByCriteriaQuery({
-        spaceId,
-        type: input?.type,
-        page: input?.page,
-        limit: input?.limit,
+        criteria: new Criteria(
+          input?.type
+            ? [
+                {
+                  field: 'type',
+                  operator: FilterOperator.EQUALS,
+                  value: input.type,
+                },
+              ]
+            : undefined,
+          undefined,
+          input?.page || input?.limit
+            ? { page: input.page ?? 1, perPage: input.limit ?? 20 }
+            : undefined,
+        ),
       }),
     );
 

@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -35,14 +36,6 @@ import { CreatePlantingSpotDto } from '../dtos/create-planting-spot.dto';
 import { PlantingSpotRestResponseDto } from '../dtos/planting-spot-rest-response.dto';
 import { UpdatePlantingSpotDto } from '../dtos/update-planting-spot.dto';
 import { PlantingSpotRestMapper } from '../mappers/planting-spot/planting-spot.mapper';
-
-interface PaginatedResult<T> {
-  items: T[];
-  total: number;
-  page: number;
-  perPage: number;
-  totalPages: number;
-}
 
 @ApiTags('planting-spots')
 @ApiBearerAuth()
@@ -103,13 +96,17 @@ export class PlantingSpotsController {
   })
   @ApiResponse({ status: 400, description: 'Missing X-Space-ID' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async listPlantingSpots(
-    @Headers('x-space-id') spaceId: string,
-  ): Promise<PaginatedResult<PlantingSpotRestResponseDto>> {
+  async listPlantingSpots(): Promise<
+    PaginatedResult<PlantingSpotRestResponseDto>
+  > {
     const result = await this.queryBus.execute<
       PlantingSpotFindByCriteriaQuery,
       PaginatedResult<PlantingSpotViewModel>
-    >(new PlantingSpotFindByCriteriaQuery({ spaceId }));
+    >(
+      new PlantingSpotFindByCriteriaQuery({
+        criteria: new Criteria(undefined, undefined, undefined),
+      }),
+    );
 
     const items = result.items.map((vm) =>
       this.plantingSpotRestMapper.toResponse(vm),

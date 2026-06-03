@@ -101,7 +101,7 @@ describe('PlantingSpotsController', () => {
       queryBus.execute.mockResolvedValueOnce(paginatedVms);
       mapper.toResponse.mockReturnValueOnce(mockResponseDto);
 
-      const result = await controller.listPlantingSpots(SPACE_ID);
+      const result = await controller.listPlantingSpots();
 
       expect(queryBus.execute).toHaveBeenCalledTimes(1);
       expect(result.items).toHaveLength(1);

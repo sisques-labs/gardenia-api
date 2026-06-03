@@ -14,7 +14,7 @@ export class PlantingSpotRestResponseDto {
   name!: string;
 
   @ApiProperty({
-    example: 'raised_bed',
+    example: 'RAISED_BED',
     description: 'Type of the planting spot',
   })
   type!: string;

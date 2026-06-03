@@ -91,7 +91,7 @@ describe('PlantingSpotQueriesResolver', () => {
       queryBus.execute.mockResolvedValueOnce(paginatedVms);
       mapper.toPaginatedResponseDto.mockReturnValueOnce(paginatedDto);
 
-      const result = await resolver.plantingSpots(SPACE_ID);
+      const result = await resolver.plantingSpots();
 
       expect(queryBus.execute).toHaveBeenCalledTimes(1);
       expect(result.items).toHaveLength(1);
