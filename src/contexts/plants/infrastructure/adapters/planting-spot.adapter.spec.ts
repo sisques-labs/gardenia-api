@@ -1,5 +1,6 @@
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
+import { PlantPlantingSpotBuilder } from '@contexts/plants/domain/builders/plant-planting-spot.builder';
 import { QueryBus } from '@nestjs/cqrs';
 import { PlantingSpotAdapter } from './planting-spot.adapter';
 
@@ -27,7 +28,7 @@ describe('PlantingSpotAdapter', () => {
 
   beforeEach(() => {
     queryBus = { execute: jest.fn() } as unknown as jest.Mocked<QueryBus>;
-    adapter = new PlantingSpotAdapter(queryBus);
+    adapter = new PlantingSpotAdapter(queryBus, new PlantPlantingSpotBuilder());
   });
 
   it('dispatches PlantingSpotFindByIdQuery and maps result to PlantPlantingSpotViewModel', async () => {
