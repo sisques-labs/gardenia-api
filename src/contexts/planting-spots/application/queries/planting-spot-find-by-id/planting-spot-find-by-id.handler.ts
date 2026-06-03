@@ -21,9 +21,9 @@ export class PlantingSpotFindByIdQueryHandler implements IQueryHandler<
     query: PlantingSpotFindByIdQuery,
   ): Promise<PlantingSpotViewModel> {
     this.logger.log(
-      `Executing PlantingSpotFindByIdQuery for spot ${query.spotId.value}`,
+      `Executing PlantingSpotFindByIdQuery for spot ${query.id.value}`,
     );
 
-    return this.assertPlantingSpotViewModelExistsService.execute(query.spotId);
+    return this.assertPlantingSpotViewModelExistsService.execute(query.id);
   }
 }

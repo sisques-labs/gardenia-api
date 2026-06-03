@@ -5,19 +5,18 @@ import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value
 
 export type DeletePlantingSpotCommandInput = Pick<
   IPlantingSpotPrimitives,
-  'spaceId'
+  'spaceId' | 'id'
 > & {
-  spotId: string;
   requestingUserId: string;
 };
 
 export class DeletePlantingSpotCommand {
-  public readonly spotId: PlantingSpotIdValueObject;
+  public readonly id: PlantingSpotIdValueObject;
   public readonly requestingUserId: UuidValueObject;
   public readonly spaceId: UuidValueObject;
 
   constructor(input: DeletePlantingSpotCommandInput) {
-    this.spotId = new PlantingSpotIdValueObject(input.spotId);
+    this.id = new PlantingSpotIdValueObject(input.id);
     this.requestingUserId = new UuidValueObject(input.requestingUserId);
     this.spaceId = new UuidValueObject(input.spaceId);
   }
