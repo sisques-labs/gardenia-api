@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 ## [0.11.2-alpha.0] - 2026-06-03
 
+### Chore
+- Release v0.11.2-alpha.0 (3015c57)
+
 ### Refactor
 - **filters:** Move exception-to-status mapping into per-context transport filters (c290b94)
 ## [0.11.1-alpha.0] - 2026-06-03
