@@ -12,13 +12,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 
 import {
   CurrentUser,
@@ -82,7 +82,7 @@ export class PlantingSpotsController {
     const vm = await this.queryBus.execute<
       PlantingSpotFindByIdQuery,
       PlantingSpotViewModel
-    >(new PlantingSpotFindByIdQuery({ spotId, spaceId }));
+    >(new PlantingSpotFindByIdQuery({ id: spotId }));
 
     return this.plantingSpotRestMapper.toResponse(vm);
   }
@@ -96,7 +96,7 @@ export class PlantingSpotsController {
   })
   @ApiResponse({ status: 400, description: 'Missing X-Space-ID' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async listPlantingSpots(): Promise<
+  async plantingSpotsFindByCriteria(): Promise<
     PaginatedResult<PlantingSpotRestResponseDto>
   > {
     const result = await this.queryBus.execute<
@@ -131,14 +131,14 @@ export class PlantingSpotsController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Planting spot not found' })
-  async getPlantingSpot(
+  async plantingSpotFindById(
     @Param('id') id: string,
-    @Headers('x-space-id') spaceId: string,
+    @Headers('x-space-id') _spaceId: string,
   ): Promise<PlantingSpotRestResponseDto> {
     const vm = await this.queryBus.execute<
       PlantingSpotFindByIdQuery,
       PlantingSpotViewModel
-    >(new PlantingSpotFindByIdQuery({ spotId: id, spaceId }));
+    >(new PlantingSpotFindByIdQuery({ id }));
 
     return this.plantingSpotRestMapper.toResponse(vm);
   }
@@ -163,7 +163,7 @@ export class PlantingSpotsController {
   ): Promise<PlantingSpotRestResponseDto> {
     await this.commandBus.execute(
       new UpdatePlantingSpotCommand({
-        spotId: id,
+        id: id,
         name: dto.name,
         type: dto.type,
         description: dto.description,
@@ -175,7 +175,7 @@ export class PlantingSpotsController {
     const vm = await this.queryBus.execute<
       PlantingSpotFindByIdQuery,
       PlantingSpotViewModel
-    >(new PlantingSpotFindByIdQuery({ spotId: id, spaceId }));
+    >(new PlantingSpotFindByIdQuery({ id }));
 
     return this.plantingSpotRestMapper.toResponse(vm);
   }
@@ -198,7 +198,7 @@ export class PlantingSpotsController {
   ): Promise<void> {
     await this.commandBus.execute(
       new DeletePlantingSpotCommand({
-        spotId: id,
+        id: id,
         requestingUserId: user.userId,
         spaceId,
       }),

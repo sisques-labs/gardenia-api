@@ -63,7 +63,7 @@ describe('PlantingSpotTypeOrmWriteRepository (integration)', () => {
       });
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const found = await writeRepo.findById(spotId, spaceAId);
+        const found = await writeRepo.findById(spotId);
         expect(found).not.toBeNull();
         expect(found!.name.value).toBe('Bancal Norte');
       });
@@ -71,7 +71,7 @@ describe('PlantingSpotTypeOrmWriteRepository (integration)', () => {
 
     it('findById() returns null for an unknown id', async () => {
       await ctx.spaceContext.run(spaceAId, async () => {
-        const found = await writeRepo.findById(randomUUID(), spaceAId);
+        const found = await writeRepo.findById(randomUUID());
         expect(found).toBeNull();
       });
     });
@@ -89,7 +89,7 @@ describe('PlantingSpotTypeOrmWriteRepository (integration)', () => {
 
       await ctx.spaceContext.run(spaceAId, async () => {
         await writeRepo.delete(spotId);
-        const found = await writeRepo.findById(spotId, spaceAId);
+        const found = await writeRepo.findById(spotId);
         expect(found).toBeNull();
       });
     });
@@ -107,7 +107,7 @@ describe('PlantingSpotTypeOrmWriteRepository (integration)', () => {
 
       // Querying with spaceBId should return null — tenant isolation
       await ctx.spaceContext.run(spaceBId, async () => {
-        const found = await writeRepo.findById(spotId, spaceBId);
+        const found = await writeRepo.findById(spotId);
         expect(found).toBeNull();
       });
     });
@@ -133,7 +133,7 @@ describe('PlantingSpotTypeOrmWriteRepository (integration)', () => {
       });
 
       await ctx.spaceContext.run(spaceBId, async () => {
-        const found = await writeRepo.findById(spotBId, spaceBId);
+        const found = await writeRepo.findById(spotBId);
         expect(found).not.toBeNull();
         expect(found!.name.value).toBe('Spot B');
       });

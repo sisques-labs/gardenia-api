@@ -1,10 +1,10 @@
+import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotNotFoundException } from '@contexts/planting-spots/domain/exceptions/planting-spot-not-found.exception';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
-import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { AssertPlantingSpotViewModelExistsService } from '../../services/read/assert-planting-spot-view-model-exists/assert-planting-spot-view-model-exists.service';
 
-import { PlantingSpotFindByIdQuery } from './planting-spot-find-by-id.query';
 import { PlantingSpotFindByIdQueryHandler } from './planting-spot-find-by-id.handler';
+import { PlantingSpotFindByIdQuery } from './planting-spot-find-by-id.query';
 
 const SPOT_ID = '550e8400-e29b-41d4-a716-446655440000';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
@@ -42,10 +42,7 @@ describe('PlantingSpotFindByIdQueryHandler', () => {
       const viewModel = buildViewModel();
       assertService.execute.mockResolvedValue(viewModel);
 
-      const query = new PlantingSpotFindByIdQuery({
-        spotId: SPOT_ID,
-        spaceId: SPACE_ID,
-      });
+      const query = new PlantingSpotFindByIdQuery({ id: SPOT_ID });
       const result = await handler.execute(query);
 
       expect(result).toBe(viewModel);
@@ -59,10 +56,7 @@ describe('PlantingSpotFindByIdQueryHandler', () => {
         new PlantingSpotNotFoundException(SPOT_ID),
       );
 
-      const query = new PlantingSpotFindByIdQuery({
-        spotId: SPOT_ID,
-        spaceId: SPACE_ID,
-      });
+      const query = new PlantingSpotFindByIdQuery({ id: SPOT_ID });
 
       await expect(handler.execute(query)).rejects.toThrow(
         PlantingSpotNotFoundException,

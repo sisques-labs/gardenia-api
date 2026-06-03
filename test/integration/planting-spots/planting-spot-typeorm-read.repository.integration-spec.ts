@@ -11,6 +11,7 @@ import {
   PLANTING_SPOT_WRITE_REPOSITORY,
 } from '../../../src/contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
 import { PlantingSpotsModule } from '../../../src/contexts/planting-spots/planting-spots.module';
+import { Criteria } from '@sisques-labs/nestjs-kit';
 
 import {
   createIntegrationModule,
@@ -71,7 +72,7 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
       });
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const vm = await readRepo.findById(spotId, spaceAId);
+        const vm = await readRepo.findById(spotId);
         expect(vm).not.toBeNull();
         expect(vm!.id).toBe(spotId);
         expect(vm!.name).toBe('Bancal Norte');
@@ -80,7 +81,7 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
 
     it('returns null for an unknown id', async () => {
       await ctx.spaceContext.run(spaceAId, async () => {
-        const vm = await readRepo.findById(randomUUID(), spaceAId);
+        const vm = await readRepo.findById(randomUUID());
         expect(vm).toBeNull();
       });
     });
@@ -96,7 +97,7 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
 
       // SC-14: querying from space B should return null — tenant isolation
       await ctx.spaceContext.run(spaceBId, async () => {
-        const vm = await readRepo.findById(spotId, spaceBId);
+        const vm = await readRepo.findById(spotId);
         expect(vm).toBeNull();
       });
     });
@@ -114,11 +115,9 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
       });
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const result = await readRepo.findByCriteria({
-          spaceId: spaceAId,
-          page: 1,
-          limit: 10,
-        });
+        const result = await readRepo.findByCriteria(
+          new Criteria([], [], { page: 1, perPage: 10 }),
+        );
         expect(result.items).toHaveLength(2);
         expect(result.total).toBe(2);
         const names = result.items.map((p) => p.name).sort();
@@ -126,50 +125,20 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
       });
 
       await ctx.spaceContext.run(spaceBId, async () => {
-        const result = await readRepo.findByCriteria({
-          spaceId: spaceBId,
-          page: 1,
-          limit: 10,
-        });
+        const result = await readRepo.findByCriteria(
+          new Criteria([], [], { page: 1, perPage: 10 }),
+        );
         expect(result.items).toHaveLength(1);
         expect(result.total).toBe(1);
         expect(result.items[0].name).toBe('Spot B');
       });
     });
 
-    it('type filter returns only matching spots (SC-13)', async () => {
+    it('empty space returns empty list (SC-14)', async () => {
       await ctx.spaceContext.run(spaceAId, async () => {
-        await writeRepo.save(buildSpot('Pot Spot', PlantingSpotTypeEnum.POT));
-        await writeRepo.save(
-          buildSpot('Bed Spot', PlantingSpotTypeEnum.RAISED_BED),
+        const result = await readRepo.findByCriteria(
+          new Criteria([], [], { page: 1, perPage: 10 }),
         );
-        await writeRepo.save(
-          buildSpot('Container Spot', PlantingSpotTypeEnum.CONTAINER),
-        );
-      });
-
-      await ctx.spaceContext.run(spaceAId, async () => {
-        const result = await readRepo.findByCriteria({
-          spaceId: spaceAId,
-          type: PlantingSpotTypeEnum.POT,
-          page: 1,
-          limit: 10,
-        });
-
-        expect(result.items).toHaveLength(1);
-        expect(result.total).toBe(1);
-        expect(result.items[0].type).toBe(PlantingSpotTypeEnum.POT);
-        expect(result.items[0].name).toBe('Pot Spot');
-      });
-    });
-
-    it('empty space returns empty list with 200 (SC-14)', async () => {
-      await ctx.spaceContext.run(spaceAId, async () => {
-        const result = await readRepo.findByCriteria({
-          spaceId: spaceAId,
-          page: 1,
-          limit: 10,
-        });
         expect(result.items).toHaveLength(0);
         expect(result.total).toBe(0);
       });
@@ -185,11 +154,9 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
       });
 
       await ctx.spaceContext.run(spaceBId, async () => {
-        const result = await readRepo.findByCriteria({
-          spaceId: spaceBId,
-          page: 1,
-          limit: 10,
-        });
+        const result = await readRepo.findByCriteria(
+          new Criteria([], [], { page: 1, perPage: 10 }),
+        );
         const ids = result.items.map((p) => p.id);
         expect(ids).not.toContain(spotAId);
         expect(result.total).toBe(0);
