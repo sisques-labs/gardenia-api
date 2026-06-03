@@ -2,9 +2,20 @@ import { ArgumentsHost, HttpStatus } from '@nestjs/common';
 import { BaseException } from '@sisques-labs/nestjs-kit';
 
 import { BaseExceptionFilter } from '@core/filters/base-exception.filter';
-import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
-import { UserAlreadyExistsException } from '@contexts/users/domain/exceptions/user-already-exists.exception';
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
+import { InvalidRefreshTokenHashException } from '@contexts/auth/domain/exceptions/invalid-refresh-token-hash.exception';
+import { InvalidRefreshTokenValueException } from '@contexts/auth/domain/exceptions/invalid-refresh-token-value.exception';
+import { InvalidRefreshTokenException } from '@contexts/auth/domain/exceptions/invalid-refresh-token.exception';
+import { RefreshTokenReuseDetectedException } from '@contexts/auth/domain/exceptions/refresh-token-reuse-detected.exception';
+import { AccountAlreadyExistsException } from '@contexts/auth/domain/exceptions/account-already-exists.exception';
+import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
+import { BioExceedsMaxLengthException } from '@contexts/users/domain/exceptions/bio-exceeds-max-length.exception';
+import { InvalidUsernameFormatException } from '@contexts/users/domain/exceptions/invalid-username-format.exception';
+import { InvalidUsernameLengthException } from '@contexts/users/domain/exceptions/invalid-username-length.exception';
+import { UserAlreadyExistsException } from '@contexts/users/domain/exceptions/user-already-exists.exception';
+import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
+import { UsernameAlreadyTakenException } from '@contexts/users/domain/exceptions/username-already-taken.exception';
+import { SpaceContextMissingException } from '@contexts/spaces/domain/exceptions/space-context-missing.exception';
 
 const buildHttpHost = (
   statusFn = jest.fn(),
@@ -35,9 +46,17 @@ describe('BaseExceptionFilter', () => {
     it('should return 404 for UserNotFoundException', () => {
       const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
       const host = buildHttpHost(statusFn);
-      const exception = new UserNotFoundException('some-id');
 
-      filter.catch(exception, host);
+      filter.catch(new UserNotFoundException('some-id'), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+    });
+
+    it('should return 404 for AccountNotFoundException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new AccountNotFoundException('some-id'), host);
 
       expect(statusFn).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
     });
@@ -45,9 +64,26 @@ describe('BaseExceptionFilter', () => {
     it('should return 409 for UserAlreadyExistsException', () => {
       const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
       const host = buildHttpHost(statusFn);
-      const exception = new UserAlreadyExistsException('test@example.com');
 
-      filter.catch(exception, host);
+      filter.catch(new UserAlreadyExistsException('test@example.com'), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.CONFLICT);
+    });
+
+    it('should return 409 for AccountAlreadyExistsException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new AccountAlreadyExistsException('test@example.com'), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.CONFLICT);
+    });
+
+    it('should return 409 for UsernameAlreadyTakenException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new UsernameAlreadyTakenException('johndoe'), host);
 
       expect(statusFn).toHaveBeenCalledWith(HttpStatus.CONFLICT);
     });
@@ -55,11 +91,82 @@ describe('BaseExceptionFilter', () => {
     it('should return 401 for InvalidCredentialsException', () => {
       const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
       const host = buildHttpHost(statusFn);
-      const exception = new InvalidCredentialsException();
 
-      filter.catch(exception, host);
+      filter.catch(new InvalidCredentialsException(), host);
 
       expect(statusFn).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 401 for InvalidRefreshTokenException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new InvalidRefreshTokenException(), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 401 for RefreshTokenReuseDetectedException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new RefreshTokenReuseDetectedException(), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 422 for InvalidRefreshTokenHashException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new InvalidRefreshTokenHashException(), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
+    });
+
+    it('should return 422 for InvalidRefreshTokenValueException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new InvalidRefreshTokenValueException(), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
+    });
+
+    it('should return 422 for InvalidUsernameFormatException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new InvalidUsernameFormatException('bad user'), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
+    });
+
+    it('should return 422 for InvalidUsernameLengthException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new InvalidUsernameLengthException('ab'), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
+    });
+
+    it('should return 422 for BioExceedsMaxLengthException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new BioExceedsMaxLengthException(600), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
+    });
+
+    it('should return 500 for SpaceContextMissingException', () => {
+      const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
+      const host = buildHttpHost(statusFn);
+
+      filter.catch(new SpaceContextMissingException(), host);
+
+      expect(statusFn).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
     });
 
     it('should return 400 for an unrecognized BaseException', () => {
@@ -71,9 +178,8 @@ describe('BaseExceptionFilter', () => {
 
       const statusFn = jest.fn().mockReturnValue({ json: jest.fn() });
       const host = buildHttpHost(statusFn);
-      const exception = new UnknownDomainException();
 
-      filter.catch(exception, host);
+      filter.catch(new UnknownDomainException(), host);
 
       expect(statusFn).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
     });
@@ -98,9 +204,9 @@ describe('BaseExceptionFilter', () => {
         getType: jest.fn().mockReturnValue('graphql'),
       } as unknown as ArgumentsHost;
 
-      const exception = new UserNotFoundException('some-id');
-
-      expect(() => filter.catch(exception, host)).toThrow();
+      expect(() =>
+        filter.catch(new UserNotFoundException('some-id'), host),
+      ).toThrow();
     });
 
     it('should attach the resolved statusCode to the rethrown exception', () => {
