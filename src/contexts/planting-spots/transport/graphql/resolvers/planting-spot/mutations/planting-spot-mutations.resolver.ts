@@ -20,7 +20,6 @@ import {
 
 @UseGuards(JwtAuthGuard)
 @Resolver()
-@UseGuards(JwtAuthGuard)
 export class PlantingSpotMutationsResolver {
   private readonly logger = new Logger(PlantingSpotMutationsResolver.name);
 

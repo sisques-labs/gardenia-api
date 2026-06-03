@@ -1,3 +1,4 @@
+import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { PlantingSpotFindByCriteriaQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.query';
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
 import { PlantingSpotFindByCriteriaRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-find-by-criteria.request.dto';
@@ -7,12 +8,13 @@ import {
   PlantingSpotResponseDto,
 } from '@contexts/planting-spots/transport/graphql/dtos/responses/planting-spot.response.dto';
 import { PlantingSpotGraphQLMapper } from '@contexts/planting-spots/transport/graphql/mappers/planting-spot/planting-spot.mapper';
-import { Logger } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { Criteria } from '@sisques-labs/nestjs-kit';
 
 @Resolver()
+@UseGuards(JwtAuthGuard)
 export class PlantingSpotQueriesResolver {
   private readonly logger = new Logger(PlantingSpotQueriesResolver.name);
 
