@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.11.1-alpha.0] - 2026-06-03
+
+### Bug Fixes
+- **config:** Make synchronize and migrationsRun configurable via env vars (2ecd57e)
+- **config:** Default migrationsRun to true, synchronize to false (5a82f9e)
+
+### Testing
+- **config:** Update migrationsRun assertions for new default-true behavior (4f51703)
 ## [0.11.0-alpha.0] - 2026-06-03
 
 ### Bug Fixes
@@ -13,6 +21,9 @@ All notable changes to this project will be documented in this file.
 - **plants:** Pass PlantPlantingSpotBuilder to PlantingSpotAdapter in unit test (6846b91)
 - **plants:** Inject PlantGraphQLMapper in resolved-fields resolver unit test (8b460db)
 - **spaces:** Use fresh builder in joinedAt timing test to avoid flake (af7fb49)
+
+### Chore
+- Release v0.11.0-alpha.0 (6321458)
 
 ### Features
 - **planting-spots:** Add domain and application layers (30698c8)
