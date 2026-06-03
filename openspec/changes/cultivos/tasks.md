@@ -80,23 +80,23 @@ Chain strategy: pending
 
 ## Phase 4: Transport
 
-- [ ] 4.1 Create `src/contexts/planting-spots/transport/rest/dtos/create-planting-spot.dto.ts` — `name` (required), `type` (required, enum), `description` (optional)
-- [ ] 4.2 Create `src/contexts/planting-spots/transport/rest/dtos/update-planting-spot.dto.ts` — all fields optional
-- [ ] 4.3 Create `src/contexts/planting-spots/transport/rest/dtos/planting-spot-rest-response.dto.ts`
-- [ ] 4.4 Create `src/contexts/planting-spots/transport/rest/mappers/planting-spot/planting-spot.mapper.ts` — `PlantingSpotViewModel → PlantingSpotRestResponseDto`
-- [ ] 4.5 Create `src/contexts/planting-spots/transport/rest/controllers/planting-spots.controller.ts` — routes: POST `/planting-spots`, PATCH `/:id`, DELETE `/:id`, GET `/:id`, GET `/`; guards: `JwtAuthGuard` + `SpaceGuard`; injects `userId` + `spaceId` from auth context
-- [ ] 4.6 Create `src/contexts/planting-spots/transport/graphql/enums/planting-spot-registered-enums.graphql.ts` — registers `PlantingSpotTypeEnum` with `registerEnumType`
-- [ ] 4.7 Create `src/contexts/planting-spots/transport/graphql/dtos/requests/create-planting-spot-graphql.dto.ts` + `update-planting-spot-graphql.dto.ts` + `find-by-criteria-graphql.dto.ts`
-- [ ] 4.8 Create `src/contexts/planting-spots/transport/graphql/dtos/responses/planting-spot.response.dto.ts` — `@ObjectType()`
-- [ ] 4.9 Create `src/contexts/planting-spots/transport/graphql/mappers/planting-spot.mapper.ts`
-- [ ] 4.10 Create `src/contexts/planting-spots/transport/graphql/resolvers/planting-spot-queries.resolver.ts` — `plantingSpot(id)`, `plantingSpots(criteria)`; guards: `JwtAuthGuard` + `SpaceGuard`
-- [ ] 4.11 Create `src/contexts/planting-spots/transport/graphql/resolvers/planting-spot-mutations.resolver.ts` — `createPlantingSpot`, `updatePlantingSpot`, `deletePlantingSpot`; same guards
+- [x] 4.1 Create `src/contexts/planting-spots/transport/rest/dtos/create-planting-spot.dto.ts` — `name` (required), `type` (required, enum), `description` (optional)
+- [x] 4.2 Create `src/contexts/planting-spots/transport/rest/dtos/update-planting-spot.dto.ts` — all fields optional
+- [x] 4.3 Create `src/contexts/planting-spots/transport/rest/dtos/planting-spot-rest-response.dto.ts`
+- [x] 4.4 Create `src/contexts/planting-spots/transport/rest/mappers/planting-spot/planting-spot.mapper.ts` — `PlantingSpotViewModel → PlantingSpotRestResponseDto`
+- [x] 4.5 Create `src/contexts/planting-spots/transport/rest/controllers/planting-spots.controller.ts` — routes: POST `/planting-spots`, PATCH `/:id`, DELETE `/:id`, GET `/:id`, GET `/`; guards: `JwtAuthGuard` + `SpaceGuard`; injects `userId` + `spaceId` from auth context
+- [x] 4.6 Create `src/contexts/planting-spots/transport/graphql/enums/planting-spot-registered-enums.graphql.ts` — registers `PlantingSpotTypeEnum` with `registerEnumType`
+- [x] 4.7 Create `src/contexts/planting-spots/transport/graphql/dtos/requests/create-planting-spot-graphql.dto.ts` + `update-planting-spot-graphql.dto.ts` + `find-by-criteria-graphql.dto.ts`
+- [x] 4.8 Create `src/contexts/planting-spots/transport/graphql/dtos/responses/planting-spot.response.dto.ts` — `@ObjectType()`
+- [x] 4.9 Create `src/contexts/planting-spots/transport/graphql/mappers/planting-spot.mapper.ts`
+- [x] 4.10 Create `src/contexts/planting-spots/transport/graphql/resolvers/planting-spot-queries.resolver.ts` — `plantingSpot(id)`, `plantingSpots(criteria)`; guards: `JwtAuthGuard` + `SpaceGuard`
+- [x] 4.11 Create `src/contexts/planting-spots/transport/graphql/resolvers/planting-spot-mutations.resolver.ts` — `createPlantingSpot`, `updatePlantingSpot`, `deletePlantingSpot`; same guards
 
 ## Phase 5: Module Wiring
 
-- [ ] 5.1 Create `src/contexts/planting-spots/planting-spots.module.ts` — providers: all handlers, assert services, stub adapter (bound to `PLANTING_SPOT_IN_USE_PORT`), write repo (bound to `PLANTING_SPOT_WRITE_REPOSITORY`), read repo (bound to `PLANTING_SPOT_READ_REPOSITORY`); `TypeOrmModule.forFeature([PlantingSpotEntity])`
-- [ ] 5.2 Modify `src/app.module.ts` — add `PlantingSpotsModule` to `imports[]`
-- [ ] 5.3 Inspect `src/core/filters/base-exception.filter.ts` — if filter enumerates exceptions explicitly, add `PlantingSpotInUseException` → 409 mapping
+- [x] 5.1 Create `src/contexts/planting-spots/planting-spots.module.ts` — providers: all handlers, assert services, stub adapter (bound to `PLANTING_SPOT_IN_USE_PORT`), write repo (bound to `PLANTING_SPOT_WRITE_REPOSITORY`), read repo (bound to `PLANTING_SPOT_READ_REPOSITORY`); `TypeOrmModule.forFeature([PlantingSpotEntity])`
+- [x] 5.2 Modify `src/app.module.ts` — add `PlantingSpotsModule` to `imports[]`
+- [x] 5.3 Inspect `src/core/filters/base-exception.filter.ts` — if filter enumerates exceptions explicitly, add `PlantingSpotInUseException` → 409 mapping
 
 ## Phase 6: Tests
 

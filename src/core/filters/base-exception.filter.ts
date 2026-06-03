@@ -1,3 +1,24 @@
+import { AccountAlreadyExistsException } from '@contexts/auth/domain/exceptions/account-already-exists.exception';
+import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
+import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
+import { PlantSpeciesInUseException } from '@contexts/plant-species/domain/exceptions/plant-species-in-use.exception';
+import { PlantSpeciesNameAlreadyExistsException } from '@contexts/plant-species/domain/exceptions/plant-species-name-already-exists.exception';
+import { PlantSpeciesNotFoundException } from '@contexts/plant-species/domain/exceptions/plant-species-not-found.exception';
+import { PlantingSpotForbiddenException } from '@contexts/planting-spots/domain/exceptions/planting-spot-forbidden.exception';
+import { PlantingSpotInUseException } from '@contexts/planting-spots/domain/exceptions/planting-spot-in-use.exception';
+import { PlantingSpotNotFoundException } from '@contexts/planting-spots/domain/exceptions/planting-spot-not-found.exception';
+import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
+import { PlantLinkedSpeciesNotFoundException } from '@contexts/plants/domain/exceptions/plant-linked-species-not-found.exception';
+import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
+import { QrNotFoundException } from '@contexts/qr/domain/exceptions/qr-not-found.exception';
+import { DuplicateMembershipException } from '@contexts/spaces/domain/exceptions/duplicate-membership.exception';
+import { LastOwnerRemovalException } from '@contexts/spaces/domain/exceptions/last-owner-removal.exception';
+import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
+import { NotSpaceOwnerException } from '@contexts/spaces/domain/exceptions/not-space-owner.exception';
+import { SpaceLimitExceededException } from '@contexts/spaces/domain/exceptions/space-limit-exceeded.exception';
+import { SpaceNotFoundException } from '@contexts/spaces/domain/exceptions/space-not-found.exception';
+import { UserAlreadyExistsException } from '@contexts/users/domain/exceptions/user-already-exists.exception';
+import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
 import {
   ArgumentsHost,
   Catch,
@@ -5,26 +26,10 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { GqlExceptionFilter } from '@nestjs/graphql';
-import { Response } from 'express';
 import { BaseException } from '@sisques-labs/nestjs-kit';
-import { AccountAlreadyExistsException } from '@contexts/auth/domain/exceptions/account-already-exists.exception';
-import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
-import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
-import { DuplicateMembershipException } from '@contexts/spaces/domain/exceptions/duplicate-membership.exception';
-import { LastOwnerRemovalException } from '@contexts/spaces/domain/exceptions/last-owner-removal.exception';
-import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
-import { NotSpaceOwnerException } from '@contexts/spaces/domain/exceptions/not-space-owner.exception';
-import { SpaceLimitExceededException } from '@contexts/spaces/domain/exceptions/space-limit-exceeded.exception';
-import { SpaceNotFoundException } from '@contexts/spaces/domain/exceptions/space-not-found.exception';
-import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
-import { PlantSpeciesInUseException } from '@contexts/plant-species/domain/exceptions/plant-species-in-use.exception';
-import { PlantSpeciesNameAlreadyExistsException } from '@contexts/plant-species/domain/exceptions/plant-species-name-already-exists.exception';
-import { PlantSpeciesNotFoundException } from '@contexts/plant-species/domain/exceptions/plant-species-not-found.exception';
-import { PlantLinkedSpeciesNotFoundException } from '@contexts/plants/domain/exceptions/plant-linked-species-not-found.exception';
-import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
-import { QrNotFoundException } from '@contexts/qr/domain/exceptions/qr-not-found.exception';
-import { UserAlreadyExistsException } from '@contexts/users/domain/exceptions/user-already-exists.exception';
-import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
+import { Response } from 'express';
+
+// TODO: technical debt; this file is a mess and needs to be refactored each module should have its own exception filter and this one should be merge all the exception filters into a single file.
 
 @Catch(BaseException)
 export class BaseExceptionFilter
@@ -57,7 +62,8 @@ export class BaseExceptionFilter
       exception instanceof SpaceLimitExceededException ||
       exception instanceof DuplicateMembershipException ||
       exception instanceof PlantSpeciesNameAlreadyExistsException ||
-      exception instanceof PlantSpeciesInUseException
+      exception instanceof PlantSpeciesInUseException ||
+      exception instanceof PlantingSpotInUseException
     ) {
       return HttpStatus.CONFLICT; // 409
     }
@@ -69,7 +75,8 @@ export class BaseExceptionFilter
       exception instanceof PlantNotFoundException ||
       exception instanceof QrNotFoundException ||
       exception instanceof PlantSpeciesNotFoundException ||
-      exception instanceof PlantLinkedSpeciesNotFoundException
+      exception instanceof PlantLinkedSpeciesNotFoundException ||
+      exception instanceof PlantingSpotNotFoundException
     ) {
       return HttpStatus.NOT_FOUND; // 404
     }
@@ -78,7 +85,8 @@ export class BaseExceptionFilter
     }
     if (
       exception instanceof NotSpaceOwnerException ||
-      exception instanceof NotPlantOwnerException
+      exception instanceof NotPlantOwnerException ||
+      exception instanceof PlantingSpotForbiddenException
     ) {
       return HttpStatus.FORBIDDEN; // 403
     }
