@@ -1,6 +1,55 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.11.0-alpha.0] - 2026-06-03
+
+### Bug Fixes
+- **planting-spots:** Add JwtAuthGuard to GraphQL resolvers (08d00d2)
+- **planting-spots:** Resolve merge conflict markers in SC-16 test (d721b73)
+- **planting-spots:** Register PlantingSpotBuilder as module provider (de92949)
+- **planting-spots:** Align enum values to lowercase and fix integration test signatures (9fe0ed5)
+- **planting-spots:** Remove extra spaceId arg from write repo integration test findById calls (a273b05)
+- **planting-spots:** Remove unnecessary spaceId argument from findById method in adapter and tests (fd4cfab)
+- **plants:** Pass PlantPlantingSpotBuilder to PlantingSpotAdapter in unit test (6846b91)
+- **plants:** Inject PlantGraphQLMapper in resolved-fields resolver unit test (8b460db)
+- **spaces:** Use fresh builder in joinedAt timing test to avoid flake (af7fb49)
+
+### Features
+- **planting-spots:** Add domain and application layers (30698c8)
+- **planting-spots:** Add infrastructure layer (0e3566a)
+- **planting-spots:** Implement PlantingSpotInUseAdapter via QueryBus (278c639)
+- **planting-spots:** Add transport layer and module wiring (37fbd9f)
+- **planting-spots:** Wire PlantingSpotInUseAdapter in module (50c3b47)
+- **planting-spots:** Add e2e and integration tests (bc20a38)
+- **planting-spots:** Add e2e and integration tests (0bbeae7)
+- **plants:** Add plantingSpotId field and plantingSpot resolved field (80b46b5)
+- **planting-spots:** Add e2e and integration tests (8e504b0)
+
+### Refactor
+- **planting-spots:** Align domain+application with project conventions (81fc3dc)
+- **planting-spots:** Align infrastructure with base repository interfaces (c59eb79)
+- **planting-spots:** Use Criteria from nestjs-kit in transport layer (62296a8)
+- **plants:** Migrate qr and species to @ResolveField (bfa9065)
+- **planting-spots:** Update command inputs to use IPlantingSpotPrimitives (9f1c5f9)
+- **planting-spots:** Update UpdatePlantingSpotCommand to use 'id' consistently (ac21513)
+- **planting-spots:** Standardize DeletePlantingSpotCommand to use 'id' property (602a3c3)
+- **planting-spots:** Unify command handlers to use 'id' property (5b8b2ea)
+- **planting-spots:** Update PlantingSpotFindByIdQuery to use 'id' property (54f31f4)
+- **planting-spots:** Add TODO for enum implementation in PlantingSpotInUseAdapter (c702253)
+- **planting-spots:** Enhance PlantingSpotTypeOrmMapper and repository to use view models (a177696)
+- **planting-spots:** Align GraphQL transport with project conventions (29af759)
+- **base-exception-filter:** Reorganize exception imports and add new exceptions (adb3f0a)
+- **planting-spots:** Rename controller methods for consistency (cdc7ec2)
+- **planting-spots:** Update import paths for consistency (62ca558)
+- **planting-spots:** Rename DOMAIN_PROVIDERS to DOMAIN_BUILDERS for clarity (c134e5b)
+- **planting-spots:** Streamline GraphQL resolvers with JwtAuthGuard (faa2a00)
+- **planting-spots:** Remove JwtAuthGuard from PlantingSpotQueriesResolver (ab349f2)
+- **plants:** Address PR review — primitives, builder, and mapper for PlantPlantingSpotViewModel (6dbe8af)
+- **plants:** Split resolved fields into dedicated resolvers with mapper methods (970ab7e)
+- **plants:** Drop qr/species from REST response — GraphQL-only via ResolveField (bc6a4e6)
+
+### Testing
+- **planting-spots:** Relax SC-16 constraint to allow Phase 2 adapters (b964fc8)
 ## [0.10.1-alpha.0] - 2026-06-02
 
 ### Bug Fixes
@@ -9,6 +58,7 @@ All notable changes to this project will be documented in this file.
 ### Chore
 - **dependabot:** Target dedicated updates branch (a43b3db)
 - **ci:** Validate multi-arch docker smoke build (cc9fe28)
+- Release v0.10.1-alpha.0 (d742d68)
 ## [0.10.0-alpha.0] - 2026-06-01
 
 ### Chore
