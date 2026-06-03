@@ -29,6 +29,7 @@ const buildAggregate = (qrId: string | null = QR_ID): PlantAggregate =>
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     qrId: qrId ? new UuidValueObject(qrId) : null,
+    plantingSpotId: null,
     createdAt: new DateValueObject(NOW),
     updatedAt: new DateValueObject(NOW),
   });

@@ -1,12 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
+import { PlantPlantingSpotViewModel } from '@contexts/plants/domain/view-models/plant-planting-spot.view-model';
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
 
 import {
   PaginatedPlantResultDto,
-  PlantResponseDto,
+  PlantLinkedPlantingSpotResponseDto,
   PlantLinkedSpeciesResponseDto,
+  PlantResponseDto,
 } from '../../dtos/responses/plant/plant.response.dto';
 
 @Injectable()
@@ -25,6 +27,7 @@ export class PlantGraphQLMapper {
       userId: vm.userId,
       spaceId: vm.spaceId,
       qr: vm.qr ?? null,
+      plantingSpotId: vm.plantingSpotId,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
     };
@@ -41,6 +44,21 @@ export class PlantGraphQLMapper {
       page: paginatedResult.page,
       perPage: paginatedResult.perPage,
       totalPages: paginatedResult.totalPages,
+    };
+  }
+
+  toLinkedPlantingSpotResponseDto(
+    vm: PlantPlantingSpotViewModel,
+  ): PlantLinkedPlantingSpotResponseDto {
+    return {
+      id: vm.id,
+      name: vm.name,
+      type: vm.type,
+      description: vm.description ?? null,
+      userId: vm.userId,
+      spaceId: vm.spaceId,
+      createdAt: vm.createdAt,
+      updatedAt: vm.updatedAt,
     };
   }
 

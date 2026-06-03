@@ -18,6 +18,7 @@ export class PlantTypeOrmMapper {
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
       .withQrId(entity.qrId ?? null)
+      .withPlantingSpotId(entity.plantingSpotId ?? null)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -34,6 +35,7 @@ export class PlantTypeOrmMapper {
     entity.userId = primitives.userId;
     entity.spaceId = primitives.spaceId;
     entity.qrId = primitives.qrId;
+    entity.plantingSpotId = primitives.plantingSpotId;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
 
@@ -49,6 +51,7 @@ export class PlantTypeOrmMapper {
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
       .withQrId(entity.qrId ?? null)
+      .withPlantingSpotId(entity.plantingSpotId ?? null)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .buildViewModel();

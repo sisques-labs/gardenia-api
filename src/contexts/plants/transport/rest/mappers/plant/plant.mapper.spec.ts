@@ -51,6 +51,7 @@ describe('PlantRestMapper', () => {
       userId: USER_ID,
       spaceId: SPACE_ID,
       qrId: null,
+      plantingSpotId: null,
       createdAt: NOW,
       updatedAt: NOW,
     });
@@ -78,6 +79,7 @@ describe('PlantRestMapper', () => {
       userId: USER_ID_2,
       spaceId: SPACE_ID_2,
       qrId: null,
+      plantingSpotId: null,
       createdAt: NOW,
       updatedAt: NOW,
     });
@@ -101,6 +103,7 @@ describe('PlantRestMapper', () => {
       spaceId: SPACE_ID,
       qrId: QR_ID,
       qr: makeQrData(),
+      plantingSpotId: null,
       createdAt: NOW,
       updatedAt: NOW,
     });
@@ -122,6 +125,7 @@ describe('PlantRestMapper', () => {
       userId: USER_ID,
       spaceId: SPACE_ID,
       qrId: null,
+      plantingSpotId: null,
       createdAt: NOW,
       updatedAt: NOW,
     });

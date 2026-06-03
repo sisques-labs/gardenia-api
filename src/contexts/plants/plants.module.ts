@@ -4,8 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { PLANT_QR_PORT } from '@contexts/plants/application/ports/plant-qr.port';
 import { PLANT_SPECIES_PORT } from '@contexts/plants/application/ports/plant-species.port';
+import { PLANTING_SPOT_PORT } from '@contexts/plants/application/ports/planting-spot.port';
 import { PlantQrAdapter } from '@contexts/plants/infrastructure/adapters/plant-qr.adapter';
 import { PlantSpeciesAdapter } from '@contexts/plants/infrastructure/adapters/plant-species.adapter';
+import { PlantingSpotAdapter } from '@contexts/plants/infrastructure/adapters/planting-spot.adapter';
 import { CreatePlantCommandHandler } from './application/commands/create-plant/create-plant.handler';
 import { DeletePlantCommandHandler } from './application/commands/delete-plant/delete-plant.handler';
 import { SetPlantQrIdCommandHandler } from './application/commands/set-plant-qr-id/set-plant-qr-id.handler';
@@ -18,6 +20,7 @@ import { EnrichPlantWithSpeciesService } from './application/services/read/enric
 import { PlantQrTargetUrlBuilderService } from './application/services/read/plant-qr-target-url-builder/plant-qr-target-url-builder.service';
 import { AssertPlantExistsService } from './application/services/write/assert-plant-exists/assert-plant-exists.service';
 import { AssertPlantLinkedSpeciesExistsService } from './application/services/write/assert-plant-linked-species-exists/assert-plant-linked-species-exists.service';
+import { PlantPlantingSpotBuilder } from './domain/builders/plant-planting-spot.builder';
 import { PlantQrBuilder } from './domain/builders/plant-qr.builder';
 import { PlantSpeciesBuilder } from './domain/builders/plant-species.builder';
 import { PlantBuilder } from './domain/builders/plant.builder';
@@ -31,6 +34,7 @@ import './transport/graphql/enums/plant/plant-registered-enums.graphql';
 import { PlantGraphQLMapper } from './transport/graphql/mappers/plant/plant.mapper';
 import { PlantMutationsResolver } from './transport/graphql/resolvers/plant/plant-mutations.resolver';
 import { PlantQueriesResolver } from './transport/graphql/resolvers/plant/plant-queries.resolver';
+import { PlantResolvedFieldsResolver } from './transport/graphql/resolvers/plant/plant-resolved-fields.resolver';
 import { PlantsController } from './transport/rest/controllers/plants.controller';
 import { PlantRestMapper } from './transport/rest/mappers/plant/plant.mapper';
 
@@ -55,7 +59,12 @@ const APPLICATION_SERVICES = [
   AssertPlantLinkedSpeciesExistsService,
 ];
 
-const DOMAIN_BUILDERS = [PlantBuilder, PlantQrBuilder, PlantSpeciesBuilder];
+const DOMAIN_BUILDERS = [
+  PlantBuilder,
+  PlantQrBuilder,
+  PlantSpeciesBuilder,
+  PlantPlantingSpotBuilder,
+];
 
 const INFRASTRUCTURE_MAPPERS = [PlantTypeOrmMapper];
 
@@ -67,6 +76,7 @@ const INFRASTRUCTURE_REPOSITORIES = [
 const INFRASTRUCTURE_ADAPTERS = [
   { provide: PLANT_QR_PORT, useClass: PlantQrAdapter },
   { provide: PLANT_SPECIES_PORT, useClass: PlantSpeciesAdapter },
+  { provide: PLANTING_SPOT_PORT, useClass: PlantingSpotAdapter },
 ];
 
 const REST_CONTROLLERS = [PlantsController];
@@ -74,6 +84,7 @@ const REST_PROVIDERS = [PlantRestMapper];
 const GRAPHQL_PROVIDERS = [
   PlantQueriesResolver,
   PlantMutationsResolver,
+  PlantResolvedFieldsResolver,
   PlantGraphQLMapper,
 ];
 

@@ -24,6 +24,7 @@ describe('PlantQueriesResolver', () => {
     userId: USER_ID,
     spaceId: SPACE_ID,
     qrId: null,
+    plantingSpotId: null,
     createdAt: now,
     updatedAt: now,
   });

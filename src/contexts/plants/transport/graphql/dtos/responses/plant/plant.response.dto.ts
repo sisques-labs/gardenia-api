@@ -80,6 +80,18 @@ export class PlantResponseDto {
   })
   qr?: PlantQrResponseDto | null;
 
+  @Field(() => ID, {
+    nullable: true,
+    description: 'UUID of the linked planting spot',
+  })
+  plantingSpotId?: string | null;
+
+  @Field(() => PlantLinkedPlantingSpotResponseDto, {
+    nullable: true,
+    description: 'Resolved planting spot linked to this plant',
+  })
+  plantingSpot?: PlantLinkedPlantingSpotResponseDto | null;
+
   @Field(() => Date, { description: 'When the plant was created' })
   createdAt!: Date;
 
@@ -88,6 +100,36 @@ export class PlantResponseDto {
     description: 'When the plant was last updated',
   })
   updatedAt?: Date;
+}
+
+@ObjectType('PlantLinkedPlantingSpotResponseDto')
+export class PlantLinkedPlantingSpotResponseDto {
+  @Field(() => ID, { description: 'UUID of the planting spot' })
+  id!: string;
+
+  @Field(() => String, { description: 'Name of the planting spot' })
+  name!: string;
+
+  @Field(() => String, { description: 'Type of the planting spot' })
+  type!: string;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Optional description of the planting spot',
+  })
+  description?: string | null;
+
+  @Field(() => String, { description: 'UUID of the planting spot owner' })
+  userId!: string;
+
+  @Field(() => String, { description: 'UUID of the space' })
+  spaceId!: string;
+
+  @Field(() => Date, { description: 'When the planting spot was created' })
+  createdAt!: Date;
+
+  @Field(() => Date, { description: 'When the planting spot was last updated' })
+  updatedAt!: Date;
 }
 
 @ObjectType('PaginatedPlantResultDto')
