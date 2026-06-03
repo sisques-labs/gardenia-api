@@ -62,7 +62,13 @@ describe('postgresConfig', () => {
       expect(getConfig().synchronize).toBe(false);
     });
 
-    it('has migrationsRun set to false', () => {
+    it('has migrationsRun set to true by default', () => {
+      delete process.env.DATABASE_MIGRATIONS_RUN;
+      expect(getConfig().migrationsRun).toBe(true);
+    });
+
+    it('has migrationsRun set to false when DATABASE_MIGRATIONS_RUN=false', () => {
+      process.env.DATABASE_MIGRATIONS_RUN = 'false';
       expect(getConfig().migrationsRun).toBe(false);
     });
   });
