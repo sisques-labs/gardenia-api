@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { registerAs } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
@@ -10,8 +11,9 @@ export const postgresConfig = registerAs(
     username: process.env.DATABASE_USERNAME,
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_DATABASE,
-    synchronize: false,
+    synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
     autoLoadEntities: true,
-    migrationsRun: false,
+    migrationsRun: process.env.DATABASE_MIGRATIONS_RUN === 'true',
+    migrations: [join(__dirname, '../../database/migrations/*{.ts,.js}')],
   }),
 );
