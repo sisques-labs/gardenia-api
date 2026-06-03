@@ -1,11 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.11.2-alpha.0] - 2026-06-03
+
+### Refactor
+- **filters:** Move exception-to-status mapping into per-context transport filters (c290b94)
 ## [0.11.1-alpha.0] - 2026-06-03
 
 ### Bug Fixes
 - **config:** Make synchronize and migrationsRun configurable via env vars (2ecd57e)
 - **config:** Default migrationsRun to true, synchronize to false (5a82f9e)
+
+### Chore
+- Release v0.11.1-alpha.0 (ac86668)
 
 ### Testing
 - **config:** Update migrationsRun assertions for new default-true behavior (4f51703)
