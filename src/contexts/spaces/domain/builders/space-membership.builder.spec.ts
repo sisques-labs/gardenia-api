@@ -41,8 +41,9 @@ describe('SpaceMembershipBuilder', () => {
   });
 
   it('should default joinedAt to now when not set', () => {
+    const freshBuilder = new SpaceMembershipBuilder();
     const before = Date.now() - 1;
-    const membership = builder
+    const membership = freshBuilder
       .withUserId(USER_ID)
       .withSpaceId(SPACE_ID)
       .withRole(MembershipRoleEnum.MEMBER)
