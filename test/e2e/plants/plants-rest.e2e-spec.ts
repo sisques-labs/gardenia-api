@@ -73,10 +73,7 @@ describe('Plants REST API (e2e)', () => {
         spaceId: owner.spaceId,
       });
       expect(res.body.id).toBeDefined();
-      expect(res.body.qr).toBeDefined();
-      expect(res.body.qr.id).toBeDefined();
-      expect(res.body.qr.targetUrl).toContain(`/plants/${res.body.id}`);
-      expect(res.body.qr.targetUrl).toContain(`spaceId=${owner.spaceId}`);
+      expect(res.body.qrId).toBeDefined();
     });
 
     it('201 — creates a plant with plantSpeciesId and imageUrl', async () => {
@@ -105,10 +102,6 @@ describe('Plants REST API (e2e)', () => {
         name: 'Rose',
         plantSpeciesId,
         imageUrl: 'https://example.com/rose.jpg',
-      });
-      expect(res.body.species).toMatchObject({
-        id: plantSpeciesId,
-        name: 'Rosa canina',
       });
     });
 

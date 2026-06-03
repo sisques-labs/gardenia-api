@@ -34,7 +34,9 @@ import './transport/graphql/enums/plant/plant-registered-enums.graphql';
 import { PlantGraphQLMapper } from './transport/graphql/mappers/plant/plant.mapper';
 import { PlantMutationsResolver } from './transport/graphql/resolvers/plant/plant-mutations.resolver';
 import { PlantQueriesResolver } from './transport/graphql/resolvers/plant/plant-queries.resolver';
+import { PlantQrResolvedFieldResolver } from './transport/graphql/resolvers/plant/plant-qr-resolved-field.resolver';
 import { PlantResolvedFieldsResolver } from './transport/graphql/resolvers/plant/plant-resolved-fields.resolver';
+import { PlantSpeciesResolvedFieldResolver } from './transport/graphql/resolvers/plant/plant-species-resolved-field.resolver';
 import { PlantsController } from './transport/rest/controllers/plants.controller';
 import { PlantRestMapper } from './transport/rest/mappers/plant/plant.mapper';
 
@@ -85,6 +87,8 @@ const GRAPHQL_PROVIDERS = [
   PlantQueriesResolver,
   PlantMutationsResolver,
   PlantResolvedFieldsResolver,
+  PlantQrResolvedFieldResolver,
+  PlantSpeciesResolvedFieldResolver,
   PlantGraphQLMapper,
 ];
 

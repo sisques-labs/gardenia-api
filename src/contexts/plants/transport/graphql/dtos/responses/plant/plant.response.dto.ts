@@ -74,6 +74,12 @@ export class PlantResponseDto {
   @Field(() => String, { description: 'The id of the space' })
   spaceId!: string;
 
+  @Field(() => ID, {
+    nullable: true,
+    description: 'UUID of the linked QR code',
+  })
+  qrId?: string | null;
+
   @Field(() => PlantQrResponseDto, {
     nullable: true,
     description: 'QR code associated with this plant',

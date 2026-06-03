@@ -22,57 +22,67 @@ function makeSpotVm(): PlantPlantingSpotViewModel {
   });
 }
 
-function makePlantDto(plantingSpotId: string | null): PlantResponseDto {
+function makePlantDto(
+  overrides: Partial<PlantResponseDto> = {},
+): PlantResponseDto {
   return {
     id: 'plant-id',
     name: 'Rose',
     spaceId: SPACE_ID,
     userId: USER_ID,
-    plantingSpotId,
+    plantingSpotId: null,
     createdAt: NOW,
     updatedAt: NOW,
+    ...overrides,
   } as PlantResponseDto;
 }
 
 describe('PlantResolvedFieldsResolver', () => {
   let resolver: PlantResolvedFieldsResolver;
   let plantingSpotPort: jest.Mocked<IPlantingSpotPort>;
+  let plantGraphQLMapper: PlantGraphQLMapper;
 
   beforeEach(() => {
     plantingSpotPort = {
       findById: jest.fn(),
     } as jest.Mocked<IPlantingSpotPort>;
+    plantGraphQLMapper = new PlantGraphQLMapper();
     resolver = new PlantResolvedFieldsResolver(
       plantingSpotPort,
-      new PlantGraphQLMapper(),
+      plantGraphQLMapper,
     );
   });
 
-  it('resolves plantingSpot when plantingSpotId is set', async () => {
-    plantingSpotPort.findById.mockResolvedValueOnce(makeSpotVm());
+  describe('plantingSpot', () => {
+    it('resolves plantingSpot when plantingSpotId is set', async () => {
+      const spotVm = makeSpotVm();
+      plantingSpotPort.findById.mockResolvedValueOnce(spotVm);
 
-    const result = await resolver.plantingSpot(makePlantDto(SPOT_ID));
+      const result = await resolver.plantingSpot(
+        makePlantDto({ plantingSpotId: SPOT_ID }),
+      );
 
-    expect(result).not.toBeNull();
-    expect(result!.id).toBe(SPOT_ID);
-    expect(result!.name).toBe('Balcony');
-    expect(result!.type).toBe('OUTDOOR');
-    expect(result!.description).toBe('Southern balcony');
-    expect(plantingSpotPort.findById).toHaveBeenCalledWith(SPOT_ID, SPACE_ID);
-  });
+      expect(result).toEqual(
+        plantGraphQLMapper.toLinkedPlantingSpotResponseDto(spotVm),
+      );
+      expect(plantingSpotPort.findById).toHaveBeenCalledWith(SPOT_ID, SPACE_ID);
+    });
 
-  it('returns null when plantingSpotId is null (no port call)', async () => {
-    const result = await resolver.plantingSpot(makePlantDto(null));
+    it('returns null when plantingSpotId is null (no port call)', async () => {
+      const result = await resolver.plantingSpot(makePlantDto());
 
-    expect(result).toBeNull();
-    expect(plantingSpotPort.findById).not.toHaveBeenCalled();
-  });
+      expect(result).toBeNull();
+      expect(plantingSpotPort.findById).not.toHaveBeenCalled();
+    });
 
-  it('returns null when port returns null (spot deleted)', async () => {
-    plantingSpotPort.findById.mockResolvedValueOnce(null);
+    it('returns null when port returns null (spot deleted)', async () => {
+      plantingSpotPort.findById.mockResolvedValueOnce(null);
 
-    const result = await resolver.plantingSpot(makePlantDto(SPOT_ID));
+      const result = await resolver.plantingSpot(
+        makePlantDto({ plantingSpotId: SPOT_ID }),
+      );
 
-    expect(result).toBeNull();
+      expect(result).toBeNull();
+    });
   });
 });

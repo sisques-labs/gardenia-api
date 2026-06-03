@@ -61,26 +61,32 @@ describe('QR REST API (e2e)', () => {
       .send({ name: 'QR Plant' })
       .expect(201);
 
-    const body = createRes.body as {
-      id: string;
-      qr: { id: string; targetUrl: string };
-    };
+    const body = createRes.body as { id: string; qrId: string };
 
-    expect(body.qr).toBeDefined();
-    expect(body.qr.id).toBeDefined();
-    expect(body.qr.targetUrl).toBe(
+    expect(body.qrId).toBeDefined();
+
+    const qrRes = await ctx
+      .http()
+      .get(`/api/qrs/${body.qrId}`)
+      .set('Authorization', `Bearer ${auth.token}`)
+      .set('X-Space-ID', auth.spaceId)
+      .expect(200);
+
+    const { targetUrl } = qrRes.body as { targetUrl: string };
+
+    expect(targetUrl).toBe(
       `${QR_BASE_URL}/plants/${body.id}?spaceId=${auth.spaceId}`,
     );
 
     return {
       plantId: body.id,
-      qrId: body.qr.id,
-      targetUrl: body.qr.targetUrl,
+      qrId: body.qrId,
+      targetUrl,
     };
   }
 
   describe('POST /api/plants (QR auto-create via plants)', () => {
-    it('201 — plant response includes qrId and targetUrl', async () => {
+    it('201 — plant response includes qrId', async () => {
       await createPlantWithQr();
     });
   });
