@@ -7,14 +7,20 @@ import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value
 import { PlantingSpotNameValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-name/planting-spot-name.value-object';
 import { PlantingSpotTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-type/planting-spot-type.value-object';
 
-export type UpdatePlantingSpotCommandInput = {
-  spotId: string;
+export type UpdatePlantingSpotCommandInput = Pick<
+  IPlantingSpotPrimitives,
+  'spaceId' | 'id'
+> & {
   requestingUserId: string;
-} & Pick<IPlantingSpotPrimitives, 'spaceId'> &
-  Partial<Pick<IPlantingSpotPrimitives, 'name' | 'type' | 'description'>>;
+} & Partial<
+    Omit<
+      IPlantingSpotPrimitives,
+      'id' | 'spaceId' | 'userId' | 'createdAt' | 'updatedAt'
+    >
+  >;
 
 export class UpdatePlantingSpotCommand {
-  public readonly spotId: PlantingSpotIdValueObject;
+  public readonly id: PlantingSpotIdValueObject;
   public readonly name: PlantingSpotNameValueObject | undefined;
   public readonly type: PlantingSpotTypeValueObject | undefined;
   public readonly description:
@@ -25,7 +31,7 @@ export class UpdatePlantingSpotCommand {
   public readonly spaceId: UuidValueObject;
 
   constructor(input: UpdatePlantingSpotCommandInput) {
-    this.spotId = new PlantingSpotIdValueObject(input.spotId);
+    this.id = new PlantingSpotIdValueObject(input.id);
     this.name = input.name
       ? new PlantingSpotNameValueObject(input.name)
       : undefined;
