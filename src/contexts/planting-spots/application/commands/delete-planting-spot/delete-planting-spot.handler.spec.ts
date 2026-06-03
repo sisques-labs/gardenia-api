@@ -78,7 +78,7 @@ describe('DeletePlantingSpotCommandHandler', () => {
       assertExistsService.execute.mockResolvedValue(aggregate);
 
       const command = new DeletePlantingSpotCommand({
-        spotId: SPOT_ID,
+        id: SPOT_ID,
         requestingUserId: OWNER_ID,
         spaceId: SPACE_ID,
       });
@@ -96,7 +96,7 @@ describe('DeletePlantingSpotCommandHandler', () => {
       assertExistsService.execute.mockResolvedValue(aggregate);
 
       const command = new DeletePlantingSpotCommand({
-        spotId: SPOT_ID,
+        id: SPOT_ID,
         requestingUserId: OTHER_USER_ID,
         spaceId: SPACE_ID,
       });
@@ -117,7 +117,7 @@ describe('DeletePlantingSpotCommandHandler', () => {
       );
 
       const command = new DeletePlantingSpotCommand({
-        spotId: SPOT_ID,
+        id: SPOT_ID,
         requestingUserId: OWNER_ID,
         spaceId: SPACE_ID,
       });
@@ -136,7 +136,7 @@ describe('DeletePlantingSpotCommandHandler', () => {
       );
 
       const command = new DeletePlantingSpotCommand({
-        spotId: SPOT_ID,
+        id: SPOT_ID,
         requestingUserId: OWNER_ID,
         spaceId: SPACE_ID,
       });

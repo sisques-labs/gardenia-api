@@ -2,9 +2,9 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
-import { PlantingSpotRestMapper } from '../mappers/planting-spot/planting-spot.mapper';
 import { CreatePlantingSpotDto } from '../dtos/create-planting-spot.dto';
 import { UpdatePlantingSpotDto } from '../dtos/update-planting-spot.dto';
+import { PlantingSpotRestMapper } from '../mappers/planting-spot/planting-spot.mapper';
 import { PlantingSpotsController } from './planting-spots.controller';
 
 const SPOT_ID = '11111111-1111-4111-8111-111111111111';
@@ -82,7 +82,7 @@ describe('PlantingSpotsController', () => {
       queryBus.execute.mockResolvedValueOnce(mockVm);
       mapper.toResponse.mockReturnValueOnce(mockResponseDto);
 
-      const result = await controller.getPlantingSpot(SPOT_ID, SPACE_ID);
+      const result = await controller.plantingSpotFindById(SPOT_ID, SPACE_ID);
 
       expect(queryBus.execute).toHaveBeenCalledTimes(1);
       expect(result.id).toBe(SPOT_ID);
@@ -101,7 +101,7 @@ describe('PlantingSpotsController', () => {
       queryBus.execute.mockResolvedValueOnce(paginatedVms);
       mapper.toResponse.mockReturnValueOnce(mockResponseDto);
 
-      const result = await controller.listPlantingSpots();
+      const result = await controller.plantingSpotsFindByCriteria();
 
       expect(queryBus.execute).toHaveBeenCalledTimes(1);
       expect(result.items).toHaveLength(1);

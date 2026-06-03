@@ -5,6 +5,7 @@ import { PlantPlantingSpotViewModel } from '@contexts/plants/domain/view-models/
 import { PlantQrViewModel } from '@contexts/plants/domain/view-models/plant-qr.view-model';
 import { PlantSpeciesViewModel } from '@contexts/plants/domain/view-models/plant-species.view-model';
 import { PlantResponseDto } from '../../dtos/responses/plant/plant.response.dto';
+import { PlantGraphQLMapper } from '../../mappers/plant/plant.mapper';
 import { PlantResolvedFieldsResolver } from './plant-resolved-fields.resolver';
 
 const SPOT_ID = 'a1b2c3d4-e5f6-4890-abcd-ef1234567890';
@@ -70,6 +71,7 @@ describe('PlantResolvedFieldsResolver', () => {
   let plantingSpotPort: jest.Mocked<IPlantingSpotPort>;
   let plantQrPort: jest.Mocked<IPlantQrPort>;
   let plantSpeciesPort: jest.Mocked<IPlantSpeciesPort>;
+  let plantGraphQLMapper: PlantGraphQLMapper;
 
   beforeEach(() => {
     plantingSpotPort = {
@@ -81,26 +83,27 @@ describe('PlantResolvedFieldsResolver', () => {
     plantSpeciesPort = {
       findByPlantSpeciesId: jest.fn(),
     } as jest.Mocked<IPlantSpeciesPort>;
+    plantGraphQLMapper = new PlantGraphQLMapper();
     resolver = new PlantResolvedFieldsResolver(
       plantingSpotPort,
       plantQrPort,
       plantSpeciesPort,
+      plantGraphQLMapper,
     );
   });
 
   describe('plantingSpot', () => {
     it('resolves plantingSpot when plantingSpotId is set', async () => {
-      plantingSpotPort.findById.mockResolvedValueOnce(makeSpotVm());
+      const spotVm = makeSpotVm();
+      plantingSpotPort.findById.mockResolvedValueOnce(spotVm);
 
       const result = await resolver.plantingSpot(
         makePlantDto({ plantingSpotId: SPOT_ID }),
       );
 
-      expect(result).not.toBeNull();
-      expect(result!.id).toBe(SPOT_ID);
-      expect(result!.name).toBe('Balcony');
-      expect(result!.type).toBe('OUTDOOR');
-      expect(result!.description).toBe('Southern balcony');
+      expect(result).toEqual(
+        plantGraphQLMapper.toLinkedPlantingSpotResponseDto(spotVm),
+      );
       expect(plantingSpotPort.findById).toHaveBeenCalledWith(SPOT_ID, SPACE_ID);
     });
 

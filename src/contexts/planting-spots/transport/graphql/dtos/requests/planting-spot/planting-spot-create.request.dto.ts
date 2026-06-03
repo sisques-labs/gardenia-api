@@ -3,8 +3,8 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 
-@InputType('CreatePlantingSpotInput')
-export class CreatePlantingSpotGraphQLDto {
+@InputType('PlantingSpotCreateRequestDto')
+export class PlantingSpotCreateRequestDto {
   @Field(() => String, { description: 'Name of the planting spot' })
   @IsString()
   @IsNotEmpty()

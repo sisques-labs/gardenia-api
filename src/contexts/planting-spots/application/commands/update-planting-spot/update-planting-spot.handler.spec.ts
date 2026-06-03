@@ -70,7 +70,7 @@ describe('UpdatePlantingSpotCommandHandler', () => {
       assertExistsService.execute.mockResolvedValue(aggregate);
 
       const command = new UpdatePlantingSpotCommand({
-        spotId: SPOT_ID,
+        id: SPOT_ID,
         name: 'Bancal Sur',
         requestingUserId: OWNER_ID,
         spaceId: SPACE_ID,
@@ -89,7 +89,7 @@ describe('UpdatePlantingSpotCommandHandler', () => {
       assertExistsService.execute.mockResolvedValue(aggregate);
 
       const command = new UpdatePlantingSpotCommand({
-        spotId: SPOT_ID,
+        id: SPOT_ID,
         name: 'New Name',
         requestingUserId: OTHER_USER_ID,
         spaceId: SPACE_ID,
@@ -109,7 +109,7 @@ describe('UpdatePlantingSpotCommandHandler', () => {
       );
 
       const command = new UpdatePlantingSpotCommand({
-        spotId: SPOT_ID,
+        id: SPOT_ID,
         requestingUserId: OWNER_ID,
         spaceId: SPACE_ID,
       });

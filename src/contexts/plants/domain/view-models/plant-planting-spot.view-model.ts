@@ -1,13 +1,4 @@
-export interface IPlantPlantingSpotViewModelProps {
-  id: string;
-  name: string;
-  type: string;
-  description: string | null;
-  userId: string;
-  spaceId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { IPlantPlantingSpotPrimitives } from '@contexts/plants/domain/primitives/plant-planting-spot.primitives';
 
 export class PlantPlantingSpotViewModel {
   public readonly id: string;
@@ -19,7 +10,7 @@ export class PlantPlantingSpotViewModel {
   public readonly createdAt: Date;
   public readonly updatedAt: Date;
 
-  constructor(props: IPlantPlantingSpotViewModelProps) {
+  constructor(props: IPlantPlantingSpotPrimitives) {
     this.id = props.id;
     this.name = props.name;
     this.type = props.type;

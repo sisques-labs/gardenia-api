@@ -1,5 +1,6 @@
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
+import { PlantPlantingSpotBuilder } from '@contexts/plants/domain/builders/plant-planting-spot.builder';
 import { QueryBus } from '@nestjs/cqrs';
 import { PlantingSpotAdapter } from './planting-spot.adapter';
 
@@ -27,13 +28,13 @@ describe('PlantingSpotAdapter', () => {
 
   beforeEach(() => {
     queryBus = { execute: jest.fn() } as unknown as jest.Mocked<QueryBus>;
-    adapter = new PlantingSpotAdapter(queryBus);
+    adapter = new PlantingSpotAdapter(queryBus, new PlantPlantingSpotBuilder());
   });
 
   it('dispatches PlantingSpotFindByIdQuery and maps result to PlantPlantingSpotViewModel', async () => {
     queryBus.execute.mockResolvedValueOnce(makeSpotViewModel());
 
-    const result = await adapter.findById(SPOT_ID, SPACE_ID);
+    const result = await adapter.findById(SPOT_ID);
 
     expect(result).not.toBeNull();
     expect(result!.id).toBe(SPOT_ID);
@@ -54,7 +55,7 @@ describe('PlantingSpotAdapter', () => {
   it('returns null when query throws (spot not found)', async () => {
     queryBus.execute.mockRejectedValueOnce(new Error('Spot not found'));
 
-    const result = await adapter.findById(SPOT_ID, SPACE_ID);
+    const result = await adapter.findById(SPOT_ID);
 
     expect(result).toBeNull();
   });
@@ -62,7 +63,7 @@ describe('PlantingSpotAdapter', () => {
   it('returns null when query resolves null', async () => {
     queryBus.execute.mockResolvedValueOnce(null);
 
-    const result = await adapter.findById(SPOT_ID, SPACE_ID);
+    const result = await adapter.findById(SPOT_ID);
 
     expect(result).toBeNull();
   });
@@ -80,7 +81,7 @@ describe('PlantingSpotAdapter', () => {
     });
     queryBus.execute.mockResolvedValueOnce(vm);
 
-    const result = await adapter.findById(SPOT_ID, SPACE_ID);
+    const result = await adapter.findById(SPOT_ID);
 
     expect(result).not.toBeNull();
     expect(result!.description).toBeNull();

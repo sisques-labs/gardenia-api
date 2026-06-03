@@ -20,6 +20,7 @@ import {
   PlantQrResponseDto,
   PlantResponseDto,
 } from '../../dtos/responses/plant/plant.response.dto';
+import { PlantGraphQLMapper } from '../../mappers/plant/plant.mapper';
 
 @UseGuards(JwtAuthGuard)
 @Resolver(() => PlantResponseDto)
@@ -31,6 +32,7 @@ export class PlantResolvedFieldsResolver {
     private readonly plantQrPort: IPlantQrPort,
     @Inject(PLANT_SPECIES_PORT)
     private readonly plantSpeciesPort: IPlantSpeciesPort,
+    private readonly plantGraphQLMapper: PlantGraphQLMapper,
   ) {}
 
   @ResolveField('plantingSpot', () => PlantLinkedPlantingSpotResponseDto, {
@@ -48,16 +50,7 @@ export class PlantResolvedFieldsResolver {
 
     if (!vm) return null;
 
-    return {
-      id: vm.id,
-      name: vm.name,
-      type: vm.type,
-      description: vm.description ?? null,
-      userId: vm.userId,
-      spaceId: vm.spaceId,
-      createdAt: vm.createdAt,
-      updatedAt: vm.updatedAt,
-    };
+    return this.plantGraphQLMapper.toLinkedPlantingSpotResponseDto(vm);
   }
 
   @ResolveField('qr', () => PlantQrResponseDto, { nullable: true })

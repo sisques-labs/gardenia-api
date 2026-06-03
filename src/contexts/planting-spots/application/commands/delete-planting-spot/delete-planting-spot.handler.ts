@@ -31,18 +31,16 @@ export class DeletePlantingSpotCommandHandler
   }
 
   async execute(command: DeletePlantingSpotCommand): Promise<void> {
-    const spot = await this.assertPlantingSpotExistsService.execute(
-      command.spotId,
-    );
+    const spot = await this.assertPlantingSpotExistsService.execute(command.id);
 
     if (spot.userId.value !== command.requestingUserId.value) {
       throw new PlantingSpotForbiddenException(
         command.requestingUserId.value,
-        command.spotId.value,
+        command.id.value,
       );
     }
 
-    await this.assertPlantingSpotNotInUseService.execute(command.spotId);
+    await this.assertPlantingSpotNotInUseService.execute(command.id);
 
     spot.delete();
 
@@ -50,7 +48,7 @@ export class DeletePlantingSpotCommandHandler
     await this.publishEvents(spot);
 
     this.logger.log(
-      `PlantingSpot deleted: ${command.spotId.value} by user: ${command.requestingUserId.value}`,
+      `PlantingSpot deleted: ${command.id.value} by user: ${command.requestingUserId.value}`,
     );
   }
 }

@@ -17,7 +17,7 @@ export class PlantingSpotInUseAdapter implements IPlantingSpotInUsePort {
     const criteria = new Criteria(
       [
         {
-          field: 'plantingSpotId',
+          field: 'plantingSpotId', // TODO: technical debt; we should have an enum with all the possible fields to filter by
           operator: FilterOperator.EQUALS,
           value: plantingSpotId,
         },
