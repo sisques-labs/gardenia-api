@@ -96,7 +96,7 @@ export class PlantingSpotsController {
   })
   @ApiResponse({ status: 400, description: 'Missing X-Space-ID' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async listPlantingSpots(): Promise<
+  async plantingSpotsFindByCriteria(): Promise<
     PaginatedResult<PlantingSpotRestResponseDto>
   > {
     const result = await this.queryBus.execute<
@@ -131,7 +131,7 @@ export class PlantingSpotsController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Planting spot not found' })
-  async getPlantingSpot(
+  async plantingSpotFindById(
     @Param('id') id: string,
     @Headers('x-space-id') _spaceId: string,
   ): Promise<PlantingSpotRestResponseDto> {
