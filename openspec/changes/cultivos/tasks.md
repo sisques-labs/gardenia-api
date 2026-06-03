@@ -71,12 +71,12 @@ Chain strategy: pending
 
 ## Phase 3: Infrastructure
 
-- [ ] 3.1 Create `src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity.ts` — `planting_spots` table; `space_id` NOT NULL; `type` varchar; indexed `space_id`
-- [ ] 3.2 Create `src/contexts/planting-spots/infrastructure/persistence/typeorm/mappers/planting-spot-typeorm.mapper.ts` — `toDomain()` + `toPersistence()`
-- [ ] 3.3 Create `src/contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-write.repository.ts` — extends `BaseDatabaseRepository`; uses `createTenantRepository(rawRepo, spaceContext)` in constructor; implements `IPlantingSpotWriteRepository`
-- [ ] 3.4 Create `src/contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-read.repository.ts` — extends `BaseDatabaseRepository`; `createTenantRepository` pattern; implements `IPlantingSpotReadRepository`; `findByCriteria` supports `type` filter + pagination (default page=1, limit=20, max=100)
-- [ ] 3.5 Create `src/contexts/planting-spots/infrastructure/adapters/planting-spot-in-use-stub.adapter.ts` — implements `IPlantingSpotInUsePort`; `countByPlantingSpotId` always resolves `0`
-- [ ] 3.6 Create `src/database/migrations/1780000000010-CreatePlantingSpots.ts` — `up()` creates `planting_spots` with `id`, `name`, `type`, `description`, `user_id`, `space_id`, `created_at`, `updated_at`; `IDX_planting_spots_space_id`; `down()` drops table
+- [x] 3.1 Create `src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity.ts` — `planting_spots` table; `space_id` NOT NULL; `type` varchar; indexed `space_id`
+- [x] 3.2 Create `src/contexts/planting-spots/infrastructure/persistence/typeorm/mappers/planting-spot-typeorm.mapper.ts` — `toDomain()` + `toPersistence()`
+- [x] 3.3 Create `src/contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-write.repository.ts` — extends `BaseDatabaseRepository`; uses `createTenantRepository(rawRepo, spaceContext)` in constructor; implements `IPlantingSpotWriteRepository`
+- [x] 3.4 Create `src/contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-read.repository.ts` — extends `BaseDatabaseRepository`; `createTenantRepository` pattern; implements `IPlantingSpotReadRepository`; `findByCriteria` supports `type` filter + pagination (default page=1, limit=20, max=100)
+- [x] 3.5 Create `src/contexts/planting-spots/infrastructure/adapters/planting-spot-in-use-stub.adapter.ts` — implements `IPlantingSpotInUsePort`; `countByPlantingSpotId` always resolves `0`
+- [x] 3.6 Create `src/database/migrations/1780000000010-CreatePlantingSpots.ts` — `up()` creates `planting_spots` with `id`, `name`, `type`, `description`, `user_id`, `space_id`, `created_at`, `updated_at`; `IDX_planting_spots_space_id`; `down()` drops table
 
 ## Phase 4: Transport
 
