@@ -37,7 +37,7 @@ const QUERY_HANDLERS = [
   PlantingSpotFindByCriteriaQueryHandler,
 ];
 
-const DOMAIN_PROVIDERS = [PlantingSpotBuilder];
+const DOMAIN_BUILDERS = [PlantingSpotBuilder];
 
 const APPLICATION_SERVICES = [
   AssertPlantingSpotExistsService,
@@ -80,7 +80,7 @@ const GRAPHQL_PROVIDERS = [
   providers: [
     ...COMMAND_HANDLERS,
     ...QUERY_HANDLERS,
-    ...DOMAIN_PROVIDERS,
+    ...DOMAIN_BUILDERS,
     ...APPLICATION_SERVICES,
     ...INFRASTRUCTURE_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
