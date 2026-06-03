@@ -13,7 +13,7 @@ import { AssertPlantingSpotExistsService } from './application/services/write/as
 import { AssertPlantingSpotNotInUseService } from './application/services/write/assert-planting-spot-not-in-use/assert-planting-spot-not-in-use.service';
 import { PLANTING_SPOT_READ_REPOSITORY } from './domain/repositories/read/planting-spot-read.repository';
 import { PLANTING_SPOT_WRITE_REPOSITORY } from './domain/repositories/write/planting-spot-write.repository';
-import { PlantingSpotInUseStubAdapter } from './infrastructure/adapters/planting-spot-in-use-stub.adapter';
+import { PlantingSpotInUseAdapter } from './infrastructure/adapters/planting-spot-in-use.adapter';
 import { PlantingSpotTypeOrmEntity } from './infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { PlantingSpotTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/planting-spot-typeorm.mapper';
 import { PlantingSpotTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-read.repository';
@@ -58,7 +58,7 @@ const INFRASTRUCTURE_REPOSITORIES = [
 const INFRASTRUCTURE_ADAPTERS = [
   {
     provide: PLANTING_SPOT_IN_USE_PORT,
-    useClass: PlantingSpotInUseStubAdapter,
+    useClass: PlantingSpotInUseAdapter,
   },
 ];
 
