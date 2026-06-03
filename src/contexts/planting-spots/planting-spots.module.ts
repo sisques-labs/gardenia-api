@@ -11,6 +11,7 @@ import { PlantingSpotFindByIdQueryHandler } from '@contexts/planting-spots/appli
 import { AssertPlantingSpotViewModelExistsService } from '@contexts/planting-spots/application/services/read/assert-planting-spot-view-model-exists/assert-planting-spot-view-model-exists.service';
 import { AssertPlantingSpotExistsService } from '@contexts/planting-spots/application/services/write/assert-planting-spot-exists/assert-planting-spot-exists.service';
 import { AssertPlantingSpotNotInUseService } from '@contexts/planting-spots/application/services/write/assert-planting-spot-not-in-use/assert-planting-spot-not-in-use.service';
+import { PlantingSpotBuilder } from '@contexts/planting-spots/domain/builders/planting-spot.builder';
 import { PLANTING_SPOT_READ_REPOSITORY } from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
 import { PLANTING_SPOT_WRITE_REPOSITORY } from '@contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
 import { PlantingSpotInUseAdapter } from '@contexts/planting-spots/infrastructure/adapters/planting-spot-in-use.adapter';
@@ -35,6 +36,8 @@ const QUERY_HANDLERS = [
   PlantingSpotFindByIdQueryHandler,
   PlantingSpotFindByCriteriaQueryHandler,
 ];
+
+const DOMAIN_PROVIDERS = [PlantingSpotBuilder];
 
 const APPLICATION_SERVICES = [
   AssertPlantingSpotExistsService,
@@ -77,6 +80,7 @@ const GRAPHQL_PROVIDERS = [
   providers: [
     ...COMMAND_HANDLERS,
     ...QUERY_HANDLERS,
+    ...DOMAIN_PROVIDERS,
     ...APPLICATION_SERVICES,
     ...INFRASTRUCTURE_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
