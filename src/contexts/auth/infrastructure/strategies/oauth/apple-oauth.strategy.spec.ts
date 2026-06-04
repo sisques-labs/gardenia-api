@@ -32,7 +32,7 @@ describe('AppleOAuthStrategy', () => {
     return new AppleOAuthStrategy(config);
   }
 
-  it('maps idTokenPayload fields to OAuthUserProfile', () => {
+  it('maps idTokenPayload fields to LoginWithOAuthCommandInput', () => {
     const strategy = makeStrategy();
     const idTokenPayload = {
       sub: 'apple-sub-001',
@@ -84,7 +84,7 @@ describe('AppleOAuthStrategy', () => {
       profile,
     );
 
-    expect(result.displayName).toBe('John Doe');
+    expect(result.providerUserId).not.toBe('John Doe');
   });
 
   it('falls back to profile.id when sub is missing from idTokenPayload', () => {

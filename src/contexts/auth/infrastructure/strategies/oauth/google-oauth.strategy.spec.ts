@@ -17,7 +17,7 @@ describe('GoogleOAuthStrategy', () => {
     return new GoogleOAuthStrategy(config);
   }
 
-  it('maps a full google profile to OAuthUserProfile', () => {
+  it('maps a full google profile to LoginWithOAuthCommandInput', () => {
     const strategy = makeStrategy();
     const profile = {
       id: 'google-sub-123',
@@ -31,10 +31,9 @@ describe('GoogleOAuthStrategy', () => {
     expect(result.providerUserId).toBe('google-sub-123');
     expect(result.email).toBe('john@example.com');
     expect(result.emailVerified).toBe(true);
-    expect(result.displayName).toBe('John Doe');
-    expect(result.rawTokens.accessToken).toBe('access-token');
-    expect(result.rawTokens.refreshToken).toBe('refresh-token');
-    expect(result.rawTokens.expiresAt).toBeNull();
+    expect(result.accessToken).toBe('access-token');
+    expect(result.refreshToken).toBe('refresh-token');
+    expect(result.tokenExpiresAt).toBeNull();
   });
 
   it('sets emailVerified false when not present', () => {
@@ -48,7 +47,7 @@ describe('GoogleOAuthStrategy', () => {
     const result = strategy.validate('access-token', undefined, profile);
 
     expect(result.emailVerified).toBe(false);
-    expect(result.rawTokens.refreshToken).toBeNull();
+    expect(result.refreshToken).toBeNull();
   });
 
   it('handles missing email', () => {
@@ -62,6 +61,5 @@ describe('GoogleOAuthStrategy', () => {
     const result = strategy.validate('access-token', undefined, profile);
 
     expect(result.email).toBeNull();
-    expect(result.displayName).toBeNull();
   });
 });

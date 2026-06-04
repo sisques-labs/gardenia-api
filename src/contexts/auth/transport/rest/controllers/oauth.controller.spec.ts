@@ -2,21 +2,24 @@ import { CommandBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 import { OAuthController } from './oauth.controller';
 import { RefreshCookieService } from '@contexts/auth/transport/shared/refresh-cookie.service';
-import { LoginWithOAuthCommand } from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.command';
-import { OAuthUserProfile } from '@contexts/auth/application/ports/oauth-user-profile';
+import {
+  LoginWithOAuthCommand,
+  LoginWithOAuthCommandInput,
+} from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.command';
 
 describe('OAuthController', () => {
   let controller: OAuthController;
   let commandBus: jest.Mocked<CommandBus>;
   let cookies: jest.Mocked<RefreshCookieService>;
 
-  const profile: OAuthUserProfile = {
+  const profile: Omit<LoginWithOAuthCommandInput, 'deviceInfo'> = {
     provider: 'google',
     providerUserId: 'google-123',
     email: 'user@example.com',
     emailVerified: true,
-    displayName: 'Test User',
-    rawTokens: { accessToken: 'at', refreshToken: null, expiresAt: null },
+    accessToken: 'at',
+    refreshToken: null,
+    tokenExpiresAt: null,
   };
 
   beforeEach(() => {
@@ -53,8 +56,8 @@ describe('OAuthController', () => {
     );
     const called = (commandBus.execute as jest.Mock).mock
       .calls[0][0] as LoginWithOAuthCommand;
-    expect(called.profile).toBe(profile);
-    expect(called.deviceInfo).toBe('test-ua');
+    expect(called.provider.value).toBe('google');
+    expect(called.deviceInfo?.value).toBe('test-ua');
   });
 
   it('callback sets refresh cookie after successful login', async () => {

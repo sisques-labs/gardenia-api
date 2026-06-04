@@ -1,9 +1,8 @@
+import { LoginWithOAuthCommandInput } from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.command';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, StrategyOption } from 'passport-github2';
-
-import { OAuthUserProfile } from '@contexts/auth/application/ports/oauth-user-profile';
 
 @Injectable()
 export class GithubOAuthStrategy extends PassportStrategy(Strategy, 'github') {
@@ -20,15 +19,12 @@ export class GithubOAuthStrategy extends PassportStrategy(Strategy, 'github') {
     accessToken: string,
     refreshToken: string | undefined,
     profile: Profile,
-  ): OAuthUserProfile {
-    // GitHub returns emails array; pick primary + verified email when available.
-    // If not marked as primary+verified, treat as unverified to avoid auto-link hijack.
+  ): Omit<LoginWithOAuthCommandInput, 'deviceInfo'> {
     const primaryVerified = (profile.emails ?? []).find(
       (e: { value: string; primary?: boolean; verified?: boolean }) =>
         e.primary === true && e.verified === true,
     );
     const anyEmail = (profile.emails ?? [])[0];
-
     const email = primaryVerified?.value ?? anyEmail?.value ?? null;
     const emailVerified = primaryVerified !== undefined;
 
@@ -37,12 +33,9 @@ export class GithubOAuthStrategy extends PassportStrategy(Strategy, 'github') {
       providerUserId: String(profile.id),
       email,
       emailVerified,
-      displayName: profile.displayName ?? null,
-      rawTokens: {
-        accessToken,
-        refreshToken: refreshToken ?? null,
-        expiresAt: null,
-      },
+      accessToken,
+      refreshToken: refreshToken ?? null,
+      tokenExpiresAt: null,
     };
   }
 }

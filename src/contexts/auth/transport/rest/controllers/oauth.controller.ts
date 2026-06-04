@@ -12,8 +12,10 @@ import { CommandBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
-import { LoginWithOAuthCommand } from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.command';
-import { OAuthUserProfile } from '@contexts/auth/application/ports/oauth-user-profile';
+import {
+  LoginWithOAuthCommand,
+  LoginWithOAuthCommandInput,
+} from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.command';
 import { DynamicOAuthGuard } from '@contexts/auth/infrastructure/guards/dynamic-oauth.guard';
 import { RefreshCookieService } from '@contexts/auth/transport/shared/refresh-cookie.service';
 import { SkipSpace } from '../../../../../shared/decorators/skip-space.decorator';
@@ -31,11 +33,6 @@ export class OAuthController {
     this.frontendUrl = configService.get<string>('app.frontendUrl') ?? '/';
   }
 
-  /**
-   * Step 1: Initiate OAuth flow — redirects browser to the provider.
-   * The DynamicOAuthGuard validates the provider name and lets Passport
-   * perform the 302 redirect. The handler body never runs.
-   */
   @Get(':provider')
   @SkipSpace()
   @UseGuards(DynamicOAuthGuard)
@@ -44,11 +41,6 @@ export class OAuthController {
     // Intentionally empty — Passport guard performs the redirect.
   }
 
-  /**
-   * Step 2a: OAuth callback (GET) — used by Google and GitHub.
-   * Passport's strategy `validate()` is called by the guard, which resolves
-   * the OAuthUserProfile and places it on `req.user`.
-   */
   @Get(':provider/callback')
   @SkipSpace()
   @UseGuards(DynamicOAuthGuard)
@@ -61,11 +53,6 @@ export class OAuthController {
     await this.handleOAuthCallback(req, res);
   }
 
-  /**
-   * Step 2b: OAuth callback (POST) — used by Apple (response_mode: form_post).
-   * Apple sends the code and user data as an application/x-www-form-urlencoded POST.
-   * Express urlencoded body parser must be enabled (see main.ts).
-   */
   @Post('apple/callback')
   @SkipSpace()
   @UseGuards(DynamicOAuthGuard)
@@ -81,11 +68,15 @@ export class OAuthController {
     req: Request,
     res: Response,
   ): Promise<void> {
-    const profile = req.user as OAuthUserProfile;
+    const profile = req.user as Omit<LoginWithOAuthCommandInput, 'deviceInfo'>;
+    const input: LoginWithOAuthCommandInput = {
+      ...profile,
+      deviceInfo: req.headers['user-agent'],
+    };
     const { accessToken, refreshToken } = await this.commandBus.execute<
       LoginWithOAuthCommand,
       { accessToken: string; refreshToken: string }
-    >(new LoginWithOAuthCommand(profile, req.headers['user-agent']));
+    >(new LoginWithOAuthCommand(input));
     this.cookies.setRefreshCookie(res, refreshToken);
     res.redirect(
       `${this.frontendUrl}/auth/callback#access_token=${accessToken}`,

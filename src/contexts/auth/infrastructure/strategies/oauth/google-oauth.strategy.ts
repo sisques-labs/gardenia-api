@@ -1,9 +1,8 @@
+import { LoginWithOAuthCommandInput } from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.command';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, StrategyOptions } from 'passport-google-oauth20';
-
-import { OAuthUserProfile } from '@contexts/auth/application/ports/oauth-user-profile';
 
 @Injectable()
 export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
@@ -20,7 +19,7 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
     accessToken: string,
     refreshToken: string | undefined,
     profile: Profile,
-  ): OAuthUserProfile {
+  ): Omit<LoginWithOAuthCommandInput, 'deviceInfo'> {
     const email = profile.emails?.[0]?.value ?? null;
     const rawVerified = profile.emails?.[0]?.verified;
     const emailVerified = rawVerified === true;
@@ -30,12 +29,9 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
       providerUserId: profile.id,
       email,
       emailVerified,
-      displayName: profile.displayName ?? null,
-      rawTokens: {
-        accessToken,
-        refreshToken: refreshToken ?? null,
-        expiresAt: null,
-      },
+      accessToken,
+      refreshToken: refreshToken ?? null,
+      tokenExpiresAt: null,
     };
   }
 }

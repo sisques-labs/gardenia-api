@@ -1,8 +1,7 @@
+import { LoginWithOAuthCommandInput } from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.command';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-
-import { OAuthUserProfile } from '@contexts/auth/application/ports/oauth-user-profile';
 
 // @nicokaiser/passport-apple has no TypeScript types — require it directly.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -13,7 +12,6 @@ export interface AppleProfile {
   displayName?: string;
   name?: { firstName?: string; lastName?: string };
   email?: string;
-  // Apple returns email_verified as a string "true" | "false"
   email_verified?: string;
   emails?: Array<{ value: string }>;
 }
@@ -28,7 +26,6 @@ export class AppleOAuthStrategy extends PassportStrategy(
       clientID: configService.get<string>('auth.appleClientId') ?? '',
       teamID: configService.get<string>('auth.appleTeamId') ?? '',
       keyID: configService.get<string>('auth.appleKeyId') ?? '',
-      // The private key is stored as a string with literal \n — convert to actual newlines.
       key: (configService.get<string>('auth.applePrivateKey') ?? '').replace(
         /\\n/g,
         '\n',
@@ -43,36 +40,23 @@ export class AppleOAuthStrategy extends PassportStrategy(
     refreshToken: string | undefined,
     idTokenPayload: Record<string, unknown>,
     profile: AppleProfile,
-  ): OAuthUserProfile {
-    // Apple only returns name/email on first authorization; idTokenPayload carries sub + email.
+  ): Omit<LoginWithOAuthCommandInput, 'deviceInfo'> {
     const sub = (idTokenPayload['sub'] as string | undefined) ?? profile.id;
     const email =
       (idTokenPayload['email'] as string | null | undefined) ??
       profile.email ??
       null;
-
-    // Apple returns email_verified as the string "true" or boolean true
     const rawVerified = idTokenPayload['email_verified'];
     const emailVerified = rawVerified === true || rawVerified === 'true';
-
-    const firstName = profile.name?.firstName;
-    const lastName = profile.name?.lastName;
-    const displayName =
-      firstName || lastName
-        ? [firstName, lastName].filter(Boolean).join(' ')
-        : (profile.displayName ?? null);
 
     return {
       provider: 'apple',
       providerUserId: sub,
       email,
       emailVerified,
-      displayName,
-      rawTokens: {
-        accessToken,
-        refreshToken: refreshToken ?? null,
-        expiresAt: null,
-      },
+      accessToken,
+      refreshToken: refreshToken ?? null,
+      tokenExpiresAt: null,
     };
   }
 }
