@@ -1,6 +1,10 @@
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 import { OAuthProviderValueObject } from '@contexts/auth/domain/value-objects/oauth-provider/oauth-provider.vo';
-import { DateValueObject, StringValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  BooleanValueObject,
+  DateValueObject,
+  StringValueObject,
+} from '@sisques-labs/nestjs-kit';
 
 export interface LoginWithOAuthCommandInput {
   providerUserId: string;
@@ -17,7 +21,7 @@ export class LoginWithOAuthCommand {
   public readonly providerUserId: StringValueObject;
   public readonly provider: OAuthProviderValueObject;
   public readonly email: AccountEmailValueObject | null;
-  public readonly emailVerified: boolean;
+  public readonly emailVerified: BooleanValueObject;
   public readonly accessToken: StringValueObject | null;
   public readonly refreshToken: StringValueObject | null;
   public readonly tokenExpiresAt: DateValueObject | null;
@@ -27,7 +31,7 @@ export class LoginWithOAuthCommand {
     this.providerUserId = new StringValueObject(input.providerUserId);
     this.provider = new OAuthProviderValueObject(input.provider);
     this.email = input.email ? new AccountEmailValueObject(input.email) : null;
-    this.emailVerified = input.emailVerified;
+    this.emailVerified = new BooleanValueObject(input.emailVerified);
     this.accessToken = input.accessToken
       ? new StringValueObject(input.accessToken)
       : null;

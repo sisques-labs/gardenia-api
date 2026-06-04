@@ -27,9 +27,9 @@ describe('OAuthIdentityTypeOrmMapper', () => {
     mapper = new OAuthIdentityTypeOrmMapper(new OAuthIdentityBuilder());
   });
 
-  it('should map entity to domain aggregate (toAggregate)', () => {
+  it('should map entity to domain aggregate (toDomain)', () => {
     const entity = makeEntity();
-    const domain = mapper.toAggregate(entity);
+    const domain = mapper.toDomain(entity);
 
     expect(domain.id.value).toBe(entity.id);
     expect(domain.userId.value).toBe(entity.userId);
@@ -40,10 +40,10 @@ describe('OAuthIdentityTypeOrmMapper', () => {
     expect(domain.accessTokenEnc).toBe('enc:access-token');
   });
 
-  it('should map domain aggregate back to entity (toEntity)', () => {
+  it('should map domain aggregate back to entity (toPersistence)', () => {
     const entity = makeEntity();
-    const domain = mapper.toAggregate(entity);
-    const backToEntity = mapper.toEntity(domain);
+    const domain = mapper.toDomain(entity);
+    const backToEntity = mapper.toPersistence(domain);
 
     expect(backToEntity.id).toBe(entity.id);
     expect(backToEntity.userId).toBe(entity.userId);
@@ -59,7 +59,7 @@ describe('OAuthIdentityTypeOrmMapper', () => {
       accessTokenEnc: null,
       refreshTokenEnc: null,
     });
-    const domain = mapper.toAggregate(entity);
+    const domain = mapper.toDomain(entity);
 
     expect(domain.email).toBeNull();
     expect(domain.accessTokenEnc).toBeNull();

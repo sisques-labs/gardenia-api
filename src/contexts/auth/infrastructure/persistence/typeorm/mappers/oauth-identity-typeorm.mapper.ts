@@ -1,22 +1,29 @@
 import { OAuthIdentityAggregate } from '@contexts/auth/domain/aggregates/oauth-identity.aggregate';
 import { OAuthIdentityBuilder } from '@contexts/auth/domain/builders/oauth-identity.builder';
-import { IOAuthIdentityPrimitives } from '@contexts/auth/domain/primitives/oauth-identity.primitives';
 import { Injectable } from '@nestjs/common';
 import { OAuthIdentityTypeOrmEntity } from '../entities/oauth-identity.entity';
 
 @Injectable()
 export class OAuthIdentityTypeOrmMapper {
-  constructor(private readonly oauthIdentityBuilder: OAuthIdentityBuilder) {}
+  constructor(private readonly builder: OAuthIdentityBuilder) {}
 
-  public toAggregate(
-    entity: OAuthIdentityTypeOrmEntity,
-  ): OAuthIdentityAggregate {
-    return this.oauthIdentityBuilder
-      .fromPrimitives(this.toEntityPrimitives(entity))
+  public toDomain(entity: OAuthIdentityTypeOrmEntity): OAuthIdentityAggregate {
+    return this.builder
+      .withId(entity.id)
+      .withUserId(entity.userId)
+      .withProvider(entity.provider)
+      .withProviderUserId(entity.providerUserId)
+      .withEmail(entity.email)
+      .withEmailVerified(entity.emailVerified)
+      .withAccessTokenEnc(entity.accessTokenEnc)
+      .withRefreshTokenEnc(entity.refreshTokenEnc)
+      .withTokenExpiresAt(entity.tokenExpiresAt)
+      .withCreatedAt(entity.createdAt)
+      .withUpdatedAt(entity.updatedAt)
       .build();
   }
 
-  public toEntity(
+  public toPersistence(
     aggregate: OAuthIdentityAggregate,
   ): OAuthIdentityTypeOrmEntity {
     const primitives = aggregate.toPrimitives();
@@ -33,23 +40,5 @@ export class OAuthIdentityTypeOrmMapper {
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
     return entity;
-  }
-
-  private toEntityPrimitives(
-    entity: OAuthIdentityTypeOrmEntity,
-  ): IOAuthIdentityPrimitives {
-    return {
-      id: entity.id,
-      userId: entity.userId,
-      provider: entity.provider,
-      providerUserId: entity.providerUserId,
-      email: entity.email,
-      emailVerified: entity.emailVerified,
-      accessTokenEnc: entity.accessTokenEnc,
-      refreshTokenEnc: entity.refreshTokenEnc,
-      tokenExpiresAt: entity.tokenExpiresAt,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    };
   }
 }

@@ -18,14 +18,14 @@ export class OAuthIdentityTypeOrmWriteRepository implements IOAuthIdentityWriteR
   async save(
     identity: OAuthIdentityAggregate,
   ): Promise<OAuthIdentityAggregate> {
-    const entity = this.mapper.toEntity(identity);
+    const entity = this.mapper.toPersistence(identity);
     const saved = await this.repo.save(entity);
-    return this.mapper.toAggregate(saved);
+    return this.mapper.toDomain(saved);
   }
 
   async findById(id: string): Promise<OAuthIdentityAggregate | null> {
     const entity = await this.repo.findOne({ where: { id } });
-    return entity ? this.mapper.toAggregate(entity) : null;
+    return entity ? this.mapper.toDomain(entity) : null;
   }
 
   async findByProviderUserId(
@@ -35,12 +35,12 @@ export class OAuthIdentityTypeOrmWriteRepository implements IOAuthIdentityWriteR
     const entity = await this.repo.findOne({
       where: { provider, providerUserId },
     });
-    return entity ? this.mapper.toAggregate(entity) : null;
+    return entity ? this.mapper.toDomain(entity) : null;
   }
 
   async findByUserId(userId: string): Promise<OAuthIdentityAggregate[]> {
     const entities = await this.repo.find({ where: { userId } });
-    return entities.map((e) => this.mapper.toAggregate(e));
+    return entities.map((e) => this.mapper.toDomain(e));
   }
 
   async delete(id: string): Promise<void> {

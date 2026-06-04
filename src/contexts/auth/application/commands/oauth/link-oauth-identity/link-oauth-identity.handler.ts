@@ -64,7 +64,7 @@ export class LinkOAuthIdentityCommandHandler implements ICommandHandler<LinkOAut
       .withProvider(provider.value)
       .withProviderUserId(providerUserId.value)
       .withEmail(email?.value ?? null)
-      .withEmailVerified(emailVerified)
+      .withEmailVerified(emailVerified.value)
       .withAccessTokenEnc(accessTokenEnc)
       .withRefreshTokenEnc(refreshTokenEnc)
       .withTokenExpiresAt(tokenExpiresAt?.value ?? null)

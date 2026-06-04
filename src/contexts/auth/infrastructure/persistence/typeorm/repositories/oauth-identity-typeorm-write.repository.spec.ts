@@ -15,8 +15,8 @@ const makeRepo = (): jest.Mocked<Repository<OAuthIdentityTypeOrmEntity>> =>
 
 const makeMapper = (): jest.Mocked<OAuthIdentityTypeOrmMapper> =>
   ({
-    toAggregate: jest.fn(),
-    toEntity: jest.fn(),
+    toDomain: jest.fn(),
+    toPersistence: jest.fn(),
   }) as unknown as jest.Mocked<OAuthIdentityTypeOrmMapper>;
 
 const validId = '550e8400-e29b-41d4-a716-446655440000';
@@ -62,7 +62,7 @@ describe('OAuthIdentityTypeOrmWriteRepository', () => {
       const typeOrmEntity = makeTypeOrmEntity();
       const domainAggregate = makeDomainAggregate();
       repo.findOne.mockResolvedValue(typeOrmEntity);
-      mapper.toAggregate.mockReturnValue(domainAggregate);
+      mapper.toDomain.mockReturnValue(domainAggregate);
 
       const result = await repository.findByProviderUserId(
         'google',
@@ -89,7 +89,7 @@ describe('OAuthIdentityTypeOrmWriteRepository', () => {
       const typeOrmEntity = makeTypeOrmEntity();
       const domainAggregate = makeDomainAggregate();
       repo.find.mockResolvedValue([typeOrmEntity]);
-      mapper.toAggregate.mockReturnValue(domainAggregate);
+      mapper.toDomain.mockReturnValue(domainAggregate);
 
       const results = await repository.findByUserId(validUserId);
 

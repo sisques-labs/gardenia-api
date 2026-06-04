@@ -99,7 +99,7 @@ export class LoginWithOAuthCommandHandler
 
       if (existingAccount) {
         // Email matches an existing local account
-        if (!emailVerified) {
+        if (!emailVerified.value) {
           throw new OAuthEmailNotVerifiedException(provider.value);
         }
         // Auto-link: create oauth identity for the existing account
@@ -107,7 +107,7 @@ export class LoginWithOAuthCommandHandler
         resolvedEmail = emailValue;
       } else {
         // Brand new user — provision user + space
-        if (!emailVerified) {
+        if (!emailVerified.value) {
           throw new OAuthEmailNotVerifiedException(provider.value);
         }
 
@@ -143,7 +143,7 @@ export class LoginWithOAuthCommandHandler
         .withProvider(provider.value)
         .withProviderUserId(providerUserId.value)
         .withEmail(emailValue)
-        .withEmailVerified(emailVerified)
+        .withEmailVerified(emailVerified.value)
         .withAccessTokenEnc(accessTokenEnc)
         .withRefreshTokenEnc(refreshTokenEnc)
         .withTokenExpiresAt(tokenExpiresAt?.value ?? null)
