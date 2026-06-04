@@ -139,12 +139,17 @@ export class AuthController {
   ): Promise<{ accessToken: string }> {
     const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
     if (!refreshToken) throw new UnauthorizedException();
-    const result = await this.commandBus.execute<
-      RefreshTokenCommand,
-      { accessToken: string; refreshToken: string }
-    >(new RefreshTokenCommand({ refreshToken }));
-    setRefreshCookie(res, result.refreshToken);
-    return { accessToken: result.accessToken };
+    try {
+      const result = await this.commandBus.execute<
+        RefreshTokenCommand,
+        { accessToken: string; refreshToken: string }
+      >(new RefreshTokenCommand({ refreshToken }));
+      setRefreshCookie(res, result.refreshToken);
+      return { accessToken: result.accessToken };
+    } catch (error) {
+      clearRefreshCookie(res);
+      throw error;
+    }
   }
 
   @Post('logout')
