@@ -3,15 +3,23 @@ import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands
 import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
 import { LogoutAllCommandHandler } from '@contexts/auth/application/commands/logout-all/logout-all.handler';
 import { LogoutCommandHandler } from '@contexts/auth/application/commands/logout/logout.handler';
+import { LinkOAuthIdentityCommandHandler } from '@contexts/auth/application/commands/oauth/link-oauth-identity/link-oauth-identity.handler';
+import { LoginWithOAuthCommandHandler } from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.handler';
 import { RefreshTokenCommandHandler } from '@contexts/auth/application/commands/refresh-token/refresh-token.handler';
+import { OAuthStateService } from '@contexts/auth/application/services/oauth/oauth-state.service';
+import { TokenEncryptionService } from '@contexts/auth/application/services/oauth/token-encryption.service';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
 import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { AUTH_SESSION_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
+import { OAUTH_IDENTITY_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/oauth-identity-write.repository';
 import { AuthSessionEntity } from '@contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
+import { OAuthIdentityTypeOrmEntity } from '@contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
 import { AuthSessionTypeOrmMapper } from '@contexts/auth/infrastructure/persistence/typeorm/mappers/auth-session-typeorm.mapper';
+import { OAuthIdentityTypeOrmMapper } from '@contexts/auth/infrastructure/persistence/typeorm/mappers/oauth-identity-typeorm.mapper';
 import { AuthSessionTypeOrmWriteRepository } from '@contexts/auth/infrastructure/persistence/typeorm/repositories/auth-session-typeorm-write.repository';
+import { OAuthIdentityTypeOrmWriteRepository } from '@contexts/auth/infrastructure/persistence/typeorm/repositories/oauth-identity-typeorm-write.repository';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -52,6 +60,8 @@ const COMMAND_HANDLERS = [
   RefreshTokenCommandHandler,
   LogoutCommandHandler,
   LogoutAllCommandHandler,
+  LinkOAuthIdentityCommandHandler,
+  LoginWithOAuthCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -69,11 +79,17 @@ const APPLICATION_SERVICES = [
   GenerateRefreshTokenService,
   HashRefreshTokenService,
   RefreshCookieService,
+  OAuthStateService,
+  TokenEncryptionService,
 ];
 
 const DOMAIN_BUILDERS = [AccountBuilder, AuthSessionBuilder];
 
-const INFRASTRUCTURE_MAPPERS = [AccountTypeOrmMapper, AuthSessionTypeOrmMapper];
+const INFRASTRUCTURE_MAPPERS = [
+  AccountTypeOrmMapper,
+  AuthSessionTypeOrmMapper,
+  OAuthIdentityTypeOrmMapper,
+];
 
 const TRANSPORT_MAPPERS = [AccountRestMapper, AccountGraphQLMapper];
 
@@ -87,9 +103,17 @@ const INFRASTRUCTURE_REPOSITORIES = [
     provide: AUTH_SESSION_WRITE_REPOSITORY,
     useClass: AuthSessionTypeOrmWriteRepository,
   },
+  {
+    provide: OAUTH_IDENTITY_WRITE_REPOSITORY,
+    useClass: OAuthIdentityTypeOrmWriteRepository,
+  },
 ];
 
-const INFRASTRUCTURE_ENTITIES = [AccountEntity, AuthSessionEntity];
+const INFRASTRUCTURE_ENTITIES = [
+  AccountEntity,
+  AuthSessionEntity,
+  OAuthIdentityTypeOrmEntity,
+];
 
 const STRATEGIES = [LocalStrategy, JwtStrategy];
 

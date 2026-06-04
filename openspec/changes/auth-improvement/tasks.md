@@ -60,43 +60,43 @@ Chain strategy: stacked-to-main
 
 ### Domain layer
 
-- [ ] 2.1 **Create** `src/contexts/auth/domain/value-objects/oauth-provider/oauth-provider.vo.ts` — `OAuthProviderValueObject extends EnumValueObject`; values `google | github | apple`. Unit test: valid/invalid construction. (Spec REQ-OAUTH-003)
-- [ ] 2.2 **Create** `src/contexts/auth/domain/entities/oauth-identity/oauth-identity.entity.ts` — domain entity (NOT TypeORM); fields per design (`id`, `userId`, `provider`, `providerUserId`, `email`, `emailVerified`, `accessTokenEnc`, `refreshTokenEnc`, `tokenExpiresAt`, `createdAt`, `updatedAt`).
-- [ ] 2.3 **Create** `src/contexts/auth/domain/builders/oauth-identity.builder.ts` — `OAuthIdentityBuilder extends BaseBuilder`; no static `create()` on entity. Unit test: happy path build.
-- [ ] 2.4 **Create** `src/contexts/auth/domain/repositories/write/oauth-identity-write.repository.ts` — `IOAuthIdentityWriteRepository` port with `findByProviderUserId`, `findByUserId`, plus base `save`/`delete`. Define `OAUTH_IDENTITY_WRITE_REPOSITORY` symbol.
-- [ ] 2.5 **Create** `src/contexts/auth/domain/exceptions/oauth-identity-already-linked.exception.ts` — `OAuthIdentityAlreadyLinkedException`. (Spec REQ-OAUTH-004)
-- [ ] 2.6 **Create** `src/contexts/auth/domain/exceptions/oauth-email-not-verified.exception.ts` — `OAuthEmailNotVerifiedException`. (Spec REQ-OAUTH-006)
-- [ ] 2.7 **Create** `src/contexts/auth/domain/exceptions/oauth-state-mismatch.exception.ts` — `OAuthStateMismatchException`. (Spec REQ-OAUTH-006)
+- [x] 2.1 **Create** `src/contexts/auth/domain/value-objects/oauth-provider/oauth-provider.vo.ts` — `OAuthProviderValueObject extends EnumValueObject`; values `google | github | apple`. Unit test: valid/invalid construction. (Spec REQ-OAUTH-003)
+- [x] 2.2 **Create** `src/contexts/auth/domain/entities/oauth-identity/oauth-identity.entity.ts` — domain entity (NOT TypeORM); fields per design (`id`, `userId`, `provider`, `providerUserId`, `email`, `emailVerified`, `accessTokenEnc`, `refreshTokenEnc`, `tokenExpiresAt`, `createdAt`, `updatedAt`).
+- [x] 2.3 **Create** `src/contexts/auth/domain/builders/oauth-identity.builder.ts` — `OAuthIdentityBuilder extends BaseBuilder`; no static `create()` on entity. Unit test: happy path build.
+- [x] 2.4 **Create** `src/contexts/auth/domain/repositories/write/oauth-identity-write.repository.ts` — `IOAuthIdentityWriteRepository` port with `findByProviderUserId`, `findByUserId`, plus base `save`/`delete`. Define `OAUTH_IDENTITY_WRITE_REPOSITORY` symbol.
+- [x] 2.5 **Create** `src/contexts/auth/domain/exceptions/oauth-identity-already-linked.exception.ts` — `OAuthIdentityAlreadyLinkedException`. (Spec REQ-OAUTH-004)
+- [x] 2.6 **Create** `src/contexts/auth/domain/exceptions/oauth-email-not-verified.exception.ts` — `OAuthEmailNotVerifiedException`. (Spec REQ-OAUTH-006)
+- [x] 2.7 **Create** `src/contexts/auth/domain/exceptions/oauth-state-mismatch.exception.ts` — `OAuthStateMismatchException`. (Spec REQ-OAUTH-006)
 
 ### Application port
 
-- [ ] 2.8 **Create** `src/contexts/auth/application/ports/oauth-provider.strategy.ts` — `OAuthProviderStrategy` interface, `OAuthUserProfile` type, `OAuthProviderName` union, `OAUTH_PROVIDER_REGISTRY` symbol per design.
+- [x] 2.8 **Create** `src/contexts/auth/application/ports/oauth-provider.strategy.ts` — Skipped per design decision (Option B: no intermediate port). Created `oauth-user-profile.ts` with `OAuthUserProfile` type and `OAuthProviderName` union instead. Each Passport strategy (PR 3) will call `CommandBus.execute()` directly.
 
 ### Application services
 
-- [ ] 2.9 **Create** `src/contexts/auth/application/services/oauth/oauth-state.service.ts` — `OAuthStateService @Injectable()`; `issue(provider): string` signs JWT with `OAUTH_STATE_SECRET`; `verify(state, provider): StatePayload` validates signature + expiry + provider match; throws `OAuthStateMismatchException` on failure. Unit test: issue → verify roundtrip; tampered state → throws. (Spec REQ-OAUTH-006 CSRF scenario)
-- [ ] 2.10 **Create** `src/contexts/auth/application/services/oauth/token-encryption.service.ts` — `TokenEncryptionService @Injectable()`; `encrypt(plain): string` (AES-256-GCM, iv:authTag:ciphertext base64); `decrypt(enc): string`; key from `auth.oauthTokenEncKey`. Unit test: encrypt → decrypt roundtrip; different key → throws.
+- [x] 2.9 **Create** `src/contexts/auth/application/services/oauth/oauth-state.service.ts` — `OAuthStateService @Injectable()`; `issue(provider): string` signs JWT with `OAUTH_STATE_SECRET`; `verify(state, provider): StatePayload` validates signature + expiry + provider match; throws `OAuthStateMismatchException` on failure. Unit test: issue → verify roundtrip; tampered state → throws. (Spec REQ-OAUTH-006 CSRF scenario)
+- [x] 2.10 **Create** `src/contexts/auth/application/services/oauth/token-encryption.service.ts` — `TokenEncryptionService @Injectable()`; `encrypt(plain): string` (AES-256-GCM, iv:authTag:ciphertext base64); `decrypt(enc): string`; key from `auth.oauthTokenEncKey`. Unit test: encrypt → decrypt roundtrip; different key → throws.
 
 ### Application commands
 
-- [ ] 2.11 **Create** `src/contexts/auth/application/commands/oauth/link-oauth-identity/link-oauth-identity.command.ts` — `LinkOAuthIdentityCommand` with `{ userId, profile: OAuthUserProfile }`.
-- [ ] 2.12 **Create** `src/contexts/auth/application/commands/oauth/link-oauth-identity/link-oauth-identity.handler.ts` — guard duplicate via `findByProviderUserId`; build + encrypt tokens; persist; emit `OAuthIdentityLinkedEvent`. Unit test: duplicate → throws `OAuthIdentityAlreadyLinkedException`; happy path → save called. (Spec REQ-OAUTH-004)
-- [ ] 2.13 **Create** `src/contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.command.ts` — `LoginWithOAuthCommand` with `{ profile: OAuthUserProfile, deviceInfo?: string }`.
-- [ ] 2.14 **Create** `src/contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.handler.ts` — orchestration per design: lookup existing identity → auto-link by verified email → provision new user; issue session (reuse `AuthSessionBuilder` flow identical to `LoginAccountCommandHandler`); guard unverified email. Unit test: returning user, new user, unverified email, email-link path. (Spec REQ-OAUTH-001, REQ-OAUTH-002, REQ-OAUTH-005)
+- [x] 2.11 **Create** `src/contexts/auth/application/commands/oauth/link-oauth-identity/link-oauth-identity.command.ts` — `LinkOAuthIdentityCommand` with `{ userId, profile: OAuthUserProfile }`.
+- [x] 2.12 **Create** `src/contexts/auth/application/commands/oauth/link-oauth-identity/link-oauth-identity.handler.ts` — guard duplicate via `findByProviderUserId`; build + encrypt tokens; persist; emit `OAuthIdentityLinkedEvent`. Unit test: duplicate → throws `OAuthIdentityAlreadyLinkedException`; happy path → save called. (Spec REQ-OAUTH-004)
+- [x] 2.13 **Create** `src/contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.command.ts` — `LoginWithOAuthCommand` with `{ profile: OAuthUserProfile, deviceInfo?: string }`.
+- [x] 2.14 **Create** `src/contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.handler.ts` — orchestration per design: lookup existing identity → auto-link by verified email → provision new user; issue session (reuse `AuthSessionBuilder` flow identical to `LoginAccountCommandHandler`); guard unverified email. Unit test: returning user, new user, unverified email, email-link path. (Spec REQ-OAUTH-001, REQ-OAUTH-002, REQ-OAUTH-005)
 
 ### Infrastructure persistence
 
-- [ ] 2.15 **Create** `src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity.ts` — `OAuthIdentityEntity` with indexes and unique constraint per design.
-- [ ] 2.16 **Create** `src/contexts/auth/infrastructure/persistence/typeorm/mappers/oauth-identity-typeorm.mapper.ts` — `toAggregate` (decrypt tokens) and `toEntity` (encrypt tokens via `TokenEncryptionService`). Unit test: roundtrip mapping.
-- [ ] 2.17 **Create** `src/contexts/auth/infrastructure/persistence/typeorm/repositories/oauth-identity-typeorm-write.repository.ts` — `OAuthIdentityTypeOrmWriteRepository` implementing `IOAuthIdentityWriteRepository`. Unit test: `findByProviderUserId` query shape.
+- [x] 2.15 **Create** `src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity.ts` — `OAuthIdentityEntity` with indexes and unique constraint per design.
+- [x] 2.16 **Create** `src/contexts/auth/infrastructure/persistence/typeorm/mappers/oauth-identity-typeorm.mapper.ts` — `toAggregate` (decrypt tokens) and `toEntity` (encrypt tokens via `TokenEncryptionService`). Unit test: roundtrip mapping.
+- [x] 2.17 **Create** `src/contexts/auth/infrastructure/persistence/typeorm/repositories/oauth-identity-typeorm-write.repository.ts` — `OAuthIdentityTypeOrmWriteRepository` implementing `IOAuthIdentityWriteRepository`. Unit test: `findByProviderUserId` query shape.
 
 ### Database migration
 
-- [ ] 2.18 **Create** `src/database/migrations/<timestamp>-CreateOAuthIdentities.ts` — raw SQL `up` creates `oauth_identities` table with all columns, FK `user_id → users(id) ON DELETE CASCADE`, unique `(provider, provider_user_id)`, index `(user_id)`; `down` drops indexes then table. (Spec REQ-OAUTH-003)
+- [x] 2.18 **Create** `src/database/migrations/1780000000011-CreateOAuthIdentities.ts` — raw SQL `up` creates `oauth_identities` table with all columns, FK `user_id → users(id) ON DELETE CASCADE`, unique `(provider, provider_user_id)`, index `(user_id)`; `down` drops indexes then table. (Spec REQ-OAUTH-003)
 
 ### Module wiring
 
-- [ ] 2.19 **Modify** `src/contexts/auth/auth.module.ts` — add `OAuthIdentityEntity` to `INFRASTRUCTURE_ENTITIES`; add `OAuthStateService`, `TokenEncryptionService` to `APPLICATION_SERVICES`; add `OAuthIdentityTypeOrmMapper` to `INFRASTRUCTURE_MAPPERS`; add `OAUTH_IDENTITY_WRITE_REPOSITORY` binding to `INFRASTRUCTURE_REPOSITORIES`; add `LinkOAuthIdentityCommandHandler`, `LoginWithOAuthCommandHandler` to `COMMAND_HANDLERS`.
+- [x] 2.19 **Modify** `src/contexts/auth/auth.module.ts` — add `OAuthIdentityEntity` to `INFRASTRUCTURE_ENTITIES`; add `OAuthStateService`, `TokenEncryptionService` to `APPLICATION_SERVICES`; add `OAuthIdentityTypeOrmMapper` to `INFRASTRUCTURE_MAPPERS`; add `OAUTH_IDENTITY_WRITE_REPOSITORY` binding to `INFRASTRUCTURE_REPOSITORIES`; add `LinkOAuthIdentityCommandHandler`, `LoginWithOAuthCommandHandler` to `COMMAND_HANDLERS`.
 
 ---
 
