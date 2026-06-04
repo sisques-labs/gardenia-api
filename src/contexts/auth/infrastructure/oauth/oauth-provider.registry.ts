@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { OAuthProviderName } from '@contexts/auth/application/ports/oauth-user-profile';
+import { OAuthProviderName } from '@contexts/auth/domain/enums/oauth-provider.enum';
 
 export const OAUTH_STRATEGIES = Symbol('OAUTH_STRATEGIES');
 
