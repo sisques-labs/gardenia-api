@@ -8,23 +8,24 @@ const AUTH_TAG_LENGTH = 16;
 
 @Injectable()
 export class TokenEncryptionService {
-  private readonly key: Buffer;
+  constructor(private readonly configService: ConfigService) {}
 
-  constructor(private readonly configService: ConfigService) {
+  private getKey(): Buffer {
     const encKey =
       this.configService.get<string>('auth.oauthTokenEncKey') ?? '';
-    // Key must be 32 bytes for AES-256. Accept base64 encoded key.
-    this.key = Buffer.from(encKey, 'base64');
-    if (this.key.length !== 32) {
+    const key = Buffer.from(encKey, 'base64');
+    if (key.length !== 32) {
       throw new Error(
         'OAUTH_TOKEN_ENC_KEY must be a 32-byte (256-bit) base64-encoded key',
       );
     }
+    return key;
   }
 
   encrypt(plain: string): string {
+    const key = this.getKey();
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, this.key, iv, {
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv, {
       authTagLength: AUTH_TAG_LENGTH,
     });
 
@@ -43,6 +44,7 @@ export class TokenEncryptionService {
   }
 
   decrypt(enc: string): string {
+    const key = this.getKey();
     const parts = enc.split(':');
     if (parts.length !== 3) {
       throw new Error('Invalid encrypted token format');
@@ -53,7 +55,7 @@ export class TokenEncryptionService {
     const authTag = Buffer.from(authTagB64, 'base64');
     const ciphertext = Buffer.from(ciphertextB64, 'base64');
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, this.key, iv, {
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv, {
       authTagLength: AUTH_TAG_LENGTH,
     });
     decipher.setAuthTag(authTag);

@@ -41,9 +41,9 @@ describe('TokenEncryptionService', () => {
     expect(() => service2.decrypt(encrypted)).toThrow();
   });
 
-  it('should throw when initialized with a non-32-byte key', () => {
+  it('should throw on use when key is not 32 bytes', () => {
     const shortKey = Buffer.alloc(16).fill('k').toString('base64');
-    expect(() => makeService(shortKey)).toThrow(
+    expect(() => makeService(shortKey).encrypt('test')).toThrow(
       'OAUTH_TOKEN_ENC_KEY must be a 32-byte (256-bit) base64-encoded key',
     );
   });
