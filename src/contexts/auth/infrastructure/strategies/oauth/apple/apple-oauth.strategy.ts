@@ -23,15 +23,14 @@ export class AppleOAuthStrategy extends PassportStrategy(
 ) {
   constructor(configService: ConfigService) {
     super({
-      clientID:
-        configService.get<string>('auth.appleClientId') ?? 'unconfigured',
-      teamID: configService.get<string>('auth.appleTeamId') ?? 'unconfigured',
-      keyID: configService.get<string>('auth.appleKeyId') ?? 'unconfigured',
-      key: (
-        configService.get<string>('auth.applePrivateKey') ?? 'unconfigured'
-      ).replace(/\\n/g, '\n'),
-      callbackURL:
-        configService.get<string>('auth.appleCallbackUrl') ?? 'unconfigured',
+      clientID: configService.get<string>('auth.appleClientId') ?? '',
+      teamID: configService.get<string>('auth.appleTeamId') ?? '',
+      keyID: configService.get<string>('auth.appleKeyId') ?? '',
+      key: (configService.get<string>('auth.applePrivateKey') ?? '').replace(
+        /\\n/g,
+        '\n',
+      ),
+      callbackURL: configService.get<string>('auth.appleCallbackUrl') ?? '',
       scope: ['name', 'email'],
     });
   }

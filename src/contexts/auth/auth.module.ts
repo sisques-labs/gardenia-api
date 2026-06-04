@@ -129,9 +129,30 @@ const INFRASTRUCTURE_ENTITIES = [
 const STRATEGIES = [
   LocalStrategy,
   JwtStrategy,
-  GoogleOAuthStrategy,
-  GithubOAuthStrategy,
-  AppleOAuthStrategy,
+  {
+    provide: GoogleOAuthStrategy,
+    inject: [ConfigService],
+    useFactory: (config: ConfigService) => {
+      const clientId = config.get<string>('auth.googleClientId');
+      return clientId ? new GoogleOAuthStrategy(config) : null;
+    },
+  },
+  {
+    provide: GithubOAuthStrategy,
+    inject: [ConfigService],
+    useFactory: (config: ConfigService) => {
+      const clientId = config.get<string>('auth.githubClientId');
+      return clientId ? new GithubOAuthStrategy(config) : null;
+    },
+  },
+  {
+    provide: AppleOAuthStrategy,
+    inject: [ConfigService],
+    useFactory: (config: ConfigService) => {
+      const clientId = config.get<string>('auth.appleClientId');
+      return clientId ? new AppleOAuthStrategy(config) : null;
+    },
+  },
 ];
 
 const GUARDS = [JwtAuthGuard, LocalAuthGuard, DynamicOAuthGuard];
