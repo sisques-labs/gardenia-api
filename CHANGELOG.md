@@ -1,6 +1,39 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.13.0-alpha.0] - 2026-06-04
+
+### Bug Fixes
+- **auth:** Clear refresh cookie on token rotation failure (f21df78)
+- **auth:** Fix logoutAll no-op, cookie clear, refresh rotation lock and ConfigService migration (96f24ea)
+- **auth:** Lazy-validate OAUTH_TOKEN_ENC_KEY to avoid startup failure when key is absent (d3001e0)
+- **auth:** Migrate OAuth strategies and controller from OAuthUserProfile to LoginWithOAuthCommandInput (21b5c5e)
+- **auth:** Update OAuthProviderName import to domain/enums (f1ef6d2)
+- **auth:** Use non-empty fallback for OAuth credentials to prevent startup failure in CI (b8d0246)
+- **auth:** Register OAuth strategies conditionally when credentials are configured (06f0caf)
+
+### Chore
+- **sdd:** Add auth-improvement openspec artifacts (b711faa)
+- **env:** Add OAuth environment variables to .env.example (1ac4062)
+- **sdd:** Archive auth-improvement openspec artifacts (c9b2bb2)
+
+### Features
+- **auth:** Add OAuth foundation — domain model, persistence and command handlers (c8fd955)
+- **auth:** Add OAuth provider adapters — Google, GitHub and Apple (caea9ec)
+
+### Refactor
+- **auth:** Move RotateResult type to domain/interfaces (4d1aed0)
+- **auth:** Remove RotateResult re-export from repository; import from interfaces directly (f283c9b)
+- **auth:** Fix architectural violations per PR review (3ba2afb)
+- **auth:** Wrap all command fields as value objects in OAuth commands (c28e009)
+- **auth:** EmailVerified as BooleanValueObject; mapper uses toDomain/toPersistence with builder chaining (26e834f)
+- **auth:** Remaining aggregate VOs, OAuthIdentityViewModel, event interface, remove redundant re-exports (07030c1)
+- **auth:** Move IOAuthIdentityLinkedEventData to domain/events/interfaces (607ea3e)
+- **auth:** Move OAuth strategies to own subfolders; use OAuthProviderEnum in registry (3fd9136)
+## [0.12.0-alpha.0] - 2026-06-03
+
+### Chore
+- Release v0.12.0-alpha.0 (529e3ff)
 ## [0.11.2-alpha.0] - 2026-06-03
 
 ### Chore
