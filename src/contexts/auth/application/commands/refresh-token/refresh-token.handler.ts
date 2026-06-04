@@ -6,8 +6,8 @@ import {
   ICommandHandler,
 } from '@nestjs/cqrs';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import { ConfigService } from '@nestjs/config';
 
-import { REFRESH_TOKEN_TTL_MS } from '@contexts/auth/application/constants/refresh-token.constants';
 import { TokenService } from '@contexts/auth/application/services/token.service';
 import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
 import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
@@ -40,6 +40,7 @@ export class RefreshTokenCommandHandler
     private readonly authSessionBuilder: AuthSessionBuilder,
     private readonly generateRefreshTokenService: GenerateRefreshTokenService,
     private readonly hashRefreshTokenService: HashRefreshTokenService,
+    private readonly configService: ConfigService,
   ) {
     super(eventBus);
   }
@@ -51,51 +52,59 @@ export class RefreshTokenCommandHandler
       command.refreshToken.value,
     );
 
-    // TODO(ADR-5): wrap in DataSource pessimistic_write lock for production concurrency safety
-    const session = await this.sessionRepo.findByTokenHash(hash);
-
-    if (!session) {
-      throw new InvalidRefreshTokenException();
-    }
-
-    if (session.revokedAt !== null) {
-      // REUSE DETECTED — revoke all user sessions
-      session.markReuseDetected();
-      await this.sessionRepo.revokeAllByUserId(session.userId.value);
-      await this.publishEvents(session);
-      throw new RefreshTokenReuseDetectedException();
-    }
-
-    if (session.expiresAt < new Date()) {
-      throw new InvalidRefreshTokenException();
-    }
-
-    // Rotate: revoke old session
-    session.revoke('rotation');
-    await this.sessionRepo.save(session);
-
-    // Create new session
     const newToken = await this.generateRefreshTokenService.execute();
     const newHash = await this.hashRefreshTokenService.execute(newToken);
-    const newExpiry = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
+    const ttlMs =
+      this.configService.get<number>('auth.refreshTokenTtlDays')! * 86_400_000;
+    const newExpiry = new Date(Date.now() + ttlMs);
 
-    const newSession = this.authSessionBuilder
-      .withId(UuidValueObject.generate().value)
-      .withUserId(session.userId.value)
-      .withTokenHash(newHash)
-      .withExpiresAt(newExpiry)
-      .withDeviceInfo(command.deviceInfo?.value ?? null)
-      .build();
+    let resolvedUserId: string | null = null;
 
-    newSession.create();
-    await this.sessionRepo.save(newSession);
+    const rotateResult = await this.sessionRepo.rotate(
+      hash,
+      async (current) => {
+        if (current.revokedAt !== null) {
+          // REUSE DETECTED — revoke all user sessions
+          current.markReuseDetected();
+          await this.sessionRepo.revokeAllByUserId(current.userId.value);
+          await this.publishEvents(current);
+          throw new RefreshTokenReuseDetectedException();
+        }
 
-    await this.publishEvents(session);
+        if (current.expiresAt < new Date()) {
+          throw new InvalidRefreshTokenException();
+        }
+
+        // Rotate: revoke old session
+        current.revoke('rotation');
+
+        const newSession = this.authSessionBuilder
+          .withId(UuidValueObject.generate().value)
+          .withUserId(current.userId.value)
+          .withTokenHash(newHash)
+          .withExpiresAt(newExpiry)
+          .withDeviceInfo(command.deviceInfo?.value ?? null)
+          .build();
+
+        newSession.create();
+        resolvedUserId = current.userId.value;
+
+        return newSession;
+      },
+    );
+
+    if (rotateResult.status === 'not-found') {
+      throw new InvalidRefreshTokenException();
+    }
+
+    const { oldSession, newSession } = rotateResult;
+
+    await this.publishEvents(oldSession);
     await this.publishEvents(newSession);
 
-    const account = await this.accountRepo.findByUserId(session.userId.value);
+    const account = await this.accountRepo.findByUserId(resolvedUserId!);
     const accessToken = this.tokenService.sign(
-      session.userId.value,
+      resolvedUserId!,
       account?.email.value ?? '',
     );
 

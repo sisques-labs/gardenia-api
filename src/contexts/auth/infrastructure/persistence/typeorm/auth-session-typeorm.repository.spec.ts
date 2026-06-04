@@ -1,6 +1,6 @@
 import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
-import { IsNull, Repository, UpdateResult } from 'typeorm';
+import { EntityManager, IsNull, Repository, UpdateResult } from 'typeorm';
 import { AuthSessionEntity } from './entities/auth-session.entity';
 import { AuthSessionTypeOrmMapper } from './mappers/auth-session-typeorm.mapper';
 import { AuthSessionTypeOrmWriteRepository } from './repositories/auth-session-typeorm-write.repository';
@@ -44,6 +44,9 @@ describe('AuthSessionTypeOrmRepository', () => {
       save: jest.fn(),
       findOne: jest.fn(),
       update: jest.fn(),
+      manager: {
+        transaction: jest.fn(),
+      },
     } as unknown as jest.Mocked<Repository<AuthSessionEntity>>;
 
     mapper = new AuthSessionTypeOrmMapper(new AuthSessionBuilder());
@@ -132,6 +135,69 @@ describe('AuthSessionTypeOrmRepository', () => {
 
       const count = await repository.revokeAllByUserId(VALID_USER_ID);
       expect(count).toBe(0);
+    });
+  });
+
+  describe('rotate', () => {
+    it('returns { status: not-found } when no entity matches the tokenHash', async () => {
+      const em = {
+        findOne: jest.fn().mockResolvedValue(null),
+        save: jest.fn(),
+      } as unknown as jest.Mocked<EntityManager>;
+
+      (typeOrmRepo.manager.transaction as jest.Mock).mockImplementation(
+        (fn: (em: EntityManager) => Promise<unknown>) => fn(em),
+      );
+
+      const result = await repository.rotate('nonexistent-hash', jest.fn());
+
+      expect(result).toEqual({ status: 'not-found' });
+      expect(em.save).not.toHaveBeenCalled();
+    });
+
+    it('uses pessimistic_write lock mode when finding the entity', async () => {
+      const entity = buildEntity();
+      const newSession = buildAggregate();
+
+      const em = {
+        findOne: jest.fn().mockResolvedValue(entity),
+        save: jest.fn().mockResolvedValue(entity),
+      } as unknown as jest.Mocked<EntityManager>;
+
+      (typeOrmRepo.manager.transaction as jest.Mock).mockImplementation(
+        (fn: (em: EntityManager) => Promise<unknown>) => fn(em),
+      );
+
+      await repository.rotate(VALID_HASH, async () => newSession);
+
+      expect(em.findOne).toHaveBeenCalledWith(
+        AuthSessionEntity,
+        expect.objectContaining({
+          lock: { mode: 'pessimistic_write' },
+        }),
+      );
+    });
+
+    it('saves both old (with revokedAt) and new session within the same transaction', async () => {
+      const entity = buildEntity();
+      const newAggregate = buildAggregate();
+
+      const em = {
+        findOne: jest.fn().mockResolvedValue(entity),
+        save: jest.fn().mockResolvedValue(entity),
+      } as unknown as jest.Mocked<EntityManager>;
+
+      (typeOrmRepo.manager.transaction as jest.Mock).mockImplementation(
+        (fn: (em: EntityManager) => Promise<unknown>) => fn(em),
+      );
+
+      const result = await repository.rotate(VALID_HASH, async (current) => {
+        current.revoke('rotation');
+        return newAggregate;
+      });
+
+      expect(em.save).toHaveBeenCalledTimes(2);
+      expect(result).toMatchObject({ status: 'ok' });
     });
   });
 });

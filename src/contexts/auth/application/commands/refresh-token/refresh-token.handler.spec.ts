@@ -1,4 +1,5 @@
 import { EventBus } from '@nestjs/cqrs';
+import { ConfigService } from '@nestjs/config';
 
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { InvalidRefreshTokenException } from '@contexts/auth/domain/exceptions/invalid-refresh-token.exception';
@@ -9,6 +10,7 @@ import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/writ
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
 import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
 import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
+import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
 
 import { RefreshTokenCommand } from './refresh-token.command';
 import { RefreshTokenCommandHandler } from './refresh-token.handler';
@@ -37,6 +39,24 @@ const buildAccount = () =>
     .withUpdatedAt(new Date('2024-01-01'))
     .build();
 
+/**
+ * Helper to make sessionRepo.rotate() call the callback with `session`,
+ * or simulate not-found.
+ */
+function mockRotateWith(
+  sessionRepo: jest.Mocked<IAuthSessionWriteRepository>,
+  session: AuthSessionAggregate | null,
+) {
+  if (session === null) {
+    sessionRepo.rotate.mockResolvedValue({ status: 'not-found' });
+    return;
+  }
+  sessionRepo.rotate.mockImplementation(async (_hash, fn) => {
+    const newSession = await fn(session);
+    return { status: 'ok', oldSession: session, newSession };
+  });
+}
+
 describe('RefreshTokenCommandHandler', () => {
   let handler: RefreshTokenCommandHandler;
   let sessionRepo: jest.Mocked<IAuthSessionWriteRepository>;
@@ -45,6 +65,7 @@ describe('RefreshTokenCommandHandler', () => {
   let eventBus: jest.Mocked<EventBus>;
   let generateRefreshTokenService: jest.Mocked<GenerateRefreshTokenService>;
   let hashRefreshTokenService: jest.Mocked<HashRefreshTokenService>;
+  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     sessionRepo = {
@@ -54,6 +75,7 @@ describe('RefreshTokenCommandHandler', () => {
       revokeAllByUserId: jest.fn().mockResolvedValue(1),
       findByCriteria: jest.fn(),
       delete: jest.fn(),
+      rotate: jest.fn(),
     } as unknown as jest.Mocked<IAuthSessionWriteRepository>;
 
     accountRepo = {
@@ -78,6 +100,10 @@ describe('RefreshTokenCommandHandler', () => {
         .mockResolvedValueOnce('b'.repeat(64)),
     } as unknown as jest.Mocked<HashRefreshTokenService>;
 
+    configService = {
+      get: jest.fn().mockReturnValue(30),
+    } as unknown as jest.Mocked<ConfigService>;
+
     eventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -91,11 +117,12 @@ describe('RefreshTokenCommandHandler', () => {
       new AuthSessionBuilder(),
       generateRefreshTokenService,
       hashRefreshTokenService,
+      configService,
     );
   });
 
-  it('throws InvalidRefreshTokenException when session is not found', async () => {
-    sessionRepo.findByTokenHash.mockResolvedValue(null);
+  it('throws InvalidRefreshTokenException when rotate returns not-found', async () => {
+    mockRotateWith(sessionRepo, null);
 
     const command = new RefreshTokenCommand({
       refreshToken: 'some-plain-token',
@@ -110,7 +137,7 @@ describe('RefreshTokenCommandHandler', () => {
     const expiredSession = buildActiveSession({
       expiresAt: new Date(Date.now() - 1000),
     });
-    sessionRepo.findByTokenHash.mockResolvedValue(expiredSession);
+    mockRotateWith(sessionRepo, expiredSession);
 
     const command = new RefreshTokenCommand({
       refreshToken: 'some-plain-token',
@@ -125,7 +152,7 @@ describe('RefreshTokenCommandHandler', () => {
     const revokedSession = buildActiveSession({
       revokedAt: new Date(Date.now() - 5000),
     });
-    sessionRepo.findByTokenHash.mockResolvedValue(revokedSession);
+    mockRotateWith(sessionRepo, revokedSession);
 
     const command = new RefreshTokenCommand({
       refreshToken: 'some-plain-token',
@@ -139,10 +166,10 @@ describe('RefreshTokenCommandHandler', () => {
     );
   });
 
-  it('rotates token on happy path: revokes old session, creates new one, returns accessToken + refreshToken', async () => {
+  it('rotates token on happy path: uses rotate(), returns accessToken + refreshToken', async () => {
     const activeSession = buildActiveSession();
     const account = buildAccount();
-    sessionRepo.findByTokenHash.mockResolvedValue(activeSession);
+    mockRotateWith(sessionRepo, activeSession);
     accountRepo.findByUserId.mockResolvedValue(account);
 
     const command = new RefreshTokenCommand({
@@ -151,7 +178,7 @@ describe('RefreshTokenCommandHandler', () => {
 
     const result = await handler.execute(command);
 
-    expect(sessionRepo.save).toHaveBeenCalledTimes(2);
+    expect(sessionRepo.rotate).toHaveBeenCalledTimes(1);
     expect(tokenService.sign).toHaveBeenCalledWith(
       activeSession.userId.value,
       account.email.value,
@@ -159,5 +186,20 @@ describe('RefreshTokenCommandHandler', () => {
     expect(result).toHaveProperty('accessToken', 'new-access-token');
     expect(result).toHaveProperty('refreshToken');
     expect(typeof result.refreshToken).toBe('string');
+  });
+
+  it('does NOT call findByTokenHash directly (handled via rotate)', async () => {
+    const activeSession = buildActiveSession();
+    const account = buildAccount();
+    mockRotateWith(sessionRepo, activeSession);
+    accountRepo.findByUserId.mockResolvedValue(account);
+
+    const command = new RefreshTokenCommand({
+      refreshToken: 'some-plain-token',
+    });
+
+    await handler.execute(command);
+
+    expect(sessionRepo.findByTokenHash).not.toHaveBeenCalled();
   });
 });

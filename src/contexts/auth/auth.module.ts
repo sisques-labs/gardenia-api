@@ -42,6 +42,7 @@ import { AuthMutationsResolver } from './transport/graphql/resolvers/auth/auth-m
 import { AuthQueriesResolver } from './transport/graphql/resolvers/auth/auth-queries.resolver';
 import { AccountRestMapper } from './transport/rest/mappers/account/account.mapper';
 import { AuthController } from './transport/rest/controllers/auth.controller';
+import { RefreshCookieService } from './transport/shared/refresh-cookie.service';
 
 const COMMAND_HANDLERS = [
   ChangePasswordCommandHandler,
@@ -67,6 +68,7 @@ const APPLICATION_SERVICES = [
   ValidateAccountCredentialsService,
   GenerateRefreshTokenService,
   HashRefreshTokenService,
+  RefreshCookieService,
 ];
 
 const DOMAIN_BUILDERS = [AccountBuilder, AuthSessionBuilder];

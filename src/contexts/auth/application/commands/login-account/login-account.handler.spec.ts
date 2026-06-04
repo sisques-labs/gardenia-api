@@ -1,4 +1,5 @@
 import { EventBus } from '@nestjs/cqrs';
+import { ConfigService } from '@nestjs/config';
 
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { TokenService } from '@contexts/auth/application/services/token.service';
@@ -20,6 +21,7 @@ describe('LoginAccountCommandHandler', () => {
   let sessionRepo: jest.Mocked<IAuthSessionWriteRepository>;
   let generateRefreshTokenService: jest.Mocked<GenerateRefreshTokenService>;
   let hashRefreshTokenService: jest.Mocked<HashRefreshTokenService>;
+  let configService: jest.Mocked<ConfigService>;
 
   const buildAccount = () =>
     new AccountBuilder()
@@ -52,6 +54,7 @@ describe('LoginAccountCommandHandler', () => {
       revokeAllByUserId: jest.fn(),
       findByCriteria: jest.fn(),
       delete: jest.fn(),
+      rotate: jest.fn(),
     } as unknown as jest.Mocked<IAuthSessionWriteRepository>;
 
     generateRefreshTokenService = {
@@ -62,6 +65,10 @@ describe('LoginAccountCommandHandler', () => {
       execute: jest.fn().mockResolvedValue('a'.repeat(64)),
     } as unknown as jest.Mocked<HashRefreshTokenService>;
 
+    configService = {
+      get: jest.fn().mockReturnValue(30),
+    } as unknown as jest.Mocked<ConfigService>;
+
     handler = new LoginAccountCommandHandler(
       eventBus,
       tokenService,
@@ -70,6 +77,7 @@ describe('LoginAccountCommandHandler', () => {
       generateRefreshTokenService,
       hashRefreshTokenService,
       sessionRepo,
+      configService,
     );
   });
 
@@ -134,5 +142,27 @@ describe('LoginAccountCommandHandler', () => {
     await handler.execute(command);
 
     expect(eventBus.publishAll).toHaveBeenCalled();
+  });
+
+  it('uses refreshTokenTtlDays from ConfigService to compute expiry', async () => {
+    configService.get.mockReturnValue(7);
+    const account = buildAccount();
+    validateAccountCredentialsService.execute.mockResolvedValue(account);
+
+    const before = Date.now();
+    await handler.execute(
+      new LoginAccountCommand({
+        email: 'test@example.com',
+        password: 'plain-password',
+      }),
+    );
+    const after = Date.now();
+
+    expect(sessionRepo.save).toHaveBeenCalledTimes(1);
+    const savedSession = (sessionRepo.save as jest.Mock).mock.calls[0][0];
+    const expiresAtMs = savedSession.expiresAt.getTime();
+    // Should be ~7 days from now
+    expect(expiresAtMs).toBeGreaterThanOrEqual(before + 7 * 86_400_000);
+    expect(expiresAtMs).toBeLessThanOrEqual(after + 7 * 86_400_000);
   });
 });

@@ -22,5 +22,7 @@ export function setRefreshCookie(res: Response, token: string): void {
 }
 
 export function clearRefreshCookie(res: Response): void {
-  res.clearCookie(REFRESH_COOKIE_NAME, { path: '/' });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { maxAge: _maxAge, ...clearOptions } = refreshCookieOptions();
+  res.clearCookie(REFRESH_COOKIE_NAME, clearOptions);
 }

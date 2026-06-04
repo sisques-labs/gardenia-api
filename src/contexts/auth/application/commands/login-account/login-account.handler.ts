@@ -1,8 +1,8 @@
 import { Inject } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import { ConfigService } from '@nestjs/config';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
-import { REFRESH_TOKEN_TTL_MS } from '@contexts/auth/application/constants/refresh-token.constants';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { TokenService } from '@contexts/auth/application/services/token.service';
 import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
@@ -31,6 +31,7 @@ export class LoginAccountCommandHandler
     private readonly hashRefreshTokenService: HashRefreshTokenService,
     @Inject(AUTH_SESSION_WRITE_REPOSITORY)
     private readonly sessionRepo: IAuthSessionWriteRepository,
+    private readonly configService: ConfigService,
   ) {
     super(eventBus);
   }
@@ -54,7 +55,9 @@ export class LoginAccountCommandHandler
 
     const plainToken = await this.generateRefreshTokenService.execute();
     const tokenHash = await this.hashRefreshTokenService.execute(plainToken);
-    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
+    const ttlMs =
+      this.configService.get<number>('auth.refreshTokenTtlDays')! * 86_400_000;
+    const expiresAt = new Date(Date.now() + ttlMs);
 
     const session = this.authSessionBuilder
       .withId(UuidValueObject.generate().value)

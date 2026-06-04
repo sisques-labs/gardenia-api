@@ -1,6 +1,7 @@
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { FilterOperator } from '@sisques-labs/nestjs-kit';
+import { UnauthorizedException } from '@nestjs/common';
 
 import { AccountFindByCriteriaQuery } from '@contexts/auth/application/queries/account-find-by-criteria/account-find-by-criteria.query';
 import { AccountRestMapper } from '@contexts/auth/transport/rest/mappers/account/account.mapper';
@@ -10,6 +11,9 @@ import { RegisterAccountCommand } from '@contexts/auth/application/commands/regi
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import { InvalidRefreshTokenException } from '@contexts/auth/domain/exceptions/invalid-refresh-token.exception';
+import { RefreshTokenReuseDetectedException } from '@contexts/auth/domain/exceptions/refresh-token-reuse-detected.exception';
+import { RefreshCookieService } from '@contexts/auth/transport/shared/refresh-cookie.service';
 
 import { AuthController } from './auth.controller';
 
@@ -18,6 +22,11 @@ const buildMockResponse = () =>
     cookie: jest.fn(),
     clearCookie: jest.fn(),
   }) as unknown as jest.Mocked<Response>;
+
+const buildMockRequest = (cookieName = 'gardenia_refresh', token?: string) =>
+  ({
+    cookies: { [cookieName]: token },
+  }) as unknown as Request;
 
 const buildMockAccountViewModel = (): AccountViewModel =>
   new AccountViewModel({
@@ -33,6 +42,7 @@ describe('AuthController', () => {
   let commandBus: jest.Mocked<CommandBus>;
   let queryBus: jest.Mocked<QueryBus>;
   let accountRestMapper: jest.Mocked<AccountRestMapper>;
+  let cookies: jest.Mocked<RefreshCookieService>;
 
   beforeEach(() => {
     commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
@@ -40,7 +50,12 @@ describe('AuthController', () => {
     accountRestMapper = {
       toViewModel: jest.fn(),
     } as unknown as jest.Mocked<AccountRestMapper>;
-    sut = new AuthController(commandBus, queryBus, accountRestMapper);
+    cookies = {
+      setRefreshCookie: jest.fn(),
+      clearRefreshCookie: jest.fn(),
+      cookieName: 'gardenia_refresh',
+    } as unknown as jest.Mocked<RefreshCookieService>;
+    sut = new AuthController(commandBus, queryBus, accountRestMapper, cookies);
   });
 
   describe('register()', () => {
@@ -96,7 +111,7 @@ describe('AuthController', () => {
       );
     });
 
-    it('should return payload containing accessToken and set refresh cookie', async () => {
+    it('should return payload containing accessToken and set refresh cookie via service', async () => {
       commandBus.execute.mockResolvedValue({
         accessToken: 'jwt-token',
         refreshToken: 'plain-refresh',
@@ -109,11 +124,59 @@ describe('AuthController', () => {
       );
 
       expect(result).toHaveProperty('accessToken', 'jwt-token');
-      expect(res.cookie).toHaveBeenCalledWith(
-        'refresh_token',
+      expect(cookies.setRefreshCookie).toHaveBeenCalledWith(
+        res,
         'plain-refresh',
-        expect.any(Object),
       );
+    });
+  });
+
+  describe('refresh()', () => {
+    it('throws UnauthorizedException when no refresh cookie is present', async () => {
+      const req = buildMockRequest('gardenia_refresh', undefined);
+      const res = buildMockResponse();
+
+      await expect(sut.refresh(req, res)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('returns new accessToken and sets cookie on success', async () => {
+      commandBus.execute.mockResolvedValue({
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+      });
+      const req = buildMockRequest('gardenia_refresh', 'old-refresh-token');
+      const res = buildMockResponse();
+
+      const result = await sut.refresh(req, res);
+
+      expect(result).toHaveProperty('accessToken', 'new-access');
+      expect(cookies.setRefreshCookie).toHaveBeenCalledWith(res, 'new-refresh');
+    });
+
+    it('clears cookie and re-throws on InvalidRefreshTokenException', async () => {
+      commandBus.execute.mockRejectedValue(new InvalidRefreshTokenException());
+      const req = buildMockRequest('gardenia_refresh', 'dead-token');
+      const res = buildMockResponse();
+
+      await expect(sut.refresh(req, res)).rejects.toThrow(
+        InvalidRefreshTokenException,
+      );
+      expect(cookies.clearRefreshCookie).toHaveBeenCalledWith(res);
+    });
+
+    it('clears cookie and re-throws on RefreshTokenReuseDetectedException', async () => {
+      commandBus.execute.mockRejectedValue(
+        new RefreshTokenReuseDetectedException(),
+      );
+      const req = buildMockRequest('gardenia_refresh', 'reused-token');
+      const res = buildMockResponse();
+
+      await expect(sut.refresh(req, res)).rejects.toThrow(
+        RefreshTokenReuseDetectedException,
+      );
+      expect(cookies.clearRefreshCookie).toHaveBeenCalledWith(res);
     });
   });
 
