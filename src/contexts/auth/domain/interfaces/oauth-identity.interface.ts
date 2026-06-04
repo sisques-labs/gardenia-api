@@ -1,6 +1,7 @@
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 import { OAuthProviderValueObject } from '@contexts/auth/domain/value-objects/oauth-provider/oauth-provider.vo';
 import {
+  BooleanValueObject,
   DateValueObject,
   StringValueObject,
   UuidValueObject,
@@ -12,10 +13,10 @@ export interface IOAuthIdentity {
   provider: OAuthProviderValueObject;
   providerUserId: StringValueObject;
   email: AccountEmailValueObject | null;
-  emailVerified: boolean;
-  accessTokenEnc: string | null;
-  refreshTokenEnc: string | null;
-  tokenExpiresAt: Date | null;
+  emailVerified: BooleanValueObject;
+  accessTokenEnc: StringValueObject | null;
+  refreshTokenEnc: StringValueObject | null;
+  tokenExpiresAt: DateValueObject | null;
   createdAt: DateValueObject | null;
   updatedAt: DateValueObject | null;
 }

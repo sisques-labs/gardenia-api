@@ -1,8 +1,15 @@
-import { IOAuthIdentityPrimitives } from '@contexts/auth/domain/primitives/oauth-identity.primitives';
 import { BaseEvent, IEventMetadata } from '@sisques-labs/nestjs-kit';
 
-export class OAuthIdentityLinkedEvent extends BaseEvent<IOAuthIdentityPrimitives> {
-  constructor(metadata: IEventMetadata, data: IOAuthIdentityPrimitives) {
+export interface IOAuthIdentityLinkedEventData {
+  id: string;
+  userId: string;
+  provider: string;
+  providerUserId: string;
+  email: string | null;
+}
+
+export class OAuthIdentityLinkedEvent extends BaseEvent<IOAuthIdentityLinkedEventData> {
+  constructor(metadata: IEventMetadata, data: IOAuthIdentityLinkedEventData) {
     super(metadata, data);
   }
 }

@@ -5,6 +5,8 @@ import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/acc
 import { OAuthProviderValueObject } from '@contexts/auth/domain/value-objects/oauth-provider/oauth-provider.vo';
 import {
   BaseAggregate,
+  BooleanValueObject,
+  DateValueObject,
   StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
@@ -15,10 +17,10 @@ export class OAuthIdentityAggregate extends BaseAggregate {
   private readonly _provider: OAuthProviderValueObject;
   private readonly _providerUserId: StringValueObject;
   private readonly _email: AccountEmailValueObject | null;
-  private readonly _emailVerified: boolean;
-  private _accessTokenEnc: string | null;
-  private _refreshTokenEnc: string | null;
-  private _tokenExpiresAt: Date | null;
+  private readonly _emailVerified: BooleanValueObject;
+  private _accessTokenEnc: StringValueObject | null;
+  private _refreshTokenEnc: StringValueObject | null;
+  private _tokenExpiresAt: DateValueObject | null;
 
   constructor(props: IOAuthIdentity) {
     super(props.createdAt as any, props.updatedAt as any);
@@ -43,15 +45,21 @@ export class OAuthIdentityAggregate extends BaseAggregate {
           entityType: OAuthIdentityAggregate.name,
           eventType: OAuthIdentityLinkedEvent.name,
         },
-        this.toPrimitives(),
+        {
+          id: this._id.value,
+          userId: this._userId.value,
+          provider: this._provider.value,
+          providerUserId: this._providerUserId.value,
+          email: this._email?.value ?? null,
+        },
       ),
     );
   }
 
   public updateTokens(
-    accessTokenEnc: string | null,
-    refreshTokenEnc: string | null,
-    tokenExpiresAt: Date | null,
+    accessTokenEnc: StringValueObject | null,
+    refreshTokenEnc: StringValueObject | null,
+    tokenExpiresAt: DateValueObject | null,
   ): void {
     this._accessTokenEnc = accessTokenEnc;
     this._refreshTokenEnc = refreshTokenEnc;
@@ -61,36 +69,28 @@ export class OAuthIdentityAggregate extends BaseAggregate {
   get id(): UuidValueObject {
     return this._id;
   }
-
   get userId(): UuidValueObject {
     return this._userId;
   }
-
   get provider(): OAuthProviderValueObject {
     return this._provider;
   }
-
   get providerUserId(): StringValueObject {
     return this._providerUserId;
   }
-
   get email(): AccountEmailValueObject | null {
     return this._email;
   }
-
-  get emailVerified(): boolean {
+  get emailVerified(): BooleanValueObject {
     return this._emailVerified;
   }
-
-  get accessTokenEnc(): string | null {
+  get accessTokenEnc(): StringValueObject | null {
     return this._accessTokenEnc;
   }
-
-  get refreshTokenEnc(): string | null {
+  get refreshTokenEnc(): StringValueObject | null {
     return this._refreshTokenEnc;
   }
-
-  get tokenExpiresAt(): Date | null {
+  get tokenExpiresAt(): DateValueObject | null {
     return this._tokenExpiresAt;
   }
 
@@ -101,10 +101,10 @@ export class OAuthIdentityAggregate extends BaseAggregate {
       provider: this._provider.value,
       providerUserId: this._providerUserId.value,
       email: this._email?.value ?? null,
-      emailVerified: this._emailVerified,
-      accessTokenEnc: this._accessTokenEnc,
-      refreshTokenEnc: this._refreshTokenEnc,
-      tokenExpiresAt: this._tokenExpiresAt,
+      emailVerified: this._emailVerified.value,
+      accessTokenEnc: this._accessTokenEnc?.value ?? null,
+      refreshTokenEnc: this._refreshTokenEnc?.value ?? null,
+      tokenExpiresAt: this._tokenExpiresAt?.value ?? null,
       createdAt: this.createdAt?.value ?? new Date(),
       updatedAt: this.updatedAt?.value ?? new Date(),
     };

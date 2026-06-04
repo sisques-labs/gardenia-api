@@ -36,8 +36,8 @@ describe('OAuthIdentityTypeOrmMapper', () => {
     expect(domain.provider.value).toBe('google');
     expect(domain.providerUserId.value).toBe('google-123');
     expect(domain.email?.value).toBe('user@example.com');
-    expect(domain.emailVerified).toBe(true);
-    expect(domain.accessTokenEnc).toBe('enc:access-token');
+    expect(domain.emailVerified.value).toBe(true);
+    expect(domain.accessTokenEnc?.value).toBe('enc:access-token');
   });
 
   it('should map domain aggregate back to entity (toPersistence)', () => {

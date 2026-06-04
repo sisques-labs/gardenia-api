@@ -22,9 +22,9 @@ describe('OAuthIdentityBuilder', () => {
     expect(aggregate.provider.value).toBe('google');
     expect(aggregate.providerUserId.value).toBe('google-user-123');
     expect(aggregate.email?.value).toBe('user@example.com');
-    expect(aggregate.emailVerified).toBe(true);
-    expect(aggregate.accessTokenEnc).toBe('enc-access-token');
-    expect(aggregate.refreshTokenEnc).toBe('enc-refresh-token');
+    expect(aggregate.emailVerified.value).toBe(true);
+    expect(aggregate.accessTokenEnc?.value).toBe('enc-access-token');
+    expect(aggregate.refreshTokenEnc?.value).toBe('enc-refresh-token');
   });
 
   it('should build with null email and no tokens', () => {

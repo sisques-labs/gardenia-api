@@ -1,10 +1,12 @@
 import { OAuthIdentityAggregate } from '@contexts/auth/domain/aggregates/oauth-identity.aggregate';
 import { IOAuthIdentityPrimitives } from '@contexts/auth/domain/primitives/oauth-identity.primitives';
+import { OAuthIdentityViewModel } from '@contexts/auth/domain/view-models/oauth-identity.view-model';
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 import { OAuthProviderValueObject } from '@contexts/auth/domain/value-objects/oauth-provider/oauth-provider.vo';
 import { Injectable } from '@nestjs/common';
 import {
   BaseBuilder,
+  BooleanValueObject,
   DateValueObject,
   FieldIsRequiredException,
   StringValueObject,
@@ -14,7 +16,7 @@ import {
 @Injectable()
 export class OAuthIdentityBuilder extends BaseBuilder<
   OAuthIdentityAggregate,
-  OAuthIdentityAggregate
+  OAuthIdentityViewModel
 > {
   private _userId!: string;
   private _provider!: string;
@@ -84,17 +86,39 @@ export class OAuthIdentityBuilder extends BaseBuilder<
       provider: new OAuthProviderValueObject(this._provider),
       providerUserId: new StringValueObject(this._providerUserId),
       email: this._email ? new AccountEmailValueObject(this._email) : null,
+      emailVerified: new BooleanValueObject(this._emailVerified),
+      accessTokenEnc: this._accessTokenEnc
+        ? new StringValueObject(this._accessTokenEnc)
+        : null,
+      refreshTokenEnc: this._refreshTokenEnc
+        ? new StringValueObject(this._refreshTokenEnc)
+        : null,
+      tokenExpiresAt: this._tokenExpiresAt
+        ? new DateValueObject(this._tokenExpiresAt)
+        : null,
+      createdAt: new DateValueObject(this._createdAt),
+      updatedAt: new DateValueObject(this._updatedAt),
+    });
+  }
+
+  public override buildViewModel(): OAuthIdentityViewModel {
+    this._createdAt = this._createdAt ?? new Date();
+    this._updatedAt = this._updatedAt ?? new Date();
+    this.validate();
+
+    return new OAuthIdentityViewModel({
+      id: this._id,
+      userId: this._userId,
+      provider: this._provider,
+      providerUserId: this._providerUserId,
+      email: this._email,
       emailVerified: this._emailVerified,
       accessTokenEnc: this._accessTokenEnc,
       refreshTokenEnc: this._refreshTokenEnc,
       tokenExpiresAt: this._tokenExpiresAt,
-      createdAt: new DateValueObject(this._createdAt ?? new Date()),
-      updatedAt: new DateValueObject(this._updatedAt ?? new Date()),
+      createdAt: this._createdAt,
+      updatedAt: this._updatedAt,
     });
-  }
-
-  public override buildViewModel(): OAuthIdentityAggregate {
-    return this.build();
   }
 
   public fromPrimitives(primitives: IOAuthIdentityPrimitives): this {

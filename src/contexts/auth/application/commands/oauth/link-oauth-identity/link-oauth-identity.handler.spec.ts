@@ -111,6 +111,6 @@ describe('LinkOAuthIdentityCommandHandler', () => {
       'refresh-token-value',
     );
     const savedEntity = repo.save.mock.calls[0][0];
-    expect(savedEntity.accessTokenEnc).toBe('enc:access-token-value');
+    expect(savedEntity.accessTokenEnc?.value).toBe('enc:access-token-value');
   });
 });
