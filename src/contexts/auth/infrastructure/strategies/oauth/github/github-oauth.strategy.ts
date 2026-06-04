@@ -8,12 +8,9 @@ import { Profile, Strategy, StrategyOption } from 'passport-github2';
 export class GithubOAuthStrategy extends PassportStrategy(Strategy, 'github') {
   constructor(configService: ConfigService) {
     super({
-      clientID:
-        configService.get<string>('auth.githubClientId') ?? 'unconfigured',
-      clientSecret:
-        configService.get<string>('auth.githubClientSecret') ?? 'unconfigured',
-      callbackURL:
-        configService.get<string>('auth.githubCallbackUrl') ?? 'unconfigured',
+      clientID: configService.get<string>('auth.githubClientId') ?? '',
+      clientSecret: configService.get<string>('auth.githubClientSecret') ?? '',
+      callbackURL: configService.get<string>('auth.githubCallbackUrl') ?? '',
       scope: ['user:email'],
     } satisfies StrategyOption);
   }

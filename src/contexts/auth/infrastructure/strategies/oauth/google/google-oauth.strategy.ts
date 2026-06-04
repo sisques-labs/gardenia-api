@@ -8,12 +8,9 @@ import { Profile, Strategy, StrategyOptions } from 'passport-google-oauth20';
 export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(configService: ConfigService) {
     super({
-      clientID:
-        configService.get<string>('auth.googleClientId') ?? 'unconfigured',
-      clientSecret:
-        configService.get<string>('auth.googleClientSecret') ?? 'unconfigured',
-      callbackURL:
-        configService.get<string>('auth.googleCallbackUrl') ?? 'unconfigured',
+      clientID: configService.get<string>('auth.googleClientId') ?? '',
+      clientSecret: configService.get<string>('auth.googleClientSecret') ?? '',
+      callbackURL: configService.get<string>('auth.googleCallbackUrl') ?? '',
       scope: ['email', 'profile'],
     } satisfies StrategyOptions);
   }
