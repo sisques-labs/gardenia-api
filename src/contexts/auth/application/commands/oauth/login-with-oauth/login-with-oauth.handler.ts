@@ -82,18 +82,20 @@ export class LoginWithOAuthCommandHandler
       providerUserId.value,
     );
 
+    const emailValue = email?.value ?? null;
+
     if (existingIdentity) {
       // Returning OAuth user — resolve userId from existing identity
       userId = existingIdentity.userId.value;
-      resolvedEmail = existingIdentity.email?.value ?? email ?? '';
+      resolvedEmail = existingIdentity.email?.value ?? emailValue ?? '';
     } else {
       // No existing identity — attempt email-based auto-link or provision new user
-      if (!email) {
+      if (!emailValue) {
         // Cannot link or create without an email
         throw new OAuthEmailNotVerifiedException(provider.value);
       }
 
-      const existingAccount = await this.accountRepo.findByEmail(email);
+      const existingAccount = await this.accountRepo.findByEmail(emailValue);
 
       if (existingAccount) {
         // Email matches an existing local account
@@ -102,7 +104,7 @@ export class LoginWithOAuthCommandHandler
         }
         // Auto-link: create oauth identity for the existing account
         userId = existingAccount.userId.value;
-        resolvedEmail = email;
+        resolvedEmail = emailValue;
       } else {
         // Brand new user — provision user + space
         if (!emailVerified) {
@@ -110,7 +112,7 @@ export class LoginWithOAuthCommandHandler
         }
 
         userId = UuidValueObject.generate().value;
-        resolvedEmail = email;
+        resolvedEmail = emailValue;
 
         const spaceId = await this.commandBus.execute<
           CreateSpaceCommand,
@@ -129,10 +131,10 @@ export class LoginWithOAuthCommandHandler
 
       // Create the OAuth identity record
       const accessTokenEnc = accessToken
-        ? this.encryptionService.encrypt(accessToken)
+        ? this.encryptionService.encrypt(accessToken.value)
         : null;
       const refreshTokenEnc = refreshToken
-        ? this.encryptionService.encrypt(refreshToken)
+        ? this.encryptionService.encrypt(refreshToken.value)
         : null;
 
       const identity = this.oauthIdentityBuilder
@@ -140,11 +142,11 @@ export class LoginWithOAuthCommandHandler
         .withUserId(userId)
         .withProvider(provider.value)
         .withProviderUserId(providerUserId.value)
-        .withEmail(email)
+        .withEmail(emailValue)
         .withEmailVerified(emailVerified)
         .withAccessTokenEnc(accessTokenEnc)
         .withRefreshTokenEnc(refreshTokenEnc)
-        .withTokenExpiresAt(tokenExpiresAt)
+        .withTokenExpiresAt(tokenExpiresAt?.value ?? null)
         .build();
 
       identity.link();
@@ -165,7 +167,7 @@ export class LoginWithOAuthCommandHandler
       .withUserId(userId)
       .withTokenHash(tokenHash)
       .withExpiresAt(expiresAt)
-      .withDeviceInfo(deviceInfo ?? null)
+      .withDeviceInfo(deviceInfo?.value ?? null)
       .build();
 
     session.create();

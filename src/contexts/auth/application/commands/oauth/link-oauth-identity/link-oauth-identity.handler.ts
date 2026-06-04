@@ -52,10 +52,10 @@ export class LinkOAuthIdentityCommandHandler implements ICommandHandler<LinkOAut
 
     // Encrypt provider tokens
     const accessTokenEnc = accessToken
-      ? this.encryptionService.encrypt(accessToken)
+      ? this.encryptionService.encrypt(accessToken.value)
       : null;
     const refreshTokenEnc = refreshToken
-      ? this.encryptionService.encrypt(refreshToken)
+      ? this.encryptionService.encrypt(refreshToken.value)
       : null;
 
     const identity = this.oauthIdentityBuilder
@@ -63,11 +63,11 @@ export class LinkOAuthIdentityCommandHandler implements ICommandHandler<LinkOAut
       .withUserId(userId.value)
       .withProvider(provider.value)
       .withProviderUserId(providerUserId.value)
-      .withEmail(email)
+      .withEmail(email?.value ?? null)
       .withEmailVerified(emailVerified)
       .withAccessTokenEnc(accessTokenEnc)
       .withRefreshTokenEnc(refreshTokenEnc)
-      .withTokenExpiresAt(tokenExpiresAt)
+      .withTokenExpiresAt(tokenExpiresAt?.value ?? null)
       .build();
 
     identity.link();

@@ -1,5 +1,10 @@
+import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 import { OAuthProviderValueObject } from '@contexts/auth/domain/value-objects/oauth-provider/oauth-provider.vo';
-import { StringValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  DateValueObject,
+  StringValueObject,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
 export interface LinkOAuthIdentityCommandInput {
   userId: string;
@@ -16,20 +21,26 @@ export class LinkOAuthIdentityCommand {
   public readonly userId: UuidValueObject;
   public readonly providerUserId: StringValueObject;
   public readonly provider: OAuthProviderValueObject;
-  public readonly email: string | null;
+  public readonly email: AccountEmailValueObject | null;
   public readonly emailVerified: boolean;
-  public readonly accessToken: string | null;
-  public readonly refreshToken: string | null;
-  public readonly tokenExpiresAt: Date | null;
+  public readonly accessToken: StringValueObject | null;
+  public readonly refreshToken: StringValueObject | null;
+  public readonly tokenExpiresAt: DateValueObject | null;
 
   constructor(input: LinkOAuthIdentityCommandInput) {
     this.userId = new UuidValueObject(input.userId);
     this.providerUserId = new StringValueObject(input.providerUserId);
     this.provider = new OAuthProviderValueObject(input.provider);
-    this.email = input.email;
+    this.email = input.email ? new AccountEmailValueObject(input.email) : null;
     this.emailVerified = input.emailVerified;
-    this.accessToken = input.accessToken;
-    this.refreshToken = input.refreshToken;
-    this.tokenExpiresAt = input.tokenExpiresAt;
+    this.accessToken = input.accessToken
+      ? new StringValueObject(input.accessToken)
+      : null;
+    this.refreshToken = input.refreshToken
+      ? new StringValueObject(input.refreshToken)
+      : null;
+    this.tokenExpiresAt = input.tokenExpiresAt
+      ? new DateValueObject(input.tokenExpiresAt)
+      : null;
   }
 }
