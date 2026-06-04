@@ -1,10 +1,7 @@
+import { OAuthProviderEnum } from '@contexts/auth/domain/enums/oauth-provider.enum';
 import { EnumValueObject } from '@sisques-labs/nestjs-kit';
 
-export enum OAuthProviderEnum {
-  GOOGLE = 'google',
-  GITHUB = 'github',
-  APPLE = 'apple',
-}
+export { OAuthProviderEnum };
 
 export class OAuthProviderValueObject extends EnumValueObject<
   typeof OAuthProviderEnum

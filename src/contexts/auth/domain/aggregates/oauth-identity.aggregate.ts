@@ -1,22 +1,15 @@
+import { OAuthIdentityLinkedEvent } from '@contexts/auth/domain/events/oauth-identity-linked/oauth-identity-linked.event';
+import { IOAuthIdentity } from '@contexts/auth/domain/interfaces/oauth-identity.interface';
+import { IOAuthIdentityPrimitives } from '@contexts/auth/domain/primitives/oauth-identity.primitives';
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 import { OAuthProviderValueObject } from '@contexts/auth/domain/value-objects/oauth-provider/oauth-provider.vo';
-import { StringValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  BaseAggregate,
+  StringValueObject,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
-export interface OAuthIdentityProps {
-  id: UuidValueObject;
-  userId: UuidValueObject;
-  provider: OAuthProviderValueObject;
-  providerUserId: StringValueObject;
-  email: AccountEmailValueObject | null;
-  emailVerified: boolean;
-  accessTokenEnc: string | null;
-  refreshTokenEnc: string | null;
-  tokenExpiresAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export class OAuthIdentityEntity {
+export class OAuthIdentityAggregate extends BaseAggregate {
   private readonly _id: UuidValueObject;
   private readonly _userId: UuidValueObject;
   private readonly _provider: OAuthProviderValueObject;
@@ -26,10 +19,9 @@ export class OAuthIdentityEntity {
   private _accessTokenEnc: string | null;
   private _refreshTokenEnc: string | null;
   private _tokenExpiresAt: Date | null;
-  private readonly _createdAt: Date;
-  private _updatedAt: Date;
 
-  constructor(props: OAuthIdentityProps) {
+  constructor(props: IOAuthIdentity) {
+    super(props.createdAt as any, props.updatedAt as any);
     this._id = props.id;
     this._userId = props.userId;
     this._provider = props.provider;
@@ -39,8 +31,31 @@ export class OAuthIdentityEntity {
     this._accessTokenEnc = props.accessTokenEnc;
     this._refreshTokenEnc = props.refreshTokenEnc;
     this._tokenExpiresAt = props.tokenExpiresAt;
-    this._createdAt = props.createdAt;
-    this._updatedAt = props.updatedAt;
+  }
+
+  public link(): void {
+    this.apply(
+      new OAuthIdentityLinkedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: OAuthIdentityAggregate.name,
+          entityId: this._id.value,
+          entityType: OAuthIdentityAggregate.name,
+          eventType: OAuthIdentityLinkedEvent.name,
+        },
+        this.toPrimitives(),
+      ),
+    );
+  }
+
+  public updateTokens(
+    accessTokenEnc: string | null,
+    refreshTokenEnc: string | null,
+    tokenExpiresAt: Date | null,
+  ): void {
+    this._accessTokenEnc = accessTokenEnc;
+    this._refreshTokenEnc = refreshTokenEnc;
+    this._tokenExpiresAt = tokenExpiresAt;
   }
 
   get id(): UuidValueObject {
@@ -79,38 +94,7 @@ export class OAuthIdentityEntity {
     return this._tokenExpiresAt;
   }
 
-  get createdAt(): Date {
-    return this._createdAt;
-  }
-
-  get updatedAt(): Date {
-    return this._updatedAt;
-  }
-
-  updateTokens(
-    accessTokenEnc: string | null,
-    refreshTokenEnc: string | null,
-    tokenExpiresAt: Date | null,
-  ): void {
-    this._accessTokenEnc = accessTokenEnc;
-    this._refreshTokenEnc = refreshTokenEnc;
-    this._tokenExpiresAt = tokenExpiresAt;
-    this._updatedAt = new Date();
-  }
-
-  toPrimitives(): {
-    id: string;
-    userId: string;
-    provider: string;
-    providerUserId: string;
-    email: string | null;
-    emailVerified: boolean;
-    accessTokenEnc: string | null;
-    refreshTokenEnc: string | null;
-    tokenExpiresAt: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-  } {
+  toPrimitives(): IOAuthIdentityPrimitives {
     return {
       id: this._id.value,
       userId: this._userId.value,
@@ -121,8 +105,8 @@ export class OAuthIdentityEntity {
       accessTokenEnc: this._accessTokenEnc,
       refreshTokenEnc: this._refreshTokenEnc,
       tokenExpiresAt: this._tokenExpiresAt,
-      createdAt: this._createdAt,
-      updatedAt: this._updatedAt,
+      createdAt: this.createdAt?.value ?? new Date(),
+      updatedAt: this.updatedAt?.value ?? new Date(),
     };
   }
 }

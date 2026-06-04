@@ -1,3 +1,4 @@
+import { OAuthIdentityBuilder } from '@contexts/auth/domain/builders/oauth-identity.builder';
 import { OAuthIdentityTypeOrmMapper } from './oauth-identity-typeorm.mapper';
 import { OAuthIdentityTypeOrmEntity } from '../entities/oauth-identity.entity';
 
@@ -23,7 +24,7 @@ describe('OAuthIdentityTypeOrmMapper', () => {
   let mapper: OAuthIdentityTypeOrmMapper;
 
   beforeEach(() => {
-    mapper = new OAuthIdentityTypeOrmMapper();
+    mapper = new OAuthIdentityTypeOrmMapper(new OAuthIdentityBuilder());
   });
 
   it('should map entity to domain aggregate (toAggregate)', () => {

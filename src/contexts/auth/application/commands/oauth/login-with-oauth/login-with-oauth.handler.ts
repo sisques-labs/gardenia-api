@@ -1,4 +1,4 @@
-import { TokenEncryptionService } from '@contexts/auth/application/services/oauth/token-encryption.service';
+import { EncryptionService } from '@contexts/auth/application/services/encryption/encryption.service';
 import { OAuthIdentityBuilder } from '@contexts/auth/domain/builders/oauth-identity.builder';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { OAuthEmailNotVerifiedException } from '@contexts/auth/domain/exceptions/oauth-email-not-verified.exception';
@@ -46,11 +46,12 @@ export class LoginWithOAuthCommandHandler
     private readonly accountRepo: IAccountWriteRepository,
     @Inject(AUTH_SESSION_WRITE_REPOSITORY)
     private readonly sessionRepo: IAuthSessionWriteRepository,
-    private readonly tokenEncryptionService: TokenEncryptionService,
+    private readonly encryptionService: EncryptionService,
     private readonly tokenService: TokenService,
     private readonly generateRefreshTokenService: GenerateRefreshTokenService,
     private readonly hashRefreshTokenService: HashRefreshTokenService,
     private readonly authSessionBuilder: AuthSessionBuilder,
+    private readonly oauthIdentityBuilder: OAuthIdentityBuilder,
     private readonly commandBus: CommandBus,
     private readonly spaceContext: SpaceContext,
     private readonly configService: ConfigService,
@@ -61,46 +62,55 @@ export class LoginWithOAuthCommandHandler
   async execute(
     command: LoginWithOAuthCommand,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const { profile, deviceInfo } = command;
+    const {
+      provider,
+      providerUserId,
+      email,
+      emailVerified,
+      accessToken,
+      refreshToken,
+      tokenExpiresAt,
+      deviceInfo,
+    } = command;
 
     let userId: string;
-    let email: string;
+    let resolvedEmail: string;
 
     // Step 1: check for an existing oauth identity
     const existingIdentity = await this.oauthIdentityRepo.findByProviderUserId(
-      profile.provider,
-      profile.providerUserId,
+      provider.value,
+      providerUserId.value,
     );
 
     if (existingIdentity) {
       // Returning OAuth user — resolve userId from existing identity
       userId = existingIdentity.userId.value;
-      email = existingIdentity.email?.value ?? profile.email ?? '';
+      resolvedEmail = existingIdentity.email?.value ?? email ?? '';
     } else {
       // No existing identity — attempt email-based auto-link or provision new user
-      if (!profile.email) {
+      if (!email) {
         // Cannot link or create without an email
-        throw new OAuthEmailNotVerifiedException(profile.provider);
+        throw new OAuthEmailNotVerifiedException(provider.value);
       }
 
-      const existingAccount = await this.accountRepo.findByEmail(profile.email);
+      const existingAccount = await this.accountRepo.findByEmail(email);
 
       if (existingAccount) {
         // Email matches an existing local account
-        if (!profile.emailVerified) {
-          throw new OAuthEmailNotVerifiedException(profile.provider);
+        if (!emailVerified) {
+          throw new OAuthEmailNotVerifiedException(provider.value);
         }
         // Auto-link: create oauth identity for the existing account
         userId = existingAccount.userId.value;
-        email = profile.email;
+        resolvedEmail = email;
       } else {
         // Brand new user — provision user + space
-        if (!profile.emailVerified) {
-          throw new OAuthEmailNotVerifiedException(profile.provider);
+        if (!emailVerified) {
+          throw new OAuthEmailNotVerifiedException(provider.value);
         }
 
         userId = UuidValueObject.generate().value;
-        email = profile.email;
+        resolvedEmail = email;
 
         const spaceId = await this.commandBus.execute<
           CreateSpaceCommand,
@@ -108,7 +118,7 @@ export class LoginWithOAuthCommandHandler
         >(
           new CreateSpaceCommand({
             ownerId: userId,
-            name: `${email}'s Space`,
+            name: `${resolvedEmail}'s Space`,
           }),
         );
 
@@ -118,30 +128,31 @@ export class LoginWithOAuthCommandHandler
       }
 
       // Create the OAuth identity record
-      const accessTokenEnc = profile.rawTokens.accessToken
-        ? this.tokenEncryptionService.encrypt(profile.rawTokens.accessToken)
+      const accessTokenEnc = accessToken
+        ? this.encryptionService.encrypt(accessToken)
         : null;
-      const refreshTokenEnc = profile.rawTokens.refreshToken
-        ? this.tokenEncryptionService.encrypt(profile.rawTokens.refreshToken)
+      const refreshTokenEnc = refreshToken
+        ? this.encryptionService.encrypt(refreshToken)
         : null;
 
-      const identity = new OAuthIdentityBuilder()
+      const identity = this.oauthIdentityBuilder
         .withId(UuidValueObject.generate().value)
         .withUserId(userId)
-        .withProvider(profile.provider)
-        .withProviderUserId(profile.providerUserId)
-        .withEmail(profile.email)
-        .withEmailVerified(profile.emailVerified)
+        .withProvider(provider.value)
+        .withProviderUserId(providerUserId.value)
+        .withEmail(email)
+        .withEmailVerified(emailVerified)
         .withAccessTokenEnc(accessTokenEnc)
         .withRefreshTokenEnc(refreshTokenEnc)
-        .withTokenExpiresAt(profile.rawTokens.expiresAt)
+        .withTokenExpiresAt(tokenExpiresAt)
         .build();
 
+      identity.link();
       await this.oauthIdentityRepo.save(identity);
     }
 
     // Step 2: issue session (same flow as LoginAccountCommandHandler)
-    const accessToken = this.tokenService.sign(userId, email);
+    const jwtAccessToken = this.tokenService.sign(userId, resolvedEmail);
 
     const plainToken = await this.generateRefreshTokenService.execute();
     const tokenHash = await this.hashRefreshTokenService.execute(plainToken);
@@ -161,6 +172,6 @@ export class LoginWithOAuthCommandHandler
     await this.sessionRepo.save(session);
     await this.publishEvents(session);
 
-    return { accessToken, refreshToken: plainToken };
+    return { accessToken: jwtAccessToken, refreshToken: plainToken };
   }
 }

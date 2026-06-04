@@ -1,17 +1,17 @@
 import { ConfigService } from '@nestjs/config';
-import { TokenEncryptionService } from './token-encryption.service';
+import { EncryptionService } from './encryption.service';
 
 // A valid 32-byte key, base64-encoded
 const VALID_KEY = Buffer.alloc(32).fill('k').toString('base64');
 
-function makeService(key = VALID_KEY): TokenEncryptionService {
+function makeService(key = VALID_KEY): EncryptionService {
   const configService = {
     get: jest.fn().mockReturnValue(key),
   } as unknown as ConfigService;
-  return new TokenEncryptionService(configService);
+  return new EncryptionService(configService);
 }
 
-describe('TokenEncryptionService', () => {
+describe('EncryptionService', () => {
   it('should encrypt and decrypt a plain text token roundtrip', () => {
     const service = makeService();
     const plain = 'ya29.google-access-token-abc123';

@@ -1,11 +1,10 @@
-import { OAuthUserProfile } from '@contexts/auth/application/ports/oauth-user-profile';
-import { TokenEncryptionService } from '@contexts/auth/application/services/oauth/token-encryption.service';
+import { EncryptionService } from '@contexts/auth/application/services/encryption/encryption.service';
 import { TokenService } from '@contexts/auth/application/services/token.service';
 import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
 import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { OAuthIdentityBuilder } from '@contexts/auth/domain/builders/oauth-identity.builder';
-import { OAuthIdentityEntity } from '@contexts/auth/domain/entities/oauth-identity/oauth-identity.entity';
+import { OAuthIdentityAggregate } from '@contexts/auth/domain/aggregates/oauth-identity.aggregate';
 import { OAuthEmailNotVerifiedException } from '@contexts/auth/domain/exceptions/oauth-email-not-verified.exception';
 import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
@@ -15,28 +14,28 @@ import { EventBus, CommandBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { LoginWithOAuthCommandHandler } from './login-with-oauth.handler';
-import { LoginWithOAuthCommand } from './login-with-oauth.command';
+import {
+  LoginWithOAuthCommand,
+  LoginWithOAuthCommandInput,
+} from './login-with-oauth.command';
 
 const userId = '550e8400-e29b-41d4-a716-446655440000';
 const existingUserId = '660e8400-e29b-41d4-a716-446655440001';
 
-const makeProfile = (
-  overrides?: Partial<OAuthUserProfile>,
-): OAuthUserProfile => ({
+const makeInput = (
+  overrides?: Partial<LoginWithOAuthCommandInput>,
+): LoginWithOAuthCommandInput => ({
   provider: 'google',
   providerUserId: 'google-abc',
   email: 'user@example.com',
   emailVerified: true,
-  displayName: 'Test User',
-  rawTokens: {
-    accessToken: 'access',
-    refreshToken: 'refresh',
-    expiresAt: null,
-  },
+  accessToken: 'access',
+  refreshToken: 'refresh',
+  tokenExpiresAt: null,
   ...overrides,
 });
 
-const makeExistingIdentity = (): OAuthIdentityEntity =>
+const makeExistingIdentity = (): OAuthIdentityAggregate =>
   new OAuthIdentityBuilder()
     .withId('770e8400-e29b-41d4-a716-446655440002')
     .withUserId(userId)
@@ -101,7 +100,7 @@ describe('LoginWithOAuthCommandHandler', () => {
 
     const encryptionService = {
       encrypt: jest.fn().mockImplementation((v: string) => `enc:${v}`),
-    } as unknown as TokenEncryptionService;
+    } as unknown as EncryptionService;
 
     const tokenService = {
       sign: jest.fn().mockReturnValue('mock-access-token'),
@@ -116,6 +115,7 @@ describe('LoginWithOAuthCommandHandler', () => {
     } as unknown as HashRefreshTokenService;
 
     const authSessionBuilder = new AuthSessionBuilder();
+    const oauthIdentityBuilder = new OAuthIdentityBuilder();
 
     const eventBus = {
       publish: jest.fn(),
@@ -136,6 +136,7 @@ describe('LoginWithOAuthCommandHandler', () => {
       generateRefreshTokenService,
       hashRefreshTokenService,
       authSessionBuilder,
+      oauthIdentityBuilder,
       commandBus,
       spaceContext,
       configService,
@@ -146,7 +147,7 @@ describe('LoginWithOAuthCommandHandler', () => {
     oauthRepo.findByProviderUserId.mockResolvedValue(makeExistingIdentity());
 
     const result = await handler.execute(
-      new LoginWithOAuthCommand(makeProfile()),
+      new LoginWithOAuthCommand(makeInput()),
     );
 
     expect(result.accessToken).toBe('mock-access-token');
@@ -166,7 +167,7 @@ describe('LoginWithOAuthCommandHandler', () => {
     accountRepo.findByEmail.mockResolvedValue(fakeAccount);
 
     const result = await handler.execute(
-      new LoginWithOAuthCommand(makeProfile()),
+      new LoginWithOAuthCommand(makeInput()),
     );
 
     expect(result.accessToken).toBe('mock-access-token');
@@ -182,7 +183,7 @@ describe('LoginWithOAuthCommandHandler', () => {
     accountRepo.findByEmail.mockResolvedValue(null);
 
     const result = await handler.execute(
-      new LoginWithOAuthCommand(makeProfile()),
+      new LoginWithOAuthCommand(makeInput()),
     );
 
     expect(result.accessToken).toBe('mock-access-token');
@@ -198,7 +199,7 @@ describe('LoginWithOAuthCommandHandler', () => {
 
     await expect(
       handler.execute(
-        new LoginWithOAuthCommand(makeProfile({ emailVerified: false })),
+        new LoginWithOAuthCommand(makeInput({ emailVerified: false })),
       ),
     ).rejects.toThrow(OAuthEmailNotVerifiedException);
 

@@ -1,4 +1,4 @@
-import { OAuthIdentityEntity } from '@contexts/auth/domain/entities/oauth-identity/oauth-identity.entity';
+import { OAuthIdentityAggregate } from '@contexts/auth/domain/aggregates/oauth-identity.aggregate';
 import { IOAuthIdentityWriteRepository } from '@contexts/auth/domain/repositories/write/oauth-identity-write.repository';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,13 +15,15 @@ export class OAuthIdentityTypeOrmWriteRepository implements IOAuthIdentityWriteR
     private readonly mapper: OAuthIdentityTypeOrmMapper,
   ) {}
 
-  async save(identity: OAuthIdentityEntity): Promise<OAuthIdentityEntity> {
+  async save(
+    identity: OAuthIdentityAggregate,
+  ): Promise<OAuthIdentityAggregate> {
     const entity = this.mapper.toEntity(identity);
     const saved = await this.repo.save(entity);
     return this.mapper.toAggregate(saved);
   }
 
-  async findById(id: string): Promise<OAuthIdentityEntity | null> {
+  async findById(id: string): Promise<OAuthIdentityAggregate | null> {
     const entity = await this.repo.findOne({ where: { id } });
     return entity ? this.mapper.toAggregate(entity) : null;
   }
@@ -29,14 +31,14 @@ export class OAuthIdentityTypeOrmWriteRepository implements IOAuthIdentityWriteR
   async findByProviderUserId(
     provider: string,
     providerUserId: string,
-  ): Promise<OAuthIdentityEntity | null> {
+  ): Promise<OAuthIdentityAggregate | null> {
     const entity = await this.repo.findOne({
       where: { provider, providerUserId },
     });
     return entity ? this.mapper.toAggregate(entity) : null;
   }
 
-  async findByUserId(userId: string): Promise<OAuthIdentityEntity[]> {
+  async findByUserId(userId: string): Promise<OAuthIdentityAggregate[]> {
     const entities = await this.repo.find({ where: { userId } });
     return entities.map((e) => this.mapper.toAggregate(e));
   }
@@ -47,7 +49,7 @@ export class OAuthIdentityTypeOrmWriteRepository implements IOAuthIdentityWriteR
 
   async findByCriteria(
     _criteria: Criteria,
-  ): Promise<PaginatedResult<OAuthIdentityEntity>> {
-    return new PaginatedResult<OAuthIdentityEntity>([], 0, 1, 10);
+  ): Promise<PaginatedResult<OAuthIdentityAggregate>> {
+    return new PaginatedResult<OAuthIdentityAggregate>([], 0, 1, 10);
   }
 }

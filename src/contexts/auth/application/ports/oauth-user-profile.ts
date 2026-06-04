@@ -1,4 +1,6 @@
-export type OAuthProviderName = 'google' | 'github' | 'apple';
+import { OAuthProviderName } from '@contexts/auth/domain/enums/oauth-provider.enum';
+
+export type { OAuthProviderName };
 
 export interface OAuthUserProfile {
   provider: OAuthProviderName;

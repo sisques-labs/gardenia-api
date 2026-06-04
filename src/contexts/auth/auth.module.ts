@@ -6,12 +6,13 @@ import { LogoutCommandHandler } from '@contexts/auth/application/commands/logout
 import { LinkOAuthIdentityCommandHandler } from '@contexts/auth/application/commands/oauth/link-oauth-identity/link-oauth-identity.handler';
 import { LoginWithOAuthCommandHandler } from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.handler';
 import { RefreshTokenCommandHandler } from '@contexts/auth/application/commands/refresh-token/refresh-token.handler';
+import { EncryptionService } from '@contexts/auth/application/services/encryption/encryption.service';
 import { OAuthStateService } from '@contexts/auth/application/services/oauth/oauth-state.service';
-import { TokenEncryptionService } from '@contexts/auth/application/services/oauth/token-encryption.service';
 import { ValidateAccountCredentialsService } from '@contexts/auth/application/services/read/validate-account-credentials/validate-account-credentials.service';
 import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
 import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
+import { OAuthIdentityBuilder } from '@contexts/auth/domain/builders/oauth-identity.builder';
 import { AUTH_SESSION_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 import { OAUTH_IDENTITY_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/oauth-identity-write.repository';
 import { AuthSessionEntity } from '@contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
@@ -80,10 +81,14 @@ const APPLICATION_SERVICES = [
   HashRefreshTokenService,
   RefreshCookieService,
   OAuthStateService,
-  TokenEncryptionService,
+  EncryptionService,
 ];
 
-const DOMAIN_BUILDERS = [AccountBuilder, AuthSessionBuilder];
+const DOMAIN_BUILDERS = [
+  AccountBuilder,
+  AuthSessionBuilder,
+  OAuthIdentityBuilder,
+];
 
 const INFRASTRUCTURE_MAPPERS = [
   AccountTypeOrmMapper,

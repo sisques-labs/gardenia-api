@@ -7,7 +7,7 @@ const IV_LENGTH = 12; // 96-bit IV for GCM
 const AUTH_TAG_LENGTH = 16;
 
 @Injectable()
-export class TokenEncryptionService {
+export class EncryptionService {
   constructor(private readonly configService: ConfigService) {}
 
   private getKey(): Buffer {
