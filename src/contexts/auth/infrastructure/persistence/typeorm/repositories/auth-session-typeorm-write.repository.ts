@@ -1,4 +1,5 @@
 import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
+import { RotateResult } from '@contexts/auth/domain/interfaces/rotate-result.interface';
 import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -49,5 +50,27 @@ export class AuthSessionTypeOrmWriteRepository implements IAuthSessionWriteRepos
       { revokedAt: new Date() },
     );
     return result.affected ?? 0;
+  }
+
+  async rotate(
+    tokenHash: string,
+    fn: (current: AuthSessionAggregate) => Promise<AuthSessionAggregate>,
+  ): Promise<RotateResult> {
+    return this.repo.manager.transaction(async (em) => {
+      const entity = await em.findOne(AuthSessionEntity, {
+        where: { tokenHash },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!entity) return { status: 'not-found' };
+
+      const current = this.mapper.toAggregate(entity);
+      const newSession = await fn(current);
+
+      await em.save(AuthSessionEntity, this.mapper.toEntity(current));
+      await em.save(AuthSessionEntity, this.mapper.toEntity(newSession));
+
+      return { status: 'ok', oldSession: current, newSession };
+    });
   }
 }

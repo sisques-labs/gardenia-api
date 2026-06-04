@@ -12,5 +12,6 @@ export const appConfig = registerAs('app', () => {
   const raw = requireEnv('QR_BASE_URL');
   return {
     qrBaseUrl: raw.replace(/\/$/, ''),
+    nodeEnv: process.env.NODE_ENV ?? 'development',
   };
 });

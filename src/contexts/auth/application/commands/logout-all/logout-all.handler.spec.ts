@@ -1,7 +1,5 @@
 import { EventBus } from '@nestjs/cqrs';
-import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
-import { AuthSessionBuilder } from '@contexts/auth/domain/builders/auth-session.builder';
 import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 
 import { LogoutAllCommand } from './logout-all.command';
@@ -20,6 +18,7 @@ describe('LogoutAllCommandHandler', () => {
       revokeAllByUserId: jest.fn().mockResolvedValue(3),
       findByCriteria: jest.fn(),
       delete: jest.fn(),
+      rotate: jest.fn(),
     } as unknown as jest.Mocked<IAuthSessionWriteRepository>;
 
     eventBus = {
@@ -30,25 +29,40 @@ describe('LogoutAllCommandHandler', () => {
     handler = new LogoutAllCommandHandler(eventBus, sessionRepo);
   });
 
-  it('calls revokeAllByUserId with the provided userId and returns void', async () => {
+  it('calls revokeAllByUserId once with the command userId value', async () => {
     const userId = '660e8400-e29b-41d4-a716-446655440001';
-    const activeSession = new AuthSessionBuilder()
-      .withId('a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1')
-      .withUserId(userId)
-      .withTokenHash('a'.repeat(64))
-      .withExpiresAt(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
-      .withRevokedAt(null)
-      .build();
-    sessionRepo.findByCriteria.mockResolvedValue(
-      new PaginatedResult([activeSession], 1, 1, 1000),
-    );
+    const command = new LogoutAllCommand({ userId });
+
+    await handler.execute(command);
+
+    expect(sessionRepo.revokeAllByUserId).toHaveBeenCalledTimes(1);
+    expect(sessionRepo.revokeAllByUserId).toHaveBeenCalledWith(userId);
+  });
+
+  it('does NOT call findByCriteria', async () => {
+    const userId = '660e8400-e29b-41d4-a716-446655440001';
+    const command = new LogoutAllCommand({ userId });
+
+    await handler.execute(command);
+
+    expect(sessionRepo.findByCriteria).not.toHaveBeenCalled();
+  });
+
+  it('returns void', async () => {
+    const userId = '660e8400-e29b-41d4-a716-446655440001';
     const command = new LogoutAllCommand({ userId });
 
     const result = await handler.execute(command);
 
-    expect(sessionRepo.findByCriteria).toHaveBeenCalled();
-    expect(sessionRepo.save).toHaveBeenCalledWith(activeSession);
-    expect(eventBus.publishAll).toHaveBeenCalled();
     expect(result).toBeUndefined();
+  });
+
+  it('succeeds idempotently when no sessions exist (revokeAllByUserId returns 0)', async () => {
+    sessionRepo.revokeAllByUserId.mockResolvedValue(0);
+    const userId = '660e8400-e29b-41d4-a716-446655440001';
+    const command = new LogoutAllCommand({ userId });
+
+    await expect(handler.execute(command)).resolves.toBeUndefined();
+    expect(sessionRepo.revokeAllByUserId).toHaveBeenCalledWith(userId);
   });
 });

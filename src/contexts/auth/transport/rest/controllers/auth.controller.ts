@@ -36,16 +36,12 @@ import {
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { AccountRestMapper } from '@contexts/auth/transport/rest/mappers/account/account.mapper';
 import { AccountRestResponseDto } from '@contexts/auth/transport/rest/dtos/account-rest-response.dto';
+import { RefreshCookieService } from '@contexts/auth/transport/shared/refresh-cookie.service';
 import {
   Criteria,
   FilterOperator,
   PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
-import {
-  REFRESH_COOKIE_NAME,
-  clearRefreshCookie,
-  setRefreshCookie,
-} from '@contexts/auth/transport/shared/cookie.helper';
 
 import { IdentityOnly } from '../../../../../shared/decorators/identity-only.decorator';
 import { SkipSpace } from '../../../../../shared/decorators/skip-space.decorator';
@@ -61,6 +57,7 @@ export class AuthController {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     private readonly accountRestMapper: AccountRestMapper,
+    private readonly cookies: RefreshCookieService,
   ) {}
 
   @Get('me')
@@ -123,7 +120,7 @@ export class AuthController {
       LoginAccountCommand,
       { accessToken: string; refreshToken: string }
     >(new LoginAccountCommand({ email: dto.email, password: dto.password }));
-    setRefreshCookie(res, result.refreshToken);
+    this.cookies.setRefreshCookie(res, result.refreshToken);
     return { accessToken: result.accessToken };
   }
 
@@ -137,14 +134,21 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
-    const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
+    const refreshToken = req.cookies[this.cookies.cookieName] as
+      | string
+      | undefined;
     if (!refreshToken) throw new UnauthorizedException();
-    const result = await this.commandBus.execute<
-      RefreshTokenCommand,
-      { accessToken: string; refreshToken: string }
-    >(new RefreshTokenCommand({ refreshToken }));
-    setRefreshCookie(res, result.refreshToken);
-    return { accessToken: result.accessToken };
+    try {
+      const result = await this.commandBus.execute<
+        RefreshTokenCommand,
+        { accessToken: string; refreshToken: string }
+      >(new RefreshTokenCommand({ refreshToken }));
+      this.cookies.setRefreshCookie(res, result.refreshToken);
+      return { accessToken: result.accessToken };
+    } catch (err) {
+      this.cookies.clearRefreshCookie(res);
+      throw err;
+    }
   }
 
   @Post('logout')
@@ -156,11 +160,13 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
+    const refreshToken = req.cookies[this.cookies.cookieName] as
+      | string
+      | undefined;
     if (refreshToken) {
       await this.commandBus.execute(new LogoutCommand({ refreshToken }));
     }
-    clearRefreshCookie(res);
+    this.cookies.clearRefreshCookie(res);
   }
 
   @Post('logout-all')
@@ -177,7 +183,7 @@ export class AuthController {
     await this.commandBus.execute(
       new LogoutAllCommand({ userId: user.userId }),
     );
-    clearRefreshCookie(res);
+    this.cookies.clearRefreshCookie(res);
   }
 
   @Patch('password')
