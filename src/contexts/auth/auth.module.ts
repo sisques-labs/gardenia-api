@@ -46,9 +46,9 @@ import { AccountTypeOrmReadRepository } from './infrastructure/persistence/typeo
 import { AccountTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/account-typeorm-write.repository';
 import { AccountTypeOrmMapper } from './infrastructure/persistence/typeorm/account-typeorm.mapper';
 import { AccountEntity } from './infrastructure/persistence/typeorm/account.entity';
-import { AppleOAuthStrategy } from './infrastructure/strategies/oauth/apple-oauth.strategy';
-import { GithubOAuthStrategy } from './infrastructure/strategies/oauth/github-oauth.strategy';
-import { GoogleOAuthStrategy } from './infrastructure/strategies/oauth/google-oauth.strategy';
+import { AppleOAuthStrategy } from './infrastructure/strategies/oauth/apple/apple-oauth.strategy';
+import { GithubOAuthStrategy } from './infrastructure/strategies/oauth/github/github-oauth.strategy';
+import { GoogleOAuthStrategy } from './infrastructure/strategies/oauth/google/google-oauth.strategy';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
 import { AccountGraphQLMapper } from './transport/graphql/mappers/account/account.mapper';
