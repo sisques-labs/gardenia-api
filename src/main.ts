@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import * as express from 'express';
 
 import { AppModule } from './app.module';
 import { BaseExceptionFilter } from './core/filters/base-exception.filter';
@@ -34,6 +35,8 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   app.use(cookieParser());
+  // Required for Apple Sign In callback (response_mode: form_post sends code + state as POST body).
+  app.use(express.urlencoded({ extended: true }));
 
   app.enableCors({ origin: true, credentials: true });
 

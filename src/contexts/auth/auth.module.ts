@@ -37,12 +37,17 @@ import { AssertAccountExistsService } from './application/services/write/assert-
 import { AccountBuilder } from './domain/builders/account.builder';
 import { ACCOUNT_READ_REPOSITORY } from './domain/repositories/read/account-read.repository';
 import { ACCOUNT_WRITE_REPOSITORY } from './domain/repositories/write/account-write.repository';
+import { DynamicOAuthGuard } from './infrastructure/guards/dynamic-oauth.guard';
 import { JwtAuthGuard } from './infrastructure/guards/jwt-auth.guard';
 import { LocalAuthGuard } from './infrastructure/guards/local-auth.guard';
+import { OAuthProviderRegistry } from './infrastructure/oauth/oauth-provider.registry';
 import { AccountTypeOrmReadRepository } from './infrastructure/persistence/typeorm/account-typeorm-read.repository';
 import { AccountTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/account-typeorm-write.repository';
 import { AccountTypeOrmMapper } from './infrastructure/persistence/typeorm/account-typeorm.mapper';
 import { AccountEntity } from './infrastructure/persistence/typeorm/account.entity';
+import { AppleOAuthStrategy } from './infrastructure/strategies/oauth/apple-oauth.strategy';
+import { GithubOAuthStrategy } from './infrastructure/strategies/oauth/github-oauth.strategy';
+import { GoogleOAuthStrategy } from './infrastructure/strategies/oauth/google-oauth.strategy';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
 import { AccountGraphQLMapper } from './transport/graphql/mappers/account/account.mapper';
@@ -50,6 +55,7 @@ import { AuthMutationsResolver } from './transport/graphql/resolvers/auth/auth-m
 import { AuthQueriesResolver } from './transport/graphql/resolvers/auth/auth-queries.resolver';
 import { AccountRestMapper } from './transport/rest/mappers/account/account.mapper';
 import { AuthController } from './transport/rest/controllers/auth.controller';
+import { OAuthController } from './transport/rest/controllers/oauth.controller';
 import { RefreshCookieService } from './transport/shared/refresh-cookie.service';
 
 const COMMAND_HANDLERS = [
@@ -115,16 +121,24 @@ const INFRASTRUCTURE_ENTITIES = [
   OAuthIdentityTypeOrmEntity,
 ];
 
-const STRATEGIES = [LocalStrategy, JwtStrategy];
+const STRATEGIES = [
+  LocalStrategy,
+  JwtStrategy,
+  GoogleOAuthStrategy,
+  GithubOAuthStrategy,
+  AppleOAuthStrategy,
+];
 
-const GUARDS = [JwtAuthGuard, LocalAuthGuard];
+const GUARDS = [JwtAuthGuard, LocalAuthGuard, DynamicOAuthGuard];
+
+const OAUTH_INFRASTRUCTURE = [OAuthProviderRegistry];
 
 const TRANSPORT_GRAPHQL_RESOLVERS = [
   AuthQueriesResolver,
   AuthMutationsResolver,
 ];
 
-const TRANSPORT_REST_CONTROLLERS = [AuthController];
+const TRANSPORT_REST_CONTROLLERS = [AuthController, OAuthController];
 
 @Module({
   imports: [
@@ -155,6 +169,7 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController];
     ...INFRASTRUCTURE_REPOSITORIES,
     ...STRATEGIES,
     ...GUARDS,
+    ...OAUTH_INFRASTRUCTURE,
     ...TRANSPORT_GRAPHQL_RESOLVERS,
   ],
   exports: [JwtAuthGuard, LocalAuthGuard, TokenService],

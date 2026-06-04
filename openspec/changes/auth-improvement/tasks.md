@@ -104,28 +104,28 @@ Chain strategy: stacked-to-main
 
 ### Infrastructure strategies
 
-- [ ] 3.1 **Install** `passport-google-oauth20`, `@types/passport-google-oauth20`, `passport-github2`, `@types/passport-github2`, `@nicokaiser/passport-apple` (or `passport-apple`) — add to `package.json`; no build step required now.
-- [ ] 3.2 **Create** `src/contexts/auth/infrastructure/strategies/oauth/google-oauth.strategy.ts` — `GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') implements OAuthProviderStrategy`; reads `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` from config; `validate()` maps to `OAuthUserProfile`; injects `OAuthStateService` for state verification. Unit test: `validate()` maps profile fields correctly.
-- [ ] 3.3 **Create** `src/contexts/auth/infrastructure/strategies/oauth/github-oauth.strategy.ts` — `GithubOAuthStrategy`; scope `user:email`; treat email as unverified unless GitHub marks primary+verified; `validate()` maps to `OAuthUserProfile`. Unit test: unverified-email path sets `emailVerified: false`.
-- [ ] 3.4 **Create** `src/contexts/auth/infrastructure/strategies/oauth/apple-oauth.strategy.ts` — `AppleOAuthStrategy`; `response_mode=form_post`; generates ES256 client secret JWT from `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_CLIENT_ID`; `validate()` maps to `OAuthUserProfile`; name/email only on first login. Unit test: client secret generation shape.
-- [ ] 3.5 **Create** `src/contexts/auth/infrastructure/oauth/oauth-provider.registry.ts` — `OAuthProviderRegistry @Injectable()`; map of `OAuthProviderName → OAuthProviderStrategy` populated from injected strategy array; exposes `get(provider)`. Unit test: get known provider → returns strategy; unknown → throws.
+- [x] 3.1 **Install** `passport-google-oauth20`, `@types/passport-google-oauth20`, `passport-github2`, `@types/passport-github2`, `@nicokaiser/passport-apple` (or `passport-apple`) — add to `package.json`; no build step required now.
+- [x] 3.2 **Create** `src/contexts/auth/infrastructure/strategies/oauth/google-oauth.strategy.ts` — `GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') implements OAuthProviderStrategy`; reads `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` from config; `validate()` maps to `OAuthUserProfile`; injects `OAuthStateService` for state verification. Unit test: `validate()` maps profile fields correctly.
+- [x] 3.3 **Create** `src/contexts/auth/infrastructure/strategies/oauth/github-oauth.strategy.ts` — `GithubOAuthStrategy`; scope `user:email`; treat email as unverified unless GitHub marks primary+verified; `validate()` maps to `OAuthUserProfile`. Unit test: unverified-email path sets `emailVerified: false`.
+- [x] 3.4 **Create** `src/contexts/auth/infrastructure/strategies/oauth/apple-oauth.strategy.ts` — `AppleOAuthStrategy`; `response_mode=form_post`; generates ES256 client secret JWT from `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_CLIENT_ID`; `validate()` maps to `OAuthUserProfile`; name/email only on first login. Unit test: client secret generation shape.
+- [x] 3.5 **Create** `src/contexts/auth/infrastructure/oauth/oauth-provider.registry.ts` — `OAuthProviderRegistry @Injectable()`; map of `OAuthProviderName → OAuthProviderStrategy` populated from injected strategy array; exposes `get(provider)`. Unit test: get known provider → returns strategy; unknown → throws.
 
 ### Guards
 
-- [ ] 3.6 **Create** `src/contexts/auth/infrastructure/guards/dynamic-oauth.guard.ts` — `DynamicOAuthGuard`; reads `:provider` from route param; dynamically resolves `AuthGuard('google'|'github'|'apple')`; throws `BadRequestException` for unknown provider.
+- [x] 3.6 **Create** `src/contexts/auth/infrastructure/guards/dynamic-oauth.guard.ts` — `DynamicOAuthGuard`; reads `:provider` from route param; dynamically resolves `AuthGuard('google'|'github'|'apple')`; throws `BadRequestException` for unknown provider.
 
 ### Transport
 
-- [ ] 3.7 **Create** `src/contexts/auth/transport/rest/controllers/oauth.controller.ts` — `OAuthController @Controller('auth/oauth')`; `GET :provider` (initiate, `@UseGuards(DynamicOAuthGuard)`); `GET :provider/callback` (callback, dispatches `LoginWithOAuthCommand`, sets refresh cookie via `RefreshCookieService`, redirects with access token); `POST apple/callback` (form_post variant). No business logic in controller. Unit test: callback calls `commandBus.execute(LoginWithOAuthCommand)`; sets cookie; redirects.
+- [x] 3.7 **Create** `src/contexts/auth/transport/rest/controllers/oauth.controller.ts` — `OAuthController @Controller('auth/oauth')`; `GET :provider` (initiate, `@UseGuards(DynamicOAuthGuard)`); `GET :provider/callback` (callback, dispatches `LoginWithOAuthCommand`, sets refresh cookie via `RefreshCookieService`, redirects with access token); `POST apple/callback` (form_post variant). No business logic in controller. Unit test: callback calls `commandBus.execute(LoginWithOAuthCommand)`; sets cookie; redirects.
 
 ### Config extension
 
-- [ ] 3.8 **Modify** `src/core/config/auth.config.ts` — add OAuth provider credential keys: `googleClientId`, `googleClientSecret`, `googleCallbackUrl`, `githubClientId`, `githubClientSecret`, `githubCallbackUrl`, `appleClientId`, `appleTeamId`, `appleKeyId`, `applePrivateKey`, `appleCallbackUrl`.
+- [x] 3.8 **Modify** `src/core/config/auth.config.ts` — add OAuth provider credential keys: `googleClientId`, `googleClientSecret`, `googleCallbackUrl`, `githubClientId`, `githubClientSecret`, `githubCallbackUrl`, `appleClientId`, `appleTeamId`, `appleKeyId`, `applePrivateKey`, `appleCallbackUrl`.
 
 ### Module wiring
 
-- [ ] 3.9 **Modify** `src/contexts/auth/auth.module.ts` — add `GoogleOAuthStrategy`, `GithubOAuthStrategy`, `AppleOAuthStrategy` to `STRATEGIES`; add `OAuthProviderRegistry` and `DynamicOAuthGuard` to providers; add `OAuthController` to `TRANSPORT_REST_CONTROLLERS`; verify Apple POST callback route has `urlencoded` body parser available (may require `BodyParser` middleware in `main.ts`).
+- [x] 3.9 **Modify** `src/contexts/auth/auth.module.ts` — add `GoogleOAuthStrategy`, `GithubOAuthStrategy`, `AppleOAuthStrategy` to `STRATEGIES`; add `OAuthProviderRegistry` and `DynamicOAuthGuard` to providers; add `OAuthController` to `TRANSPORT_REST_CONTROLLERS`; verify Apple POST callback route has `urlencoded` body parser available (may require `BodyParser` middleware in `main.ts`).
 
 ### Verification
 
-- [ ] 3.10 **Verify** Apple callback route receives form-encoded POST body — check `main.ts` for `app.use(express.urlencoded(...))` or `NestExpressApplication` body parser config; add if missing. (Design open question: confirm Express `urlencoded` parsing enabled for Apple route.)
+- [x] 3.10 **Verify** Apple callback route receives form-encoded POST body — check `main.ts` for `app.use(express.urlencoded(...))` or `NestExpressApplication` body parser config; add if missing. (Design open question: confirm Express `urlencoded` parsing enabled for Apple route.)
