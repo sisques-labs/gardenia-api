@@ -4,8 +4,8 @@ describe('OAuthIdentityBuilder', () => {
   const validId = '550e8400-e29b-41d4-a716-446655440000';
   const validUserId = '660e8400-e29b-41d4-a716-446655440001';
 
-  it('should build a valid OAuthIdentityEntity with all fields', () => {
-    const entity = new OAuthIdentityBuilder()
+  it('should build a valid OAuthIdentityAggregate with all fields', () => {
+    const aggregate = new OAuthIdentityBuilder()
       .withId(validId)
       .withUserId(validUserId)
       .withProvider('google')
@@ -17,27 +17,27 @@ describe('OAuthIdentityBuilder', () => {
       .withTokenExpiresAt(new Date('2025-01-01'))
       .build();
 
-    expect(entity.id.value).toBe(validId);
-    expect(entity.userId.value).toBe(validUserId);
-    expect(entity.provider.value).toBe('google');
-    expect(entity.providerUserId.value).toBe('google-user-123');
-    expect(entity.email?.value).toBe('user@example.com');
-    expect(entity.emailVerified).toBe(true);
-    expect(entity.accessTokenEnc).toBe('enc-access-token');
-    expect(entity.refreshTokenEnc).toBe('enc-refresh-token');
+    expect(aggregate.id.value).toBe(validId);
+    expect(aggregate.userId.value).toBe(validUserId);
+    expect(aggregate.provider.value).toBe('google');
+    expect(aggregate.providerUserId.value).toBe('google-user-123');
+    expect(aggregate.email?.value).toBe('user@example.com');
+    expect(aggregate.emailVerified.value).toBe(true);
+    expect(aggregate.accessTokenEnc?.value).toBe('enc-access-token');
+    expect(aggregate.refreshTokenEnc?.value).toBe('enc-refresh-token');
   });
 
   it('should build with null email and no tokens', () => {
-    const entity = new OAuthIdentityBuilder()
+    const aggregate = new OAuthIdentityBuilder()
       .withId(validId)
       .withUserId(validUserId)
       .withProvider('github')
       .withProviderUserId('gh-456')
       .build();
 
-    expect(entity.email).toBeNull();
-    expect(entity.accessTokenEnc).toBeNull();
-    expect(entity.refreshTokenEnc).toBeNull();
+    expect(aggregate.email).toBeNull();
+    expect(aggregate.accessTokenEnc).toBeNull();
+    expect(aggregate.refreshTokenEnc).toBeNull();
   });
 
   it('should throw when required fields are missing', () => {
@@ -61,10 +61,10 @@ describe('OAuthIdentityBuilder', () => {
       updatedAt: now,
     };
 
-    const entity = new OAuthIdentityBuilder()
+    const aggregate = new OAuthIdentityBuilder()
       .fromPrimitives(primitives)
       .build();
-    expect(entity.id.value).toBe(validId);
-    expect(entity.provider.value).toBe('apple');
+    expect(aggregate.id.value).toBe(validId);
+    expect(aggregate.provider.value).toBe('apple');
   });
 });

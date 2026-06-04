@@ -1,4 +1,4 @@
-import { TokenEncryptionService } from '@contexts/auth/application/services/oauth/token-encryption.service';
+import { EncryptionService } from '@contexts/auth/application/services/encryption/encryption.service';
 import { OAuthIdentityBuilder } from '@contexts/auth/domain/builders/oauth-identity.builder';
 import { OAuthIdentityAlreadyLinkedException } from '@contexts/auth/domain/exceptions/oauth-identity-already-linked.exception';
 import {
@@ -16,50 +16,61 @@ export class LinkOAuthIdentityCommandHandler implements ICommandHandler<LinkOAut
   constructor(
     @Inject(OAUTH_IDENTITY_WRITE_REPOSITORY)
     private readonly oauthIdentityRepo: IOAuthIdentityWriteRepository,
-    private readonly tokenEncryptionService: TokenEncryptionService,
+    private readonly encryptionService: EncryptionService,
+    private readonly oauthIdentityBuilder: OAuthIdentityBuilder,
   ) {}
 
   async execute(command: LinkOAuthIdentityCommand): Promise<void> {
-    const { userId, profile } = command;
+    const {
+      userId,
+      provider,
+      providerUserId,
+      email,
+      emailVerified,
+      accessToken,
+      refreshToken,
+      tokenExpiresAt,
+    } = command;
 
     // Guard: check if this provider identity is already linked to another account
     const existing = await this.oauthIdentityRepo.findByProviderUserId(
-      profile.provider,
-      profile.providerUserId,
+      provider.value,
+      providerUserId.value,
     );
 
-    if (existing && existing.userId.value !== userId) {
+    if (existing && existing.userId.value !== userId.value) {
       throw new OAuthIdentityAlreadyLinkedException(
-        profile.provider,
-        profile.providerUserId,
+        provider.value,
+        providerUserId.value,
       );
     }
 
     // If already linked to THIS user, no-op
-    if (existing && existing.userId.value === userId) {
+    if (existing && existing.userId.value === userId.value) {
       return;
     }
 
     // Encrypt provider tokens
-    const accessTokenEnc = profile.rawTokens.accessToken
-      ? this.tokenEncryptionService.encrypt(profile.rawTokens.accessToken)
+    const accessTokenEnc = accessToken
+      ? this.encryptionService.encrypt(accessToken.value)
       : null;
-    const refreshTokenEnc = profile.rawTokens.refreshToken
-      ? this.tokenEncryptionService.encrypt(profile.rawTokens.refreshToken)
+    const refreshTokenEnc = refreshToken
+      ? this.encryptionService.encrypt(refreshToken.value)
       : null;
 
-    const identity = new OAuthIdentityBuilder()
+    const identity = this.oauthIdentityBuilder
       .withId(UuidValueObject.generate().value)
-      .withUserId(userId)
-      .withProvider(profile.provider)
-      .withProviderUserId(profile.providerUserId)
-      .withEmail(profile.email)
-      .withEmailVerified(profile.emailVerified)
+      .withUserId(userId.value)
+      .withProvider(provider.value)
+      .withProviderUserId(providerUserId.value)
+      .withEmail(email?.value ?? null)
+      .withEmailVerified(emailVerified.value)
       .withAccessTokenEnc(accessTokenEnc)
       .withRefreshTokenEnc(refreshTokenEnc)
-      .withTokenExpiresAt(profile.rawTokens.expiresAt)
+      .withTokenExpiresAt(tokenExpiresAt?.value ?? null)
       .build();
 
+    identity.link();
     await this.oauthIdentityRepo.save(identity);
   }
 }

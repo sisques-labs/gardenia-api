@@ -1,5 +1,5 @@
 import { OAuthIdentityBuilder } from '@contexts/auth/domain/builders/oauth-identity.builder';
-import { OAuthIdentityEntity } from '@contexts/auth/domain/entities/oauth-identity/oauth-identity.entity';
+import { OAuthIdentityAggregate } from '@contexts/auth/domain/aggregates/oauth-identity.aggregate';
 import { OAuthIdentityTypeOrmMapper } from '../mappers/oauth-identity-typeorm.mapper';
 import { OAuthIdentityTypeOrmEntity } from '../entities/oauth-identity.entity';
 import { OAuthIdentityTypeOrmWriteRepository } from './oauth-identity-typeorm-write.repository';
@@ -15,14 +15,14 @@ const makeRepo = (): jest.Mocked<Repository<OAuthIdentityTypeOrmEntity>> =>
 
 const makeMapper = (): jest.Mocked<OAuthIdentityTypeOrmMapper> =>
   ({
-    toAggregate: jest.fn(),
-    toEntity: jest.fn(),
+    toDomain: jest.fn(),
+    toPersistence: jest.fn(),
   }) as unknown as jest.Mocked<OAuthIdentityTypeOrmMapper>;
 
 const validId = '550e8400-e29b-41d4-a716-446655440000';
 const validUserId = '660e8400-e29b-41d4-a716-446655440001';
 
-const makeDomainEntity = (): OAuthIdentityEntity =>
+const makeDomainAggregate = (): OAuthIdentityAggregate =>
   new OAuthIdentityBuilder()
     .withId(validId)
     .withUserId(validUserId)
@@ -60,9 +60,9 @@ describe('OAuthIdentityTypeOrmWriteRepository', () => {
   describe('findByProviderUserId', () => {
     it('should call repo.findOne with correct where clause', async () => {
       const typeOrmEntity = makeTypeOrmEntity();
-      const domainEntity = makeDomainEntity();
+      const domainAggregate = makeDomainAggregate();
       repo.findOne.mockResolvedValue(typeOrmEntity);
-      mapper.toAggregate.mockReturnValue(domainEntity);
+      mapper.toDomain.mockReturnValue(domainAggregate);
 
       const result = await repository.findByProviderUserId(
         'google',
@@ -72,7 +72,7 @@ describe('OAuthIdentityTypeOrmWriteRepository', () => {
       expect(repo.findOne).toHaveBeenCalledWith({
         where: { provider: 'google', providerUserId: 'google-123' },
       });
-      expect(result).toBe(domainEntity);
+      expect(result).toBe(domainAggregate);
     });
 
     it('should return null when entity not found', async () => {
@@ -85,11 +85,11 @@ describe('OAuthIdentityTypeOrmWriteRepository', () => {
   });
 
   describe('findByUserId', () => {
-    it('should return array of domain entities', async () => {
+    it('should return array of domain aggregates', async () => {
       const typeOrmEntity = makeTypeOrmEntity();
-      const domainEntity = makeDomainEntity();
+      const domainAggregate = makeDomainAggregate();
       repo.find.mockResolvedValue([typeOrmEntity]);
-      mapper.toAggregate.mockReturnValue(domainEntity);
+      mapper.toDomain.mockReturnValue(domainAggregate);
 
       const results = await repository.findByUserId(validUserId);
 
@@ -97,7 +97,7 @@ describe('OAuthIdentityTypeOrmWriteRepository', () => {
         where: { userId: validUserId },
       });
       expect(results).toHaveLength(1);
-      expect(results[0]).toBe(domainEntity);
+      expect(results[0]).toBe(domainAggregate);
     });
   });
 });

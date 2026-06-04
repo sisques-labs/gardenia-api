@@ -1,3 +1,4 @@
+import { OAuthIdentityBuilder } from '@contexts/auth/domain/builders/oauth-identity.builder';
 import { OAuthIdentityTypeOrmMapper } from './oauth-identity-typeorm.mapper';
 import { OAuthIdentityTypeOrmEntity } from '../entities/oauth-identity.entity';
 
@@ -23,26 +24,26 @@ describe('OAuthIdentityTypeOrmMapper', () => {
   let mapper: OAuthIdentityTypeOrmMapper;
 
   beforeEach(() => {
-    mapper = new OAuthIdentityTypeOrmMapper();
+    mapper = new OAuthIdentityTypeOrmMapper(new OAuthIdentityBuilder());
   });
 
-  it('should map entity to domain aggregate (toAggregate)', () => {
+  it('should map entity to domain aggregate (toDomain)', () => {
     const entity = makeEntity();
-    const domain = mapper.toAggregate(entity);
+    const domain = mapper.toDomain(entity);
 
     expect(domain.id.value).toBe(entity.id);
     expect(domain.userId.value).toBe(entity.userId);
     expect(domain.provider.value).toBe('google');
     expect(domain.providerUserId.value).toBe('google-123');
     expect(domain.email?.value).toBe('user@example.com');
-    expect(domain.emailVerified).toBe(true);
-    expect(domain.accessTokenEnc).toBe('enc:access-token');
+    expect(domain.emailVerified.value).toBe(true);
+    expect(domain.accessTokenEnc?.value).toBe('enc:access-token');
   });
 
-  it('should map domain aggregate back to entity (toEntity)', () => {
+  it('should map domain aggregate back to entity (toPersistence)', () => {
     const entity = makeEntity();
-    const domain = mapper.toAggregate(entity);
-    const backToEntity = mapper.toEntity(domain);
+    const domain = mapper.toDomain(entity);
+    const backToEntity = mapper.toPersistence(domain);
 
     expect(backToEntity.id).toBe(entity.id);
     expect(backToEntity.userId).toBe(entity.userId);
@@ -58,7 +59,7 @@ describe('OAuthIdentityTypeOrmMapper', () => {
       accessTokenEnc: null,
       refreshTokenEnc: null,
     });
-    const domain = mapper.toAggregate(entity);
+    const domain = mapper.toDomain(entity);
 
     expect(domain.email).toBeNull();
     expect(domain.accessTokenEnc).toBeNull();

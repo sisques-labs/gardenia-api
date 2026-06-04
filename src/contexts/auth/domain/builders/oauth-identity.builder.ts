@@ -1,14 +1,23 @@
-import { OAuthIdentityEntity } from '@contexts/auth/domain/entities/oauth-identity/oauth-identity.entity';
+import { OAuthIdentityAggregate } from '@contexts/auth/domain/aggregates/oauth-identity.aggregate';
+import { IOAuthIdentityPrimitives } from '@contexts/auth/domain/primitives/oauth-identity.primitives';
+import { OAuthIdentityViewModel } from '@contexts/auth/domain/view-models/oauth-identity.view-model';
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 import { OAuthProviderValueObject } from '@contexts/auth/domain/value-objects/oauth-provider/oauth-provider.vo';
+import { Injectable } from '@nestjs/common';
 import {
+  BaseBuilder,
+  BooleanValueObject,
+  DateValueObject,
   FieldIsRequiredException,
   StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
-export class OAuthIdentityBuilder {
-  private _id!: string;
+@Injectable()
+export class OAuthIdentityBuilder extends BaseBuilder<
+  OAuthIdentityAggregate,
+  OAuthIdentityViewModel
+> {
   private _userId!: string;
   private _provider!: string;
   private _providerUserId!: string;
@@ -17,13 +26,6 @@ export class OAuthIdentityBuilder {
   private _accessTokenEnc: string | null = null;
   private _refreshTokenEnc: string | null = null;
   private _tokenExpiresAt: Date | null = null;
-  private _createdAt: Date = new Date();
-  private _updatedAt: Date = new Date();
-
-  withId(id: string): this {
-    this._id = id;
-    return this;
-  }
 
   withUserId(userId: string): this {
     this._userId = userId;
@@ -65,32 +67,51 @@ export class OAuthIdentityBuilder {
     return this;
   }
 
-  withCreatedAt(createdAt: Date): this {
-    this._createdAt = createdAt;
-    return this;
-  }
-
-  withUpdatedAt(updatedAt: Date): this {
-    this._updatedAt = updatedAt;
-    return this;
-  }
-
-  validate(): void {
-    if (!this._id) throw new FieldIsRequiredException('id');
+  public override validate(): void {
+    super.validate();
     if (!this._userId) throw new FieldIsRequiredException('userId');
     if (!this._provider) throw new FieldIsRequiredException('provider');
     if (!this._providerUserId)
       throw new FieldIsRequiredException('providerUserId');
   }
 
-  build(): OAuthIdentityEntity {
+  public override build(): OAuthIdentityAggregate {
+    this._createdAt = this._createdAt ?? new Date();
+    this._updatedAt = this._updatedAt ?? new Date();
     this.validate();
-    return new OAuthIdentityEntity({
+
+    return new OAuthIdentityAggregate({
       id: new UuidValueObject(this._id),
       userId: new UuidValueObject(this._userId),
       provider: new OAuthProviderValueObject(this._provider),
       providerUserId: new StringValueObject(this._providerUserId),
       email: this._email ? new AccountEmailValueObject(this._email) : null,
+      emailVerified: new BooleanValueObject(this._emailVerified),
+      accessTokenEnc: this._accessTokenEnc
+        ? new StringValueObject(this._accessTokenEnc)
+        : null,
+      refreshTokenEnc: this._refreshTokenEnc
+        ? new StringValueObject(this._refreshTokenEnc)
+        : null,
+      tokenExpiresAt: this._tokenExpiresAt
+        ? new DateValueObject(this._tokenExpiresAt)
+        : null,
+      createdAt: new DateValueObject(this._createdAt),
+      updatedAt: new DateValueObject(this._updatedAt),
+    });
+  }
+
+  public override buildViewModel(): OAuthIdentityViewModel {
+    this._createdAt = this._createdAt ?? new Date();
+    this._updatedAt = this._updatedAt ?? new Date();
+    this.validate();
+
+    return new OAuthIdentityViewModel({
+      id: this._id,
+      userId: this._userId,
+      provider: this._provider,
+      providerUserId: this._providerUserId,
+      email: this._email,
       emailVerified: this._emailVerified,
       accessTokenEnc: this._accessTokenEnc,
       refreshTokenEnc: this._refreshTokenEnc,
@@ -100,19 +121,7 @@ export class OAuthIdentityBuilder {
     });
   }
 
-  fromPrimitives(primitives: {
-    id: string;
-    userId: string;
-    provider: string;
-    providerUserId: string;
-    email: string | null;
-    emailVerified: boolean;
-    accessTokenEnc: string | null;
-    refreshTokenEnc: string | null;
-    tokenExpiresAt: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-  }): this {
+  public fromPrimitives(primitives: IOAuthIdentityPrimitives): this {
     return this.withId(primitives.id)
       .withUserId(primitives.userId)
       .withProvider(primitives.provider)

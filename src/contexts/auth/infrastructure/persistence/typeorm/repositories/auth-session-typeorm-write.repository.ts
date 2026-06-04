@@ -1,8 +1,6 @@
 import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
-import {
-  IAuthSessionWriteRepository,
-  RotateResult,
-} from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
+import { RotateResult } from '@contexts/auth/domain/interfaces/rotate-result.interface';
+import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';

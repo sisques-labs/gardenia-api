@@ -1,11 +1,13 @@
-import { OAuthUserProfile } from '@contexts/auth/application/ports/oauth-user-profile';
-import { TokenEncryptionService } from '@contexts/auth/application/services/oauth/token-encryption.service';
+import { EncryptionService } from '@contexts/auth/application/services/encryption/encryption.service';
 import { OAuthIdentityBuilder } from '@contexts/auth/domain/builders/oauth-identity.builder';
-import { OAuthIdentityEntity } from '@contexts/auth/domain/entities/oauth-identity/oauth-identity.entity';
+import { OAuthIdentityAggregate } from '@contexts/auth/domain/aggregates/oauth-identity.aggregate';
 import { OAuthIdentityAlreadyLinkedException } from '@contexts/auth/domain/exceptions/oauth-identity-already-linked.exception';
 import { IOAuthIdentityWriteRepository } from '@contexts/auth/domain/repositories/write/oauth-identity-write.repository';
 import { LinkOAuthIdentityCommandHandler } from './link-oauth-identity.handler';
-import { LinkOAuthIdentityCommand } from './link-oauth-identity.command';
+import {
+  LinkOAuthIdentityCommand,
+  LinkOAuthIdentityCommandInput,
+} from './link-oauth-identity.command';
 
 const makeRepo = (): jest.Mocked<IOAuthIdentityWriteRepository> => ({
   findByProviderUserId: jest.fn(),
@@ -16,29 +18,27 @@ const makeRepo = (): jest.Mocked<IOAuthIdentityWriteRepository> => ({
   findByCriteria: jest.fn(),
 });
 
-const makeEncryptionService = (): jest.Mocked<TokenEncryptionService> =>
+const makeEncryptionService = (): jest.Mocked<EncryptionService> =>
   ({
     encrypt: jest.fn().mockImplementation((v: string) => `enc:${v}`),
     decrypt: jest.fn(),
-  }) as unknown as jest.Mocked<TokenEncryptionService>;
+  }) as unknown as jest.Mocked<EncryptionService>;
 
 const userId = '550e8400-e29b-41d4-a716-446655440000';
 const otherUserId = '660e8400-e29b-41d4-a716-446655440001';
 
-const makeProfile = (): OAuthUserProfile => ({
+const makeInput = (): LinkOAuthIdentityCommandInput => ({
+  userId,
   provider: 'google',
   providerUserId: 'google-123',
   email: 'user@example.com',
   emailVerified: true,
-  displayName: 'Test User',
-  rawTokens: {
-    accessToken: 'access-token-value',
-    refreshToken: 'refresh-token-value',
-    expiresAt: null,
-  },
+  accessToken: 'access-token-value',
+  refreshToken: 'refresh-token-value',
+  tokenExpiresAt: null,
 });
 
-const makeExistingIdentity = (forUserId: string): OAuthIdentityEntity => {
+const makeExistingIdentity = (forUserId: string): OAuthIdentityAggregate => {
   return new OAuthIdentityBuilder()
     .withId('770e8400-e29b-41d4-a716-446655440002')
     .withUserId(forUserId)
@@ -52,19 +52,25 @@ const makeExistingIdentity = (forUserId: string): OAuthIdentityEntity => {
 describe('LinkOAuthIdentityCommandHandler', () => {
   let handler: LinkOAuthIdentityCommandHandler;
   let repo: jest.Mocked<IOAuthIdentityWriteRepository>;
-  let encryptionService: jest.Mocked<TokenEncryptionService>;
+  let encryptionService: jest.Mocked<EncryptionService>;
+  let builder: OAuthIdentityBuilder;
 
   beforeEach(() => {
     repo = makeRepo();
     encryptionService = makeEncryptionService();
-    handler = new LinkOAuthIdentityCommandHandler(repo, encryptionService);
+    builder = new OAuthIdentityBuilder();
+    handler = new LinkOAuthIdentityCommandHandler(
+      repo,
+      encryptionService,
+      builder,
+    );
   });
 
   it('should save a new oauth identity for happy path', async () => {
     repo.findByProviderUserId.mockResolvedValue(null);
     repo.save.mockResolvedValue(expect.anything());
 
-    await handler.execute(new LinkOAuthIdentityCommand(userId, makeProfile()));
+    await handler.execute(new LinkOAuthIdentityCommand(makeInput()));
 
     expect(repo.save).toHaveBeenCalledTimes(1);
     const savedEntity = repo.save.mock.calls[0][0];
@@ -78,7 +84,7 @@ describe('LinkOAuthIdentityCommandHandler', () => {
     );
 
     await expect(
-      handler.execute(new LinkOAuthIdentityCommand(userId, makeProfile())),
+      handler.execute(new LinkOAuthIdentityCommand(makeInput())),
     ).rejects.toThrow(OAuthIdentityAlreadyLinkedException);
 
     expect(repo.save).not.toHaveBeenCalled();
@@ -87,7 +93,7 @@ describe('LinkOAuthIdentityCommandHandler', () => {
   it('should be a no-op when the identity is already linked to THIS user', async () => {
     repo.findByProviderUserId.mockResolvedValue(makeExistingIdentity(userId));
 
-    await handler.execute(new LinkOAuthIdentityCommand(userId, makeProfile()));
+    await handler.execute(new LinkOAuthIdentityCommand(makeInput()));
 
     expect(repo.save).not.toHaveBeenCalled();
   });
@@ -96,7 +102,7 @@ describe('LinkOAuthIdentityCommandHandler', () => {
     repo.findByProviderUserId.mockResolvedValue(null);
     repo.save.mockResolvedValue(expect.anything());
 
-    await handler.execute(new LinkOAuthIdentityCommand(userId, makeProfile()));
+    await handler.execute(new LinkOAuthIdentityCommand(makeInput()));
 
     expect(encryptionService.encrypt).toHaveBeenCalledWith(
       'access-token-value',
@@ -105,6 +111,6 @@ describe('LinkOAuthIdentityCommandHandler', () => {
       'refresh-token-value',
     );
     const savedEntity = repo.save.mock.calls[0][0];
-    expect(savedEntity.accessTokenEnc).toBe('enc:access-token-value');
+    expect(savedEntity.accessTokenEnc?.value).toBe('enc:access-token-value');
   });
 });
