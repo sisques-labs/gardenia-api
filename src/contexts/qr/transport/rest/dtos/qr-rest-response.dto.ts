@@ -13,6 +13,9 @@ export class QrRestResponseDto {
   @ApiProperty()
   generation!: number;
 
+  @ApiProperty({ nullable: true, required: false, type: Date })
+  expiresAt!: Date | null;
+
   @ApiProperty()
   createdAt!: Date;
 

@@ -83,4 +83,32 @@ describe('QrBuilder', () => {
       expect(aggregate.generation.value).toBe(5);
     });
   });
+
+  describe('withExpiresAt()', () => {
+    it('defaults expiresAt to null when not set', () => {
+      const aggregate = buildFull(builder).build();
+
+      expect(aggregate.expiresAt).toBeNull();
+    });
+
+    it('stores a future date', () => {
+      const future = new Date(Date.now() + 1000 * 60 * 60 * 24);
+      const aggregate = buildFull(builder).withExpiresAt(future).build();
+
+      expect(aggregate.expiresAt?.value).toEqual(future);
+    });
+
+    it('stores a past date (hydration path — no validation in builder)', () => {
+      const past = new Date('2020-01-01');
+      const aggregate = buildFull(builder).withExpiresAt(past).build();
+
+      expect(aggregate.expiresAt?.value).toEqual(past);
+    });
+
+    it('propagates null expiresAt to the view model', () => {
+      const vm = buildFull(builder).buildViewModel();
+
+      expect(vm.expiresAt).toBeNull();
+    });
+  });
 });

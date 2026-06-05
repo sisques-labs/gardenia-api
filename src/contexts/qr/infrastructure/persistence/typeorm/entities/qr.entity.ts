@@ -30,6 +30,9 @@ export class QrTypeOrmEntity {
   @Column({ type: 'int', nullable: false, default: 1 })
   generation!: number;
 
+  @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
+  expiresAt!: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt!: Date;
 

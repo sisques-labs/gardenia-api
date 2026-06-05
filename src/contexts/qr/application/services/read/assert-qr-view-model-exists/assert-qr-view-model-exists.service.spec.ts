@@ -14,6 +14,7 @@ const buildViewModel = (): QrViewModel =>
     spaceId: '550e8400-e29b-41d4-a716-446655440002',
     targetUrl: 'http://localhost:3000/plants/example?spaceId=abc',
     generation: 1,
+    expiresAt: null,
     createdAt: NOW,
     updatedAt: NOW,
   });

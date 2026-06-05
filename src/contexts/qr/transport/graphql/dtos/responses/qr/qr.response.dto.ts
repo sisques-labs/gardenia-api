@@ -14,6 +14,9 @@ export class QrResponseDto {
   @Field(() => Int)
   generation!: number;
 
+  @Field(() => Date, { nullable: true })
+  expiresAt!: Date | null;
+
   @Field(() => Date)
   createdAt!: Date;
 

@@ -15,6 +15,7 @@ export class QrTypeOrmMapper {
       .withSpaceId(entity.spaceId)
       .withTargetUrl(entity.targetUrl)
       .withGeneration(entity.generation)
+      .withExpiresAt(entity.expiresAt)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -28,6 +29,7 @@ export class QrTypeOrmMapper {
     entity.spaceId = primitives.spaceId;
     entity.targetUrl = primitives.targetUrl;
     entity.generation = primitives.generation;
+    entity.expiresAt = primitives.expiresAt;
     entity.pngImage = pngImage;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
@@ -41,6 +43,7 @@ export class QrTypeOrmMapper {
       .withSpaceId(entity.spaceId)
       .withTargetUrl(entity.targetUrl)
       .withGeneration(entity.generation)
+      .withExpiresAt(entity.expiresAt)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .buildViewModel();

@@ -12,6 +12,7 @@ import {
   IQrWriteRepository,
   QR_WRITE_REPOSITORY,
 } from '@contexts/qr/domain/repositories/write/qr-write.repository';
+import { AssertQrExpiresAtIsFutureService } from '@contexts/qr/domain/services/assert-qr-expires-at-is-future/assert-qr-expires-at-is-future.service';
 
 import { CreateQrCommand } from './create-qr.command';
 
@@ -28,6 +29,7 @@ export class CreateQrCommandHandler
     @Inject(QR_PNG_GENERATOR)
     private readonly qrPngGenerator: IQrPngGenerator,
     private readonly qrBuilder: QrBuilder,
+    private readonly assertQrExpiresAtIsFutureService: AssertQrExpiresAtIsFutureService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -44,10 +46,14 @@ export class CreateQrCommandHandler
       .withSpaceId(command.spaceId.value)
       .withTargetUrl(command.targetUrl.value)
       .withGeneration(1)
+      .withExpiresAt(command.expiresAt?.value ?? null)
       .withCreatedAt(now)
       .withUpdatedAt(now)
       .build();
 
+    await this.assertQrExpiresAtIsFutureService.execute(
+      command.expiresAt?.value ?? null,
+    );
     qr.create();
 
     await this.qrWriteRepository.save(qr, pngImage);

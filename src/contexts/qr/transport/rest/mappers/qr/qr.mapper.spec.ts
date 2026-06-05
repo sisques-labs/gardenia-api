@@ -12,12 +12,14 @@ describe('QrRestMapper', () => {
     mapper = new QrRestMapper();
   });
 
-  it('maps all fields from QrViewModel', () => {
+  it('maps all fields including expiresAt from QrViewModel', () => {
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24);
     const vm = new QrViewModel({
       id: QR_ID,
       spaceId: SPACE_ID,
       targetUrl: 'http://localhost:3000/plants/example?spaceId=abc',
       generation: 2,
+      expiresAt,
       createdAt: now,
       updatedAt: now,
     });
@@ -28,7 +30,24 @@ describe('QrRestMapper', () => {
     expect(dto.spaceId).toBe(SPACE_ID);
     expect(dto.targetUrl).toContain('plants/example');
     expect(dto.generation).toBe(2);
+    expect(dto.expiresAt).toBe(expiresAt);
     expect(dto.createdAt).toBe(now);
     expect(dto.updatedAt).toBe(now);
+  });
+
+  it('maps null expiresAt', () => {
+    const vm = new QrViewModel({
+      id: QR_ID,
+      spaceId: SPACE_ID,
+      targetUrl: 'http://localhost:3000/plants/example?spaceId=abc',
+      generation: 1,
+      expiresAt: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const dto = mapper.toResponseDto(vm);
+
+    expect(dto.expiresAt).toBeNull();
   });
 });
