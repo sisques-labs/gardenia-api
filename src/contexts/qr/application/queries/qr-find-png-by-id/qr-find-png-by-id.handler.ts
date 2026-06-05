@@ -30,7 +30,7 @@ export class QrFindPngByIdQueryHandler implements IQueryHandler<
     const viewModel = await this.assertQrViewModelExistsService.execute(
       query.qrId,
     );
-    this.assertQrNotExpiredService.execute(viewModel);
+    await this.assertQrNotExpiredService.execute(viewModel);
 
     const png = await this.qrReadRepository.findPngById(query.qrId.value);
     if (!png) throw new QrNotFoundException(query.qrId.value);

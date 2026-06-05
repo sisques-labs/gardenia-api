@@ -24,7 +24,7 @@ export class QrFindByIdQueryHandler implements IQueryHandler<
     const viewModel = await this.assertQrViewModelExistsService.execute(
       query.qrId,
     );
-    this.assertQrNotExpiredService.execute(viewModel);
+    await this.assertQrNotExpiredService.execute(viewModel);
     return viewModel;
   }
 }

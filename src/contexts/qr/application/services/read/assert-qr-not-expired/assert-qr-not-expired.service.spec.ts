@@ -1,5 +1,5 @@
 import { QrExpiredError } from '@contexts/qr/domain/exceptions/qr-expired.error';
-import { QrExpiresAtDomainService } from '@contexts/qr/domain/services/qr-expires-at/qr-expires-at.domain-service';
+import { AssertQrNotExpiredDomainService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.domain-service';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
 import { AssertQrNotExpiredService } from './assert-qr-not-expired.service';
@@ -22,52 +22,47 @@ const buildViewModel = (expiresAt: Date | null): QrViewModel =>
 
 describe('AssertQrNotExpiredService', () => {
   let service: AssertQrNotExpiredService;
-  let qrExpiresAtDomainService: jest.Mocked<QrExpiresAtDomainService>;
+  let domainService: jest.Mocked<AssertQrNotExpiredDomainService>;
 
   beforeEach(() => {
-    qrExpiresAtDomainService = {
-      assertIsFuture: jest.fn(),
-      assertNotExpired: jest.fn(),
-    } as jest.Mocked<QrExpiresAtDomainService>;
+    domainService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<AssertQrNotExpiredDomainService>;
 
-    service = new AssertQrNotExpiredService(qrExpiresAtDomainService);
+    service = new AssertQrNotExpiredService(domainService);
   });
 
-  it('does not throw when expiresAt is null', () => {
+  it('does not throw when expiresAt is null', async () => {
     const vm = buildViewModel(null);
 
-    expect(() => service.execute(vm)).not.toThrow();
-    expect(qrExpiresAtDomainService.assertNotExpired).toHaveBeenCalledWith(
-      QR_ID,
-      null,
-    );
+    await expect(service.execute(vm)).resolves.not.toThrow();
+    expect(domainService.execute).toHaveBeenCalledWith({
+      id: QR_ID,
+      expiresAt: null,
+    });
   });
 
-  it('does not throw when expiresAt is in the future', () => {
+  it('does not throw when expiresAt is in the future', async () => {
     const vm = buildViewModel(FUTURE_DATE);
 
-    expect(() => service.execute(vm)).not.toThrow();
-    expect(qrExpiresAtDomainService.assertNotExpired).toHaveBeenCalledWith(
-      QR_ID,
-      FUTURE_DATE,
-    );
+    await expect(service.execute(vm)).resolves.not.toThrow();
+    expect(domainService.execute).toHaveBeenCalledWith({
+      id: QR_ID,
+      expiresAt: FUTURE_DATE,
+    });
   });
 
-  it('propagates QrExpiredError from the domain service when expiresAt is in the past', () => {
+  it('propagates QrExpiredError from the domain service when expiresAt is in the past', async () => {
     const vm = buildViewModel(PAST_DATE);
-    qrExpiresAtDomainService.assertNotExpired.mockImplementation(() => {
-      throw new QrExpiredError(QR_ID);
-    });
+    domainService.execute.mockRejectedValue(new QrExpiredError(QR_ID));
 
-    expect(() => service.execute(vm)).toThrow(QrExpiredError);
+    await expect(service.execute(vm)).rejects.toThrow(QrExpiredError);
   });
 
-  it('includes the qr id in the thrown error', () => {
+  it('includes the qr id in the thrown error', async () => {
     const vm = buildViewModel(PAST_DATE);
-    qrExpiresAtDomainService.assertNotExpired.mockImplementation(() => {
-      throw new QrExpiredError(QR_ID);
-    });
+    domainService.execute.mockRejectedValue(new QrExpiredError(QR_ID));
 
-    expect(() => service.execute(vm)).toThrow(QR_ID);
+    await expect(service.execute(vm)).rejects.toThrow(QR_ID);
   });
 });

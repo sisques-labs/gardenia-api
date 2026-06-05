@@ -7,7 +7,8 @@ import { AssertQrNotExpiredService } from '@contexts/qr/application/services/rea
 import { AssertQrViewModelExistsService } from '@contexts/qr/application/services/read/assert-qr-view-model-exists/assert-qr-view-model-exists.service';
 import { AssertQrExistsService } from '@contexts/qr/application/services/write/assert-qr-exists/assert-qr-exists.service';
 import { QrBuilder } from '@contexts/qr/domain/builders/qr.builder';
-import { QrExpiresAtDomainService } from '@contexts/qr/domain/services/qr-expires-at/qr-expires-at.domain-service';
+import { AssertQrExpiresAtIsFutureDomainService } from '@contexts/qr/domain/services/assert-qr-expires-at-is-future/assert-qr-expires-at-is-future.domain-service';
+import { AssertQrNotExpiredDomainService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.domain-service';
 import { QR_PNG_GENERATOR } from '@contexts/qr/domain/ports/qr-png-generator.port';
 import { QR_READ_REPOSITORY } from '@contexts/qr/domain/repositories/read/qr-read.repository';
 import { QR_WRITE_REPOSITORY } from '@contexts/qr/domain/repositories/write/qr-write.repository';
@@ -42,7 +43,10 @@ const APPLICATION_SERVICES = [
 
 const DOMAIN_BUILDERS = [QrBuilder];
 
-const DOMAIN_SERVICES = [QrExpiresAtDomainService];
+const DOMAIN_SERVICES = [
+  AssertQrExpiresAtIsFutureDomainService,
+  AssertQrNotExpiredDomainService,
+];
 
 const INFRASTRUCTURE_MAPPERS = [QrTypeOrmMapper];
 

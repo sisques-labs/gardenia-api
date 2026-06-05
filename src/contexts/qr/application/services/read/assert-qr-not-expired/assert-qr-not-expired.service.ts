@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 
-import { QrExpiresAtDomainService } from '@contexts/qr/domain/services/qr-expires-at/qr-expires-at.domain-service';
+import { AssertQrNotExpiredDomainService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.domain-service';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
 @Injectable()
 export class AssertQrNotExpiredService {
   constructor(
-    private readonly qrExpiresAtDomainService: QrExpiresAtDomainService,
+    private readonly assertQrNotExpiredDomainService: AssertQrNotExpiredDomainService,
   ) {}
 
-  execute(viewModel: QrViewModel): void {
-    this.qrExpiresAtDomainService.assertNotExpired(
-      viewModel.id,
-      viewModel.expiresAt,
-    );
+  async execute(viewModel: QrViewModel): Promise<void> {
+    await this.assertQrNotExpiredDomainService.execute({
+      id: viewModel.id,
+      expiresAt: viewModel.expiresAt,
+    });
   }
 }

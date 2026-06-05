@@ -4,7 +4,7 @@ import { QrBuilder } from '@contexts/qr/domain/builders/qr.builder';
 import { QrExpiresAtInvalidError } from '@contexts/qr/domain/exceptions/qr-expires-at-invalid.error';
 import { IQrPngGenerator } from '@contexts/qr/domain/ports/qr-png-generator.port';
 import { IQrWriteRepository } from '@contexts/qr/domain/repositories/write/qr-write.repository';
-import { QrExpiresAtDomainService } from '@contexts/qr/domain/services/qr-expires-at/qr-expires-at.domain-service';
+import { AssertQrExpiresAtIsFutureDomainService } from '@contexts/qr/domain/services/assert-qr-expires-at-is-future/assert-qr-expires-at-is-future.domain-service';
 
 import { CreateQrCommand } from './create-qr.command';
 import { CreateQrCommandHandler } from './create-qr.handler';
@@ -19,7 +19,7 @@ describe('CreateQrCommandHandler', () => {
   let handler: CreateQrCommandHandler;
   let writeRepository: jest.Mocked<IQrWriteRepository>;
   let pngGenerator: jest.Mocked<IQrPngGenerator>;
-  let qrExpiresAtDomainService: jest.Mocked<QrExpiresAtDomainService>;
+  let assertQrExpiresAtIsFutureDomainService: jest.Mocked<AssertQrExpiresAtIsFutureDomainService>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -35,10 +35,9 @@ describe('CreateQrCommandHandler', () => {
       generate: jest.fn().mockResolvedValue(PNG_BUFFER),
     } as jest.Mocked<IQrPngGenerator>;
 
-    qrExpiresAtDomainService = {
-      assertIsFuture: jest.fn(),
-      assertNotExpired: jest.fn(),
-    } as jest.Mocked<QrExpiresAtDomainService>;
+    assertQrExpiresAtIsFutureDomainService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<AssertQrExpiresAtIsFutureDomainService>;
 
     eventBus = {
       publish: jest.fn(),
@@ -49,7 +48,7 @@ describe('CreateQrCommandHandler', () => {
       writeRepository,
       pngGenerator,
       new QrBuilder(),
-      qrExpiresAtDomainService,
+      assertQrExpiresAtIsFutureDomainService,
       eventBus,
     );
   });
@@ -128,10 +127,10 @@ describe('CreateQrCommandHandler', () => {
     expect(savedAggregate.toPrimitives().expiresAt).toBeNull();
   });
 
-  it('throws QrExpiresAtInvalidError when expiresAt is in the past (assertIsFuture on domain service)', async () => {
-    qrExpiresAtDomainService.assertIsFuture.mockImplementation(() => {
-      throw new QrExpiresAtInvalidError();
-    });
+  it('throws QrExpiresAtInvalidError when expiresAt is in the past (execute on domain service)', async () => {
+    assertQrExpiresAtIsFutureDomainService.execute.mockRejectedValue(
+      new QrExpiresAtInvalidError(),
+    );
 
     const command = new CreateQrCommand({
       targetUrl: TARGET_URL,

@@ -12,7 +12,7 @@ import {
   IQrWriteRepository,
   QR_WRITE_REPOSITORY,
 } from '@contexts/qr/domain/repositories/write/qr-write.repository';
-import { QrExpiresAtDomainService } from '@contexts/qr/domain/services/qr-expires-at/qr-expires-at.domain-service';
+import { AssertQrExpiresAtIsFutureDomainService } from '@contexts/qr/domain/services/assert-qr-expires-at-is-future/assert-qr-expires-at-is-future.domain-service';
 
 import { CreateQrCommand } from './create-qr.command';
 
@@ -29,7 +29,7 @@ export class CreateQrCommandHandler
     @Inject(QR_PNG_GENERATOR)
     private readonly qrPngGenerator: IQrPngGenerator,
     private readonly qrBuilder: QrBuilder,
-    private readonly qrExpiresAtDomainService: QrExpiresAtDomainService,
+    private readonly assertQrExpiresAtIsFutureDomainService: AssertQrExpiresAtIsFutureDomainService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -51,7 +51,7 @@ export class CreateQrCommandHandler
       .withUpdatedAt(now)
       .build();
 
-    this.qrExpiresAtDomainService.assertIsFuture(
+    await this.assertQrExpiresAtIsFutureDomainService.execute(
       command.expiresAt?.value ?? null,
     );
     qr.create();
