@@ -1,6 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
+import { AssertQrNotExpiredService } from '@contexts/qr/application/services/read/assert-qr-not-expired/assert-qr-not-expired.service';
+import { AssertQrViewModelExistsService } from '@contexts/qr/application/services/read/assert-qr-view-model-exists/assert-qr-view-model-exists.service';
 import { QrNotFoundException } from '@contexts/qr/domain/exceptions/qr-not-found.exception';
 import {
   IQrReadRepository,
@@ -19,10 +21,17 @@ export class QrFindPngByIdQueryHandler implements IQueryHandler<
   constructor(
     @Inject(QR_READ_REPOSITORY)
     private readonly qrReadRepository: IQrReadRepository,
+    private readonly assertQrViewModelExistsService: AssertQrViewModelExistsService,
+    private readonly assertQrNotExpiredService: AssertQrNotExpiredService,
   ) {}
 
   async execute(query: QrFindPngByIdQuery): Promise<Buffer> {
     this.logger.log(`Finding QR PNG by id: ${query.qrId.value}`);
+    const viewModel = await this.assertQrViewModelExistsService.execute(
+      query.qrId,
+    );
+    this.assertQrNotExpiredService.execute(viewModel);
+
     const png = await this.qrReadRepository.findPngById(query.qrId.value);
     if (!png) throw new QrNotFoundException(query.qrId.value);
 

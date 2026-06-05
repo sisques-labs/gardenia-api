@@ -44,6 +44,7 @@ export class CreateQrCommandHandler
       .withSpaceId(command.spaceId.value)
       .withTargetUrl(command.targetUrl.value)
       .withGeneration(1)
+      .withExpiresAt(command.expiresAt?.value ?? null)
       .withCreatedAt(now)
       .withUpdatedAt(now)
       .build();

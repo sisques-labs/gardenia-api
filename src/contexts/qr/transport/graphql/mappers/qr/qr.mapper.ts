@@ -11,6 +11,7 @@ export class QrGraphQLMapper {
       spaceId: vm.spaceId,
       targetUrl: vm.targetUrl,
       generation: vm.generation,
+      expiresAt: vm.expiresAt,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
     };

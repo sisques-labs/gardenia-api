@@ -5,6 +5,7 @@ import { QrDeletedEvent } from '@contexts/qr/domain/events/qr-deleted/qr-deleted
 import { QrRegeneratedEvent } from '@contexts/qr/domain/events/qr-regenerated/qr-regenerated.event';
 import { IQr } from '@contexts/qr/domain/interfaces/qr.interface';
 import { IQrPrimitives } from '@contexts/qr/domain/primitives/qr.primitives';
+import { QrExpiresAtValueObject } from '@contexts/qr/domain/value-objects/qr-expires-at/qr-expires-at.value-object';
 import { QrGenerationValueObject } from '@contexts/qr/domain/value-objects/qr-generation/qr-generation.value-object';
 import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
 import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
@@ -14,6 +15,7 @@ export class QrAggregate extends BaseAggregate {
   private readonly _spaceId: UuidValueObject;
   private readonly _targetUrl: QrTargetUrlValueObject;
   private _generation: QrGenerationValueObject;
+  private readonly _expiresAt: QrExpiresAtValueObject | null;
 
   constructor(props: IQr) {
     super(props.createdAt, props.updatedAt);
@@ -21,6 +23,7 @@ export class QrAggregate extends BaseAggregate {
     this._spaceId = props.spaceId;
     this._targetUrl = props.targetUrl;
     this._generation = props.generation;
+    this._expiresAt = props.expiresAt;
   }
 
   public create(): void {
@@ -76,9 +79,14 @@ export class QrAggregate extends BaseAggregate {
       spaceId: this._spaceId.value,
       targetUrl: this._targetUrl.value,
       generation: this._generation.value,
+      expiresAt: this._expiresAt?.value ?? null,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };
+  }
+
+  public isExpired(): boolean {
+    return this._expiresAt !== null && this._expiresAt.value! < new Date();
   }
 
   get id(): QrIdValueObject {
@@ -95,5 +103,9 @@ export class QrAggregate extends BaseAggregate {
 
   get generation(): QrGenerationValueObject {
     return this._generation;
+  }
+
+  get expiresAt(): QrExpiresAtValueObject | null {
+    return this._expiresAt;
   }
 }

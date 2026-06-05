@@ -19,6 +19,7 @@ describe('QrQueriesResolver', () => {
     spaceId: SPACE_ID,
     targetUrl: 'http://localhost:3000/plants/example?spaceId=abc',
     generation: 1,
+    expiresAt: null,
     createdAt: now,
     updatedAt: now,
   });
@@ -41,6 +42,7 @@ describe('QrQueriesResolver', () => {
       spaceId: SPACE_ID,
       targetUrl: mockVm.targetUrl,
       generation: 1,
+      expiresAt: null,
       createdAt: now,
       updatedAt: now,
     });

@@ -10,6 +10,7 @@ import { CreateQrCommandHandler } from './create-qr.handler';
 const TARGET_URL = 'http://localhost:3000/plants/example?spaceId=abc';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';
 const PNG_BUFFER = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+const FUTURE_DATE = new Date(Date.now() + 1000 * 60 * 60 * 24);
 
 describe('CreateQrCommandHandler', () => {
   let handler: CreateQrCommandHandler;
@@ -90,5 +91,30 @@ describe('CreateQrCommandHandler', () => {
     await handler.execute(command);
 
     expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes expiresAt to the aggregate when provided', async () => {
+    const command = new CreateQrCommand({
+      targetUrl: TARGET_URL,
+      spaceId: SPACE_ID,
+      expiresAt: FUTURE_DATE,
+    });
+
+    await handler.execute(command);
+
+    const savedAggregate = (writeRepository.save as jest.Mock).mock.calls[0][0];
+    expect(savedAggregate.toPrimitives().expiresAt).toEqual(FUTURE_DATE);
+  });
+
+  it('passes null expiresAt when not provided', async () => {
+    const command = new CreateQrCommand({
+      targetUrl: TARGET_URL,
+      spaceId: SPACE_ID,
+    });
+
+    await handler.execute(command);
+
+    const savedAggregate = (writeRepository.save as jest.Mock).mock.calls[0][0];
+    expect(savedAggregate.toPrimitives().expiresAt).toBeNull();
   });
 });

@@ -18,6 +18,7 @@ function makeQrViewModel(): QrViewModel {
     spaceId: SPACE_ID,
     targetUrl: TARGET_URL,
     generation: 1,
+    expiresAt: null,
     createdAt: now,
     updatedAt: now,
   });

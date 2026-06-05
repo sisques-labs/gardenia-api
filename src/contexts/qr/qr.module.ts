@@ -3,6 +3,7 @@ import { DeleteQrCommandHandler } from '@contexts/qr/application/commands/delete
 import { RegenerateQrCommandHandler } from '@contexts/qr/application/commands/regenerate-qr/regenerate-qr.handler';
 import { QrFindByIdQueryHandler } from '@contexts/qr/application/queries/qr-find-by-id/qr-find-by-id.handler';
 import { QrFindPngByIdQueryHandler } from '@contexts/qr/application/queries/qr-find-png-by-id/qr-find-png-by-id.handler';
+import { AssertQrNotExpiredService } from '@contexts/qr/application/services/read/assert-qr-not-expired/assert-qr-not-expired.service';
 import { AssertQrViewModelExistsService } from '@contexts/qr/application/services/read/assert-qr-view-model-exists/assert-qr-view-model-exists.service';
 import { AssertQrExistsService } from '@contexts/qr/application/services/write/assert-qr-exists/assert-qr-exists.service';
 import { QrBuilder } from '@contexts/qr/domain/builders/qr.builder';
@@ -34,6 +35,7 @@ const QUERY_HANDLERS = [QrFindByIdQueryHandler, QrFindPngByIdQueryHandler];
 
 const APPLICATION_SERVICES = [
   AssertQrViewModelExistsService,
+  AssertQrNotExpiredService,
   AssertQrExistsService,
 ];
 

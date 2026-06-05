@@ -11,6 +11,7 @@ export class QrRestMapper {
     dto.spaceId = viewModel.spaceId;
     dto.targetUrl = viewModel.targetUrl;
     dto.generation = viewModel.generation;
+    dto.expiresAt = viewModel.expiresAt;
     dto.createdAt = viewModel.createdAt;
     dto.updatedAt = viewModel.updatedAt;
     return dto;

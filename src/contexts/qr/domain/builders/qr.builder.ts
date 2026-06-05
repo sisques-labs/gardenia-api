@@ -7,6 +7,7 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
+import { QrExpiresAtValueObject } from '@contexts/qr/domain/value-objects/qr-expires-at/qr-expires-at.value-object';
 import { QrGenerationValueObject } from '@contexts/qr/domain/value-objects/qr-generation/qr-generation.value-object';
 import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
 import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
@@ -17,6 +18,7 @@ export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
   private _spaceId!: string;
   private _targetUrl!: string;
   private _generation = 1;
+  private _expiresAt: Date | null = null;
 
   withSpaceId(spaceId: string): this {
     this._spaceId = spaceId;
@@ -33,6 +35,11 @@ export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
     return this;
   }
 
+  withExpiresAt(expiresAt: Date | null): this {
+    this._expiresAt = expiresAt;
+    return this;
+  }
+
   public override build(): QrAggregate {
     this.validate();
     return new QrAggregate({
@@ -40,6 +47,10 @@ export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
       spaceId: new UuidValueObject(this._spaceId),
       targetUrl: new QrTargetUrlValueObject(this._targetUrl),
       generation: new QrGenerationValueObject(this._generation),
+      expiresAt:
+        this._expiresAt !== null
+          ? new QrExpiresAtValueObject(this._expiresAt)
+          : null,
       createdAt: new DateValueObject(this._createdAt),
       updatedAt: new DateValueObject(this._updatedAt),
     });
@@ -52,6 +63,7 @@ export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
       spaceId: this._spaceId,
       targetUrl: this._targetUrl,
       generation: this._generation,
+      expiresAt: this._expiresAt,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });
