@@ -1,6 +1,16 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.14.0-alpha.0] - 2026-06-05
+
+### Documentation
+- **openspec:** Add qr-expires-at change proposal (c1f02ed)
+
+### Features
+- **qr:** Add expiresAt field with expiry enforcement (5cd6adf)
+
+### Refactor
+- **qr:** Move expiresAt validation to aggregate.checkExpiresAt() (826d20b)
 ## [0.13.0-alpha.0] - 2026-06-04
 
 ### Bug Fixes
@@ -16,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - **sdd:** Add auth-improvement openspec artifacts (b711faa)
 - **env:** Add OAuth environment variables to .env.example (1ac4062)
 - **sdd:** Archive auth-improvement openspec artifacts (c9b2bb2)
+- Release v0.13.0-alpha.0 (2d7418c)
 
 ### Features
 - **auth:** Add OAuth foundation — domain model, persistence and command handlers (c8fd955)
