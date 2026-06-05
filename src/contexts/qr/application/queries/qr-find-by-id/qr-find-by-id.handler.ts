@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { AssertQrNotExpiredService } from '@contexts/qr/application/services/read/assert-qr-not-expired/assert-qr-not-expired.service';
 import { AssertQrViewModelExistsService } from '@contexts/qr/application/services/read/assert-qr-view-model-exists/assert-qr-view-model-exists.service';
+import { AssertQrNotExpiredDomainService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.domain-service';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
 import { QrFindByIdQuery } from './qr-find-by-id.query';
@@ -16,7 +16,7 @@ export class QrFindByIdQueryHandler implements IQueryHandler<
 
   constructor(
     private readonly assertQrViewModelExistsService: AssertQrViewModelExistsService,
-    private readonly assertQrNotExpiredService: AssertQrNotExpiredService,
+    private readonly assertQrNotExpiredDomainService: AssertQrNotExpiredDomainService,
   ) {}
 
   async execute(query: QrFindByIdQuery): Promise<QrViewModel> {
@@ -24,7 +24,10 @@ export class QrFindByIdQueryHandler implements IQueryHandler<
     const viewModel = await this.assertQrViewModelExistsService.execute(
       query.qrId,
     );
-    await this.assertQrNotExpiredService.execute(viewModel);
+    await this.assertQrNotExpiredDomainService.execute({
+      id: viewModel.id,
+      expiresAt: viewModel.expiresAt,
+    });
     return viewModel;
   }
 }

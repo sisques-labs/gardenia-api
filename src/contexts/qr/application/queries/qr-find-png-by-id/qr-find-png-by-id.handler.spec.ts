@@ -1,8 +1,8 @@
-import { AssertQrNotExpiredService } from '@contexts/qr/application/services/read/assert-qr-not-expired/assert-qr-not-expired.service';
 import { AssertQrViewModelExistsService } from '@contexts/qr/application/services/read/assert-qr-view-model-exists/assert-qr-view-model-exists.service';
 import { QrExpiredError } from '@contexts/qr/domain/exceptions/qr-expired.error';
 import { QrNotFoundException } from '@contexts/qr/domain/exceptions/qr-not-found.exception';
 import { IQrReadRepository } from '@contexts/qr/domain/repositories/read/qr-read.repository';
+import { AssertQrNotExpiredDomainService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.domain-service';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
 import { QrFindPngByIdQuery } from './qr-find-png-by-id.query';
@@ -28,7 +28,7 @@ describe('QrFindPngByIdQueryHandler', () => {
   let handler: QrFindPngByIdQueryHandler;
   let readRepository: jest.Mocked<IQrReadRepository>;
   let assertExists: jest.Mocked<AssertQrViewModelExistsService>;
-  let assertNotExpired: jest.Mocked<AssertQrNotExpiredService>;
+  let assertNotExpired: jest.Mocked<AssertQrNotExpiredDomainService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -43,8 +43,8 @@ describe('QrFindPngByIdQueryHandler', () => {
     } as unknown as jest.Mocked<AssertQrViewModelExistsService>;
 
     assertNotExpired = {
-      execute: jest.fn(),
-    } as unknown as jest.Mocked<AssertQrNotExpiredService>;
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<AssertQrNotExpiredDomainService>;
 
     handler = new QrFindPngByIdQueryHandler(
       readRepository,
@@ -76,9 +76,7 @@ describe('QrFindPngByIdQueryHandler', () => {
 
   it('propagates QrExpiredError from assertNotExpired', async () => {
     assertExists.execute.mockResolvedValue(buildViewModel(PAST_DATE));
-    assertNotExpired.execute.mockImplementation(() => {
-      throw new QrExpiredError(QR_ID);
-    });
+    assertNotExpired.execute.mockRejectedValue(new QrExpiredError(QR_ID));
 
     await expect(
       handler.execute(new QrFindPngByIdQuery({ qrId: QR_ID })),
