@@ -17,9 +17,6 @@ export class CreateQrCommand {
   constructor(input: CreateQrCommandInput) {
     this.targetUrl = new QrTargetUrlValueObject(input.targetUrl);
     this.spaceId = new UuidValueObject(input.spaceId);
-    if (input.expiresAt !== undefined && input.expiresAt <= new Date()) {
-      throw new Error('expiresAt must be a future date');
-    }
     this.expiresAt = input.expiresAt
       ? new QrExpiresAtValueObject(input.expiresAt)
       : null;

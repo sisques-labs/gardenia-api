@@ -25,27 +25,13 @@ describe('CreateQrCommand', () => {
     expect(command.expiresAt?.value).toBe(FUTURE_DATE);
   });
 
-  it('throws when expiresAt is in the past', () => {
-    expect(
-      () =>
-        new CreateQrCommand({
-          targetUrl: TARGET_URL,
-          spaceId: SPACE_ID,
-          expiresAt: PAST_DATE,
-        }),
-    ).toThrow('expiresAt must be a future date');
-  });
+  it('creates command with a past expiresAt without throwing (validation is in aggregate.checkExpiresAt)', () => {
+    const command = new CreateQrCommand({
+      targetUrl: TARGET_URL,
+      spaceId: SPACE_ID,
+      expiresAt: PAST_DATE,
+    });
 
-  it('throws when expiresAt equals now (boundary)', () => {
-    const now = new Date();
-
-    expect(
-      () =>
-        new CreateQrCommand({
-          targetUrl: TARGET_URL,
-          spaceId: SPACE_ID,
-          expiresAt: now,
-        }),
-    ).toThrow('expiresAt must be a future date');
+    expect(command.expiresAt?.value).toBe(PAST_DATE);
   });
 });

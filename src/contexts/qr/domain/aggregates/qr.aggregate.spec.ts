@@ -77,4 +77,34 @@ describe('QrAggregate', () => {
       expect(qr.isExpired()).toBe(true);
     });
   });
+
+  describe('checkExpiresAt()', () => {
+    it('does not throw when expiresAt is null', () => {
+      const qr = buildQr(null);
+
+      expect(() => qr.checkExpiresAt()).not.toThrow();
+    });
+
+    it('does not throw when expiresAt is in the future', () => {
+      const qr = buildQr(new QrExpiresAtValueObject(FUTURE_DATE));
+
+      expect(() => qr.checkExpiresAt()).not.toThrow();
+    });
+
+    it('throws when expiresAt is in the past', () => {
+      const qr = buildQr(new QrExpiresAtValueObject(PAST_DATE));
+
+      expect(() => qr.checkExpiresAt()).toThrow(
+        'expiresAt must be a future date',
+      );
+    });
+
+    it('throws when expiresAt equals now (boundary)', () => {
+      const qr = buildQr(new QrExpiresAtValueObject(new Date()));
+
+      expect(() => qr.checkExpiresAt()).toThrow(
+        'expiresAt must be a future date',
+      );
+    });
+  });
 });

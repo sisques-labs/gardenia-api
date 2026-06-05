@@ -49,6 +49,7 @@ export class CreateQrCommandHandler
       .withUpdatedAt(now)
       .build();
 
+    qr.checkExpiresAt();
     qr.create();
 
     await this.qrWriteRepository.save(qr, pngImage);
