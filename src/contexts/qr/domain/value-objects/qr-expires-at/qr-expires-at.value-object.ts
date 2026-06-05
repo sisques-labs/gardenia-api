@@ -1,7 +1,7 @@
-export class QrExpiresAtValueObject {
-  readonly value: Date | null;
+import { DateValueObject } from '@sisques-labs/nestjs-kit';
 
-  constructor(value: Date | null) {
-    this.value = value;
+export class QrExpiresAtValueObject extends DateValueObject {
+  constructor(date: Date) {
+    super(date);
   }
 }

@@ -1,8 +1,10 @@
 import { EventBus } from '@nestjs/cqrs';
 
 import { QrBuilder } from '@contexts/qr/domain/builders/qr.builder';
+import { QrExpiresAtInvalidError } from '@contexts/qr/domain/exceptions/qr-expires-at-invalid.error';
 import { IQrPngGenerator } from '@contexts/qr/domain/ports/qr-png-generator.port';
 import { IQrWriteRepository } from '@contexts/qr/domain/repositories/write/qr-write.repository';
+import { QrExpiresAtDomainService } from '@contexts/qr/domain/services/qr-expires-at/qr-expires-at.domain-service';
 
 import { CreateQrCommand } from './create-qr.command';
 import { CreateQrCommandHandler } from './create-qr.handler';
@@ -17,6 +19,7 @@ describe('CreateQrCommandHandler', () => {
   let handler: CreateQrCommandHandler;
   let writeRepository: jest.Mocked<IQrWriteRepository>;
   let pngGenerator: jest.Mocked<IQrPngGenerator>;
+  let qrExpiresAtDomainService: jest.Mocked<QrExpiresAtDomainService>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -32,6 +35,11 @@ describe('CreateQrCommandHandler', () => {
       generate: jest.fn().mockResolvedValue(PNG_BUFFER),
     } as jest.Mocked<IQrPngGenerator>;
 
+    qrExpiresAtDomainService = {
+      assertIsFuture: jest.fn(),
+      assertNotExpired: jest.fn(),
+    } as jest.Mocked<QrExpiresAtDomainService>;
+
     eventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -41,6 +49,7 @@ describe('CreateQrCommandHandler', () => {
       writeRepository,
       pngGenerator,
       new QrBuilder(),
+      qrExpiresAtDomainService,
       eventBus,
     );
   });
@@ -119,7 +128,11 @@ describe('CreateQrCommandHandler', () => {
     expect(savedAggregate.toPrimitives().expiresAt).toBeNull();
   });
 
-  it('throws when expiresAt is in the past (checkExpiresAt on aggregate)', async () => {
+  it('throws QrExpiresAtInvalidError when expiresAt is in the past (assertIsFuture on domain service)', async () => {
+    qrExpiresAtDomainService.assertIsFuture.mockImplementation(() => {
+      throw new QrExpiresAtInvalidError();
+    });
+
     const command = new CreateQrCommand({
       targetUrl: TARGET_URL,
       spaceId: SPACE_ID,
@@ -127,7 +140,7 @@ describe('CreateQrCommandHandler', () => {
     });
 
     await expect(handler.execute(command)).rejects.toThrow(
-      'expiresAt must be a future date',
+      QrExpiresAtInvalidError,
     );
   });
 });

@@ -26,12 +26,6 @@ export class QrAggregate extends BaseAggregate {
     this._expiresAt = props.expiresAt;
   }
 
-  public checkExpiresAt(): void {
-    if (this._expiresAt !== null && this._expiresAt.value! <= new Date()) {
-      throw new Error('expiresAt must be a future date');
-    }
-  }
-
   public create(): void {
     this.apply(
       new QrCreatedEvent(
@@ -92,7 +86,7 @@ export class QrAggregate extends BaseAggregate {
   }
 
   public isExpired(): boolean {
-    return this._expiresAt !== null && this._expiresAt.value! < new Date();
+    return this._expiresAt !== null && this._expiresAt.value < new Date();
   }
 
   get id(): QrIdValueObject {

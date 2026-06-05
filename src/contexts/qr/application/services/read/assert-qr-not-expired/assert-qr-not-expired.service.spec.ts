@@ -1,4 +1,5 @@
 import { QrExpiredError } from '@contexts/qr/domain/exceptions/qr-expired.error';
+import { QrExpiresAtDomainService } from '@contexts/qr/domain/services/qr-expires-at/qr-expires-at.domain-service';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
 import { AssertQrNotExpiredService } from './assert-qr-not-expired.service';
@@ -21,31 +22,51 @@ const buildViewModel = (expiresAt: Date | null): QrViewModel =>
 
 describe('AssertQrNotExpiredService', () => {
   let service: AssertQrNotExpiredService;
+  let qrExpiresAtDomainService: jest.Mocked<QrExpiresAtDomainService>;
 
   beforeEach(() => {
-    service = new AssertQrNotExpiredService();
+    qrExpiresAtDomainService = {
+      assertIsFuture: jest.fn(),
+      assertNotExpired: jest.fn(),
+    } as jest.Mocked<QrExpiresAtDomainService>;
+
+    service = new AssertQrNotExpiredService(qrExpiresAtDomainService);
   });
 
   it('does not throw when expiresAt is null', () => {
     const vm = buildViewModel(null);
 
     expect(() => service.execute(vm)).not.toThrow();
+    expect(qrExpiresAtDomainService.assertNotExpired).toHaveBeenCalledWith(
+      QR_ID,
+      null,
+    );
   });
 
   it('does not throw when expiresAt is in the future', () => {
     const vm = buildViewModel(FUTURE_DATE);
 
     expect(() => service.execute(vm)).not.toThrow();
+    expect(qrExpiresAtDomainService.assertNotExpired).toHaveBeenCalledWith(
+      QR_ID,
+      FUTURE_DATE,
+    );
   });
 
-  it('throws QrExpiredError when expiresAt is in the past', () => {
+  it('propagates QrExpiredError from the domain service when expiresAt is in the past', () => {
     const vm = buildViewModel(PAST_DATE);
+    qrExpiresAtDomainService.assertNotExpired.mockImplementation(() => {
+      throw new QrExpiredError(QR_ID);
+    });
 
     expect(() => service.execute(vm)).toThrow(QrExpiredError);
   });
 
   it('includes the qr id in the thrown error', () => {
     const vm = buildViewModel(PAST_DATE);
+    qrExpiresAtDomainService.assertNotExpired.mockImplementation(() => {
+      throw new QrExpiredError(QR_ID);
+    });
 
     expect(() => service.execute(vm)).toThrow(QR_ID);
   });
