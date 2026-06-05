@@ -1,16 +1,16 @@
 import { QrExpiredError } from '@contexts/qr/domain/exceptions/qr-expired.error';
 
-import { AssertQrNotExpiredDomainService } from './assert-qr-not-expired.domain-service';
+import { AssertQrNotExpiredService } from './assert-qr-not-expired.service';
 
 const QR_ID = '550e8400-e29b-41d4-a716-446655440000';
 const FUTURE_DATE = new Date(Date.now() + 1000 * 60 * 60 * 24);
 const PAST_DATE = new Date('2020-01-01');
 
-describe('AssertQrNotExpiredDomainService', () => {
-  let service: AssertQrNotExpiredDomainService;
+describe('AssertQrNotExpiredService', () => {
+  let service: AssertQrNotExpiredService;
 
   beforeEach(() => {
-    service = new AssertQrNotExpiredDomainService();
+    service = new AssertQrNotExpiredService();
   });
 
   it('does not throw when expiresAt is null', async () => {

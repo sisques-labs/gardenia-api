@@ -7,7 +7,7 @@ import {
   IQrReadRepository,
   QR_READ_REPOSITORY,
 } from '@contexts/qr/domain/repositories/read/qr-read.repository';
-import { AssertQrNotExpiredDomainService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.domain-service';
+import { AssertQrNotExpiredService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.service';
 
 import { QrFindPngByIdQuery } from './qr-find-png-by-id.query';
 
@@ -22,7 +22,7 @@ export class QrFindPngByIdQueryHandler implements IQueryHandler<
     @Inject(QR_READ_REPOSITORY)
     private readonly qrReadRepository: IQrReadRepository,
     private readonly assertQrViewModelExistsService: AssertQrViewModelExistsService,
-    private readonly assertQrNotExpiredDomainService: AssertQrNotExpiredDomainService,
+    private readonly assertQrNotExpiredService: AssertQrNotExpiredService,
   ) {}
 
   async execute(query: QrFindPngByIdQuery): Promise<Buffer> {
@@ -30,7 +30,7 @@ export class QrFindPngByIdQueryHandler implements IQueryHandler<
     const viewModel = await this.assertQrViewModelExistsService.execute(
       query.qrId,
     );
-    await this.assertQrNotExpiredDomainService.execute({
+    await this.assertQrNotExpiredService.execute({
       id: viewModel.id,
       expiresAt: viewModel.expiresAt,
     });

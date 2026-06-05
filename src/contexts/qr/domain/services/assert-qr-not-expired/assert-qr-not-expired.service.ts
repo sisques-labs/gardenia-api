@@ -9,7 +9,7 @@ export interface AssertQrNotExpiredInput {
 }
 
 @Injectable()
-export class AssertQrNotExpiredDomainService implements IBaseService<
+export class AssertQrNotExpiredService implements IBaseService<
   AssertQrNotExpiredInput,
   void
 > {

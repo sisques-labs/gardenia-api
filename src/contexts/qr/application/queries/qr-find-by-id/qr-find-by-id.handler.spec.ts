@@ -1,6 +1,6 @@
 import { AssertQrViewModelExistsService } from '@contexts/qr/application/services/read/assert-qr-view-model-exists/assert-qr-view-model-exists.service';
 import { QrExpiredError } from '@contexts/qr/domain/exceptions/qr-expired.error';
-import { AssertQrNotExpiredDomainService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.domain-service';
+import { AssertQrNotExpiredService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.service';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
 import { QrFindByIdQuery } from './qr-find-by-id.query';
@@ -25,7 +25,7 @@ const buildViewModel = (expiresAt: Date | null): QrViewModel =>
 describe('QrFindByIdQueryHandler', () => {
   let handler: QrFindByIdQueryHandler;
   let assertExists: jest.Mocked<AssertQrViewModelExistsService>;
-  let assertNotExpired: jest.Mocked<AssertQrNotExpiredDomainService>;
+  let assertNotExpired: jest.Mocked<AssertQrNotExpiredService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -36,7 +36,7 @@ describe('QrFindByIdQueryHandler', () => {
 
     assertNotExpired = {
       execute: jest.fn().mockResolvedValue(undefined),
-    } as jest.Mocked<AssertQrNotExpiredDomainService>;
+    } as jest.Mocked<AssertQrNotExpiredService>;
 
     handler = new QrFindByIdQueryHandler(assertExists, assertNotExpired);
   });

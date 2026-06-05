@@ -9,8 +9,8 @@ import { QrBuilder } from '@contexts/qr/domain/builders/qr.builder';
 import { QR_PNG_GENERATOR } from '@contexts/qr/domain/ports/qr-png-generator.port';
 import { QR_READ_REPOSITORY } from '@contexts/qr/domain/repositories/read/qr-read.repository';
 import { QR_WRITE_REPOSITORY } from '@contexts/qr/domain/repositories/write/qr-write.repository';
-import { AssertQrExpiresAtIsFutureDomainService } from '@contexts/qr/domain/services/assert-qr-expires-at-is-future/assert-qr-expires-at-is-future.domain-service';
-import { AssertQrNotExpiredDomainService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.domain-service';
+import { AssertQrExpiresAtIsFutureService } from '@contexts/qr/domain/services/assert-qr-expires-at-is-future/assert-qr-expires-at-is-future.service';
+import { AssertQrNotExpiredService } from '@contexts/qr/domain/services/assert-qr-not-expired/assert-qr-not-expired.service';
 import { QrTypeOrmEntity } from '@contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
 import { QrTypeOrmMapper } from '@contexts/qr/infrastructure/persistence/typeorm/mappers/qr-typeorm.mapper';
 import { QrTypeOrmReadRepository } from '@contexts/qr/infrastructure/persistence/typeorm/repositories/qr-typeorm-read.repository';
@@ -42,8 +42,8 @@ const APPLICATION_SERVICES = [
 const DOMAIN_BUILDERS = [QrBuilder];
 
 const DOMAIN_SERVICES = [
-  AssertQrExpiresAtIsFutureDomainService,
-  AssertQrNotExpiredDomainService,
+  AssertQrExpiresAtIsFutureService,
+  AssertQrNotExpiredService,
 ];
 
 const INFRASTRUCTURE_MAPPERS = [QrTypeOrmMapper];

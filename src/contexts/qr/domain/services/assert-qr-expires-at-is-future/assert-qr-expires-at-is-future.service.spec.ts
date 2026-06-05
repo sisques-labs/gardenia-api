@@ -1,15 +1,15 @@
 import { QrExpiresAtInvalidError } from '@contexts/qr/domain/exceptions/qr-expires-at-invalid.error';
 
-import { AssertQrExpiresAtIsFutureDomainService } from './assert-qr-expires-at-is-future.domain-service';
+import { AssertQrExpiresAtIsFutureService } from './assert-qr-expires-at-is-future.service';
 
 const FUTURE_DATE = new Date(Date.now() + 1000 * 60 * 60 * 24);
 const PAST_DATE = new Date('2020-01-01');
 
-describe('AssertQrExpiresAtIsFutureDomainService', () => {
-  let service: AssertQrExpiresAtIsFutureDomainService;
+describe('AssertQrExpiresAtIsFutureService', () => {
+  let service: AssertQrExpiresAtIsFutureService;
 
   beforeEach(() => {
-    service = new AssertQrExpiresAtIsFutureDomainService();
+    service = new AssertQrExpiresAtIsFutureService();
   });
 
   it('does not throw when expiresAt is null', async () => {

@@ -4,7 +4,7 @@ import { IBaseService } from '@sisques-labs/nestjs-kit';
 import { QrExpiresAtInvalidError } from '@contexts/qr/domain/exceptions/qr-expires-at-invalid.error';
 
 @Injectable()
-export class AssertQrExpiresAtIsFutureDomainService implements IBaseService<
+export class AssertQrExpiresAtIsFutureService implements IBaseService<
   Date | null,
   void
 > {
