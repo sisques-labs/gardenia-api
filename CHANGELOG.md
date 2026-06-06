@@ -1,7 +1,17 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.14.1-alpha.0] - 2026-06-06
+
+### Bug Fixes
+- **graphql:** Enable fieldResolverEnhancers for tenant context (b94d795)
+
+### Documentation
+- **openspec:** Document graphql field resolver space context fix (c71ca8a)
 ## [0.14.0-alpha.0] - 2026-06-05
+
+### Chore
+- Release v0.14.0-alpha.0 (8981480)
 
 ### Documentation
 - **openspec:** Add qr-expires-at change proposal (c1f02ed)
