@@ -159,6 +159,7 @@ This spec describes the delta — what MUST be true after the multi-tenancy chan
 - `SpaceContext` MUST be a request-scoped service backed by `AsyncLocalStorage`.
 - `SpaceContext` MUST expose: `run(spaceId, fn)`, `get(): string | undefined`, and `require(): string`.
 - `SpaceContext` MUST be populated by `SpaceInterceptor` (wraps the handler via `next.handle()`) after `SpaceGuard` validates the space membership.
+- `GraphQLModule.forRoot()` MUST set `fieldResolverEnhancers: ['guards', 'interceptors']` so `@ResolveField` handlers re-run `SpaceGuard` and `SpaceInterceptor`. NestJS skips global enhancers on field resolvers by default; without this, field resolution runs after the parent handler's ALS frame closes and tenant repository calls throw `SpaceContextMissingException`.
 - Tenant-scoped repositories (`createTenantRepository` proxy) MUST call `SpaceContext.require()` on every query. If the ALS store is empty, `require()` MUST throw `SpaceContextMissingException`. This is the **fail-closed** contract.
 - Identity-scoped repositories (see auth spec §5.3) MUST use the raw (non-proxied) TypeORM repository for UUID-based lookups and deletes, bypassing the tenant proxy entirely.
 - No part of the domain layer MAY import or reference `SpaceContext` directly.

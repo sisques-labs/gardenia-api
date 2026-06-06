@@ -43,6 +43,10 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
       driver: ApolloDriver,
       autoSchemaFile: true,
       playground: true,
+      // Field resolvers run after the parent handler completes, so the ALS
+      // frame from SpaceInterceptor is gone. Re-apply guards/interceptors so
+      // req.spaceId (set by SpaceGuard) is wrapped again for tenant repos.
+      fieldResolverEnhancers: ['guards', 'interceptors'],
       context: ({ req, res }: { req: Request; res: Response }) => ({
         req,
         res,

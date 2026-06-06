@@ -1,7 +1,7 @@
 # Plants — QR & Species Catalog Integration
 
-**Source changes:** plant-qr-generation (archived 2026-05-31) + plant-qr-view-model (archived 2026-05-31) + plant-species-module (archived 2026-05-31)  
-**Last updated:** 2026-05-31
+**Source changes:** plant-qr-generation (archived 2026-05-31) + plant-qr-view-model (archived 2026-05-31) + plant-species-module (archived 2026-05-31) + graphql-field-resolver-space-context  
+**Last updated:** 2026-06-06
 
 This canonical spec consolidates QR linking, species catalog linking, and port decoupling requirements for the `plants` bounded context.
 
@@ -62,8 +62,15 @@ Plant REST and GraphQL read responses MUST include a nested `qr` object with all
 #### Scenario: Plant with QR returns qr object including image
 
 - GIVEN a plant with `qrId` pointing to a valid QR
-- WHEN `PlantFindById` is dispatched
+- WHEN `PlantFindById` is dispatched (or GraphQL `plantFindById` with `qr` field selected)
 - THEN `PlantViewModel.qr` includes `id`, `spaceId`, `targetUrl`, `generation`, `image` (base64 PNG), `createdAt`, `updatedAt`
+
+#### Scenario: GraphQL qr field resolver has active SpaceContext
+
+- GIVEN a GraphQL `plantFindById` query that selects the `qr` field
+- AND the plant has a linked `qrId` in the same space as `X-Space-ID`
+- WHEN `PlantQrResolvedFieldResolver` resolves `qr`
+- THEN `SpaceContext.require()` succeeds (via `fieldResolverEnhancers`) and the response includes the nested `qr` object
 
 #### Scenario: Plant with QR in list query returns qr object
 
