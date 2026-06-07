@@ -43,6 +43,8 @@ export class CreateTaskTemplateCommandHandler
       .withDefaultCronExpression(command.defaultCronExpression)
       .withDefaultIsRecurring(command.defaultIsRecurring)
       .withUserId(command.userId.value)
+      .withCreatedAt(new Date())
+      .withUpdatedAt(new Date())
       .build();
 
     template.create();
