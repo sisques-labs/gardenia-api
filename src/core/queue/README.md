@@ -24,11 +24,12 @@ It is declared as `@Global()`, so every module in the app can inject its exports
 src/core/queue/
 ├── adapters/
 │   ├── bullmq/
-│   │   └── bullmq-task-queue.adapter.ts   # Production Redis/BullMQ adapter
+│   │   └── bullmq-task-queue.adapter.ts        # Production Redis/BullMQ adapter
 │   ├── sqs/
-│   │   └── sqs-task-queue-stub.adapter.ts # SQS stub (not implemented)
+│   │   ├── sqs-task-queue.adapter.ts           # Production AWS SQS adapter
+│   │   └── sqs-task-queue-stub.adapter.ts      # Legacy stub (kept for reference)
 │   └── rabbitmq/
-│       └── rabbitmq-task-queue-stub.adapter.ts
+│       └── rabbitmq-task-queue-stub.adapter.ts # RabbitMQ stub (not implemented)
 ├── config/
 │   └── queue.config.ts                    # Reads TASK_* env vars
 ├── decorators/
@@ -145,56 +146,76 @@ export class MyCompletedHandler implements IEventHandler<TaskJobCompletedEvent> 
 
 ---
 
+## SQS Specifics
+
+The SQS adapter uses `@aws-sdk/client-sqs` with long-polling (20s) and processes up to 10 messages per poll cycle.
+
+**Credentials** — if `TASK_SQS_ACCESS_KEY_ID` / `TASK_SQS_SECRET_ACCESS_KEY` are left empty, the SDK falls back to the standard AWS credential chain (IAM role, environment, `~/.aws/credentials`). In production on ECS/EC2/Lambda, leave them empty and use an IAM role — it is more secure.
+
+**Retry & DLQ** — failed messages are NOT deleted from the queue. SQS makes them visible again after the `VisibilityTimeout` (30 s). Configure a **redrive policy** on your SQS queue with `maxReceiveCount` set to `defaultRetryCount + 1`. When that threshold is crossed, SQS automatically moves the message to the dead-letter queue (DLQ). The adapter reads `ApproximateReceiveCount` to set `isFinal` on `TaskJobFailedEvent`.
+
+**Cancellation caveat** — SQS has no delete-by-MessageId API before a message is received. Cancellation is implemented as an in-memory denylist: when the consumer receives a cancelled message, it skips and deletes it without calling the handler. If the process restarts before the message is consumed, the denylist is lost and the task will execute once before the `CANCELLED` status in the DB causes it to be ignored at the domain level.
+
+**Cron / recurring tasks** — SQS does not support scheduled or recurring messages natively. Passing `cronExpression` logs a warning and enqueues the job once. For recurring jobs use **Amazon EventBridge Scheduler** to trigger the `POST /tasks` endpoint on a cron schedule.
+
+**Priority** — SQS standard queues have no native priority. The priority value is stored as a `MessageAttribute` for observability but is not enforced by the broker. If strict priority matters, use the Redis/BullMQ provider.
+
+**Setting up the SQS queue (one-time)**
+
+```bash
+# Standard queue
+aws sqs create-queue --queue-name gardenia-tasks
+
+# Or FIFO (for strict ordering per message group)
+aws sqs create-queue \
+  --queue-name gardenia-tasks.fifo \
+  --attributes FifoQueue=true,ContentBasedDeduplication=false
+
+# Attach a redrive policy (DLQ must exist first)
+aws sqs set-queue-attributes \
+  --queue-url $TASK_SQS_QUEUE_URL \
+  --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:...:gardenia-tasks-dlq\",\"maxReceiveCount\":\"4\"}"}'
+```
+
+---
+
 ## Implementing a New Provider
 
-To add a real SQS or RabbitMQ provider:
+To add a RabbitMQ provider (or any other):
 
 **1. Implement the interface**
 
 ```typescript
-// src/core/queue/adapters/sqs/sqs-task-queue.adapter.ts
+// src/core/queue/adapters/rabbitmq/rabbitmq-task-queue.adapter.ts
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ITaskQueueJob } from '@core/queue/interfaces/task-queue-job.interface';
 import { ITaskQueueProvider } from '@core/queue/ports/task-queue-provider.port';
 
 @Injectable()
-export class SqsTaskQueueAdapter implements ITaskQueueProvider, OnModuleInit, OnModuleDestroy {
-  async onModuleInit(): Promise<void> {
-    // connect to SQS, start polling consumer
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    // stop consumer, drain connections
-  }
-
-  async enqueue(job: ITaskQueueJob): Promise<string> {
-    // send message to SQS, return MessageId
-  }
-
-  async cancel(queueJobId: string): Promise<void> {
-    // delete message from queue if still visible
-  }
-}
-```
-
-**2. Register it in `queue.module.ts`**
-
-Add it to the factory:
-
-```typescript
+export class RabbitMqTaskQueueAdapter
+  implements ITaskQueueProvider, OnModuleInit, OnModuleDestroy
 {
-  provide: TASK_QUEUE_PROVIDER,
-  useFactory: (config, bullmq, sqs, rabbitmq) => {
-    if (config.get('taskQueue.provider') === 'sqs') return sqs;
-    // ...
-  },
+  async onModuleInit(): Promise<void> {
+    // connect, declare exchange/queue, start consumer
+  }
+  async onModuleDestroy(): Promise<void> {
+    // close channel and connection
+  }
+  async enqueue(job: ITaskQueueJob): Promise<string> {
+    // publish to exchange, return correlation ID
+  }
+  async cancel(queueJobId: string): Promise<void> {
+    // nack / reject by correlation ID (or denylist approach like SQS)
+  }
 }
 ```
+
+**2. Register it in `queue.module.ts`** — replace the stub in the providers array and factory.
 
 **3. Set the env var**
 
 ```
-TASK_PROVIDER=sqs
+TASK_PROVIDER=rabbitmq
 ```
 
 No changes to domain code, handlers, or the `tasks` context are required.
@@ -227,5 +248,11 @@ BullMQ priority = 11 - domain priority
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `TASK_PROVIDER` | `redis` | Active provider: `redis`, `sqs`, or `rabbitmq` |
-| `TASK_REDIS_URL` | `redis://localhost:6379` | Redis URL (only used when `TASK_PROVIDER=redis`) |
-| `TASK_IDEMPOTENCY_TTL_SECONDS` | `3600` | Read by the config; consumed by the `tasks` context for idempotency checks |
+| `TASK_IDEMPOTENCY_TTL_SECONDS` | `3600` | Consumed by the `tasks` context for idempotency checks |
+| **Redis** | | |
+| `TASK_REDIS_URL` | `redis://localhost:6379` | Redis connection URL |
+| **SQS** | | |
+| `TASK_SQS_QUEUE_URL` | *(required)* | Full SQS queue URL |
+| `TASK_SQS_REGION` | `us-east-1` | AWS region |
+| `TASK_SQS_ACCESS_KEY_ID` | *(empty = IAM role)* | AWS access key — leave empty in production |
+| `TASK_SQS_SECRET_ACCESS_KEY` | *(empty = IAM role)* | AWS secret key — leave empty in production |

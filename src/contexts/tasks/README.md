@@ -425,7 +425,7 @@ The queue provider is selected at startup via `TASK_PROVIDER`. Switching provide
 | Provider | Status | Notes |
 |----------|--------|-------|
 | `redis` (BullMQ) | **Production-ready** | Default. Requires Redis. |
-| `sqs` | Stub | Throws `NotImplementedException`. |
+| `sqs` | **Production-ready** | Requires `TASK_SQS_QUEUE_URL` and AWS credentials (or IAM role). |
 | `rabbitmq` | Stub | Throws `NotImplementedException`. |
 
 To implement a new provider, create a class that implements `ITaskQueueProvider` from `@core/queue/ports/task-queue-provider.port.ts`, register it in `src/core/queue/queue.module.ts`, and add the provider name to the factory switch.
