@@ -15,9 +15,9 @@ import { TaskFindByCriteriaGraphQLDto } from '@contexts/tasks/transport/graphql/
 import {
   PaginatedTaskResultDto,
   TaskGraphQLResponseDto,
+  TaskRunGraphQLResponseDto,
 } from '@contexts/tasks/transport/graphql/dtos/responses/task-graphql-response.dto';
 import { TaskGraphQLMapper } from '@contexts/tasks/transport/graphql/mappers/task-graphql.mapper';
-import { TaskRunTypeOrmEntity } from '@contexts/tasks/infrastructure/persistence/typeorm/entities/task-run.entity';
 
 @Resolver()
 @UseGuards(JwtAuthGuard)
@@ -54,8 +54,8 @@ export class TaskQueriesResolver {
     return this.mapper.toPaginatedResponseDto(result);
   }
 
-  @Query(() => [TaskRunTypeOrmEntity])
-  async taskRuns(@Args('taskId') taskId: string): Promise<TaskRunTypeOrmEntity[]> {
+  @Query(() => [TaskRunGraphQLResponseDto])
+  async taskRuns(@Args('taskId') taskId: string): Promise<TaskRunGraphQLResponseDto[]> {
     this.logger.log(`Finding task runs for task: ${taskId}`);
     return this.queryBus.execute(new TaskRunFindByTaskQuery({ taskId }));
   }

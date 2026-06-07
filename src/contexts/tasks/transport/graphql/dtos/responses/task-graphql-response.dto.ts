@@ -1,4 +1,34 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+
+@ObjectType('TaskRunResponseDto')
+export class TaskRunGraphQLResponseDto {
+  @Field(() => ID)
+  id!: string;
+
+  @Field(() => String)
+  taskId!: string;
+
+  @Field(() => Int)
+  attempt!: number;
+
+  @Field(() => String)
+  status!: string;
+
+  @Field(() => Int)
+  progress!: number;
+
+  @Field(() => String, { nullable: true })
+  error!: string | null;
+
+  @Field(() => Date)
+  startedAt!: Date;
+
+  @Field(() => Date, { nullable: true })
+  endedAt!: Date | null;
+
+  @Field(() => Date)
+  createdAt!: Date;
+}
 import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
 
 @ObjectType('TaskResponseDto')
