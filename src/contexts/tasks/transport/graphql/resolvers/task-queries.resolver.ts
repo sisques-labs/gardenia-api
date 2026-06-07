@@ -31,7 +31,7 @@ export class TaskQueriesResolver {
   ) {}
 
   @Query(() => TaskGraphQLResponseDto)
-  async task(
+  async taskFindById(
     @Args('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<TaskGraphQLResponseDto> {
@@ -43,12 +43,16 @@ export class TaskQueriesResolver {
   }
 
   @Query(() => PaginatedTaskResultDto)
-  async tasks(
+  async taskFindByCriteria(
     @CurrentUser() user: CurrentUserPayload,
     @Args('input', { nullable: true }) input?: TaskFindByCriteriaGraphQLDto,
   ): Promise<PaginatedTaskResultDto> {
-    this.logger.log(`Finding tasks for user: ${user.userId}`);
-    const criteria = new Criteria(input?.filters, input?.sorts, input?.pagination);
+    this.logger.log(`Finding tasks by criteria for user: ${user.userId}`);
+    const criteria = new Criteria(
+      input?.filters,
+      input?.sorts,
+      input?.pagination,
+    );
     const result = await this.queryBus.execute(
       new TaskFindByCriteriaQuery({ criteria, userId: user.userId }),
     );
@@ -61,7 +65,9 @@ export class TaskQueriesResolver {
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<TaskRunGraphQLResponseDto[]> {
     this.logger.log(`Finding task runs for task: ${taskId}`);
-    await this.queryBus.execute(new TaskFindByIdQuery({ id: taskId, userId: user.userId }));
+    await this.queryBus.execute(
+      new TaskFindByIdQuery({ id: taskId, userId: user.userId }),
+    );
     const runs: TaskRunViewModel[] = await this.queryBus.execute(
       new TaskRunFindByTaskQuery({ taskId }),
     );
