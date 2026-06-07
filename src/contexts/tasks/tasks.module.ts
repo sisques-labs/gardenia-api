@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { TASK_CANCELLATION_CHECK_PORT } from '@core/queue/ports/task-cancellation-check.port';
+import { TASK_CANCELLATION_CHECK_PORT } from '@core/queue/application/ports/task-cancellation-check.port';
 import { TaskCancellationCheckAdapter } from '@contexts/tasks/infrastructure/adapters/task-cancellation-check.adapter';
 
 import { TaskJobCompletedEventHandler } from '@contexts/tasks/application/event-handlers/task-job-completed.event-handler';
@@ -23,23 +23,27 @@ import { AssertTaskExistsService } from '@contexts/tasks/application/services/wr
 import { AssertTaskCancellableService } from '@contexts/tasks/application/services/write/assert-task-cancellable/assert-task-cancellable.service';
 import { AssertTaskTemplateViewModelExistsService } from '@contexts/tasks/application/services/read/assert-task-template-view-model-exists/assert-task-template-view-model-exists.service';
 import { AssertTaskViewModelExistsService } from '@contexts/tasks/application/services/read/assert-task-view-model-exists/assert-task-view-model-exists.service';
+import { TaskRunBuilder } from '@contexts/tasks/domain/builders/task-run.builder';
 import { TaskTemplateBuilder } from '@contexts/tasks/domain/builders/task-template.builder';
 import { TaskBuilder } from '@contexts/tasks/domain/builders/task.builder';
 import { TASK_TEMPLATE_READ_REPOSITORY } from '@contexts/tasks/domain/repositories/read/task-template-read.repository';
 import { TASK_READ_REPOSITORY } from '@contexts/tasks/domain/repositories/read/task-read.repository';
 import { TASK_RUN_READ_REPOSITORY } from '@contexts/tasks/domain/repositories/read/task-run-read.repository';
 import { TASK_TEMPLATE_WRITE_REPOSITORY } from '@contexts/tasks/domain/repositories/write/task-template-write.repository';
+import { TASK_RUN_WRITE_REPOSITORY } from '@contexts/tasks/domain/repositories/write/task-run-write.repository';
 import { TASK_WRITE_REPOSITORY } from '@contexts/tasks/domain/repositories/write/task-write.repository';
 import { TaskTemplateTypeOrmEntity } from '@contexts/tasks/infrastructure/persistence/typeorm/entities/task-template.entity';
 import { TaskTypeOrmEntity } from '@contexts/tasks/infrastructure/persistence/typeorm/entities/task.entity';
 import { TaskRunTypeOrmEntity } from '@contexts/tasks/infrastructure/persistence/typeorm/entities/task-run.entity';
+import { TaskRunTypeOrmMapper } from '@contexts/tasks/infrastructure/persistence/typeorm/mappers/task-run-typeorm.mapper';
 import { TaskTemplateTypeOrmMapper } from '@contexts/tasks/infrastructure/persistence/typeorm/mappers/task-template-typeorm.mapper';
 import { TaskTypeOrmMapper } from '@contexts/tasks/infrastructure/persistence/typeorm/mappers/task-typeorm.mapper';
 import { TaskTemplateTypeOrmReadRepository } from '@contexts/tasks/infrastructure/persistence/typeorm/repositories/task-template-typeorm-read.repository';
 import { TaskTemplateTypeOrmWriteRepository } from '@contexts/tasks/infrastructure/persistence/typeorm/repositories/task-template-typeorm-write.repository';
 import { TaskTypeOrmReadRepository } from '@contexts/tasks/infrastructure/persistence/typeorm/repositories/task-typeorm-read.repository';
 import { TaskTypeOrmWriteRepository } from '@contexts/tasks/infrastructure/persistence/typeorm/repositories/task-typeorm-write.repository';
-import { TaskRunTypeOrmRepository } from '@contexts/tasks/infrastructure/persistence/typeorm/task-run-typeorm.repository';
+import { TaskRunTypeOrmReadRepository } from '@contexts/tasks/infrastructure/persistence/typeorm/repositories/task-run-typeorm-read.repository';
+import { TaskRunTypeOrmWriteRepository } from '@contexts/tasks/infrastructure/persistence/typeorm/repositories/task-run-typeorm-write.repository';
 import '@contexts/tasks/transport/graphql/enums/tasks-registered-enums.graphql';
 import { TaskTemplateGraphQLMapper } from '@contexts/tasks/transport/graphql/mappers/task-template-graphql.mapper';
 import { TaskGraphQLMapper } from '@contexts/tasks/transport/graphql/mappers/task-graphql.mapper';
@@ -82,17 +86,34 @@ const EVENT_HANDLERS = [
   TaskJobProgressEventHandler,
 ];
 
-const DOMAIN_BUILDERS = [TaskTemplateBuilder, TaskBuilder];
+const DOMAIN_BUILDERS = [TaskTemplateBuilder, TaskBuilder, TaskRunBuilder];
 
-const INFRASTRUCTURE_MAPPERS = [TaskTemplateTypeOrmMapper, TaskTypeOrmMapper];
+const INFRASTRUCTURE_MAPPERS = [
+  TaskTemplateTypeOrmMapper,
+  TaskTypeOrmMapper,
+  TaskRunTypeOrmMapper,
+];
 
 const INFRASTRUCTURE_REPOSITORIES = [
-  { provide: TASK_TEMPLATE_WRITE_REPOSITORY, useClass: TaskTemplateTypeOrmWriteRepository },
-  { provide: TASK_TEMPLATE_READ_REPOSITORY, useClass: TaskTemplateTypeOrmReadRepository },
+  {
+    provide: TASK_TEMPLATE_WRITE_REPOSITORY,
+    useClass: TaskTemplateTypeOrmWriteRepository,
+  },
+  {
+    provide: TASK_TEMPLATE_READ_REPOSITORY,
+    useClass: TaskTemplateTypeOrmReadRepository,
+  },
   { provide: TASK_WRITE_REPOSITORY, useClass: TaskTypeOrmWriteRepository },
   { provide: TASK_READ_REPOSITORY, useClass: TaskTypeOrmReadRepository },
-  { provide: TASK_RUN_READ_REPOSITORY, useExisting: TaskRunTypeOrmRepository },
-  { provide: TASK_CANCELLATION_CHECK_PORT, useClass: TaskCancellationCheckAdapter },
+  {
+    provide: TASK_RUN_WRITE_REPOSITORY,
+    useClass: TaskRunTypeOrmWriteRepository,
+  },
+  { provide: TASK_RUN_READ_REPOSITORY, useClass: TaskRunTypeOrmReadRepository },
+  {
+    provide: TASK_CANCELLATION_CHECK_PORT,
+    useClass: TaskCancellationCheckAdapter,
+  },
 ];
 
 const REST_CONTROLLERS = [TaskTemplatesController, TasksController];
@@ -127,7 +148,6 @@ const GRAPHQL_PROVIDERS = [
     ...INFRASTRUCTURE_REPOSITORIES,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
-    TaskRunTypeOrmRepository,
   ],
   exports: [TASK_CANCELLATION_CHECK_PORT],
 })

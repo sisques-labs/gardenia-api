@@ -17,7 +17,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
+import {
+  Criteria,
+  FilterOperator,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 
 import {
   CurrentUser,
@@ -29,6 +33,7 @@ import { ScheduleTaskCommand } from '@contexts/tasks/application/commands/schedu
 import { TaskFindByCriteriaQuery } from '@contexts/tasks/application/queries/task-find-by-criteria/task-find-by-criteria.query';
 import { TaskFindByIdQuery } from '@contexts/tasks/application/queries/task-find-by-id/task-find-by-id.query';
 import { TaskRunFindByTaskQuery } from '@contexts/tasks/application/queries/task-run-find-by-task/task-run-find-by-task.query';
+import { TaskNotFoundException } from '@contexts/tasks/domain/exceptions/task-not-found.exception';
 import { TaskRunViewModel } from '@contexts/tasks/domain/view-models/task-run.view-model';
 import { TaskViewModel } from '@contexts/tasks/domain/view-models/task.view-model';
 import { ScheduleTaskRestDto } from '@contexts/tasks/transport/rest/dtos/schedule-task-rest.dto';
@@ -80,7 +85,7 @@ export class TasksController {
     );
 
     const vm = await this.queryBus.execute<TaskFindByIdQuery, TaskViewModel>(
-      new TaskFindByIdQuery({ id: taskId, userId: user.userId }),
+      new TaskFindByIdQuery({ id: taskId }),
     );
     return this.mapper.toResponse(vm);
   }
@@ -97,7 +102,9 @@ export class TasksController {
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<void> {
     this.logger.log(`DELETE /tasks/${id}/cancel`);
-    await this.commandBus.execute(new CancelTaskCommand({ id, userId: user.userId }));
+    await this.commandBus.execute(
+      new CancelTaskCommand({ id, userId: user.userId }),
+    );
   }
 
   @Get(':id')
@@ -111,10 +118,23 @@ export class TasksController {
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<TaskRestResponseDto> {
     this.logger.log(`GET /tasks/${id}`);
-    const vm = await this.queryBus.execute<TaskFindByIdQuery, TaskViewModel>(
-      new TaskFindByIdQuery({ id, userId: user.userId }),
+    const result = await this.queryBus.execute<
+      TaskFindByCriteriaQuery,
+      PaginatedResult<TaskViewModel>
+    >(
+      new TaskFindByCriteriaQuery({
+        criteria: new Criteria([
+          { field: 'id', operator: FilterOperator.EQUALS, value: id },
+          {
+            field: 'userId',
+            operator: FilterOperator.EQUALS,
+            value: user.userId,
+          },
+        ]),
+      }),
     );
-    return this.mapper.toResponse(vm);
+    if (!result.items.length) throw new TaskNotFoundException(id);
+    return this.mapper.toResponse(result.items[0]);
   }
 
   @Get()
@@ -129,7 +149,17 @@ export class TasksController {
     const result = await this.queryBus.execute<
       TaskFindByCriteriaQuery,
       PaginatedResult<TaskViewModel>
-    >(new TaskFindByCriteriaQuery({ criteria: new Criteria(), userId: user.userId }));
+    >(
+      new TaskFindByCriteriaQuery({
+        criteria: new Criteria([
+          {
+            field: 'userId',
+            operator: FilterOperator.EQUALS,
+            value: user.userId,
+          },
+        ]),
+      }),
+    );
 
     return {
       items: result.items.map((vm) => this.mapper.toResponse(vm)),
@@ -151,7 +181,22 @@ export class TasksController {
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<TaskRunViewModel[]> {
     this.logger.log(`GET /tasks/${id}/runs`);
-    await this.queryBus.execute(new TaskFindByIdQuery({ id, userId: user.userId }));
+    const ownership = await this.queryBus.execute<
+      TaskFindByCriteriaQuery,
+      PaginatedResult<TaskViewModel>
+    >(
+      new TaskFindByCriteriaQuery({
+        criteria: new Criteria([
+          { field: 'id', operator: FilterOperator.EQUALS, value: id },
+          {
+            field: 'userId',
+            operator: FilterOperator.EQUALS,
+            value: user.userId,
+          },
+        ]),
+      }),
+    );
+    if (!ownership.items.length) throw new TaskNotFoundException(id);
     return this.queryBus.execute(new TaskRunFindByTaskQuery({ taskId: id }));
   }
 }

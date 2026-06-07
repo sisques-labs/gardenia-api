@@ -161,8 +161,8 @@ Create a handler file in the bounded context that owns the logic. For example, t
 import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
-import { RegisterTaskHandler } from '@core/queue/decorators/register-task-handler.decorator';
-import { ITaskHandler, ITaskQueueContext } from '@core/queue/interfaces/task-handler.interface';
+import { RegisterTaskHandler } from '@core/queue/infrastructure/decorators/register-task-handler.decorator';
+import { ITaskHandler, ITaskQueueContext } from '@core/queue/application/ports/task-handler.port';
 
 @Injectable()
 @RegisterTaskHandler('fertilize-plant')   // ← unique key, kebab-case
@@ -550,4 +550,4 @@ The queue provider is selected at startup via `TASK_PROVIDER`. Switching provide
 | `sqs` | **Production-ready** | Requires `TASK_SQS_QUEUE_URL` and AWS credentials (or IAM role). |
 | `rabbitmq` | Stub | Throws `NotImplementedException`. |
 
-To implement a new provider, create a class that implements `ITaskQueueProvider` from `@core/queue/ports/task-queue-provider.port.ts`, register it in `src/core/queue/queue.module.ts`, and add the provider name to the factory switch.
+To implement a new provider, create a class that implements `ITaskQueueProvider` from `@core/queue/application/ports/task-queue-provider.port.ts`, register it in `src/core/queue/queue.module.ts`, and add the provider name to the factory switch.
