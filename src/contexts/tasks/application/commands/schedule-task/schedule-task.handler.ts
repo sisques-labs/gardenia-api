@@ -4,8 +4,9 @@ import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { AssertTaskTemplateExistsService } from '@contexts/tasks/application/services/write/assert-task-template-exists/assert-task-template-exists.service';
 import { TaskAggregate } from '@contexts/tasks/domain/aggregates/task.aggregate';
-import { TaskDuplicateIdempotencyKeyException } from '@contexts/tasks/domain/exceptions/task-duplicate-idempotency-key.exception';
 import { TaskBuilder } from '@contexts/tasks/domain/builders/task.builder';
+import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
+import { TaskDuplicateIdempotencyKeyException } from '@contexts/tasks/domain/exceptions/task-duplicate-idempotency-key.exception';
 import {
   ITaskReadRepository,
   TASK_READ_REPOSITORY,
@@ -14,7 +15,6 @@ import {
   ITaskWriteRepository,
   TASK_WRITE_REPOSITORY,
 } from '@contexts/tasks/domain/repositories/write/task-write.repository';
-import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
 import {
   ITaskQueueProvider,
   TASK_QUEUE_PROVIDER,
@@ -66,7 +66,8 @@ export class ScheduleTaskCommandHandler
     const priority = command.priority?.value ?? primitives.defaultPriority;
 
     // Fall back to template defaults when cron / recurring not explicitly passed
-    const cronExpression = command.cronExpression ?? primitives.defaultCronExpression;
+    const cronExpression =
+      command.cronExpression ?? primitives.defaultCronExpression;
     const isRecurring = command.isRecurring ?? primitives.defaultIsRecurring;
 
     // Translate validFrom to an initial delay so the job fires at the right time
@@ -90,6 +91,8 @@ export class ScheduleTaskCommandHandler
       .withTargetId(command.targetId)
       .withValidFrom(command.validFrom)
       .withValidUntil(command.validUntil)
+      .withCreatedAt(new Date())
+      .withUpdatedAt(new Date())
       .build();
 
     task.schedule();
