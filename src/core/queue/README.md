@@ -12,9 +12,12 @@ It is declared as `@Global()`, so every module in the app can inject its exports
 2. [How It Works](#how-it-works)
 3. [Handler Auto-Discovery](#handler-auto-discovery)
 4. [Job Lifecycle Events](#job-lifecycle-events)
-5. [Implementing a New Provider](#implementing-a-new-provider)
-6. [BullMQ Specifics](#bullmq-specifics)
-7. [Environment Variables](#environment-variables)
+5. [Execution Windows (validUntil)](#execution-windows-validuntil)
+6. [Cancellation Check Port](#cancellation-check-port)
+7. [Implementing a New Provider](#implementing-a-new-provider)
+8. [BullMQ Specifics](#bullmq-specifics)
+9. [SQS Specifics](#sqs-specifics)
+10. [Environment Variables](#environment-variables)
 
 ---
 
@@ -40,7 +43,8 @@ src/core/queue/
 │   ├── task-handler.interface.ts          # ITaskHandler, ITaskQueueContext
 │   └── task-queue-job.interface.ts        # ITaskQueueJob (enqueue payload)
 ├── ports/
-│   └── task-queue-provider.port.ts        # ITaskQueueProvider contract + DI token
+│   ├── task-queue-provider.port.ts        # ITaskQueueProvider contract + DI token
+│   └── task-cancellation-check.port.ts   # ITaskCancellationCheckPort (optional DB check)
 ├── registry/
 │   └── task-handler.registry.ts           # Auto-discovers and dispatches handlers
 └── queue.module.ts                        # @Global() NestJS module
@@ -125,7 +129,7 @@ import {
 |-------|---------|----------------|
 | `TaskJobStartedEvent` | `taskId`, `queueJobId` | Worker picks up the job |
 | `TaskJobProgressEvent` | `taskId`, `progress` (0–100) | Handler calls `ctx.reportProgress()` |
-| `TaskJobCompletedEvent` | `taskId` | Handler finishes without throwing |
+| `TaskJobCompletedEvent` | `taskId` | Handler finishes without throwing — also published when a job is skipped due to `validUntil` expiry |
 | `TaskJobFailedEvent` | `taskId`, `error`, `isFinal` | Job throws; `isFinal=true` when retries are exhausted |
 
 Listen to them with a standard NestJS `@EventsHandler`:
@@ -146,36 +150,54 @@ export class MyCompletedHandler implements IEventHandler<TaskJobCompletedEvent> 
 
 ---
 
-## SQS Specifics
+## Execution Windows (validUntil)
 
-The SQS adapter uses `@aws-sdk/client-sqs` with long-polling (20s) and processes up to 10 messages per poll cycle.
+Every job in `ITaskQueueJob` optionally carries a `validUntil: Date`. Both adapters check this before dispatching:
 
-**Credentials** — if `TASK_SQS_ACCESS_KEY_ID` / `TASK_SQS_SECRET_ACCESS_KEY` are left empty, the SDK falls back to the standard AWS credential chain (IAM role, environment, `~/.aws/credentials`). In production on ECS/EC2/Lambda, leave them empty and use an IAM role — it is more secure.
-
-**Retry & DLQ** — failed messages are NOT deleted from the queue. SQS makes them visible again after the `VisibilityTimeout` (30 s). Configure a **redrive policy** on your SQS queue with `maxReceiveCount` set to `defaultRetryCount + 1`. When that threshold is crossed, SQS automatically moves the message to the dead-letter queue (DLQ). The adapter reads `ApproximateReceiveCount` to set `isFinal` on `TaskJobFailedEvent`.
-
-**Cancellation caveat** — SQS has no delete-by-MessageId API before a message is received. Cancellation is implemented as an in-memory denylist: when the consumer receives a cancelled message, it skips and deletes it without calling the handler. If the process restarts before the message is consumed, the denylist is lost and the task will execute once before the `CANCELLED` status in the DB causes it to be ignored at the domain level.
-
-**Cron / recurring tasks** — SQS does not support scheduled or recurring messages natively. Passing `cronExpression` logs a warning and enqueues the job once. For recurring jobs use **Amazon EventBridge Scheduler** to trigger the `POST /tasks` endpoint on a cron schedule.
-
-**Priority** — SQS standard queues have no native priority. The priority value is stored as a `MessageAttribute` for observability but is not enforced by the broker. If strict priority matters, use the Redis/BullMQ provider.
-
-**Setting up the SQS queue (one-time)**
-
-```bash
-# Standard queue
-aws sqs create-queue --queue-name gardenia-tasks
-
-# Or FIFO (for strict ordering per message group)
-aws sqs create-queue \
-  --queue-name gardenia-tasks.fifo \
-  --attributes FifoQueue=true,ContentBasedDeduplication=false
-
-# Attach a redrive policy (DLQ must exist first)
-aws sqs set-queue-attributes \
-  --queue-url $TASK_SQS_QUEUE_URL \
-  --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:...:gardenia-tasks-dlq\",\"maxReceiveCount\":\"4\"}"}'
+```typescript
+// ITaskQueueJob
+{
+  taskId: string;
+  handlerKey: string;
+  payload: Record<string, unknown>;
+  priority: number;
+  timeoutMs: number;
+  delayMs?: number;
+  cronExpression?: string;
+  retryCount?: number;
+  backoffStrategy?: string;
+  validUntil?: Date;          // ← stop executing after this date
+}
 ```
+
+- **BullMQ** stores `validUntil` as an ISO string in the job data. The processor checks `new Date(validUntil) < new Date()` before calling the handler, and publishes `TaskJobCompletedEvent` to mark the task done.
+- **SQS** stores `validUntil` in the JSON message body. The consumer performs the same check before dispatching.
+
+For one-shot tasks this effectively acts as an expiry. For recurring tasks it defines the end of the series — any run triggered after `validUntil` is silently skipped.
+
+`validFrom` (start of execution window) is handled at scheduling time by the `ScheduleTaskCommandHandler`: if `validFrom` is set and no `delayMs` is provided, the delay is computed as `max(0, validFrom - now)`.
+
+---
+
+## Cancellation Check Port
+
+The SQS adapter performs a two-step cancellation check for resilience:
+
+1. **In-memory set** — `cancel(messageId)` adds the job ID to a `Set<string>`. When the consumer sees a message for a cancelled job, it discards it without calling the handler. This covers the case where cancellation happens between enqueue and receive.
+
+2. **DB check** (second line of defence) — resolved lazily via `ModuleRef.get(TASK_CANCELLATION_CHECK_PORT, { strict: false })` in `onModuleInit`. If the port is registered (the `tasks` context provides `TaskCancellationCheckAdapter`), the adapter queries the task's DB status before dispatching. This covers the case where the process restarted and the in-memory set was lost.
+
+The port interface lives in `src/core/queue/ports/task-cancellation-check.port.ts`:
+
+```typescript
+export interface ITaskCancellationCheckPort {
+  isCancelled(taskId: string): Promise<boolean>;
+}
+```
+
+The lazy resolution via `ModuleRef` avoids a circular NestJS module dependency between `QueueModule` (global) and `TasksModule` (which provides the adapter).
+
+> The BullMQ adapter does not need this port because BullMQ lets you delete a job by ID before it is picked up.
 
 ---
 
@@ -203,6 +225,7 @@ export class RabbitMqTaskQueueAdapter
   }
   async enqueue(job: ITaskQueueJob): Promise<string> {
     // publish to exchange, return correlation ID
+    // check job.validUntil to decide whether to skip
   }
   async cancel(queueJobId: string): Promise<void> {
     // nack / reject by correlation ID (or denylist approach like SQS)
@@ -240,6 +263,41 @@ BullMQ priority = 11 - domain priority
 **Connection** — the adapter parses `TASK_REDIS_URL` into `{ host, port, password }` to avoid a TypeScript version conflict between the project's `ioredis` and the one bundled inside BullMQ.
 
 **Concurrency** — the worker defaults to `concurrency: 10` (10 jobs processed in parallel per Node.js process). To change this, update the `Worker` constructor options in `bullmq-task-queue.adapter.ts`.
+
+---
+
+## SQS Specifics
+
+The SQS adapter uses `@aws-sdk/client-sqs` with long-polling (20s) and processes up to 10 messages per poll cycle.
+
+**Credentials** — if `TASK_SQS_ACCESS_KEY_ID` / `TASK_SQS_SECRET_ACCESS_KEY` are left empty, the SDK falls back to the standard AWS credential chain (IAM role, environment, `~/.aws/credentials`). In production on ECS/EC2/Lambda, leave them empty and use an IAM role — it is more secure.
+
+**Retry & DLQ** — failed messages are NOT deleted from the queue. SQS makes them visible again after the `VisibilityTimeout` (30 s). Configure a **redrive policy** on your SQS queue with `maxReceiveCount` set to `defaultRetryCount + 1`. When that threshold is crossed, SQS automatically moves the message to the dead-letter queue (DLQ). The adapter reads `ApproximateReceiveCount` to set `isFinal` on `TaskJobFailedEvent`.
+
+**Cancellation** — two layers:
+1. In-memory `cancelledMessageIds: Set<string>` — survives restarts within the same process.
+2. DB check via `ITaskCancellationCheckPort` — catches cancellations that survived a process restart.
+
+**Cron / recurring tasks** — SQS does not support scheduled or recurring messages natively. Passing `cronExpression` logs a warning and enqueues the job once. For recurring jobs use **Amazon EventBridge Scheduler** to trigger the `POST /tasks` endpoint on a cron schedule.
+
+**Priority** — SQS standard queues have no native priority. The priority value is stored as a `MessageAttribute` for observability but is not enforced by the broker. If strict priority matters, use the Redis/BullMQ provider.
+
+**Setting up the SQS queue (one-time)**
+
+```bash
+# Standard queue
+aws sqs create-queue --queue-name gardenia-tasks
+
+# Or FIFO (for strict ordering per message group)
+aws sqs create-queue \
+  --queue-name gardenia-tasks.fifo \
+  --attributes FifoQueue=true,ContentBasedDeduplication=false
+
+# Attach a redrive policy (DLQ must exist first)
+aws sqs set-queue-attributes \
+  --queue-url $TASK_SQS_QUEUE_URL \
+  --attributes '{"RedrivePolicy":"{\"deadLetterTargetArn\":\"arn:aws:sqs:...:gardenia-tasks-dlq\",\"maxReceiveCount\":\"4\"}"}'
+```
 
 ---
 
