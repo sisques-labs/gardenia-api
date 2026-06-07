@@ -1,7 +1,3 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { ModuleRef } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
-import { EventBus } from '@nestjs/cqrs';
 import {
   DeleteMessageCommand,
   Message,
@@ -9,6 +5,15 @@ import {
   SendMessageCommand,
   SQSClient,
 } from '@aws-sdk/client-sqs';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ModuleRef } from '@nestjs/core';
+import { EventBus } from '@nestjs/cqrs';
 
 import {
   TaskJobCompletedEvent,
@@ -50,11 +55,26 @@ export class SqsTaskQueueAdapter
   ) {}
 
   async onModuleInit(): Promise<void> {
-    const region = this.configService.get<string>('taskQueue.sqs.region', 'us-east-1');
-    const accessKeyId = this.configService.get<string>('taskQueue.sqs.accessKeyId');
-    const secretAccessKey = this.configService.get<string>('taskQueue.sqs.secretAccessKey');
+    const provider = this.configService.get<string>(
+      'taskQueue.provider',
+      'redis',
+    );
+    if (provider !== 'sqs') return;
 
-    this.queueUrl = this.configService.getOrThrow<string>('taskQueue.sqs.queueUrl');
+    const region = this.configService.get<string>(
+      'taskQueue.sqs.region',
+      'us-east-1',
+    );
+    const accessKeyId = this.configService.get<string>(
+      'taskQueue.sqs.accessKeyId',
+    );
+    const secretAccessKey = this.configService.get<string>(
+      'taskQueue.sqs.secretAccessKey',
+    );
+
+    this.queueUrl = this.configService.getOrThrow<string>(
+      'taskQueue.sqs.queueUrl',
+    );
 
     this.client = new SQSClient({
       region,
@@ -71,7 +91,9 @@ export class SqsTaskQueueAdapter
         { strict: false },
       );
     } catch {
-      this.logger.debug('TaskCancellationCheckPort not registered; skipping DB cancel check');
+      this.logger.debug(
+        'TaskCancellationCheckPort not registered; skipping DB cancel check',
+      );
     }
 
     this.polling = true;
@@ -81,15 +103,15 @@ export class SqsTaskQueueAdapter
 
   async onModuleDestroy(): Promise<void> {
     this.polling = false;
-    this.client.destroy();
+    this.client?.destroy();
   }
 
   async enqueue(job: ITaskQueueJob): Promise<string> {
     if (job.cronExpression) {
       this.logger.warn(
         `SQS does not support cron expressions natively. ` +
-        `Task ${job.taskId} will be enqueued once. ` +
-        `Use EventBridge Scheduler for recurring jobs.`,
+          `Task ${job.taskId} will be enqueued once. ` +
+          `Use EventBridge Scheduler for recurring jobs.`,
       );
     }
 
@@ -154,11 +176,18 @@ export class SqsTaskQueueAdapter
     const receiptHandle = message.ReceiptHandle!;
     const messageId = message.MessageId ?? '';
 
-    let body: { taskId: string; handlerKey: string; payload: Record<string, unknown>; validUntil: string | null };
+    let body: {
+      taskId: string;
+      handlerKey: string;
+      payload: Record<string, unknown>;
+      validUntil: string | null;
+    };
     try {
       body = JSON.parse(message.Body ?? '{}');
     } catch {
-      this.logger.error(`Unparseable SQS message body, discarding: ${message.Body}`);
+      this.logger.error(
+        `Unparseable SQS message body, discarding: ${message.Body}`,
+      );
       await this.deleteMessage(receiptHandle);
       return;
     }
@@ -166,21 +195,30 @@ export class SqsTaskQueueAdapter
     const { taskId, handlerKey, payload, validUntil } = body;
 
     if (validUntil && new Date(validUntil) < new Date()) {
-      this.logger.log(`Skipping expired task ${taskId} (validUntil: ${validUntil})`);
+      this.logger.log(
+        `Skipping expired task ${taskId} (validUntil: ${validUntil})`,
+      );
       await this.deleteMessage(receiptHandle);
       return;
     }
 
     if (this.cancelledMessageIds.has(messageId)) {
-      this.logger.log(`Skipping cancelled task ${taskId} (messageId: ${messageId})`);
+      this.logger.log(
+        `Skipping cancelled task ${taskId} (messageId: ${messageId})`,
+      );
       this.cancelledMessageIds.delete(messageId);
       await this.deleteMessage(receiptHandle);
       return;
     }
 
     // Secondary DB check — catches cancellations that survived a process restart
-    if (this.cancellationCheck && await this.cancellationCheck.isCancelled(taskId)) {
-      this.logger.log(`Skipping DB-cancelled task ${taskId} (messageId: ${messageId})`);
+    if (
+      this.cancellationCheck &&
+      (await this.cancellationCheck.isCancelled(taskId))
+    ) {
+      this.logger.log(
+        `Skipping DB-cancelled task ${taskId} (messageId: ${messageId})`,
+      );
       await this.deleteMessage(receiptHandle);
       return;
     }
@@ -196,7 +234,7 @@ export class SqsTaskQueueAdapter
 
     this.logger.log(
       `Processing task ${taskId} with handler '${handlerKey}' ` +
-      `(attempt ${receiveCount}/${maxRetries + 1})`,
+        `(attempt ${receiveCount}/${maxRetries + 1})`,
     );
 
     this.eventBus.publish(new TaskJobStartedEvent(taskId, messageId));

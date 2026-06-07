@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 import { Job, Queue, Worker } from 'bullmq';
@@ -37,6 +42,12 @@ export class BullMqTaskQueueAdapter
   ) {}
 
   async onModuleInit(): Promise<void> {
+    const provider = this.configService.get<string>(
+      'taskQueue.provider',
+      'redis',
+    );
+    if (provider !== 'redis') return;
+
     const redisUrl = this.configService.get<string>(
       'taskQueue.redisUrl',
       'redis://localhost:6379',
@@ -66,11 +77,17 @@ export class BullMqTaskQueueAdapter
       const taskId: string = job.data.taskId;
       const isFinal = job.attemptsMade >= (job.opts.attempts ?? 1);
 
-      this.eventBus.publish(new TaskJobFailedEvent(taskId, err.message, isFinal));
+      this.eventBus.publish(
+        new TaskJobFailedEvent(taskId, err.message, isFinal),
+      );
 
       if (isFinal) {
-        await this.dlqQueue.add('failed-task', job.data, { removeOnComplete: false });
-        this.logger.warn(`Task ${taskId} sent to DLQ after ${job.attemptsMade} attempts`);
+        await this.dlqQueue.add('failed-task', job.data, {
+          removeOnComplete: false,
+        });
+        this.logger.warn(
+          `Task ${taskId} sent to DLQ after ${job.attemptsMade} attempts`,
+        );
       }
     });
 
@@ -103,7 +120,9 @@ export class BullMqTaskQueueAdapter
       {
         priority: 11 - job.priority,
         delay: job.delayMs,
-        repeat: job.cronExpression ? { pattern: job.cronExpression } : undefined,
+        repeat: job.cronExpression
+          ? { pattern: job.cronExpression }
+          : undefined,
         attempts,
         backoff: { type: backoffType, delay: 1000 },
         removeOnComplete: { count: 1000 },
@@ -131,7 +150,9 @@ export class BullMqTaskQueueAdapter
     };
 
     if (validUntil && new Date(validUntil) < new Date()) {
-      this.logger.log(`Skipping expired task ${taskId} (validUntil: ${validUntil})`);
+      this.logger.log(
+        `Skipping expired task ${taskId} (validUntil: ${validUntil})`,
+      );
       this.eventBus.publish(new TaskJobCompletedEvent(taskId));
       return;
     }
