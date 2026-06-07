@@ -11,7 +11,10 @@ import { TaskBackoffStrategyEnum } from '@contexts/tasks/domain/enums/task-backo
 import { TaskTemplateViewModel } from '@contexts/tasks/domain/view-models/task-template.view-model';
 import { TaskBackoffStrategyValueObject } from '@contexts/tasks/domain/value-objects/task-backoff-strategy/task-backoff-strategy.value-object';
 import { TaskConcurrencyValueObject } from '@contexts/tasks/domain/value-objects/task-concurrency/task-concurrency.value-object';
+import { TaskCronExpressionValueObject } from '@contexts/tasks/domain/value-objects/task-cron-expression/task-cron-expression.value-object';
+import { TaskDescriptionValueObject } from '@contexts/tasks/domain/value-objects/task-description/task-description.value-object';
 import { TaskHandlerKeyValueObject } from '@contexts/tasks/domain/value-objects/task-handler-key/task-handler-key.value-object';
+import { TaskIsRecurringValueObject } from '@contexts/tasks/domain/value-objects/task-is-recurring/task-is-recurring.value-object';
 import { TaskNameValueObject } from '@contexts/tasks/domain/value-objects/task-name/task-name.value-object';
 import { TaskPriorityValueObject } from '@contexts/tasks/domain/value-objects/task-priority/task-priority.value-object';
 import { TaskRetryCountValueObject } from '@contexts/tasks/domain/value-objects/task-retry-count/task-retry-count.value-object';
@@ -103,7 +106,9 @@ export class TaskTemplateBuilder extends BaseBuilder<
     return new TaskTemplateAggregate({
       id: new TaskTemplateIdValueObject(this._id),
       name: new TaskNameValueObject(this._name),
-      description: this._description,
+      description: this._description
+        ? new TaskDescriptionValueObject(this._description)
+        : null,
       handlerKey: new TaskHandlerKeyValueObject(this._handlerKey),
       defaultPriority: new TaskPriorityValueObject(this._defaultPriority),
       defaultRetryCount: new TaskRetryCountValueObject(this._defaultRetryCount),
@@ -112,8 +117,12 @@ export class TaskTemplateBuilder extends BaseBuilder<
       ),
       defaultTimeoutMs: new TaskTimeoutValueObject(this._defaultTimeoutMs),
       maxConcurrency: new TaskConcurrencyValueObject(this._maxConcurrency),
-      defaultCronExpression: this._defaultCronExpression,
-      defaultIsRecurring: this._defaultIsRecurring,
+      defaultCronExpression: this._defaultCronExpression
+        ? new TaskCronExpressionValueObject(this._defaultCronExpression)
+        : null,
+      defaultIsRecurring: new TaskIsRecurringValueObject(
+        this._defaultIsRecurring,
+      ),
       userId: new UuidValueObject(this._userId),
       createdAt: new DateValueObject(this._createdAt ?? now),
       updatedAt: new DateValueObject(this._updatedAt ?? now),

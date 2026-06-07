@@ -1,5 +1,10 @@
-import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  BaseAggregate,
+  DateValueObject,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
+import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
 import { TaskCancelledEvent } from '@contexts/tasks/domain/events/task-cancelled/task-cancelled.event';
 import { TaskCompletedEvent } from '@contexts/tasks/domain/events/task-completed/task-completed.event';
 import { TaskFailedEvent } from '@contexts/tasks/domain/events/task-failed/task-failed.event';
@@ -9,35 +14,44 @@ import { TaskStartedEvent } from '@contexts/tasks/domain/events/task-started/tas
 import { TaskNotCancellableException } from '@contexts/tasks/domain/exceptions/task-not-cancellable.exception';
 import { ITask } from '@contexts/tasks/domain/interfaces/task.interface';
 import { ITaskPrimitives } from '@contexts/tasks/domain/primitives/task.primitives';
+import { TaskCronExpressionValueObject } from '@contexts/tasks/domain/value-objects/task-cron-expression/task-cron-expression.value-object';
+import { TaskDelayMsValueObject } from '@contexts/tasks/domain/value-objects/task-delay-ms/task-delay-ms.value-object';
 import { TaskIdValueObject } from '@contexts/tasks/domain/value-objects/task-id/task-id.value-object';
+import { TaskIdempotencyKeyValueObject } from '@contexts/tasks/domain/value-objects/task-idempotency-key/task-idempotency-key.value-object';
+import { TaskIsRecurringValueObject } from '@contexts/tasks/domain/value-objects/task-is-recurring/task-is-recurring.value-object';
+import { TaskMaxRunsValueObject } from '@contexts/tasks/domain/value-objects/task-max-runs/task-max-runs.value-object';
+import { TaskPayloadValueObject } from '@contexts/tasks/domain/value-objects/task-payload/task-payload.value-object';
 import { TaskPriorityValueObject } from '@contexts/tasks/domain/value-objects/task-priority/task-priority.value-object';
+import { TaskQueueJobIdValueObject } from '@contexts/tasks/domain/value-objects/task-queue-job-id/task-queue-job-id.value-object';
+import { TaskRunCountValueObject } from '@contexts/tasks/domain/value-objects/task-run-count/task-run-count.value-object';
 import { TaskStatusValueObject } from '@contexts/tasks/domain/value-objects/task-status/task-status.value-object';
+import { TaskTargetIdValueObject } from '@contexts/tasks/domain/value-objects/task-target-id/task-target-id.value-object';
+import { TaskTargetTypeValueObject } from '@contexts/tasks/domain/value-objects/task-target-type/task-target-type.value-object';
 import { TaskTemplateIdValueObject } from '@contexts/tasks/domain/value-objects/task-template-id/task-template-id.value-object';
-import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
 
 export class TaskAggregate extends BaseAggregate {
   private readonly _id: TaskIdValueObject;
   private readonly _templateId: TaskTemplateIdValueObject;
   private _status: TaskStatusValueObject;
-  private readonly _payload: Record<string, unknown>;
+  private readonly _payload: TaskPayloadValueObject;
   private readonly _priority: TaskPriorityValueObject;
-  private readonly _delayMs: number | null;
-  private readonly _cronExpression: string | null;
-  private readonly _isRecurring: boolean;
-  private readonly _maxRuns: number | null;
-  private _runCount: number;
-  private readonly _idempotencyKey: string | null;
-  private _queueJobId: string | null;
+  private readonly _delayMs: TaskDelayMsValueObject | null;
+  private readonly _cronExpression: TaskCronExpressionValueObject | null;
+  private readonly _isRecurring: TaskIsRecurringValueObject;
+  private readonly _maxRuns: TaskMaxRunsValueObject | null;
+  private _runCount: TaskRunCountValueObject;
+  private readonly _idempotencyKey: TaskIdempotencyKeyValueObject | null;
+  private _queueJobId: TaskQueueJobIdValueObject | null;
   private readonly _userId: UuidValueObject;
-  private readonly _targetType: string | null;
-  private readonly _targetId: string | null;
-  private readonly _validFrom: Date | null;
-  private readonly _validUntil: Date | null;
-  private _scheduledAt: Date | null;
-  private _startedAt: Date | null;
-  private _completedAt: Date | null;
-  private _failedAt: Date | null;
-  private _cancelledAt: Date | null;
+  private readonly _targetType: TaskTargetTypeValueObject | null;
+  private readonly _targetId: TaskTargetIdValueObject | null;
+  private readonly _validFrom: DateValueObject | null;
+  private readonly _validUntil: DateValueObject | null;
+  private _scheduledAt: DateValueObject | null;
+  private _startedAt: DateValueObject | null;
+  private _completedAt: DateValueObject | null;
+  private _failedAt: DateValueObject | null;
+  private _cancelledAt: DateValueObject | null;
 
   constructor(props: ITask) {
     super(props.createdAt, props.updatedAt);
@@ -65,69 +79,78 @@ export class TaskAggregate extends BaseAggregate {
     this._cancelledAt = props.cancelledAt;
   }
 
-  private get eventMeta() {
-    return {
-      aggregateRootId: this._id.value,
-      aggregateRootType: TaskAggregate.name,
-      entityId: this._id.value,
-      entityType: TaskAggregate.name,
-      eventType: '',
-    };
-  }
-
-  private get baseEventData() {
-    return {
-      id: this._id.value,
-      templateId: this._templateId.value,
-      handlerKey: '',
-      userId: this._userId.value,
-      status: this._status.value,
-    };
-  }
-
   public schedule(): void {
-    this._scheduledAt = new Date();
+    this._scheduledAt = new DateValueObject(new Date());
     this.apply(
       new TaskScheduledEvent(
-        { ...this.eventMeta, eventType: TaskScheduledEvent.name },
-        this.baseEventData,
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: TaskAggregate.name,
+          entityId: this._id.value,
+          entityType: TaskAggregate.name,
+          eventType: TaskScheduledEvent.name,
+        },
+        this.toEventData(),
       ),
     );
   }
 
+  public setQueueJobId(queueJobId: TaskQueueJobIdValueObject): void {
+    this._queueJobId = queueJobId;
+    this.touch();
+  }
+
   public start(): void {
     this._status = new TaskStatusValueObject(TaskStatusEnum.ACTIVE);
-    this._startedAt = new Date();
-    this._runCount += 1;
+    this._startedAt = new DateValueObject(new Date());
+    this._runCount = new TaskRunCountValueObject(this._runCount.value + 1);
     this.touch();
     this.apply(
       new TaskStartedEvent(
-        { ...this.eventMeta, eventType: TaskStartedEvent.name },
-        { ...this.baseEventData, status: TaskStatusEnum.ACTIVE },
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: TaskAggregate.name,
+          entityId: this._id.value,
+          entityType: TaskAggregate.name,
+          eventType: TaskStartedEvent.name,
+        },
+        this.toEventData(),
       ),
     );
   }
 
   public complete(): void {
     this._status = new TaskStatusValueObject(TaskStatusEnum.COMPLETED);
-    this._completedAt = new Date();
+    this._completedAt = new DateValueObject(new Date());
     this.touch();
     this.apply(
       new TaskCompletedEvent(
-        { ...this.eventMeta, eventType: TaskCompletedEvent.name },
-        { ...this.baseEventData, status: TaskStatusEnum.COMPLETED },
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: TaskAggregate.name,
+          entityId: this._id.value,
+          entityType: TaskAggregate.name,
+          eventType: TaskCompletedEvent.name,
+        },
+        this.toEventData(),
       ),
     );
   }
 
   public fail(error: string): void {
     this._status = new TaskStatusValueObject(TaskStatusEnum.FAILED);
-    this._failedAt = new Date();
+    this._failedAt = new DateValueObject(new Date());
     this.touch();
     this.apply(
       new TaskFailedEvent(
-        { ...this.eventMeta, eventType: TaskFailedEvent.name },
-        { ...this.baseEventData, status: TaskStatusEnum.FAILED, error },
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: TaskAggregate.name,
+          entityId: this._id.value,
+          entityType: TaskAggregate.name,
+          eventType: TaskFailedEvent.name,
+        },
+        { ...this.toEventData(), error },
       ),
     );
   }
@@ -137,26 +160,48 @@ export class TaskAggregate extends BaseAggregate {
       throw new TaskNotCancellableException(this._status.value);
     }
     this._status = new TaskStatusValueObject(TaskStatusEnum.CANCELLED);
-    this._cancelledAt = new Date();
+    this._cancelledAt = new DateValueObject(new Date());
     this.touch();
     this.apply(
       new TaskCancelledEvent(
-        { ...this.eventMeta, eventType: TaskCancelledEvent.name },
-        { ...this.baseEventData, status: TaskStatusEnum.CANCELLED },
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: TaskAggregate.name,
+          entityId: this._id.value,
+          entityType: TaskAggregate.name,
+          eventType: TaskCancelledEvent.name,
+        },
+        this.toEventData(),
       ),
     );
   }
 
   public sendToDlq(error: string): void {
     this._status = new TaskStatusValueObject(TaskStatusEnum.FAILED);
-    this._failedAt = new Date();
+    this._failedAt = new DateValueObject(new Date());
     this.touch();
     this.apply(
       new TaskSentToDlqEvent(
-        { ...this.eventMeta, eventType: TaskSentToDlqEvent.name },
-        { ...this.baseEventData, status: TaskStatusEnum.FAILED, error },
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: TaskAggregate.name,
+          entityId: this._id.value,
+          entityType: TaskAggregate.name,
+          eventType: TaskSentToDlqEvent.name,
+        },
+        { ...this.toEventData(), error },
       ),
     );
+  }
+
+  private toEventData() {
+    return {
+      id: this._id.value,
+      templateId: this._templateId.value,
+      handlerKey: '',
+      userId: this._userId.value,
+      status: this._status.value,
+    };
   }
 
   get id(): TaskIdValueObject {
@@ -171,7 +216,7 @@ export class TaskAggregate extends BaseAggregate {
     return this._status;
   }
 
-  get payload(): Record<string, unknown> {
+  get payload(): TaskPayloadValueObject {
     return this._payload;
   }
 
@@ -179,31 +224,31 @@ export class TaskAggregate extends BaseAggregate {
     return this._priority;
   }
 
-  get delayMs(): number | null {
+  get delayMs(): TaskDelayMsValueObject | null {
     return this._delayMs;
   }
 
-  get cronExpression(): string | null {
+  get cronExpression(): TaskCronExpressionValueObject | null {
     return this._cronExpression;
   }
 
-  get isRecurring(): boolean {
+  get isRecurring(): TaskIsRecurringValueObject {
     return this._isRecurring;
   }
 
-  get maxRuns(): number | null {
+  get maxRuns(): TaskMaxRunsValueObject | null {
     return this._maxRuns;
   }
 
-  get runCount(): number {
+  get runCount(): TaskRunCountValueObject {
     return this._runCount;
   }
 
-  get idempotencyKey(): string | null {
+  get idempotencyKey(): TaskIdempotencyKeyValueObject | null {
     return this._idempotencyKey;
   }
 
-  get queueJobId(): string | null {
+  get queueJobId(): TaskQueueJobIdValueObject | null {
     return this._queueJobId;
   }
 
@@ -211,39 +256,39 @@ export class TaskAggregate extends BaseAggregate {
     return this._userId;
   }
 
-  get targetType(): string | null {
+  get targetType(): TaskTargetTypeValueObject | null {
     return this._targetType;
   }
 
-  get targetId(): string | null {
+  get targetId(): TaskTargetIdValueObject | null {
     return this._targetId;
   }
 
-  get validFrom(): Date | null {
+  get validFrom(): DateValueObject | null {
     return this._validFrom;
   }
 
-  get validUntil(): Date | null {
+  get validUntil(): DateValueObject | null {
     return this._validUntil;
   }
 
-  get scheduledAt(): Date | null {
+  get scheduledAt(): DateValueObject | null {
     return this._scheduledAt;
   }
 
-  get startedAt(): Date | null {
+  get startedAt(): DateValueObject | null {
     return this._startedAt;
   }
 
-  get completedAt(): Date | null {
+  get completedAt(): DateValueObject | null {
     return this._completedAt;
   }
 
-  get failedAt(): Date | null {
+  get failedAt(): DateValueObject | null {
     return this._failedAt;
   }
 
-  get cancelledAt(): Date | null {
+  get cancelledAt(): DateValueObject | null {
     return this._cancelledAt;
   }
 
@@ -252,25 +297,25 @@ export class TaskAggregate extends BaseAggregate {
       id: this._id.value,
       templateId: this._templateId.value,
       status: this._status.value,
-      payload: this._payload,
+      payload: this._payload.value,
       priority: this._priority.value,
-      delayMs: this._delayMs,
-      cronExpression: this._cronExpression,
-      isRecurring: this._isRecurring,
-      maxRuns: this._maxRuns,
-      runCount: this._runCount,
-      idempotencyKey: this._idempotencyKey,
-      queueJobId: this._queueJobId,
+      delayMs: this._delayMs?.value ?? null,
+      cronExpression: this._cronExpression?.value ?? null,
+      isRecurring: this._isRecurring.value,
+      maxRuns: this._maxRuns?.value ?? null,
+      runCount: this._runCount.value,
+      idempotencyKey: this._idempotencyKey?.value ?? null,
+      queueJobId: this._queueJobId?.value ?? null,
       userId: this._userId.value,
-      targetType: this._targetType,
-      targetId: this._targetId,
-      validFrom: this._validFrom,
-      validUntil: this._validUntil,
-      scheduledAt: this._scheduledAt,
-      startedAt: this._startedAt,
-      completedAt: this._completedAt,
-      failedAt: this._failedAt,
-      cancelledAt: this._cancelledAt,
+      targetType: this._targetType?.value ?? null,
+      targetId: this._targetId?.value ?? null,
+      validFrom: this._validFrom?.value ?? null,
+      validUntil: this._validUntil?.value ?? null,
+      scheduledAt: this._scheduledAt?.value ?? null,
+      startedAt: this._startedAt?.value ?? null,
+      completedAt: this._completedAt?.value ?? null,
+      failedAt: this._failedAt?.value ?? null,
+      cancelledAt: this._cancelledAt?.value ?? null,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };

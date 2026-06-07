@@ -1,9 +1,9 @@
 import { BaseEvent, IEventMetadata } from '@sisques-labs/nestjs-kit';
 
-import { ITaskFailedEventData } from '@contexts/tasks/domain/events/task-failed/task-failed.event';
+import { ITaskEventData } from '@contexts/tasks/domain/events/interfaces/task-event-data.interface';
 
-export class TaskSentToDlqEvent extends BaseEvent<ITaskFailedEventData> {
-  constructor(metadata: IEventMetadata, data: ITaskFailedEventData) {
+export class TaskSentToDlqEvent extends BaseEvent<ITaskEventData> {
+  constructor(metadata: IEventMetadata, data: ITaskEventData) {
     super(metadata, data);
   }
 }

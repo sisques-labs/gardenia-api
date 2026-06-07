@@ -9,9 +9,19 @@ import {
 import { TaskAggregate } from '@contexts/tasks/domain/aggregates/task.aggregate';
 import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
 import { TaskViewModel } from '@contexts/tasks/domain/view-models/task.view-model';
+import { TaskCronExpressionValueObject } from '@contexts/tasks/domain/value-objects/task-cron-expression/task-cron-expression.value-object';
+import { TaskDelayMsValueObject } from '@contexts/tasks/domain/value-objects/task-delay-ms/task-delay-ms.value-object';
 import { TaskIdValueObject } from '@contexts/tasks/domain/value-objects/task-id/task-id.value-object';
+import { TaskIdempotencyKeyValueObject } from '@contexts/tasks/domain/value-objects/task-idempotency-key/task-idempotency-key.value-object';
+import { TaskIsRecurringValueObject } from '@contexts/tasks/domain/value-objects/task-is-recurring/task-is-recurring.value-object';
+import { TaskMaxRunsValueObject } from '@contexts/tasks/domain/value-objects/task-max-runs/task-max-runs.value-object';
+import { TaskPayloadValueObject } from '@contexts/tasks/domain/value-objects/task-payload/task-payload.value-object';
 import { TaskPriorityValueObject } from '@contexts/tasks/domain/value-objects/task-priority/task-priority.value-object';
+import { TaskQueueJobIdValueObject } from '@contexts/tasks/domain/value-objects/task-queue-job-id/task-queue-job-id.value-object';
+import { TaskRunCountValueObject } from '@contexts/tasks/domain/value-objects/task-run-count/task-run-count.value-object';
 import { TaskStatusValueObject } from '@contexts/tasks/domain/value-objects/task-status/task-status.value-object';
+import { TaskTargetIdValueObject } from '@contexts/tasks/domain/value-objects/task-target-id/task-target-id.value-object';
+import { TaskTargetTypeValueObject } from '@contexts/tasks/domain/value-objects/task-target-type/task-target-type.value-object';
 import { TaskTemplateIdValueObject } from '@contexts/tasks/domain/value-objects/task-template-id/task-template-id.value-object';
 
 @Injectable()
@@ -156,25 +166,49 @@ export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
       id: new TaskIdValueObject(this._id),
       templateId: new TaskTemplateIdValueObject(this._templateId),
       status: new TaskStatusValueObject(this._status as TaskStatusEnum),
-      payload: this._payload,
+      payload: new TaskPayloadValueObject(this._payload),
       priority: new TaskPriorityValueObject(this._priority),
-      delayMs: this._delayMs,
-      cronExpression: this._cronExpression,
-      isRecurring: this._isRecurring,
-      maxRuns: this._maxRuns,
-      runCount: this._runCount,
-      idempotencyKey: this._idempotencyKey,
-      queueJobId: this._queueJobId,
+      delayMs:
+        this._delayMs != null
+          ? new TaskDelayMsValueObject(this._delayMs)
+          : null,
+      cronExpression: this._cronExpression
+        ? new TaskCronExpressionValueObject(this._cronExpression)
+        : null,
+      isRecurring: new TaskIsRecurringValueObject(this._isRecurring),
+      maxRuns:
+        this._maxRuns != null
+          ? new TaskMaxRunsValueObject(this._maxRuns)
+          : null,
+      runCount: new TaskRunCountValueObject(this._runCount),
+      idempotencyKey: this._idempotencyKey
+        ? new TaskIdempotencyKeyValueObject(this._idempotencyKey)
+        : null,
+      queueJobId: this._queueJobId
+        ? new TaskQueueJobIdValueObject(this._queueJobId)
+        : null,
       userId: new UuidValueObject(this._userId),
-      targetType: this._targetType,
-      targetId: this._targetId,
-      validFrom: this._validFrom,
-      validUntil: this._validUntil,
-      scheduledAt: this._scheduledAt,
-      startedAt: this._startedAt,
-      completedAt: this._completedAt,
-      failedAt: this._failedAt,
-      cancelledAt: this._cancelledAt,
+      targetType: this._targetType
+        ? new TaskTargetTypeValueObject(this._targetType)
+        : null,
+      targetId: this._targetId
+        ? new TaskTargetIdValueObject(this._targetId)
+        : null,
+      validFrom: this._validFrom ? new DateValueObject(this._validFrom) : null,
+      validUntil: this._validUntil
+        ? new DateValueObject(this._validUntil)
+        : null,
+      scheduledAt: this._scheduledAt
+        ? new DateValueObject(this._scheduledAt)
+        : null,
+      startedAt: this._startedAt ? new DateValueObject(this._startedAt) : null,
+      completedAt: this._completedAt
+        ? new DateValueObject(this._completedAt)
+        : null,
+      failedAt: this._failedAt ? new DateValueObject(this._failedAt) : null,
+      cancelledAt: this._cancelledAt
+        ? new DateValueObject(this._cancelledAt)
+        : null,
       createdAt: new DateValueObject(this._createdAt ?? now),
       updatedAt: new DateValueObject(this._updatedAt ?? now),
     });

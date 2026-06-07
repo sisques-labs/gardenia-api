@@ -4,11 +4,5 @@ export interface ITaskEventData {
   handlerKey: string;
   userId: string;
   status: string;
-}
-
-export interface ITaskTemplateEventData {
-  id: string;
-  name: string;
-  handlerKey: string;
-  userId: string;
+  error?: string;
 }
