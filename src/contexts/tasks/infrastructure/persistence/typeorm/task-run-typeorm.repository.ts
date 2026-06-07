@@ -34,4 +34,12 @@ export class TaskRunTypeOrmRepository {
       order: { attempt: 'ASC' },
     });
   }
+
+  async findActiveByTaskId(taskId: string): Promise<TaskRunTypeOrmEntity | null> {
+    return this.repository.findOne({ where: { taskId, status: 'active' } });
+  }
+
+  async countByTaskId(taskId: string): Promise<number> {
+    return this.repository.count({ where: { taskId } });
+  }
 }

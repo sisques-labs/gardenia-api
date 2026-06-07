@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { TaskJobCompletedEventHandler } from '@contexts/tasks/application/event-handlers/task-job-completed.event-handler';
+import { TaskJobFailedEventHandler } from '@contexts/tasks/application/event-handlers/task-job-failed.event-handler';
+import { TaskJobProgressEventHandler } from '@contexts/tasks/application/event-handlers/task-job-progress.event-handler';
+import { TaskJobStartedEventHandler } from '@contexts/tasks/application/event-handlers/task-job-started.event-handler';
 import { CreateTaskTemplateCommandHandler } from '@contexts/tasks/application/commands/create-task-template/create-task-template.handler';
 import { UpdateTaskTemplateCommandHandler } from '@contexts/tasks/application/commands/update-task-template/update-task-template.handler';
 import { ScheduleTaskCommandHandler } from '@contexts/tasks/application/commands/schedule-task/schedule-task.handler';
@@ -67,6 +71,13 @@ const APPLICATION_SERVICES = [
   AssertTaskViewModelExistsService,
 ];
 
+const EVENT_HANDLERS = [
+  TaskJobStartedEventHandler,
+  TaskJobCompletedEventHandler,
+  TaskJobFailedEventHandler,
+  TaskJobProgressEventHandler,
+];
+
 const DOMAIN_BUILDERS = [TaskTemplateBuilder, TaskBuilder];
 
 const INFRASTRUCTURE_MAPPERS = [TaskTemplateTypeOrmMapper, TaskTypeOrmMapper];
@@ -103,6 +114,7 @@ const GRAPHQL_PROVIDERS = [
   providers: [
     ...COMMAND_HANDLERS,
     ...QUERY_HANDLERS,
+    ...EVENT_HANDLERS,
     ...APPLICATION_SERVICES,
     ...DOMAIN_BUILDERS,
     ...INFRASTRUCTURE_MAPPERS,

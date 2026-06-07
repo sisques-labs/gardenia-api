@@ -1,25 +1,19 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
+import { RegisterTaskHandler } from '@core/queue/decorators/register-task-handler.decorator';
 import {
   ITaskHandler,
   ITaskQueueContext,
 } from '@core/queue/interfaces/task-handler.interface';
-import { TaskHandlerRegistry } from '@core/queue/registry/task-handler.registry';
 
 @Injectable()
-export class PrunePlantTaskHandler implements ITaskHandler, OnModuleInit {
+@RegisterTaskHandler('prune-plant')
+export class PrunePlantTaskHandler implements ITaskHandler {
   readonly handlerKey = 'prune-plant';
   private readonly logger = new Logger(PrunePlantTaskHandler.name);
 
-  constructor(
-    private readonly registry: TaskHandlerRegistry,
-    private readonly queryBus: QueryBus,
-  ) {}
-
-  onModuleInit(): void {
-    this.registry.register(this);
-  }
+  constructor(private readonly queryBus: QueryBus) {}
 
   async execute(
     payload: Record<string, unknown>,

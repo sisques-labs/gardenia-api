@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { DiscoveryService } from '@nestjs/core';
 import { BaseException } from '@sisques-labs/nestjs-kit';
 
+import { TASK_HANDLER_METADATA } from '@core/queue/decorators/register-task-handler.decorator';
 import {
   ITaskHandler,
   ITaskQueueContext,
@@ -13,11 +16,29 @@ export class TaskHandlerNotFoundException extends BaseException {
 }
 
 @Injectable()
-export class TaskHandlerRegistry {
+export class TaskHandlerRegistry implements OnApplicationBootstrap {
   private readonly handlers = new Map<string, ITaskHandler>();
+  private readonly logger = new Logger(TaskHandlerRegistry.name);
 
-  register(handler: ITaskHandler): void {
-    this.handlers.set(handler.handlerKey, handler);
+  constructor(
+    private readonly discoveryService: DiscoveryService,
+    private readonly reflector: Reflector,
+  ) {}
+
+  onApplicationBootstrap(): void {
+    const providers = this.discoveryService.getProviders();
+    for (const wrapper of providers) {
+      const { instance } = wrapper;
+      if (!instance || typeof instance !== 'object') continue;
+      const key = this.reflector.get<string | undefined>(
+        TASK_HANDLER_METADATA,
+        instance.constructor,
+      );
+      if (key) {
+        this.handlers.set(key, instance as ITaskHandler);
+        this.logger.log(`Registered task handler: '${key}'`);
+      }
+    }
   }
 
   async dispatch(

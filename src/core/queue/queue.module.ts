@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
+import { DiscoveryModule } from '@nestjs/core';
 
 import { BullMqTaskQueueAdapter } from '@core/queue/adapters/bullmq/bullmq-task-queue.adapter';
 import { RabbitMqTaskQueueStubAdapter } from '@core/queue/adapters/rabbitmq/rabbitmq-task-queue-stub.adapter';
@@ -11,7 +12,7 @@ import { TaskHandlerRegistry } from '@core/queue/registry/task-handler.registry'
 
 @Global()
 @Module({
-  imports: [CqrsModule, ConfigModule.forFeature(taskQueueConfig)],
+  imports: [CqrsModule, DiscoveryModule, ConfigModule.forFeature(taskQueueConfig)],
   providers: [
     TaskHandlerRegistry,
     BullMqTaskQueueAdapter,

@@ -3,36 +3,23 @@ import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 import { Job, Queue, Worker } from 'bullmq';
 
+import {
+  TaskJobCompletedEvent,
+  TaskJobFailedEvent,
+  TaskJobProgressEvent,
+  TaskJobStartedEvent,
+} from '@core/queue/events/task-job-lifecycle.events';
 import { ITaskQueueContext } from '@core/queue/interfaces/task-handler.interface';
 import { ITaskQueueJob } from '@core/queue/interfaces/task-queue-job.interface';
 import { ITaskQueueProvider } from '@core/queue/ports/task-queue-provider.port';
 import { TaskHandlerRegistry } from '@core/queue/registry/task-handler.registry';
 
-export class TaskJobStartedEvent {
-  constructor(
-    public readonly taskId: string,
-    public readonly queueJobId: string,
-  ) {}
-}
-
-export class TaskJobCompletedEvent {
-  constructor(public readonly taskId: string) {}
-}
-
-export class TaskJobFailedEvent {
-  constructor(
-    public readonly taskId: string,
-    public readonly error: string,
-    public readonly isFinal: boolean,
-  ) {}
-}
-
-export class TaskJobProgressEvent {
-  constructor(
-    public readonly taskId: string,
-    public readonly progress: number,
-  ) {}
-}
+export {
+  TaskJobStartedEvent,
+  TaskJobCompletedEvent,
+  TaskJobFailedEvent,
+  TaskJobProgressEvent,
+};
 
 @Injectable()
 export class BullMqTaskQueueAdapter
@@ -79,9 +66,7 @@ export class BullMqTaskQueueAdapter
       const taskId: string = job.data.taskId;
       const isFinal = job.attemptsMade >= (job.opts.attempts ?? 1);
 
-      this.eventBus.publish(
-        new TaskJobFailedEvent(taskId, err.message, isFinal),
-      );
+      this.eventBus.publish(new TaskJobFailedEvent(taskId, err.message, isFinal));
 
       if (isFinal) {
         await this.dlqQueue.add('failed-task', job.data, { removeOnComplete: false });
