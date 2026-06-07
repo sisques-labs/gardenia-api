@@ -13,6 +13,8 @@ import { TaskFindByIdQuery } from '@contexts/tasks/application/queries/task-find
 import { TaskRunFindByTaskQuery } from '@contexts/tasks/application/queries/task-run-find-by-task/task-run-find-by-task.query';
 import { TaskRunViewModel } from '@contexts/tasks/domain/view-models/task-run.view-model';
 import { TaskFindByCriteriaGraphQLDto } from '@contexts/tasks/transport/graphql/dtos/requests/task-find-by-criteria-graphql.dto';
+import { TaskFindByIdGraphQLDto } from '@contexts/tasks/transport/graphql/dtos/requests/task-find-by-id-graphql.dto';
+import { TaskRunsFindByTaskIdGraphQLDto } from '@contexts/tasks/transport/graphql/dtos/requests/task-runs-find-by-task-id-graphql.dto';
 import {
   PaginatedTaskResultDto,
   TaskGraphQLResponseDto,
@@ -32,12 +34,12 @@ export class TaskQueriesResolver {
 
   @Query(() => TaskGraphQLResponseDto)
   async taskFindById(
-    @Args('id') id: string,
+    @Args('input') input: TaskFindByIdGraphQLDto,
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<TaskGraphQLResponseDto> {
-    this.logger.log(`Finding task by id: ${id}`);
+    this.logger.log(`Finding task by id: ${input.id}`);
     const result = await this.queryBus.execute(
-      new TaskFindByIdQuery({ id, userId: user.userId }),
+      new TaskFindByIdQuery({ id: input.id, userId: user.userId }),
     );
     return this.mapper.toResponseDto(result);
   }
@@ -60,16 +62,16 @@ export class TaskQueriesResolver {
   }
 
   @Query(() => [TaskRunGraphQLResponseDto])
-  async taskRuns(
-    @Args('taskId') taskId: string,
+  async taskRunsFindByTaskId(
+    @Args('input') input: TaskRunsFindByTaskIdGraphQLDto,
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<TaskRunGraphQLResponseDto[]> {
-    this.logger.log(`Finding task runs for task: ${taskId}`);
+    this.logger.log(`Finding task runs for task: ${input.taskId}`);
     await this.queryBus.execute(
-      new TaskFindByIdQuery({ id: taskId, userId: user.userId }),
+      new TaskFindByIdQuery({ id: input.taskId, userId: user.userId }),
     );
     const runs: TaskRunViewModel[] = await this.queryBus.execute(
-      new TaskRunFindByTaskQuery({ taskId }),
+      new TaskRunFindByTaskQuery({ taskId: input.taskId }),
     );
     return runs.map((r) => this.mapper.toRunResponseDto(r));
   }
