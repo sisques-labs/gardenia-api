@@ -20,6 +20,8 @@ export interface ITaskTemplate {
   defaultBackoffStrategy: TaskBackoffStrategyValueObject;
   defaultTimeoutMs: TaskTimeoutValueObject;
   maxConcurrency: TaskConcurrencyValueObject;
+  defaultCronExpression: string | null;
+  defaultIsRecurring: boolean;
   userId: UuidValueObject;
   createdAt: DateValueObject;
   updatedAt: DateValueObject;

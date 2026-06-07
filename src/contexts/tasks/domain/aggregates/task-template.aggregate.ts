@@ -36,6 +36,8 @@ export class TaskTemplateAggregate extends BaseAggregate {
   private _defaultBackoffStrategy: TaskBackoffStrategyValueObject;
   private _defaultTimeoutMs: TaskTimeoutValueObject;
   private _maxConcurrency: TaskConcurrencyValueObject;
+  private _defaultCronExpression: string | null;
+  private _defaultIsRecurring: boolean;
   private readonly _userId: UuidValueObject;
 
   constructor(props: ITaskTemplate) {
@@ -49,6 +51,8 @@ export class TaskTemplateAggregate extends BaseAggregate {
     this._defaultBackoffStrategy = props.defaultBackoffStrategy;
     this._defaultTimeoutMs = props.defaultTimeoutMs;
     this._maxConcurrency = props.maxConcurrency;
+    this._defaultCronExpression = props.defaultCronExpression;
+    this._defaultIsRecurring = props.defaultIsRecurring;
     this._userId = props.userId;
   }
 
@@ -84,6 +88,8 @@ export class TaskTemplateAggregate extends BaseAggregate {
         | 'defaultBackoffStrategy'
         | 'defaultTimeoutMs'
         | 'maxConcurrency'
+        | 'defaultCronExpression'
+        | 'defaultIsRecurring'
       >
     >,
   ): void {
@@ -95,6 +101,8 @@ export class TaskTemplateAggregate extends BaseAggregate {
     if (props.defaultBackoffStrategy) this._defaultBackoffStrategy = props.defaultBackoffStrategy;
     if (props.defaultTimeoutMs) this._defaultTimeoutMs = props.defaultTimeoutMs;
     if (props.maxConcurrency) this._maxConcurrency = props.maxConcurrency;
+    if (props.defaultCronExpression !== undefined) this._defaultCronExpression = props.defaultCronExpression;
+    if (props.defaultIsRecurring !== undefined) this._defaultIsRecurring = props.defaultIsRecurring;
 
     this.touch();
 
@@ -153,6 +161,14 @@ export class TaskTemplateAggregate extends BaseAggregate {
     return this._maxConcurrency;
   }
 
+  get defaultCronExpression(): string | null {
+    return this._defaultCronExpression;
+  }
+
+  get defaultIsRecurring(): boolean {
+    return this._defaultIsRecurring;
+  }
+
   get userId(): UuidValueObject {
     return this._userId;
   }
@@ -168,6 +184,8 @@ export class TaskTemplateAggregate extends BaseAggregate {
       defaultBackoffStrategy: this._defaultBackoffStrategy.value,
       defaultTimeoutMs: this._defaultTimeoutMs.value,
       maxConcurrency: this._maxConcurrency.value,
+      defaultCronExpression: this._defaultCronExpression,
+      defaultIsRecurring: this._defaultIsRecurring,
       userId: this._userId.value,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,

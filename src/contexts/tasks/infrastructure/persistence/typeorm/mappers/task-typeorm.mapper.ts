@@ -24,6 +24,10 @@ export class TaskTypeOrmMapper {
       .withIdempotencyKey(entity.idempotencyKey)
       .withQueueJobId(entity.queueJobId)
       .withUserId(entity.userId)
+      .withTargetType(entity.targetType)
+      .withTargetId(entity.targetId)
+      .withValidFrom(entity.validFrom)
+      .withValidUntil(entity.validUntil)
       .withScheduledAt(entity.scheduledAt)
       .withStartedAt(entity.startedAt)
       .withCompletedAt(entity.completedAt)
@@ -50,6 +54,10 @@ export class TaskTypeOrmMapper {
     entity.idempotencyKey = p.idempotencyKey;
     entity.queueJobId = p.queueJobId;
     entity.userId = p.userId;
+    entity.targetType = p.targetType;
+    entity.targetId = p.targetId;
+    entity.validFrom = p.validFrom;
+    entity.validUntil = p.validUntil;
     entity.scheduledAt = p.scheduledAt;
     entity.startedAt = p.startedAt;
     entity.completedAt = p.completedAt;
@@ -75,6 +83,10 @@ export class TaskTypeOrmMapper {
       .withIdempotencyKey(entity.idempotencyKey)
       .withQueueJobId(entity.queueJobId)
       .withUserId(entity.userId)
+      .withTargetType(entity.targetType)
+      .withTargetId(entity.targetId)
+      .withValidFrom(entity.validFrom)
+      .withValidUntil(entity.validUntil)
       .withScheduledAt(entity.scheduledAt)
       .withStartedAt(entity.startedAt)
       .withCompletedAt(entity.completedAt)

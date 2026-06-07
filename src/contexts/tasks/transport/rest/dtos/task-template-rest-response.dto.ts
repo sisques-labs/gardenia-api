@@ -10,6 +10,8 @@ export class TaskTemplateRestResponseDto {
   @ApiProperty() defaultBackoffStrategy!: string;
   @ApiProperty() defaultTimeoutMs!: number;
   @ApiProperty() maxConcurrency!: number;
+  @ApiProperty({ nullable: true }) defaultCronExpression!: string | null;
+  @ApiProperty() defaultIsRecurring!: boolean;
   @ApiProperty() userId!: string;
   @ApiProperty() createdAt!: Date;
   @ApiProperty() updatedAt!: Date;

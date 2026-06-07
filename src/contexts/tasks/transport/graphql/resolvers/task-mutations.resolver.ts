@@ -40,6 +40,10 @@ export class TaskMutationsResolver {
         maxRuns: input.maxRuns,
         idempotencyKey: input.idempotencyKey,
         userId: user.userId,
+        targetType: input.targetType,
+        targetId: input.targetId,
+        validFrom: input.validFrom ? new Date(input.validFrom) : undefined,
+        validUntil: input.validUntil ? new Date(input.validUntil) : undefined,
       }),
     );
 

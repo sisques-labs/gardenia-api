@@ -18,6 +18,8 @@ export interface UpdateTaskTemplateCommandInput {
   defaultBackoffStrategy?: string;
   defaultTimeoutMs?: number;
   maxConcurrency?: number;
+  defaultCronExpression?: string | null;
+  defaultIsRecurring?: boolean;
 }
 
 export class UpdateTaskTemplateCommand {
@@ -30,6 +32,8 @@ export class UpdateTaskTemplateCommand {
   public readonly defaultBackoffStrategy?: TaskBackoffStrategyValueObject;
   public readonly defaultTimeoutMs?: TaskTimeoutValueObject;
   public readonly maxConcurrency?: TaskConcurrencyValueObject;
+  public readonly defaultCronExpression?: string | null;
+  public readonly defaultIsRecurring?: boolean;
 
   constructor(input: UpdateTaskTemplateCommandInput) {
     this.id = new TaskTemplateIdValueObject(input.id);
@@ -42,5 +46,7 @@ export class UpdateTaskTemplateCommand {
       this.defaultBackoffStrategy = new TaskBackoffStrategyValueObject(input.defaultBackoffStrategy as TaskBackoffStrategyEnum);
     if (input.defaultTimeoutMs !== undefined) this.defaultTimeoutMs = new TaskTimeoutValueObject(input.defaultTimeoutMs);
     if (input.maxConcurrency !== undefined) this.maxConcurrency = new TaskConcurrencyValueObject(input.maxConcurrency);
+    if (input.defaultCronExpression !== undefined) this.defaultCronExpression = input.defaultCronExpression;
+    if (input.defaultIsRecurring !== undefined) this.defaultIsRecurring = input.defaultIsRecurring;
   }
 }

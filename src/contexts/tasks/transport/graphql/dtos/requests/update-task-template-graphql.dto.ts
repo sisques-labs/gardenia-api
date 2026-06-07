@@ -1,5 +1,6 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql';
 import {
+  IsBoolean,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -63,4 +64,14 @@ export class UpdateTaskTemplateGraphQLDto {
   @Max(100)
   @IsOptional()
   maxConcurrency?: number;
+
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
+  defaultCronExpression?: string | null;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  defaultIsRecurring?: boolean;
 }

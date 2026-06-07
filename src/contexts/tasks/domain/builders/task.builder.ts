@@ -28,6 +28,10 @@ export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
   private _idempotencyKey: string | null = null;
   private _queueJobId: string | null = null;
   private _userId!: string;
+  private _targetType: string | null = null;
+  private _targetId: string | null = null;
+  private _validFrom: Date | null = null;
+  private _validUntil: Date | null = null;
   private _scheduledAt: Date | null = null;
   private _startedAt: Date | null = null;
   private _completedAt: Date | null = null;
@@ -94,6 +98,26 @@ export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
     return this;
   }
 
+  withTargetType(targetType: string | null): this {
+    this._targetType = targetType;
+    return this;
+  }
+
+  withTargetId(targetId: string | null): this {
+    this._targetId = targetId;
+    return this;
+  }
+
+  withValidFrom(validFrom: Date | null): this {
+    this._validFrom = validFrom;
+    return this;
+  }
+
+  withValidUntil(validUntil: Date | null): this {
+    this._validUntil = validUntil;
+    return this;
+  }
+
   withScheduledAt(scheduledAt: Date | null): this {
     this._scheduledAt = scheduledAt;
     return this;
@@ -142,6 +166,10 @@ export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
       idempotencyKey: this._idempotencyKey,
       queueJobId: this._queueJobId,
       userId: new UuidValueObject(this._userId),
+      targetType: this._targetType,
+      targetId: this._targetId,
+      validFrom: this._validFrom,
+      validUntil: this._validUntil,
       scheduledAt: this._scheduledAt,
       startedAt: this._startedAt,
       completedAt: this._completedAt,
@@ -169,6 +197,10 @@ export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
       idempotencyKey: this._idempotencyKey,
       queueJobId: this._queueJobId,
       userId: this._userId,
+      targetType: this._targetType,
+      targetId: this._targetId,
+      validFrom: this._validFrom,
+      validUntil: this._validUntil,
       scheduledAt: this._scheduledAt,
       startedAt: this._startedAt,
       completedAt: this._completedAt,

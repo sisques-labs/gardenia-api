@@ -30,6 +30,12 @@ export class TaskTemplateGraphQLResponseDto {
   @Field(() => Int)
   maxConcurrency!: number;
 
+  @Field(() => String, { nullable: true })
+  defaultCronExpression!: string | null;
+
+  @Field(() => Boolean)
+  defaultIsRecurring!: boolean;
+
   @Field(() => String)
   userId!: string;
 

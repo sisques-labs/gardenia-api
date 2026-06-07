@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -57,4 +58,14 @@ export class UpdateTaskTemplateRestDto {
   @Max(100)
   @IsOptional()
   maxConcurrency?: number;
+
+  @ApiPropertyOptional({ description: '5-field cron expression applied to tasks by default' })
+  @IsString()
+  @IsOptional()
+  defaultCronExpression?: string | null;
+
+  @ApiPropertyOptional({ default: false })
+  @IsBoolean()
+  @IsOptional()
+  defaultIsRecurring?: boolean;
 }

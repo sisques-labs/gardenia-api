@@ -11,6 +11,8 @@ export class TaskTemplateViewModel extends BaseViewModel {
   public readonly defaultBackoffStrategy: string;
   public readonly defaultTimeoutMs: number;
   public readonly maxConcurrency: number;
+  public readonly defaultCronExpression: string | null;
+  public readonly defaultIsRecurring: boolean;
   public readonly userId: string;
 
   constructor(props: ITaskTemplatePrimitives) {
@@ -23,6 +25,8 @@ export class TaskTemplateViewModel extends BaseViewModel {
     this.defaultBackoffStrategy = props.defaultBackoffStrategy;
     this.defaultTimeoutMs = props.defaultTimeoutMs;
     this.maxConcurrency = props.maxConcurrency;
+    this.defaultCronExpression = props.defaultCronExpression;
+    this.defaultIsRecurring = props.defaultIsRecurring;
     this.userId = props.userId;
   }
 }

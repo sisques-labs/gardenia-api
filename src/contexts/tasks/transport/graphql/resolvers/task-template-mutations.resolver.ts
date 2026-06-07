@@ -40,6 +40,8 @@ export class TaskTemplateMutationsResolver {
         defaultBackoffStrategy: input.defaultBackoffStrategy,
         defaultTimeoutMs: input.defaultTimeoutMs,
         maxConcurrency: input.maxConcurrency,
+        defaultCronExpression: input.defaultCronExpression,
+        defaultIsRecurring: input.defaultIsRecurring,
         userId: user.userId,
       }),
     );
@@ -68,6 +70,8 @@ export class TaskTemplateMutationsResolver {
         defaultBackoffStrategy: input.defaultBackoffStrategy,
         defaultTimeoutMs: input.defaultTimeoutMs,
         maxConcurrency: input.maxConcurrency,
+        defaultCronExpression: input.defaultCronExpression,
+        defaultIsRecurring: input.defaultIsRecurring,
       }),
     );
 

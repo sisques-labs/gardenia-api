@@ -31,6 +31,8 @@ export class TaskTemplateBuilder extends BaseBuilder<
   private _defaultBackoffStrategy: string = TaskBackoffStrategyEnum.EXPONENTIAL;
   private _defaultTimeoutMs: number = 30000;
   private _maxConcurrency: number = 5;
+  private _defaultCronExpression: string | null = null;
+  private _defaultIsRecurring: boolean = false;
   private _userId!: string;
 
   withName(name: string): this {
@@ -73,6 +75,16 @@ export class TaskTemplateBuilder extends BaseBuilder<
     return this;
   }
 
+  withDefaultCronExpression(cronExpression: string | null): this {
+    this._defaultCronExpression = cronExpression;
+    return this;
+  }
+
+  withDefaultIsRecurring(isRecurring: boolean): this {
+    this._defaultIsRecurring = isRecurring;
+    return this;
+  }
+
   withUserId(userId: string): this {
     this._userId = userId;
     return this;
@@ -100,6 +112,8 @@ export class TaskTemplateBuilder extends BaseBuilder<
       ),
       defaultTimeoutMs: new TaskTimeoutValueObject(this._defaultTimeoutMs),
       maxConcurrency: new TaskConcurrencyValueObject(this._maxConcurrency),
+      defaultCronExpression: this._defaultCronExpression,
+      defaultIsRecurring: this._defaultIsRecurring,
       userId: new UuidValueObject(this._userId),
       createdAt: new DateValueObject(this._createdAt ?? now),
       updatedAt: new DateValueObject(this._updatedAt ?? now),
@@ -119,6 +133,8 @@ export class TaskTemplateBuilder extends BaseBuilder<
       defaultBackoffStrategy: this._defaultBackoffStrategy,
       defaultTimeoutMs: this._defaultTimeoutMs,
       maxConcurrency: this._maxConcurrency,
+      defaultCronExpression: this._defaultCronExpression,
+      defaultIsRecurring: this._defaultIsRecurring,
       userId: this._userId,
       createdAt: this._createdAt ?? now,
       updatedAt: this._updatedAt ?? now,

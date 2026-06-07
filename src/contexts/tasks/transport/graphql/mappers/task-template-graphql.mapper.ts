@@ -20,6 +20,8 @@ export class TaskTemplateGraphQLMapper {
       defaultBackoffStrategy: vm.defaultBackoffStrategy,
       defaultTimeoutMs: vm.defaultTimeoutMs,
       maxConcurrency: vm.maxConcurrency,
+      defaultCronExpression: vm.defaultCronExpression,
+      defaultIsRecurring: vm.defaultIsRecurring,
       userId: vm.userId,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,

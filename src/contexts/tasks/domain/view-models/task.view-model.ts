@@ -15,6 +15,10 @@ export class TaskViewModel extends BaseViewModel {
   public readonly idempotencyKey: string | null;
   public readonly queueJobId: string | null;
   public readonly userId: string;
+  public readonly targetType: string | null;
+  public readonly targetId: string | null;
+  public readonly validFrom: Date | null;
+  public readonly validUntil: Date | null;
   public readonly scheduledAt: Date | null;
   public readonly startedAt: Date | null;
   public readonly completedAt: Date | null;
@@ -35,6 +39,10 @@ export class TaskViewModel extends BaseViewModel {
     this.idempotencyKey = props.idempotencyKey;
     this.queueJobId = props.queueJobId;
     this.userId = props.userId;
+    this.targetType = props.targetType;
+    this.targetId = props.targetId;
+    this.validFrom = props.validFrom;
+    this.validUntil = props.validUntil;
     this.scheduledAt = props.scheduledAt;
     this.startedAt = props.startedAt;
     this.completedAt = props.completedAt;

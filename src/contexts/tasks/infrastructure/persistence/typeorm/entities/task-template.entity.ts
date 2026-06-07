@@ -35,6 +35,12 @@ export class TaskTemplateTypeOrmEntity {
   @Column({ name: 'max_concurrency', type: 'smallint', nullable: false, default: 5 })
   maxConcurrency!: number;
 
+  @Column({ name: 'default_cron_expression', type: 'varchar', length: 100, nullable: true })
+  defaultCronExpression!: string | null;
+
+  @Column({ name: 'default_is_recurring', type: 'boolean', nullable: false, default: false })
+  defaultIsRecurring!: boolean;
+
   @Column({ name: 'user_id', type: 'uuid', nullable: false })
   userId!: string;
 

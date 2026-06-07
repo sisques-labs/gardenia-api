@@ -10,6 +10,8 @@ export interface ITaskTemplatePrimitives extends BasePrimitives {
   defaultBackoffStrategy: string;
   defaultTimeoutMs: number;
   maxConcurrency: number;
+  defaultCronExpression: string | null;
+  defaultIsRecurring: boolean;
   userId: string;
   createdAt: Date;
   updatedAt: Date;

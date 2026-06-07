@@ -41,6 +41,8 @@ export class UpdateTaskTemplateCommandHandler
       defaultBackoffStrategy: command.defaultBackoffStrategy,
       defaultTimeoutMs: command.defaultTimeoutMs,
       maxConcurrency: command.maxConcurrency,
+      defaultCronExpression: command.defaultCronExpression,
+      defaultIsRecurring: command.defaultIsRecurring,
     });
 
     await this.taskTemplateWriteRepository.save(template);

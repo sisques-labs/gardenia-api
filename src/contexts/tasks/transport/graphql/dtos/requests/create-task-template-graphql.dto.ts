@@ -1,5 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import {
+  IsBoolean,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -56,4 +57,14 @@ export class CreateTaskTemplateGraphQLDto {
   @Max(100)
   @IsOptional()
   maxConcurrency?: number;
+
+  @Field(() => String, { nullable: true, description: '5-field cron expression applied to tasks by default' })
+  @IsString()
+  @IsOptional()
+  defaultCronExpression?: string | null;
+
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
+  @IsBoolean()
+  @IsOptional()
+  defaultIsRecurring?: boolean;
 }

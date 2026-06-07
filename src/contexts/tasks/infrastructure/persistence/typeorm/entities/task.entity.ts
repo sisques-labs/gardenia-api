@@ -58,6 +58,19 @@ export class TaskTypeOrmEntity {
   @Column({ name: 'user_id', type: 'uuid', nullable: false })
   userId!: string;
 
+  @Column({ name: 'target_type', type: 'varchar', length: 50, nullable: true })
+  targetType!: string | null;
+
+  @Index()
+  @Column({ name: 'target_id', type: 'uuid', nullable: true })
+  targetId!: string | null;
+
+  @Column({ name: 'valid_from', type: 'timestamp', nullable: true })
+  validFrom!: Date | null;
+
+  @Column({ name: 'valid_until', type: 'timestamp', nullable: true })
+  validUntil!: Date | null;
+
   @Column({ name: 'scheduled_at', type: 'timestamp', nullable: true })
   scheduledAt!: Date | null;
 

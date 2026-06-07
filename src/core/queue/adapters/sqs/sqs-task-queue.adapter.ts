@@ -100,6 +100,7 @@ export class SqsTaskQueueAdapter
           taskId: job.taskId,
           handlerKey: job.handlerKey,
           payload: job.payload,
+          validUntil: job.validUntil?.toISOString() ?? null,
         }),
         // SQS delay supports up to 900 seconds (15 minutes)
         DelaySeconds: job.delayMs
@@ -153,7 +154,7 @@ export class SqsTaskQueueAdapter
     const receiptHandle = message.ReceiptHandle!;
     const messageId = message.MessageId ?? '';
 
-    let body: { taskId: string; handlerKey: string; payload: Record<string, unknown> };
+    let body: { taskId: string; handlerKey: string; payload: Record<string, unknown>; validUntil: string | null };
     try {
       body = JSON.parse(message.Body ?? '{}');
     } catch {
@@ -162,7 +163,13 @@ export class SqsTaskQueueAdapter
       return;
     }
 
-    const { taskId, handlerKey, payload } = body;
+    const { taskId, handlerKey, payload, validUntil } = body;
+
+    if (validUntil && new Date(validUntil) < new Date()) {
+      this.logger.log(`Skipping expired task ${taskId} (validUntil: ${validUntil})`);
+      await this.deleteMessage(receiptHandle);
+      return;
+    }
 
     if (this.cancelledMessageIds.has(messageId)) {
       this.logger.log(`Skipping cancelled task ${taskId} (messageId: ${messageId})`);

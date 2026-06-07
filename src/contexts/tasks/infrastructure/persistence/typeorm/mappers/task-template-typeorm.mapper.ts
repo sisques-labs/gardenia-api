@@ -20,6 +20,8 @@ export class TaskTemplateTypeOrmMapper {
       .withDefaultBackoffStrategy(entity.defaultBackoffStrategy)
       .withDefaultTimeoutMs(entity.defaultTimeoutMs)
       .withMaxConcurrency(entity.maxConcurrency)
+      .withDefaultCronExpression(entity.defaultCronExpression)
+      .withDefaultIsRecurring(entity.defaultIsRecurring)
       .withUserId(entity.userId)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
@@ -38,6 +40,8 @@ export class TaskTemplateTypeOrmMapper {
     entity.defaultBackoffStrategy = p.defaultBackoffStrategy;
     entity.defaultTimeoutMs = p.defaultTimeoutMs;
     entity.maxConcurrency = p.maxConcurrency;
+    entity.defaultCronExpression = p.defaultCronExpression;
+    entity.defaultIsRecurring = p.defaultIsRecurring;
     entity.userId = p.userId;
     entity.createdAt = p.createdAt;
     entity.updatedAt = p.updatedAt;
@@ -55,6 +59,8 @@ export class TaskTemplateTypeOrmMapper {
       .withDefaultBackoffStrategy(entity.defaultBackoffStrategy)
       .withDefaultTimeoutMs(entity.defaultTimeoutMs)
       .withMaxConcurrency(entity.maxConcurrency)
+      .withDefaultCronExpression(entity.defaultCronExpression)
+      .withDefaultIsRecurring(entity.defaultIsRecurring)
       .withUserId(entity.userId)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)

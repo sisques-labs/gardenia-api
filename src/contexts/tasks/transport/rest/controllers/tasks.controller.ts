@@ -29,7 +29,7 @@ import { ScheduleTaskCommand } from '@contexts/tasks/application/commands/schedu
 import { TaskFindByCriteriaQuery } from '@contexts/tasks/application/queries/task-find-by-criteria/task-find-by-criteria.query';
 import { TaskFindByIdQuery } from '@contexts/tasks/application/queries/task-find-by-id/task-find-by-id.query';
 import { TaskRunFindByTaskQuery } from '@contexts/tasks/application/queries/task-run-find-by-task/task-run-find-by-task.query';
-import { TaskRunTypeOrmEntity } from '@contexts/tasks/infrastructure/persistence/typeorm/entities/task-run.entity';
+import { TaskRunViewModel } from '@contexts/tasks/domain/view-models/task-run.view-model';
 import { TaskViewModel } from '@contexts/tasks/domain/view-models/task.view-model';
 import { ScheduleTaskRestDto } from '@contexts/tasks/transport/rest/dtos/schedule-task-rest.dto';
 import { TaskRestResponseDto } from '@contexts/tasks/transport/rest/dtos/task-rest-response.dto';
@@ -72,6 +72,10 @@ export class TasksController {
         maxRuns: dto.maxRuns,
         idempotencyKey: dto.idempotencyKey,
         userId: user.userId,
+        targetType: dto.targetType,
+        targetId: dto.targetId,
+        validFrom: dto.validFrom ? new Date(dto.validFrom) : undefined,
+        validUntil: dto.validUntil ? new Date(dto.validUntil) : undefined,
       }),
     );
 
@@ -141,8 +145,13 @@ export class TasksController {
   @ApiOperation({ summary: 'Get execution history for a task' })
   @ApiResponse({ status: 200 })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getTaskRuns(@Param('id') id: string): Promise<TaskRunTypeOrmEntity[]> {
+  @ApiResponse({ status: 404, description: 'Task not found' })
+  async getTaskRuns(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<TaskRunViewModel[]> {
     this.logger.log(`GET /tasks/${id}/runs`);
+    await this.queryBus.execute(new TaskFindByIdQuery({ id, userId: user.userId }));
     return this.queryBus.execute(new TaskRunFindByTaskQuery({ taskId: id }));
   }
 }

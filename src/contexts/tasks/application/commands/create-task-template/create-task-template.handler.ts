@@ -40,6 +40,8 @@ export class CreateTaskTemplateCommandHandler
       .withDefaultBackoffStrategy(command.defaultBackoffStrategy.value)
       .withDefaultTimeoutMs(command.defaultTimeoutMs.value)
       .withMaxConcurrency(command.maxConcurrency.value)
+      .withDefaultCronExpression(command.defaultCronExpression)
+      .withDefaultIsRecurring(command.defaultIsRecurring)
       .withUserId(command.userId.value)
       .build();
 

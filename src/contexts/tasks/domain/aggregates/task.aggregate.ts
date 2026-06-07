@@ -29,6 +29,10 @@ export class TaskAggregate extends BaseAggregate {
   private readonly _idempotencyKey: string | null;
   private _queueJobId: string | null;
   private readonly _userId: UuidValueObject;
+  private readonly _targetType: string | null;
+  private readonly _targetId: string | null;
+  private readonly _validFrom: Date | null;
+  private readonly _validUntil: Date | null;
   private _scheduledAt: Date | null;
   private _startedAt: Date | null;
   private _completedAt: Date | null;
@@ -50,6 +54,10 @@ export class TaskAggregate extends BaseAggregate {
     this._idempotencyKey = props.idempotencyKey;
     this._queueJobId = props.queueJobId;
     this._userId = props.userId;
+    this._targetType = props.targetType;
+    this._targetId = props.targetId;
+    this._validFrom = props.validFrom;
+    this._validUntil = props.validUntil;
     this._scheduledAt = props.scheduledAt;
     this._startedAt = props.startedAt;
     this._completedAt = props.completedAt;
@@ -203,6 +211,22 @@ export class TaskAggregate extends BaseAggregate {
     return this._userId;
   }
 
+  get targetType(): string | null {
+    return this._targetType;
+  }
+
+  get targetId(): string | null {
+    return this._targetId;
+  }
+
+  get validFrom(): Date | null {
+    return this._validFrom;
+  }
+
+  get validUntil(): Date | null {
+    return this._validUntil;
+  }
+
   get scheduledAt(): Date | null {
     return this._scheduledAt;
   }
@@ -238,6 +262,10 @@ export class TaskAggregate extends BaseAggregate {
       idempotencyKey: this._idempotencyKey,
       queueJobId: this._queueJobId,
       userId: this._userId.value,
+      targetType: this._targetType,
+      targetId: this._targetId,
+      validFrom: this._validFrom,
+      validUntil: this._validUntil,
       scheduledAt: this._scheduledAt,
       startedAt: this._startedAt,
       completedAt: this._completedAt,

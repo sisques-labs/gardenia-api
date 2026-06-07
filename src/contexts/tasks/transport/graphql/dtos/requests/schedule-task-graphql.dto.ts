@@ -1,6 +1,7 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql';
 import {
   IsBoolean,
+  IsDateString,
   IsInt,
   IsOptional,
   IsString,
@@ -53,4 +54,24 @@ export class ScheduleTaskGraphQLDto {
   @IsString()
   @IsOptional()
   idempotencyKey?: string;
+
+  @Field(() => String, { nullable: true, description: 'Target entity type (e.g. plant, planting-spot, space)' })
+  @IsString()
+  @IsOptional()
+  targetType?: string;
+
+  @Field(() => ID, { nullable: true, description: 'UUID of the target entity' })
+  @IsUUID()
+  @IsOptional()
+  targetId?: string;
+
+  @Field(() => String, { nullable: true, description: 'ISO 8601 datetime — do not execute before this date' })
+  @IsDateString()
+  @IsOptional()
+  validFrom?: string;
+
+  @Field(() => String, { nullable: true, description: 'ISO 8601 datetime — stop recurring runs after this date' })
+  @IsDateString()
+  @IsOptional()
+  validUntil?: string;
 }

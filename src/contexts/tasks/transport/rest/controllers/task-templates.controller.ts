@@ -68,6 +68,8 @@ export class TaskTemplatesController {
         defaultBackoffStrategy: dto.defaultBackoffStrategy,
         defaultTimeoutMs: dto.defaultTimeoutMs,
         maxConcurrency: dto.maxConcurrency,
+        defaultCronExpression: dto.defaultCronExpression,
+        defaultIsRecurring: dto.defaultIsRecurring,
         userId: user.userId,
       }),
     );

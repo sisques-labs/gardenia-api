@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
+  IsDateString,
   IsInt,
   IsObject,
   IsOptional,
@@ -53,4 +54,24 @@ export class ScheduleTaskRestDto {
   @IsString()
   @IsOptional()
   idempotencyKey?: string;
+
+  @ApiPropertyOptional({ description: 'Target entity type (e.g. plant, planting-spot, space)' })
+  @IsString()
+  @IsOptional()
+  targetType?: string;
+
+  @ApiPropertyOptional({ description: 'UUID of the target entity' })
+  @IsUUID()
+  @IsOptional()
+  targetId?: string;
+
+  @ApiPropertyOptional({ description: 'ISO 8601 — do not execute before this date' })
+  @IsDateString()
+  @IsOptional()
+  validFrom?: string;
+
+  @ApiPropertyOptional({ description: 'ISO 8601 — stop recurring runs after this date' })
+  @IsDateString()
+  @IsOptional()
+  validUntil?: string;
 }

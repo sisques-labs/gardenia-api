@@ -8,4 +8,5 @@ export interface ITaskQueueJob {
   cronExpression?: string;
   retryCount?: number;
   backoffStrategy?: string;
+  validUntil?: Date;
 }

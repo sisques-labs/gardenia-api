@@ -65,17 +65,31 @@ export class ScheduleTaskCommandHandler
     const id = UuidValueObject.generate().value;
     const priority = command.priority?.value ?? primitives.defaultPriority;
 
+    // Fall back to template defaults when cron / recurring not explicitly passed
+    const cronExpression = command.cronExpression ?? primitives.defaultCronExpression;
+    const isRecurring = command.isRecurring ?? primitives.defaultIsRecurring;
+
+    // Translate validFrom to an initial delay so the job fires at the right time
+    let delayMs = command.delayMs;
+    if (delayMs === null && command.validFrom) {
+      delayMs = Math.max(0, command.validFrom.getTime() - Date.now());
+    }
+
     const task = this.taskBuilder
       .withId(id)
       .withTemplateId(command.templateId.value)
       .withPayload(command.payload)
       .withPriority(priority)
-      .withDelayMs(command.delayMs)
-      .withCronExpression(command.cronExpression)
-      .withIsRecurring(command.isRecurring)
+      .withDelayMs(delayMs)
+      .withCronExpression(cronExpression)
+      .withIsRecurring(isRecurring)
       .withMaxRuns(command.maxRuns)
       .withIdempotencyKey(command.idempotencyKey)
       .withUserId(command.userId.value)
+      .withTargetType(command.targetType)
+      .withTargetId(command.targetId)
+      .withValidFrom(command.validFrom)
+      .withValidUntil(command.validUntil)
       .build();
 
     task.schedule();
@@ -87,10 +101,11 @@ export class ScheduleTaskCommandHandler
       payload: command.payload,
       priority,
       timeoutMs: primitives.defaultTimeoutMs,
-      delayMs: command.delayMs ?? undefined,
-      cronExpression: command.cronExpression ?? undefined,
+      delayMs: delayMs ?? undefined,
+      cronExpression: cronExpression ?? undefined,
       retryCount: primitives.defaultRetryCount,
       backoffStrategy: primitives.defaultBackoffStrategy,
+      validUntil: command.validUntil ?? undefined,
     });
 
     await this.taskWriteRepository.updateQueueJobId(id, queueJobId);

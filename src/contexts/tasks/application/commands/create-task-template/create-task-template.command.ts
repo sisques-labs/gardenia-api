@@ -18,6 +18,8 @@ export interface CreateTaskTemplateCommandInput {
   defaultBackoffStrategy?: string;
   defaultTimeoutMs?: number;
   maxConcurrency?: number;
+  defaultCronExpression?: string | null;
+  defaultIsRecurring?: boolean;
   userId: string;
 }
 
@@ -30,6 +32,8 @@ export class CreateTaskTemplateCommand {
   public readonly defaultBackoffStrategy: TaskBackoffStrategyValueObject;
   public readonly defaultTimeoutMs: TaskTimeoutValueObject;
   public readonly maxConcurrency: TaskConcurrencyValueObject;
+  public readonly defaultCronExpression: string | null;
+  public readonly defaultIsRecurring: boolean;
   public readonly userId: UuidValueObject;
 
   constructor(input: CreateTaskTemplateCommandInput) {
@@ -43,6 +47,8 @@ export class CreateTaskTemplateCommand {
     );
     this.defaultTimeoutMs = new TaskTimeoutValueObject(input.defaultTimeoutMs ?? 30000);
     this.maxConcurrency = new TaskConcurrencyValueObject(input.maxConcurrency ?? 5);
+    this.defaultCronExpression = input.defaultCronExpression ?? null;
+    this.defaultIsRecurring = input.defaultIsRecurring ?? false;
     this.userId = new UuidValueObject(input.userId);
   }
 }

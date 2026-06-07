@@ -69,6 +69,18 @@ export class TaskGraphQLResponseDto {
   @Field(() => String)
   userId!: string;
 
+  @Field(() => String, { nullable: true })
+  targetType!: string | null;
+
+  @Field(() => ID, { nullable: true })
+  targetId!: string | null;
+
+  @Field(() => Date, { nullable: true })
+  validFrom!: Date | null;
+
+  @Field(() => Date, { nullable: true })
+  validUntil!: Date | null;
+
   @Field(() => Date, { nullable: true })
   scheduledAt!: Date | null;
 

@@ -94,7 +94,12 @@ export class BullMqTaskQueueAdapter
 
     const bullJob = await this.queue.add(
       job.handlerKey,
-      { taskId: job.taskId, handlerKey: job.handlerKey, payload: job.payload },
+      {
+        taskId: job.taskId,
+        handlerKey: job.handlerKey,
+        payload: job.payload,
+        validUntil: job.validUntil?.toISOString() ?? null,
+      },
       {
         priority: 11 - job.priority,
         delay: job.delayMs,
@@ -118,11 +123,18 @@ export class BullMqTaskQueueAdapter
   }
 
   private async processJob(job: Job): Promise<void> {
-    const { taskId, handlerKey, payload } = job.data as {
+    const { taskId, handlerKey, payload, validUntil } = job.data as {
       taskId: string;
       handlerKey: string;
       payload: Record<string, unknown>;
+      validUntil: string | null;
     };
+
+    if (validUntil && new Date(validUntil) < new Date()) {
+      this.logger.log(`Skipping expired task ${taskId} (validUntil: ${validUntil})`);
+      this.eventBus.publish(new TaskJobCompletedEvent(taskId));
+      return;
+    }
 
     this.logger.log(`Processing task ${taskId} with handler '${handlerKey}'`);
 
