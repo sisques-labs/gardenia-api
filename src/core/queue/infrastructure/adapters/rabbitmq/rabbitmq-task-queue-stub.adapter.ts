@@ -1,7 +1,7 @@
 import { Injectable, NotImplementedException } from '@nestjs/common';
 
-import { ITaskQueueJob } from '@core/queue/interfaces/task-queue-job.interface';
-import { ITaskQueueProvider } from '@core/queue/ports/task-queue-provider.port';
+import { ITaskQueueJob } from '@core/queue/application/ports/task-queue-provider.port';
+import { ITaskQueueProvider } from '@core/queue/application/ports/task-queue-provider.port';
 
 @Injectable()
 export class RabbitMqTaskQueueStubAdapter implements ITaskQueueProvider {

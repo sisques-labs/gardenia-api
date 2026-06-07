@@ -25,29 +25,31 @@ It is declared as `@Global()`, so every module in the app can inject its exports
 
 ```
 src/core/queue/
-├── adapters/
-│   ├── bullmq/
-│   │   └── bullmq-task-queue.adapter.ts        # Production Redis/BullMQ adapter
-│   ├── sqs/
-│   │   ├── sqs-task-queue.adapter.ts           # Production AWS SQS adapter
-│   │   └── sqs-task-queue-stub.adapter.ts      # Legacy stub (kept for reference)
-│   └── rabbitmq/
-│       └── rabbitmq-task-queue-stub.adapter.ts # RabbitMQ stub (not implemented)
-├── config/
-│   └── queue.config.ts                    # Reads TASK_* env vars
-├── decorators/
-│   └── register-task-handler.decorator.ts # @RegisterTaskHandler(key)
-├── events/
-│   └── task-job-lifecycle.events.ts       # Events published on job state changes
-├── interfaces/
-│   ├── task-handler.interface.ts          # ITaskHandler, ITaskQueueContext
-│   └── task-queue-job.interface.ts        # ITaskQueueJob (enqueue payload)
-├── ports/
-│   ├── task-queue-provider.port.ts        # ITaskQueueProvider contract + DI token
-│   └── task-cancellation-check.port.ts   # ITaskCancellationCheckPort (optional DB check)
-├── registry/
-│   └── task-handler.registry.ts           # Auto-discovers and dispatches handlers
-└── queue.module.ts                        # @Global() NestJS module
+├── domain/
+│   ├── events/
+│   │   ├── interfaces/task-job-event-data.interface.ts
+│   │   ├── task-job-event-metadata.ts         # Shared IEventMetadata builder for adapters
+│   │   ├── task-job-started/task-job-started.event.ts
+│   │   ├── task-job-completed/task-job-completed.event.ts
+│   │   ├── task-job-failed/task-job-failed.event.ts
+│   │   └── task-job-progress/task-job-progress.event.ts
+│   └── exceptions/
+│       └── task-handler-not-found.exception.ts
+├── application/
+│   ├── ports/
+│   │   ├── task-handler.port.ts               # ITaskHandler, ITaskQueueContext
+│   │   ├── task-queue-provider.port.ts        # ITaskQueueProvider + ITaskQueueJob
+│   │   └── task-cancellation-check.port.ts    # ITaskCancellationCheckPort (optional DB check)
+│   └── registry/
+│       └── task-handler.registry.ts           # Auto-discovers and dispatches handlers
+├── infrastructure/
+│   ├── adapters/
+│   │   ├── bullmq/bullmq-task-queue.adapter.ts
+│   │   ├── sqs/sqs-task-queue.adapter.ts
+│   │   └── rabbitmq/rabbitmq-task-queue-stub.adapter.ts
+│   ├── config/queue.config.ts                 # Reads TASK_* env vars
+│   └── decorators/register-task-handler.decorator.ts
+└── queue.module.ts                            # @Global() NestJS module
 ```
 
 ---
@@ -84,8 +86,8 @@ Task handlers do not need to register themselves manually. Just decorate the cla
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { RegisterTaskHandler } from '@core/queue/decorators/register-task-handler.decorator';
-import { ITaskHandler, ITaskQueueContext } from '@core/queue/interfaces/task-handler.interface';
+import { RegisterTaskHandler } from '@core/queue/infrastructure/decorators/register-task-handler.decorator';
+import { ITaskHandler, ITaskQueueContext } from '@core/queue/application/ports/task-handler.port';
 
 @Injectable()
 @RegisterTaskHandler('my-task-key')   // ← unique, kebab-case
@@ -114,18 +116,14 @@ The handler key must be **globally unique** across all modules. Use `context-ver
 
 ## Job Lifecycle Events
 
-When a job changes state, the BullMQ adapter publishes events onto the NestJS `EventBus`. Import them from the shared events file:
+When a job changes state, the queue adapter publishes `BaseEvent` subclasses onto the NestJS `EventBus`. Each event lives in its own file under `domain/events/`:
 
 ```typescript
-import {
-  TaskJobStartedEvent,
-  TaskJobCompletedEvent,
-  TaskJobFailedEvent,
-  TaskJobProgressEvent,
-} from '@core/queue/events/task-job-lifecycle.events';
+import { TaskJobCompletedEvent } from '@core/queue/domain/events/task-job-completed/task-job-completed.event';
+import { TaskJobStartedEvent } from '@core/queue/domain/events/task-job-started/task-job-started.event';
 ```
 
-| Event | Payload | When published |
+| Event | `event.data` | When published |
 |-------|---------|----------------|
 | `TaskJobStartedEvent` | `taskId`, `queueJobId` | Worker picks up the job |
 | `TaskJobProgressEvent` | `taskId`, `progress` (0–100) | Handler calls `ctx.reportProgress()` |
@@ -136,12 +134,12 @@ Listen to them with a standard NestJS `@EventsHandler`:
 
 ```typescript
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { TaskJobCompletedEvent } from '@core/queue/events/task-job-lifecycle.events';
+import { TaskJobCompletedEvent } from '@core/queue/domain/events/task-job-completed/task-job-completed.event';
 
 @EventsHandler(TaskJobCompletedEvent)
 export class MyCompletedHandler implements IEventHandler<TaskJobCompletedEvent> {
   async handle(event: TaskJobCompletedEvent): Promise<void> {
-    console.log(`Task ${event.taskId} done`);
+    console.log(`Task ${event.data.taskId} done`);
   }
 }
 ```
@@ -187,7 +185,7 @@ The SQS adapter performs a two-step cancellation check for resilience:
 
 2. **DB check** (second line of defence) — resolved lazily via `ModuleRef.get(TASK_CANCELLATION_CHECK_PORT, { strict: false })` in `onModuleInit`. If the port is registered (the `tasks` context provides `TaskCancellationCheckAdapter`), the adapter queries the task's DB status before dispatching. This covers the case where the process restarted and the in-memory set was lost.
 
-The port interface lives in `src/core/queue/ports/task-cancellation-check.port.ts`:
+The port interface lives in `src/core/queue/application/ports/task-cancellation-check.port.ts`:
 
 ```typescript
 export interface ITaskCancellationCheckPort {
@@ -208,10 +206,9 @@ To add a RabbitMQ provider (or any other):
 **1. Implement the interface**
 
 ```typescript
-// src/core/queue/adapters/rabbitmq/rabbitmq-task-queue.adapter.ts
+// src/core/queue/infrastructure/adapters/rabbitmq/rabbitmq-task-queue.adapter.ts
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { ITaskQueueJob } from '@core/queue/interfaces/task-queue-job.interface';
-import { ITaskQueueProvider } from '@core/queue/ports/task-queue-provider.port';
+import { ITaskQueueJob, ITaskQueueProvider } from '@core/queue/application/ports/task-queue-provider.port';
 
 @Injectable()
 export class RabbitMqTaskQueueAdapter

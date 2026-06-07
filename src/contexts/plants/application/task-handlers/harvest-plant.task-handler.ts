@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
-import { RegisterTaskHandler } from '@core/queue/decorators/register-task-handler.decorator';
+import { RegisterTaskHandler } from '@core/queue/infrastructure/decorators/register-task-handler.decorator';
 import {
   ITaskHandler,
   ITaskQueueContext,
-} from '@core/queue/interfaces/task-handler.interface';
+} from '@core/queue/application/ports/task-handler.port';
 
 @Injectable()
 @RegisterTaskHandler('harvest-plant')

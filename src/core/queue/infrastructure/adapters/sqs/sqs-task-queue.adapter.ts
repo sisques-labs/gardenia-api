@@ -15,20 +15,19 @@ import { ConfigService } from '@nestjs/config';
 import { ModuleRef } from '@nestjs/core';
 import { EventBus } from '@nestjs/cqrs';
 
-import {
-  TaskJobCompletedEvent,
-  TaskJobFailedEvent,
-  TaskJobProgressEvent,
-  TaskJobStartedEvent,
-} from '@core/queue/events/task-job-lifecycle.events';
-import { ITaskQueueContext } from '@core/queue/interfaces/task-handler.interface';
-import { ITaskQueueJob } from '@core/queue/interfaces/task-queue-job.interface';
+import { buildTaskJobEventMetadata } from '@core/queue/domain/events/task-job-event-metadata';
+import { TaskJobCompletedEvent } from '@core/queue/domain/events/task-job-completed/task-job-completed.event';
+import { TaskJobFailedEvent } from '@core/queue/domain/events/task-job-failed/task-job-failed.event';
+import { TaskJobProgressEvent } from '@core/queue/domain/events/task-job-progress/task-job-progress.event';
+import { TaskJobStartedEvent } from '@core/queue/domain/events/task-job-started/task-job-started.event';
+import { ITaskQueueContext } from '@core/queue/application/ports/task-handler.port';
+import { ITaskQueueJob } from '@core/queue/application/ports/task-queue-provider.port';
 import {
   ITaskCancellationCheckPort,
   TASK_CANCELLATION_CHECK_PORT,
-} from '@core/queue/ports/task-cancellation-check.port';
-import { ITaskQueueProvider } from '@core/queue/ports/task-queue-provider.port';
-import { TaskHandlerRegistry } from '@core/queue/registry/task-handler.registry';
+} from '@core/queue/application/ports/task-cancellation-check.port';
+import { ITaskQueueProvider } from '@core/queue/application/ports/task-queue-provider.port';
+import { TaskHandlerRegistry } from '@core/queue/application/registry/task-handler.registry';
 
 @Injectable()
 export class SqsTaskQueueAdapter
@@ -237,25 +236,45 @@ export class SqsTaskQueueAdapter
         `(attempt ${receiveCount}/${maxRetries + 1})`,
     );
 
-    this.eventBus.publish(new TaskJobStartedEvent(taskId, messageId));
+    this.eventBus.publish(
+      new TaskJobStartedEvent(
+        buildTaskJobEventMetadata(taskId, TaskJobStartedEvent.name),
+        { taskId, queueJobId: messageId },
+      ),
+    );
 
     const ctx: ITaskQueueContext = {
       jobId: messageId,
       reportProgress: async (percent: number) => {
-        this.eventBus.publish(new TaskJobProgressEvent(taskId, percent));
+        this.eventBus.publish(
+          new TaskJobProgressEvent(
+            buildTaskJobEventMetadata(taskId, TaskJobProgressEvent.name),
+            { taskId, progress: percent },
+          ),
+        );
       },
     };
 
     try {
       await this.registry.dispatch(handlerKey, payload, ctx);
       await this.deleteMessage(receiptHandle);
-      this.eventBus.publish(new TaskJobCompletedEvent(taskId));
+      this.eventBus.publish(
+        new TaskJobCompletedEvent(
+          buildTaskJobEventMetadata(taskId, TaskJobCompletedEvent.name),
+          { taskId },
+        ),
+      );
       this.logger.log(`Task ${taskId} completed`);
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
       const isFinal = receiveCount > maxRetries;
       this.logger.error(`Task ${taskId} failed (isFinal=${isFinal}): ${error}`);
-      this.eventBus.publish(new TaskJobFailedEvent(taskId, error, isFinal));
+      this.eventBus.publish(
+        new TaskJobFailedEvent(
+          buildTaskJobEventMetadata(taskId, TaskJobFailedEvent.name),
+          { taskId, error, isFinal },
+        ),
+      );
       // Do not delete — SQS will make the message visible again after
       // VisibilityTimeout. When ApproximateReceiveCount exceeds the queue's
       // maxReceiveCount (redrive policy), SQS automatically moves it to the DLQ.

@@ -1,19 +1,12 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { DiscoveryService } from '@nestjs/core';
-import { BaseException } from '@sisques-labs/nestjs-kit';
+import { DiscoveryService, Reflector } from '@nestjs/core';
 
-import { TASK_HANDLER_METADATA } from '@core/queue/decorators/register-task-handler.decorator';
 import {
   ITaskHandler,
   ITaskQueueContext,
-} from '@core/queue/interfaces/task-handler.interface';
-
-export class TaskHandlerNotFoundException extends BaseException {
-  constructor(handlerKey: string) {
-    super(`No task handler registered for key '${handlerKey}'`);
-  }
-}
+} from '@core/queue/application/ports/task-handler.port';
+import { TaskHandlerNotFoundException } from '@core/queue/domain/exceptions/task-handler-not-found.exception';
+import { TASK_HANDLER_METADATA } from '@core/queue/infrastructure/decorators/register-task-handler.decorator';
 
 @Injectable()
 export class TaskHandlerRegistry implements OnApplicationBootstrap {

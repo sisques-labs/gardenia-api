@@ -8,23 +8,15 @@ import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 import { Job, Queue, Worker } from 'bullmq';
 
-import {
-  TaskJobCompletedEvent,
-  TaskJobFailedEvent,
-  TaskJobProgressEvent,
-  TaskJobStartedEvent,
-} from '@core/queue/events/task-job-lifecycle.events';
-import { ITaskQueueContext } from '@core/queue/interfaces/task-handler.interface';
-import { ITaskQueueJob } from '@core/queue/interfaces/task-queue-job.interface';
-import { ITaskQueueProvider } from '@core/queue/ports/task-queue-provider.port';
-import { TaskHandlerRegistry } from '@core/queue/registry/task-handler.registry';
-
-export {
-  TaskJobStartedEvent,
-  TaskJobCompletedEvent,
-  TaskJobFailedEvent,
-  TaskJobProgressEvent,
-};
+import { buildTaskJobEventMetadata } from '@core/queue/domain/events/task-job-event-metadata';
+import { TaskJobCompletedEvent } from '@core/queue/domain/events/task-job-completed/task-job-completed.event';
+import { TaskJobFailedEvent } from '@core/queue/domain/events/task-job-failed/task-job-failed.event';
+import { TaskJobProgressEvent } from '@core/queue/domain/events/task-job-progress/task-job-progress.event';
+import { TaskJobStartedEvent } from '@core/queue/domain/events/task-job-started/task-job-started.event';
+import { ITaskQueueContext } from '@core/queue/application/ports/task-handler.port';
+import { ITaskQueueJob } from '@core/queue/application/ports/task-queue-provider.port';
+import { ITaskQueueProvider } from '@core/queue/application/ports/task-queue-provider.port';
+import { TaskHandlerRegistry } from '@core/queue/application/registry/task-handler.registry';
 
 @Injectable()
 export class BullMqTaskQueueAdapter
@@ -78,7 +70,10 @@ export class BullMqTaskQueueAdapter
       const isFinal = job.attemptsMade >= (job.opts.attempts ?? 1);
 
       this.eventBus.publish(
-        new TaskJobFailedEvent(taskId, err.message, isFinal),
+        new TaskJobFailedEvent(
+          buildTaskJobEventMetadata(taskId, TaskJobFailedEvent.name),
+          { taskId, error: err.message, isFinal },
+        ),
       );
 
       if (isFinal) {
@@ -153,25 +148,45 @@ export class BullMqTaskQueueAdapter
       this.logger.log(
         `Skipping expired task ${taskId} (validUntil: ${validUntil})`,
       );
-      this.eventBus.publish(new TaskJobCompletedEvent(taskId));
+      this.eventBus.publish(
+        new TaskJobCompletedEvent(
+          buildTaskJobEventMetadata(taskId, TaskJobCompletedEvent.name),
+          { taskId },
+        ),
+      );
       return;
     }
 
     this.logger.log(`Processing task ${taskId} with handler '${handlerKey}'`);
 
-    this.eventBus.publish(new TaskJobStartedEvent(taskId, String(job.id)));
+    this.eventBus.publish(
+      new TaskJobStartedEvent(
+        buildTaskJobEventMetadata(taskId, TaskJobStartedEvent.name),
+        { taskId, queueJobId: String(job.id) },
+      ),
+    );
 
     const ctx: ITaskQueueContext = {
       jobId: String(job.id),
       reportProgress: async (percent: number) => {
         await job.updateProgress(percent);
-        this.eventBus.publish(new TaskJobProgressEvent(taskId, percent));
+        this.eventBus.publish(
+          new TaskJobProgressEvent(
+            buildTaskJobEventMetadata(taskId, TaskJobProgressEvent.name),
+            { taskId, progress: percent },
+          ),
+        );
       },
     };
 
     await this.registry.dispatch(handlerKey, payload, ctx);
 
-    this.eventBus.publish(new TaskJobCompletedEvent(taskId));
+    this.eventBus.publish(
+      new TaskJobCompletedEvent(
+        buildTaskJobEventMetadata(taskId, TaskJobCompletedEvent.name),
+        { taskId },
+      ),
+    );
     this.logger.log(`Task ${taskId} completed`);
   }
 }
