@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 import {
@@ -17,6 +18,10 @@ import {
 } from '@core/queue/events/task-job-lifecycle.events';
 import { ITaskQueueContext } from '@core/queue/interfaces/task-handler.interface';
 import { ITaskQueueJob } from '@core/queue/interfaces/task-queue-job.interface';
+import {
+  ITaskCancellationCheckPort,
+  TASK_CANCELLATION_CHECK_PORT,
+} from '@core/queue/ports/task-cancellation-check.port';
 import { ITaskQueueProvider } from '@core/queue/ports/task-queue-provider.port';
 import { TaskHandlerRegistry } from '@core/queue/registry/task-handler.registry';
 
@@ -34,11 +39,14 @@ export class SqsTaskQueueAdapter
   // the in-memory set is lost and the message will be processed once before
   // being skipped next time (if still in flight).
   private readonly cancelledMessageIds = new Set<string>();
+  // Resolved lazily in onModuleInit to avoid circular module dependencies.
+  private cancellationCheck: ITaskCancellationCheckPort | null = null;
 
   constructor(
     private readonly registry: TaskHandlerRegistry,
     private readonly eventBus: EventBus,
     private readonly configService: ConfigService,
+    private readonly moduleRef: ModuleRef,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -54,6 +62,17 @@ export class SqsTaskQueueAdapter
         ? { credentials: { accessKeyId, secretAccessKey } }
         : {}),
     });
+
+    // Lazily resolve the cancellation check port to avoid circular module deps
+    // (QueueModule → TasksModule → TASK_QUEUE_PROVIDER from QueueModule).
+    try {
+      this.cancellationCheck = this.moduleRef.get<ITaskCancellationCheckPort>(
+        TASK_CANCELLATION_CHECK_PORT,
+        { strict: false },
+      );
+    } catch {
+      this.logger.debug('TaskCancellationCheckPort not registered; skipping DB cancel check');
+    }
 
     this.polling = true;
     void this.poll();
@@ -148,6 +167,13 @@ export class SqsTaskQueueAdapter
     if (this.cancelledMessageIds.has(messageId)) {
       this.logger.log(`Skipping cancelled task ${taskId} (messageId: ${messageId})`);
       this.cancelledMessageIds.delete(messageId);
+      await this.deleteMessage(receiptHandle);
+      return;
+    }
+
+    // Secondary DB check — catches cancellations that survived a process restart
+    if (this.cancellationCheck && await this.cancellationCheck.isCancelled(taskId)) {
+      this.logger.log(`Skipping DB-cancelled task ${taskId} (messageId: ${messageId})`);
       await this.deleteMessage(receiptHandle);
       return;
     }

@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
+import { TaskRunViewModel } from '@contexts/tasks/domain/view-models/task-run.view-model';
 import { TaskViewModel } from '@contexts/tasks/domain/view-models/task.view-model';
 import {
   PaginatedTaskResultDto,
   TaskGraphQLResponseDto,
+  TaskRunGraphQLResponseDto,
 } from '@contexts/tasks/transport/graphql/dtos/responses/task-graphql-response.dto';
 
 @Injectable()
@@ -30,6 +32,20 @@ export class TaskGraphQLMapper {
       cancelledAt: vm.cancelledAt,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
+    };
+  }
+
+  toRunResponseDto(vm: TaskRunViewModel): TaskRunGraphQLResponseDto {
+    return {
+      id: vm.id,
+      taskId: vm.taskId,
+      attempt: vm.attempt,
+      status: vm.status,
+      progress: vm.progress,
+      error: vm.error,
+      startedAt: vm.startedAt,
+      endedAt: vm.endedAt,
+      createdAt: vm.createdAt,
     };
   }
 

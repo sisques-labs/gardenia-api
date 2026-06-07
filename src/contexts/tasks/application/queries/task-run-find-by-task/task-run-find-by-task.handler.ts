@@ -1,8 +1,11 @@
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { TaskRunTypeOrmRepository } from '@contexts/tasks/infrastructure/persistence/typeorm/task-run-typeorm.repository';
-import { TaskRunTypeOrmEntity } from '@contexts/tasks/infrastructure/persistence/typeorm/entities/task-run.entity';
+import {
+  ITaskRunReadRepository,
+  TASK_RUN_READ_REPOSITORY,
+} from '@contexts/tasks/domain/repositories/read/task-run-read.repository';
+import { TaskRunViewModel } from '@contexts/tasks/domain/view-models/task-run.view-model';
 
 import { TaskRunFindByTaskQuery } from './task-run-find-by-task.query';
 
@@ -13,11 +16,12 @@ export class TaskRunFindByTaskQueryHandler
   private readonly logger = new Logger(TaskRunFindByTaskQueryHandler.name);
 
   constructor(
-    private readonly taskRunRepository: TaskRunTypeOrmRepository,
+    @Inject(TASK_RUN_READ_REPOSITORY)
+    private readonly taskRunReadRepository: ITaskRunReadRepository,
   ) {}
 
-  async execute(query: TaskRunFindByTaskQuery): Promise<TaskRunTypeOrmEntity[]> {
+  async execute(query: TaskRunFindByTaskQuery): Promise<TaskRunViewModel[]> {
     this.logger.log(`Finding task runs for task: ${query.taskId.value}`);
-    return this.taskRunRepository.findByTaskId(query.taskId.value);
+    return this.taskRunReadRepository.findByTaskId(query.taskId.value);
   }
 }

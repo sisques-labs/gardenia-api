@@ -11,6 +11,7 @@ import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guar
 import { TaskFindByCriteriaQuery } from '@contexts/tasks/application/queries/task-find-by-criteria/task-find-by-criteria.query';
 import { TaskFindByIdQuery } from '@contexts/tasks/application/queries/task-find-by-id/task-find-by-id.query';
 import { TaskRunFindByTaskQuery } from '@contexts/tasks/application/queries/task-run-find-by-task/task-run-find-by-task.query';
+import { TaskRunViewModel } from '@contexts/tasks/domain/view-models/task-run.view-model';
 import { TaskFindByCriteriaGraphQLDto } from '@contexts/tasks/transport/graphql/dtos/requests/task-find-by-criteria-graphql.dto';
 import {
   PaginatedTaskResultDto,
@@ -55,8 +56,15 @@ export class TaskQueriesResolver {
   }
 
   @Query(() => [TaskRunGraphQLResponseDto])
-  async taskRuns(@Args('taskId') taskId: string): Promise<TaskRunGraphQLResponseDto[]> {
+  async taskRuns(
+    @Args('taskId') taskId: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<TaskRunGraphQLResponseDto[]> {
     this.logger.log(`Finding task runs for task: ${taskId}`);
-    return this.queryBus.execute(new TaskRunFindByTaskQuery({ taskId }));
+    await this.queryBus.execute(new TaskFindByIdQuery({ id: taskId, userId: user.userId }));
+    const runs: TaskRunViewModel[] = await this.queryBus.execute(
+      new TaskRunFindByTaskQuery({ taskId }),
+    );
+    return runs.map((r) => this.mapper.toRunResponseDto(r));
   }
 }

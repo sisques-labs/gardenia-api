@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { TASK_CANCELLATION_CHECK_PORT } from '@core/queue/ports/task-cancellation-check.port';
+import { TaskCancellationCheckAdapter } from '@contexts/tasks/infrastructure/adapters/task-cancellation-check.adapter';
+
 import { TaskJobCompletedEventHandler } from '@contexts/tasks/application/event-handlers/task-job-completed.event-handler';
 import { TaskJobFailedEventHandler } from '@contexts/tasks/application/event-handlers/task-job-failed.event-handler';
 import { TaskJobProgressEventHandler } from '@contexts/tasks/application/event-handlers/task-job-progress.event-handler';
@@ -24,6 +27,7 @@ import { TaskTemplateBuilder } from '@contexts/tasks/domain/builders/task-templa
 import { TaskBuilder } from '@contexts/tasks/domain/builders/task.builder';
 import { TASK_TEMPLATE_READ_REPOSITORY } from '@contexts/tasks/domain/repositories/read/task-template-read.repository';
 import { TASK_READ_REPOSITORY } from '@contexts/tasks/domain/repositories/read/task-read.repository';
+import { TASK_RUN_READ_REPOSITORY } from '@contexts/tasks/domain/repositories/read/task-run-read.repository';
 import { TASK_TEMPLATE_WRITE_REPOSITORY } from '@contexts/tasks/domain/repositories/write/task-template-write.repository';
 import { TASK_WRITE_REPOSITORY } from '@contexts/tasks/domain/repositories/write/task-write.repository';
 import { TaskTemplateTypeOrmEntity } from '@contexts/tasks/infrastructure/persistence/typeorm/entities/task-template.entity';
@@ -87,6 +91,8 @@ const INFRASTRUCTURE_REPOSITORIES = [
   { provide: TASK_TEMPLATE_READ_REPOSITORY, useClass: TaskTemplateTypeOrmReadRepository },
   { provide: TASK_WRITE_REPOSITORY, useClass: TaskTypeOrmWriteRepository },
   { provide: TASK_READ_REPOSITORY, useClass: TaskTypeOrmReadRepository },
+  { provide: TASK_RUN_READ_REPOSITORY, useExisting: TaskRunTypeOrmRepository },
+  { provide: TASK_CANCELLATION_CHECK_PORT, useClass: TaskCancellationCheckAdapter },
 ];
 
 const REST_CONTROLLERS = [TaskTemplatesController, TasksController];
@@ -123,5 +129,6 @@ const GRAPHQL_PROVIDERS = [
     ...GRAPHQL_PROVIDERS,
     TaskRunTypeOrmRepository,
   ],
+  exports: [TASK_CANCELLATION_CHECK_PORT],
 })
 export class TasksModule {}
