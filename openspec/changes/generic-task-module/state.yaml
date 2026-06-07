@@ -1,0 +1,16 @@
+change: generic-task-module
+status: design
+created: 2026-06-07
+artifact_store: hybrid
+context: tasks
+phases:
+  explore: done
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending
+next_recommended:
+  - opsx:apply
