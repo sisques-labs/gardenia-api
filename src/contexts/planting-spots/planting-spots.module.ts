@@ -20,6 +20,9 @@ import { PlantingSpotTypeOrmMapper } from '@contexts/planting-spots/infrastructu
 import { PlantingSpotTypeOrmReadRepository } from '@contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-read.repository';
 import { PlantingSpotTypeOrmWriteRepository } from '@contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-write.repository';
 import '@contexts/planting-spots/transport/graphql/enums/planting-spot-registered-enums.graphql';
+import { PlantSeedlingTaskHandler } from '@contexts/planting-spots/application/task-handlers/plant-seedling.task-handler';
+import { PrepareWinterTaskHandler } from '@contexts/planting-spots/application/task-handlers/prepare-winter.task-handler';
+import { WaterSpotTaskHandler } from '@contexts/planting-spots/application/task-handlers/water-spot.task-handler';
 import { PlantingSpotGraphQLMapper } from '@contexts/planting-spots/transport/graphql/mappers/planting-spot/planting-spot.mapper';
 import { PlantingSpotMutationsResolver } from '@contexts/planting-spots/transport/graphql/resolvers/planting-spot/mutations/planting-spot-mutations.resolver';
 import { PlantingSpotQueriesResolver } from '@contexts/planting-spots/transport/graphql/resolvers/planting-spot/queries/planting-spot-queries.resolver';
@@ -65,6 +68,12 @@ const INFRASTRUCTURE_ADAPTERS = [
   },
 ];
 
+const TASK_HANDLERS = [
+  WaterSpotTaskHandler,
+  PrepareWinterTaskHandler,
+  PlantSeedlingTaskHandler,
+];
+
 const REST_CONTROLLERS = [PlantingSpotsController];
 const REST_PROVIDERS = [PlantingSpotRestMapper];
 
@@ -87,6 +96,7 @@ const GRAPHQL_PROVIDERS = [
     ...INFRASTRUCTURE_ADAPTERS,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
+    ...TASK_HANDLERS,
   ],
   exports: [],
 })

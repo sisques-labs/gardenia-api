@@ -31,6 +31,9 @@ import { PlantTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers
 import { PlantTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/plant-typeorm-read.repository';
 import { PlantTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/plant-typeorm-write.repository';
 import './transport/graphql/enums/plant/plant-registered-enums.graphql';
+import { HarvestPlantTaskHandler } from './application/task-handlers/harvest-plant.task-handler';
+import { PrunePlantTaskHandler } from './application/task-handlers/prune-plant.task-handler';
+import { WaterPlantTaskHandler } from './application/task-handlers/water-plant.task-handler';
 import { PlantGraphQLMapper } from './transport/graphql/mappers/plant/plant.mapper';
 import { PlantMutationsResolver } from './transport/graphql/resolvers/plant/plant-mutations.resolver';
 import { PlantQueriesResolver } from './transport/graphql/resolvers/plant/plant-queries.resolver';
@@ -83,6 +86,12 @@ const INFRASTRUCTURE_ADAPTERS = [
 
 const REST_CONTROLLERS = [PlantsController];
 const REST_PROVIDERS = [PlantRestMapper];
+const TASK_HANDLERS = [
+  WaterPlantTaskHandler,
+  PrunePlantTaskHandler,
+  HarvestPlantTaskHandler,
+];
+
 const GRAPHQL_PROVIDERS = [
   PlantQueriesResolver,
   PlantMutationsResolver,
@@ -105,6 +114,7 @@ const GRAPHQL_PROVIDERS = [
     ...INFRASTRUCTURE_ADAPTERS,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
+    ...TASK_HANDLERS,
   ],
   exports: [],
 })
