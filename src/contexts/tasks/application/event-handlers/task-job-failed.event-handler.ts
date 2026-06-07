@@ -1,41 +1,45 @@
 import { Inject, Logger } from '@nestjs/common';
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 
-import { TaskJobFailedEvent } from '@core/queue/events/task-job-lifecycle.events';
-import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
+import { TaskJobFailedEvent } from '@core/queue/domain/events/task-job-failed/task-job-failed.event';
+import { AssertTaskExistsService } from '@contexts/tasks/application/services/write/assert-task-exists/assert-task-exists.service';
 import {
   ITaskWriteRepository,
   TASK_WRITE_REPOSITORY,
 } from '@contexts/tasks/domain/repositories/write/task-write.repository';
-import { TaskRunTypeOrmRepository } from '@contexts/tasks/infrastructure/persistence/typeorm/task-run-typeorm.repository';
+import {
+  ITaskRunWriteRepository,
+  TASK_RUN_WRITE_REPOSITORY,
+} from '@contexts/tasks/domain/repositories/write/task-run-write.repository';
 
 @EventsHandler(TaskJobFailedEvent)
-export class TaskJobFailedEventHandler
-  implements IEventHandler<TaskJobFailedEvent>
-{
+export class TaskJobFailedEventHandler implements IEventHandler<TaskJobFailedEvent> {
   private readonly logger = new Logger(TaskJobFailedEventHandler.name);
 
   constructor(
     @Inject(TASK_WRITE_REPOSITORY)
     private readonly taskWriteRepository: ITaskWriteRepository,
-    private readonly taskRunRepository: TaskRunTypeOrmRepository,
+    @Inject(TASK_RUN_WRITE_REPOSITORY)
+    private readonly taskRunWriteRepository: ITaskRunWriteRepository,
+    private readonly assertTaskExistsService: AssertTaskExistsService,
   ) {}
 
   async handle(event: TaskJobFailedEvent): Promise<void> {
-    const now = new Date();
+    const { taskId, error, isFinal } = event.data;
+    const task = await this.assertTaskExistsService.execute(taskId);
 
-    if (event.isFinal) {
-      await this.taskWriteRepository.updateStatus(event.taskId, TaskStatusEnum.FAILED, {
-        failedAt: now,
-      });
-      this.logger.warn(`Task ${event.taskId} permanently failed: ${event.error}`);
+    if (isFinal) {
+      task.fail(error);
+      await this.taskWriteRepository.save(task);
+      this.logger.warn(`Task ${taskId} permanently failed: ${error}`);
     } else {
-      this.logger.warn(`Task ${event.taskId} failed (will retry): ${event.error}`);
+      this.logger.warn(`Task ${taskId} failed (will retry): ${error}`);
     }
 
-    const run = await this.taskRunRepository.findActiveByTaskId(event.taskId);
+    const run = await this.taskRunWriteRepository.findActiveByTaskId(taskId);
     if (run) {
-      await this.taskRunRepository.fail(run.id, event.error, now);
+      run.fail(error);
+      await this.taskRunWriteRepository.save(run);
     }
   }
 }

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { Criteria, FilterOperator, PaginatedResult } from '@sisques-labs/nestjs-kit';
+import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
 import {
   ITaskReadRepository,
@@ -11,9 +11,7 @@ import { TaskViewModel } from '@contexts/tasks/domain/view-models/task.view-mode
 import { TaskFindByCriteriaQuery } from './task-find-by-criteria.query';
 
 @QueryHandler(TaskFindByCriteriaQuery)
-export class TaskFindByCriteriaQueryHandler
-  implements IQueryHandler<TaskFindByCriteriaQuery>
-{
+export class TaskFindByCriteriaQueryHandler implements IQueryHandler<TaskFindByCriteriaQuery> {
   private readonly logger = new Logger(TaskFindByCriteriaQueryHandler.name);
 
   constructor(
@@ -24,15 +22,7 @@ export class TaskFindByCriteriaQueryHandler
   async execute(
     query: TaskFindByCriteriaQuery,
   ): Promise<PaginatedResult<TaskViewModel>> {
-    this.logger.log(`Finding tasks by criteria for user: ${query.userId.value}`);
-    const criteriaWithUser = new Criteria(
-      [
-        ...(query.criteria.filters ?? []),
-        { field: 'userId', operator: FilterOperator.EQUALS, value: query.userId.value },
-      ],
-      query.criteria.sorts,
-      query.criteria.pagination,
-    );
-    return this.taskReadRepository.findByCriteria(criteriaWithUser);
+    this.logger.log(`Finding tasks by criteria`);
+    return this.taskReadRepository.findByCriteria(query.criteria);
   }
 }

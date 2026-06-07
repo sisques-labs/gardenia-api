@@ -15,10 +15,11 @@ import {
   ITaskWriteRepository,
   TASK_WRITE_REPOSITORY,
 } from '@contexts/tasks/domain/repositories/write/task-write.repository';
+import { TaskQueueJobIdValueObject } from '@contexts/tasks/domain/value-objects/task-queue-job-id/task-queue-job-id.value-object';
 import {
   ITaskQueueProvider,
   TASK_QUEUE_PROVIDER,
-} from '@core/queue/ports/task-queue-provider.port';
+} from '@core/queue/application/ports/task-queue-provider.port';
 
 import { ScheduleTaskCommand } from './schedule-task.command';
 
@@ -51,13 +52,13 @@ export class ScheduleTaskCommandHandler
 
     if (command.idempotencyKey) {
       const existing = await this.taskReadRepository.findByIdempotencyKey(
-        command.idempotencyKey,
+        command.idempotencyKey.value,
         [TaskStatusEnum.PENDING, TaskStatusEnum.ACTIVE],
       );
       if (existing) {
         throw new TaskDuplicateIdempotencyKeyException(
           existing.id,
-          command.idempotencyKey,
+          command.idempotencyKey.value,
         );
       }
     }
@@ -65,32 +66,31 @@ export class ScheduleTaskCommandHandler
     const id = UuidValueObject.generate().value;
     const priority = command.priority?.value ?? primitives.defaultPriority;
 
-    // Fall back to template defaults when cron / recurring not explicitly passed
     const cronExpression =
-      command.cronExpression ?? primitives.defaultCronExpression;
-    const isRecurring = command.isRecurring ?? primitives.defaultIsRecurring;
+      command.cronExpression?.value ?? primitives.defaultCronExpression;
+    const isRecurring =
+      command.isRecurring?.value ?? primitives.defaultIsRecurring;
 
-    // Translate validFrom to an initial delay so the job fires at the right time
-    let delayMs = command.delayMs;
+    let delayMs = command.delayMs?.value ?? null;
     if (delayMs === null && command.validFrom) {
-      delayMs = Math.max(0, command.validFrom.getTime() - Date.now());
+      delayMs = Math.max(0, command.validFrom.value.getTime() - Date.now());
     }
 
     const task = this.taskBuilder
       .withId(id)
       .withTemplateId(command.templateId.value)
-      .withPayload(command.payload)
+      .withPayload(command.payload.value)
       .withPriority(priority)
       .withDelayMs(delayMs)
       .withCronExpression(cronExpression)
       .withIsRecurring(isRecurring)
-      .withMaxRuns(command.maxRuns)
-      .withIdempotencyKey(command.idempotencyKey)
+      .withMaxRuns(command.maxRuns?.value ?? null)
+      .withIdempotencyKey(command.idempotencyKey?.value ?? null)
       .withUserId(command.userId.value)
-      .withTargetType(command.targetType)
-      .withTargetId(command.targetId)
-      .withValidFrom(command.validFrom)
-      .withValidUntil(command.validUntil)
+      .withTargetType(command.targetType?.value ?? null)
+      .withTargetId(command.targetId?.value ?? null)
+      .withValidFrom(command.validFrom?.value ?? null)
+      .withValidUntil(command.validUntil?.value ?? null)
       .withCreatedAt(new Date())
       .withUpdatedAt(new Date())
       .build();
@@ -101,17 +101,18 @@ export class ScheduleTaskCommandHandler
     const queueJobId = await this.taskQueueProvider.enqueue({
       taskId: id,
       handlerKey: primitives.handlerKey,
-      payload: command.payload,
+      payload: command.payload.value,
       priority,
       timeoutMs: primitives.defaultTimeoutMs,
       delayMs: delayMs ?? undefined,
       cronExpression: cronExpression ?? undefined,
       retryCount: primitives.defaultRetryCount,
       backoffStrategy: primitives.defaultBackoffStrategy,
-      validUntil: command.validUntil ?? undefined,
+      validUntil: command.validUntil?.value ?? undefined,
     });
 
-    await this.taskWriteRepository.updateQueueJobId(id, queueJobId);
+    task.setQueueJobId(new TaskQueueJobIdValueObject(queueJobId));
+    await this.taskWriteRepository.save(task);
     await this.publishEvents(task);
 
     this.logger.log(`Task scheduled: ${id} (template: ${primitives.name})`);

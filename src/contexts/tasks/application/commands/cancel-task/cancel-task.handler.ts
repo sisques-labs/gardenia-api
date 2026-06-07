@@ -12,7 +12,7 @@ import {
 import {
   ITaskQueueProvider,
   TASK_QUEUE_PROVIDER,
-} from '@core/queue/ports/task-queue-provider.port';
+} from '@core/queue/application/ports/task-queue-provider.port';
 
 import { CancelTaskCommand } from './cancel-task.command';
 
@@ -40,7 +40,7 @@ export class CancelTaskCommandHandler
     this.assertTaskCancellableService.execute(task);
 
     if (task.queueJobId) {
-      await this.taskQueueProvider.cancel(task.queueJobId);
+      await this.taskQueueProvider.cancel(task.queueJobId.value);
     }
 
     task.cancel();
