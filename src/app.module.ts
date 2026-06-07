@@ -1,5 +1,5 @@
 import { HealthModule } from '@core/health/health.module';
-import { TaskQueueModule } from '@core/task-queue/task-queue.module';
+import { QueueModule } from '@core/queue/queue.module';
 import { SupportModule } from './support/support.module';
 import { TasksModule } from '@contexts/tasks/tasks.module';
 import { SharedModule } from './shared/shared.module';
@@ -62,7 +62,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     PlantSpeciesModule,
     PlantsModule,
     PlantingSpotsModule,
-    TaskQueueModule,
+    QueueModule,
     TasksModule,
   ],
   providers: [

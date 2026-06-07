@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { NotImplementedException } from '@nestjs/common';
 
-import { ITaskQueueJob } from '@core/task-queue/interfaces/task-queue-job.interface';
-import { ITaskQueueProvider } from '@core/task-queue/ports/task-queue-provider.port';
+import { ITaskQueueJob } from '@core/queue/interfaces/task-queue-job.interface';
+import { ITaskQueueProvider } from '@core/queue/ports/task-queue-provider.port';
 
 @Injectable()
 export class SqsTaskQueueStubAdapter implements ITaskQueueProvider {

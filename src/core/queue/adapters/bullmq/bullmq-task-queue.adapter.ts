@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 import { Job, Queue, Worker } from 'bullmq';
 
-import { ITaskQueueContext } from '@core/task-queue/interfaces/task-handler.interface';
-import { ITaskQueueJob } from '@core/task-queue/interfaces/task-queue-job.interface';
-import { ITaskQueueProvider } from '@core/task-queue/ports/task-queue-provider.port';
-import { TaskHandlerRegistry } from '@core/task-queue/registry/task-handler.registry';
+import { ITaskQueueContext } from '@core/queue/interfaces/task-handler.interface';
+import { ITaskQueueJob } from '@core/queue/interfaces/task-queue-job.interface';
+import { ITaskQueueProvider } from '@core/queue/ports/task-queue-provider.port';
+import { TaskHandlerRegistry } from '@core/queue/registry/task-handler.registry';
 
 export class TaskJobStartedEvent {
   constructor(

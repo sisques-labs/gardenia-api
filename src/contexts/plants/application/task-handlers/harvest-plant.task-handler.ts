@@ -4,8 +4,8 @@ import { QueryBus } from '@nestjs/cqrs';
 import {
   ITaskHandler,
   ITaskQueueContext,
-} from '@core/task-queue/interfaces/task-handler.interface';
-import { TaskHandlerRegistry } from '@core/task-queue/registry/task-handler.registry';
+} from '@core/queue/interfaces/task-handler.interface';
+import { TaskHandlerRegistry } from '@core/queue/registry/task-handler.registry';
 
 @Injectable()
 export class HarvestPlantTaskHandler implements ITaskHandler, OnModuleInit {

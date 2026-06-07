@@ -4,7 +4,7 @@ import { BaseException } from '@sisques-labs/nestjs-kit';
 import {
   ITaskHandler,
   ITaskQueueContext,
-} from '@core/task-queue/interfaces/task-handler.interface';
+} from '@core/queue/interfaces/task-handler.interface';
 
 export class TaskHandlerNotFoundException extends BaseException {
   constructor(handlerKey: string) {

@@ -18,7 +18,7 @@ import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
 import {
   ITaskQueueProvider,
   TASK_QUEUE_PROVIDER,
-} from '@core/task-queue/ports/task-queue-provider.port';
+} from '@core/queue/ports/task-queue-provider.port';
 
 import { ScheduleTaskCommand } from './schedule-task.command';
 
