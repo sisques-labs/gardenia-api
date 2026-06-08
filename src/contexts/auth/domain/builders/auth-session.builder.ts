@@ -22,6 +22,24 @@ export class AuthSessionBuilder extends BaseBuilder<
   private _revokedAt: Date | null = null;
   private _deviceInfo: string | null = null;
 
+  // Nest injects this builder as a singleton. Reset on each new chain so mapper
+  // reads (fromPrimitives) cannot leak revokedAt/createdAt into login saves.
+  public override withId(id: string): this {
+    this.reset();
+    return super.withId(id);
+  }
+
+  private reset(): void {
+    this._id = undefined as unknown as string;
+    this._userId = undefined as unknown as string;
+    this._tokenHash = undefined as unknown as string;
+    this._expiresAt = undefined as unknown as Date;
+    this._revokedAt = null;
+    this._deviceInfo = null;
+    this._createdAt = undefined as unknown as Date;
+    this._updatedAt = undefined as unknown as Date;
+  }
+
   withUserId(userId: string): this {
     this._userId = userId;
     return this;
