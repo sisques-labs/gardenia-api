@@ -3,7 +3,7 @@ name: Docker Build
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [develop, staging, main]
 
 concurrency:
   group: docker-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
