@@ -41,4 +41,34 @@ describe('AuthSessionBuilder', () => {
 
     expect(session.deviceInfo).toBe('Mozilla/5.0');
   });
+
+  it('should not leak revokedAt from a prior fromPrimitives chain into a new build', () => {
+    const builder = new AuthSessionBuilder();
+    const revokedAt = new Date('2026-06-08T16:26:46.695Z');
+
+    builder
+      .fromPrimitives({
+        id: VALID_UUID,
+        userId: VALID_USER_UUID,
+        tokenHash: VALID_HASH,
+        expiresAt: new Date('2026-07-08T00:00:00.000Z'),
+        revokedAt,
+        deviceInfo: null,
+        createdAt: new Date('2026-06-07T19:04:20.105Z'),
+        updatedAt: new Date('2026-06-08T14:26:46.697Z'),
+      })
+      .build();
+
+    const freshSession = builder
+      .withId('660e8400-e29b-41d4-a716-446655440002')
+      .withUserId('770e8400-e29b-41d4-a716-446655440003')
+      .withTokenHash('b4c5d6e7'.repeat(8))
+      .withExpiresAt(new Date(Date.now() + 86_400_000))
+      .build();
+
+    expect(freshSession.revokedAt).toBeNull();
+    expect(freshSession.createdAt.value.getTime()).toBeGreaterThan(
+      revokedAt.getTime(),
+    );
+  });
 });
