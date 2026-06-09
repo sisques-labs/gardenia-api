@@ -2,10 +2,6 @@ import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
-import {
-  ISpaceUserPort,
-  SPACE_USER_PORT,
-} from '@contexts/spaces/application/ports/space-user.port';
 import { AssertSpaceInvitationViewModelExistsByCodeService } from '@contexts/spaces/application/services/read/assert-space-invitation-view-model-exists-by-code/assert-space-invitation-view-model-exists-by-code.service';
 import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
 import { AssertSpaceInvitationNotExpiredService } from '@contexts/spaces/application/services/write/assert-space-invitation-not-expired/assert-space-invitation-not-expired.service';
@@ -35,8 +31,6 @@ export class AcceptSpaceInvitationCommandHandler
     private readonly assertSpaceExistsService: AssertSpaceExistsService,
     @Inject(SPACE_WRITE_REPOSITORY)
     private readonly spaceWriteRepository: ISpaceWriteRepository,
-    @Inject(SPACE_USER_PORT)
-    private readonly spaceUserPort: ISpaceUserPort,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -54,8 +48,6 @@ export class AcceptSpaceInvitationCommandHandler
       userId: command.acceptingUserId.value,
       spaceId: invitation.spaceId,
     });
-
-    await this.spaceUserPort.ensureUserExists(command.acceptingUserId.value);
 
     const space = await this.assertSpaceExistsService.execute(
       new SpaceIdValueObject(invitation.spaceId),

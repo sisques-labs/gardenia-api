@@ -15,7 +15,7 @@ src/contexts/spaces/
 │   │                      # create-space-invitation, accept-space-invitation
 │   ├── queries/           # space-find-by-id, spaces-find-by-user,
 │   │                      # membership-find-by-user-and-space
-│   ├── ports/             # ISpaceQrPort, ISpaceUserPort (hexagonal adapters)
+│   ├── ports/             # ISpaceQrPort (hexagonal adapter to QR module)
 │   └── services/
 │       ├── read/          # assert-* view-model exists services
 │       └── write/         # assert-* domain rules, invite code generation,
@@ -31,7 +31,7 @@ src/contexts/spaces/
 │   ├── value-objects/     # SpaceId, InvitationCode, …
 │   └── view-models/       # SpaceViewModel, SpaceInvitationViewModel
 ├── infrastructure/
-│   ├── adapters/          # SpaceQrAdapter → QR module, SpaceUserAdapter → Users module
+│   ├── adapters/          # SpaceQrAdapter → QR module
 │   ├── config/            # spaces.config.ts (invitation expiry, space limits)
 │   └── persistence/typeorm/
 │       ├── entities/      # spaces, space_memberships, space_invitations
@@ -240,7 +240,6 @@ spaceAcceptInvitation / POST /api/invitations/accept  (@IdentityOnly)
        └─ AcceptSpaceInvitationCommandHandler
             ├─ assert invitation exists and not expired
             ├─ assert user is not already a member
-            ├─ SpaceUserAdapter → EnsureUserExistsCommand (users row in space)
             ├─ space.addMember(userId, invitation.role)
             └─ persist SpaceAggregate
 ```
@@ -308,10 +307,6 @@ Resolvers dispatch commands/queries via `CommandBus` / `QueryBus` only — never
 ### `ISpaceQrPort` → `SpaceQrAdapter`
 
 Dispatches `CreateQrCommand` to the QR bounded context. Keeps Spaces decoupled from QR infrastructure.
-
-### `ISpaceUserPort` → `SpaceUserAdapter`
-
-Dispatches `EnsureUserExistsCommand` to the Users bounded context when accepting an invitation, so the accepting user has a `users` row in the target space.
 
 ---
 
