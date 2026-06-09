@@ -25,7 +25,7 @@ describe('GenerateUniqueInvitationCodeService', () => {
     } as unknown as jest.Mocked<ISpaceInvitationWriteRepository>;
 
     configService = {
-      get: jest.fn().mockReturnValue(5),
+      getOrThrow: jest.fn().mockReturnValue(5),
     } as unknown as jest.Mocked<ConfigService>;
 
     service = new GenerateUniqueInvitationCodeService(

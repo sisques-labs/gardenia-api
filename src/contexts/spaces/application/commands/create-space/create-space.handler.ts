@@ -24,21 +24,25 @@ export class CreateSpaceCommandHandler
   implements ICommandHandler<CreateSpaceCommand, string>
 {
   private readonly logger = new Logger(CreateSpaceCommandHandler.name);
+  private readonly maxSpacesPerUser: number;
 
   constructor(
     @Inject(MEMBERSHIP_READ_REPOSITORY)
     private readonly membershipReadRepository: IMembershipReadRepository,
     @Inject(SPACE_WRITE_REPOSITORY)
     private readonly spaceWriteRepository: ISpaceWriteRepository,
-    private readonly configService: ConfigService,
+    configService: ConfigService,
     private readonly spaceBuilder: SpaceBuilder,
     eventBus: EventBus,
   ) {
     super(eventBus);
+    this.maxSpacesPerUser = configService.getOrThrow<number>(
+      'spaces.maxSpacesPerUser',
+    );
   }
 
   async execute(command: CreateSpaceCommand): Promise<string> {
-    const maxSpaces = this.configService.get<number>('MAX_SPACES_PER_USER', 5);
+    const maxSpaces = this.maxSpacesPerUser;
     const ownedCount = await this.membershipReadRepository.countByOwner(
       command.ownerId.value,
     );

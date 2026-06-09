@@ -35,6 +35,7 @@ export class CreateSpaceInvitationCommandHandler
   private readonly logger = new Logger(
     CreateSpaceInvitationCommandHandler.name,
   );
+  private readonly invitationDefaultExpiryHours: number;
 
   constructor(
     @Inject(SPACE_INVITATION_WRITE_REPOSITORY)
@@ -47,10 +48,13 @@ export class CreateSpaceInvitationCommandHandler
     @Inject(SPACE_QR_PORT)
     private readonly spaceQrPort: ISpaceQrPort,
     private readonly spaceInvitationBuilder: SpaceInvitationBuilder,
-    private readonly configService: ConfigService,
+    configService: ConfigService,
     eventBus: EventBus,
   ) {
     super(eventBus);
+    this.invitationDefaultExpiryHours = configService.getOrThrow<number>(
+      'spaces.invitationDefaultExpiryHours',
+    );
   }
 
   async execute(
@@ -71,13 +75,11 @@ export class CreateSpaceInvitationCommandHandler
     });
 
     const now = new Date();
-    const defaultExpiryHours = this.configService.get<number>(
-      'SPACE_INVITATION_DEFAULT_EXPIRY_HOURS',
-      24,
-    );
     const expiresAt =
       command.expiresAt ??
-      new Date(now.getTime() + defaultExpiryHours * 60 * 60 * 1000);
+      new Date(
+        now.getTime() + this.invitationDefaultExpiryHours * 60 * 60 * 1000,
+      );
 
     const { code, displayCode } =
       await this.generateUniqueInvitationCodeService.execute({

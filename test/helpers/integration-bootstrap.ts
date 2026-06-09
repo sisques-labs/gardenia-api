@@ -18,6 +18,7 @@ import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistenc
 import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { appConfig } from '../../src/core/config/app.config';
 import { authConfig } from '../../src/core/config/auth.config';
+import { spacesConfig } from '../../src/core/config/spaces.config';
 import { SharedModule } from '../../src/shared/shared.module';
 import { SpaceContext } from '../../src/shared/space-context/space-context.service';
 import { bootstrapTestDataSource } from './test-data-source';
@@ -62,7 +63,7 @@ export async function createIntegrationModule(
     imports: [
       ConfigModule.forRoot({
         isGlobal: true,
-        load: [authConfig, appConfig],
+        load: [authConfig, appConfig, spacesConfig],
       }),
       TypeOrmModule.forRoot({
         type: 'postgres',
