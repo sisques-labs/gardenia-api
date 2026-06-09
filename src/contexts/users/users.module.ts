@@ -69,6 +69,6 @@ const INFRASTRUCTURE_ENTITIES = [UserTypeOrmEntity];
     ...TRANSPORT_GRAPHQL_RESOLVERS,
     ...INFRASTRUCTURE_REPOSITORIES,
   ],
-  exports: [],
+  exports: [USER_WRITE_REPOSITORY],
 })
 export class UsersModule {}

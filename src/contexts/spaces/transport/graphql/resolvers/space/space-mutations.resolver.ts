@@ -11,13 +11,25 @@ import {
   CurrentUser,
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import { AcceptSpaceInvitationCommand } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.command';
+import { AcceptSpaceInvitationResult } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.handler';
 import { AddMemberCommand } from '@contexts/spaces/application/commands/add-member/add-member.command';
 import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
+import { CreateSpaceInvitationCommand } from '@contexts/spaces/application/commands/create-space-invitation/create-space-invitation.command';
 import { RemoveMemberCommand } from '@contexts/spaces/application/commands/remove-member/remove-member.command';
+import { SpaceInvitationViewModel } from '@contexts/spaces/domain/view-models/space-invitation.view-model';
+import { IdentityOnly } from '@shared/decorators/identity-only.decorator';
 import { SkipSpace } from '../../../../../../shared/decorators/skip-space.decorator';
+import { SpaceAcceptInvitationRequestDto } from '../../dtos/requests/space/space-accept-invitation.request.dto';
 import { SpaceAddMemberRequestDto } from '../../dtos/requests/space/space-add-member.request.dto';
+import { SpaceCreateInvitationRequestDto } from '../../dtos/requests/space/space-create-invitation.request.dto';
 import { SpaceCreateRequestDto } from '../../dtos/requests/space/space-create.request.dto';
 import { SpaceRemoveMemberRequestDto } from '../../dtos/requests/space/space-remove-member.request.dto';
+import { SpaceInvitationGraphQLMapper } from '../../mappers/space-invitation/space-invitation.mapper';
+import {
+  SpaceAcceptInvitationResponseDto,
+  SpaceInvitationResponseDto,
+} from '../../objects/space-invitation.object';
 
 @Resolver()
 @UseGuards(JwtAuthGuard)
@@ -27,6 +39,7 @@ export class SpaceMutationsResolver {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
+    private readonly spaceInvitationGraphQLMapper: SpaceInvitationGraphQLMapper,
   ) {}
 
   @SkipSpace()
@@ -49,6 +62,51 @@ export class SpaceMutationsResolver {
       message: 'Space created successfully',
       id: spaceId,
     });
+  }
+
+  @Mutation(() => SpaceInvitationResponseDto)
+  async spaceCreateInvitation(
+    @CurrentUser() user: CurrentUserPayload,
+    @Args('input') input: SpaceCreateInvitationRequestDto,
+  ): Promise<SpaceInvitationResponseDto> {
+    this.logger.log(
+      `Creating invitation for space ${input.spaceId} by user: ${user.userId}`,
+    );
+
+    const vm = await this.commandBus.execute<
+      CreateSpaceInvitationCommand,
+      SpaceInvitationViewModel
+    >(
+      new CreateSpaceInvitationCommand({
+        spaceId: input.spaceId,
+        requestingUserId: user.userId,
+        role: input.role,
+        expiresAt: input.expiresAt,
+      }),
+    );
+
+    return this.spaceInvitationGraphQLMapper.toResponse(vm);
+  }
+
+  @IdentityOnly()
+  @Mutation(() => SpaceAcceptInvitationResponseDto)
+  async spaceAcceptInvitation(
+    @CurrentUser() user: CurrentUserPayload,
+    @Args('input') input: SpaceAcceptInvitationRequestDto,
+  ): Promise<SpaceAcceptInvitationResponseDto> {
+    this.logger.log(`Accepting invitation for user: ${user.userId}`);
+
+    const result = await this.commandBus.execute<
+      AcceptSpaceInvitationCommand,
+      AcceptSpaceInvitationResult
+    >(
+      new AcceptSpaceInvitationCommand({
+        code: input.code,
+        acceptingUserId: user.userId,
+      }),
+    );
+
+    return this.spaceInvitationGraphQLMapper.toAcceptResponse(result);
   }
 
   @Mutation(() => MutationResponseDto)
