@@ -1,10 +1,20 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.14.1-alpha.1] - 2026-06-08
+
+### Bug Fixes
+- **auth:** Reset AuthSessionBuilder state on each withId chain (56f7bff)
+
+### CI
+- Add release train workflow for develop/staging/main (5e012fd)
 ## [0.14.1-alpha.0] - 2026-06-06
 
 ### Bug Fixes
 - **graphql:** Enable fieldResolverEnhancers for tenant context (b94d795)
+
+### Chore
+- Release v0.14.1-alpha.0 (05b7077)
 
 ### Documentation
 - **openspec:** Document graphql field resolver space context fix (c71ca8a)
