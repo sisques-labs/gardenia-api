@@ -40,7 +40,7 @@ describe('CreateSpaceCommandHandler', () => {
     } as jest.Mocked<ISpaceWriteRepository>;
 
     configService = {
-      get: jest.fn().mockReturnValue(5),
+      getOrThrow: jest.fn().mockReturnValue(5),
     } as unknown as jest.Mocked<ConfigService>;
 
     eventBus = {
@@ -88,7 +88,7 @@ describe('CreateSpaceCommandHandler', () => {
 
     it('should check cap before saving', async () => {
       membershipReadRepository.countByOwner.mockResolvedValue(5);
-      configService.get.mockReturnValue(5);
+      configService.getOrThrow.mockReturnValue(5);
 
       await expect(
         handler.execute(
@@ -103,7 +103,7 @@ describe('CreateSpaceCommandHandler', () => {
   describe('cap enforcement', () => {
     it('should throw SpaceLimitExceededException when at the cap', async () => {
       membershipReadRepository.countByOwner.mockResolvedValue(5);
-      configService.get.mockReturnValue(5);
+      configService.getOrThrow.mockReturnValue(5);
 
       await expect(
         handler.execute(
@@ -112,8 +112,15 @@ describe('CreateSpaceCommandHandler', () => {
       ).rejects.toThrow(SpaceLimitExceededException);
     });
 
-    it('should read MAX_SPACES_PER_USER from config', async () => {
-      configService.get.mockReturnValue(3);
+    it('should read maxSpacesPerUser from spaces config', async () => {
+      configService.getOrThrow.mockReturnValue(3);
+      handler = new CreateSpaceCommandHandler(
+        membershipReadRepository,
+        spaceWriteRepository,
+        configService,
+        spaceBuilder,
+        eventBus,
+      );
       membershipReadRepository.countByOwner.mockResolvedValue(3);
 
       await expect(
@@ -122,7 +129,9 @@ describe('CreateSpaceCommandHandler', () => {
         ),
       ).rejects.toThrow(SpaceLimitExceededException);
 
-      expect(configService.get).toHaveBeenCalledWith('MAX_SPACES_PER_USER', 5);
+      expect(configService.getOrThrow).toHaveBeenCalledWith(
+        'spaces.maxSpacesPerUser',
+      );
     });
   });
 
