@@ -6,17 +6,17 @@ import {
   MutationResponseGraphQLMapper,
 } from '@sisques-labs/nestjs-kit';
 
-import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import {
   CurrentUser,
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { AcceptSpaceInvitationCommand } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.command';
-import { ResolveInvitationSpaceContextService } from '@contexts/spaces/application/services/write/resolve-invitation-space-context/resolve-invitation-space-context.service';
 import { AddMemberCommand } from '@contexts/spaces/application/commands/add-member/add-member.command';
-import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
 import { CreateSpaceInvitationCommand } from '@contexts/spaces/application/commands/create-space-invitation/create-space-invitation.command';
+import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
 import { RemoveMemberCommand } from '@contexts/spaces/application/commands/remove-member/remove-member.command';
+import { ResolveInvitationSpaceContextService } from '@contexts/spaces/application/services/write/resolve-invitation-space-context/resolve-invitation-space-context.service';
 import { SpaceInvitationViewModel } from '@contexts/spaces/domain/view-models/space-invitation.view-model';
 import { IdentityOnly } from '@shared/decorators/identity-only.decorator';
 import { SkipSpace } from '../../../../../../shared/decorators/skip-space.decorator';
@@ -94,6 +94,7 @@ export class SpaceMutationsResolver {
   ): Promise<MutationResponseDto> {
     this.logger.log(`Accepting invitation for user: ${user.userId}`);
 
+    // TODO: Technical debt: This is not the best way to handle this. We should use the spaceId directly and not the run method.
     const spaceId = await this.resolveInvitationSpaceContextService.run(
       input.code,
       () =>
