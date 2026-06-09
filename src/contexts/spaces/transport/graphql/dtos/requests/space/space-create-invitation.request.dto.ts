@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsDateString, IsEnum, IsOptional, IsUUID } from 'class-validator';
+import { IsDate, IsEnum, IsOptional, IsUUID } from 'class-validator';
 
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 
@@ -19,6 +19,6 @@ export class SpaceCreateInvitationRequestDto {
 
   @Field(() => Date, { nullable: true })
   @IsOptional()
-  @IsDateString()
+  @IsDate()
   expiresAt?: Date;
 }
