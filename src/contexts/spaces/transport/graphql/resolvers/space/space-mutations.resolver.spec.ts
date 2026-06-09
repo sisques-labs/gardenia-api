@@ -5,6 +5,8 @@ import { SKIP_SPACE_KEY } from '../../../../../../shared/decorators/skip-space.d
 import { SpaceCreateRequestDto } from '../../dtos/requests/space/space-create.request.dto';
 import { SpaceAddMemberRequestDto } from '../../dtos/requests/space/space-add-member.request.dto';
 import { SpaceRemoveMemberRequestDto } from '../../dtos/requests/space/space-remove-member.request.dto';
+import { ResolveInvitationSpaceContextService } from '@contexts/spaces/application/services/write/resolve-invitation-space-context/resolve-invitation-space-context.service';
+
 import { SpaceInvitationGraphQLMapper } from '../../mappers/space-invitation/space-invitation.mapper';
 import { SpaceMutationsResolver } from './space-mutations.resolver';
 
@@ -17,6 +19,7 @@ describe('SpaceMutationsResolver', () => {
   let commandBus: jest.Mocked<CommandBus>;
   let mutationResponseGraphQLMapper: jest.Mocked<MutationResponseGraphQLMapper>;
   let spaceInvitationGraphQLMapper: jest.Mocked<SpaceInvitationGraphQLMapper>;
+  let resolveInvitationSpaceContextService: jest.Mocked<ResolveInvitationSpaceContextService>;
 
   const mockUser = { userId: OWNER_ID, email: 'owner@test.com', sub: OWNER_ID };
 
@@ -31,11 +34,15 @@ describe('SpaceMutationsResolver', () => {
       toResponse: jest.fn(),
       toAcceptResponse: jest.fn(),
     } as unknown as jest.Mocked<SpaceInvitationGraphQLMapper>;
+    resolveInvitationSpaceContextService = {
+      run: jest.fn((_code, fn) => fn()),
+    } as unknown as jest.Mocked<ResolveInvitationSpaceContextService>;
 
     resolver = new SpaceMutationsResolver(
       commandBus,
       mutationResponseGraphQLMapper,
       spaceInvitationGraphQLMapper,
+      resolveInvitationSpaceContextService,
     );
   });
 

@@ -2,12 +2,6 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
-
-### Features
-
-- **spaces:** Add space invitations with QR + human-readable code, multi-use until expiry, configurable member/owner role (`POST /api/spaces/:id/invitations`, `POST /api/invitations/accept`, GraphQL parity)
-
 ## [0.14.1-alpha.1] - 2026-06-08
 
 ### Bug Fixes

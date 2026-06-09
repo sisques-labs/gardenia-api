@@ -13,6 +13,7 @@ import { SpaceEntity } from './space.entity';
 @Entity('space_invitations')
 @Unique(['code'])
 @Index(['spaceId'])
+@Index(['code'])
 @Index(['expiresAt'])
 export class SpaceInvitationEntity {
   @PrimaryGeneratedColumn('uuid')

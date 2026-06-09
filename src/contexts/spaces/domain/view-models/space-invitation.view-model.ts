@@ -1,19 +1,7 @@
 import { BaseViewModel } from '@sisques-labs/nestjs-kit';
 
 import { MembershipRoleEnum } from '../enums/membership-role.enum';
-
-export interface ISpaceInvitationViewModelPrimitives {
-  id: string;
-  spaceId: string;
-  createdByUserId: string;
-  role: MembershipRoleEnum;
-  code: string;
-  displayCode: string;
-  qrId: string | null;
-  expiresAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { ISpaceInvitationViewModelPrimitives } from '../primitives/space-invitation-view-model.primitives';
 
 export class SpaceInvitationViewModel extends BaseViewModel {
   public readonly spaceId: string;

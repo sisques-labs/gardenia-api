@@ -26,7 +26,6 @@ import {
 } from '@contexts/spaces/domain/repositories/write/space-invitation-write.repository';
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { SpaceInvitationViewModel } from '@contexts/spaces/domain/view-models/space-invitation.view-model';
-import { SpaceContext } from '@shared/space-context/space-context.service';
 
 import { CreateSpaceInvitationCommand } from './create-space-invitation.command';
 
@@ -56,7 +55,6 @@ export class CreateSpaceInvitationCommandHandler
     private readonly spaceQrPort: ISpaceQrPort,
     private readonly spaceInvitationBuilder: SpaceInvitationBuilder,
     private readonly queryBus: QueryBus,
-    private readonly spaceContext: SpaceContext,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -96,51 +94,49 @@ export class CreateSpaceInvitationCommandHandler
       command.expiresAt ??
       new Date(now.getTime() + DEFAULT_EXPIRY_HOURS * 60 * 60 * 1000);
 
-    return this.spaceContext.run(command.spaceId.value, async () => {
-      const { code, displayCode } = await this.generateUniqueCode(
-        space.name.value,
-      );
-      const targetUrl = await this.targetUrlBuilder.execute({ displayCode });
-      const qrId = await this.spaceQrPort.createInvitationQr({
-        targetUrl,
-        spaceId: command.spaceId.value,
-        expiresAt,
-      });
-
-      const invitation = this.spaceInvitationBuilder
-        .withId(UuidValueObject.generate().value)
-        .withSpaceId(command.spaceId.value)
-        .withCreatedByUserId(command.requestingUserId.value)
-        .withRole(command.role.value as MembershipRoleEnum)
-        .withCode(code)
-        .withDisplayCode(displayCode)
-        .withQrId(qrId)
-        .withExpiresAt(expiresAt)
-        .withCreatedAt(now)
-        .withUpdatedAt(now)
-        .build();
-
-      invitation.create();
-      await this.spaceInvitationWriteRepository.save(invitation);
-      await this.publishEvents(invitation);
-
-      this.logger.log(
-        `Space invitation created: ${invitation.id.value} for space ${command.spaceId.value}`,
-      );
-
-      return this.spaceInvitationBuilder
-        .withId(invitation.id.value)
-        .withSpaceId(invitation.spaceId.value)
-        .withCreatedByUserId(invitation.createdByUserId.value)
-        .withRole(invitation.role.value as MembershipRoleEnum)
-        .withCode(invitation.code.value)
-        .withDisplayCode(invitation.displayCode.value)
-        .withQrId(invitation.qrId?.value ?? null)
-        .withExpiresAt(invitation.expiresAt.value)
-        .withCreatedAt(invitation.createdAt.value)
-        .withUpdatedAt(invitation.updatedAt.value)
-        .buildViewModel();
+    const { code, displayCode } = await this.generateUniqueCode(
+      space.name.value,
+    );
+    const targetUrl = await this.targetUrlBuilder.execute({ displayCode });
+    const qrId = await this.spaceQrPort.createInvitationQr({
+      targetUrl,
+      spaceId: command.spaceId.value,
+      expiresAt,
     });
+
+    const invitation = this.spaceInvitationBuilder
+      .withId(UuidValueObject.generate().value)
+      .withSpaceId(command.spaceId.value)
+      .withCreatedByUserId(command.requestingUserId.value)
+      .withRole(command.role.value as MembershipRoleEnum)
+      .withCode(code)
+      .withDisplayCode(displayCode)
+      .withQrId(qrId)
+      .withExpiresAt(expiresAt)
+      .withCreatedAt(now)
+      .withUpdatedAt(now)
+      .build();
+
+    invitation.create();
+    await this.spaceInvitationWriteRepository.save(invitation);
+    await this.publishEvents(invitation);
+
+    this.logger.log(
+      `Space invitation created: ${invitation.id.value} for space ${command.spaceId.value}`,
+    );
+
+    return this.spaceInvitationBuilder
+      .withId(invitation.id.value)
+      .withSpaceId(invitation.spaceId.value)
+      .withCreatedByUserId(invitation.createdByUserId.value)
+      .withRole(invitation.role.value as MembershipRoleEnum)
+      .withCode(invitation.code.value)
+      .withDisplayCode(invitation.displayCode.value)
+      .withQrId(invitation.qrId?.value ?? null)
+      .withExpiresAt(invitation.expiresAt.value)
+      .withCreatedAt(invitation.createdAt.value)
+      .withUpdatedAt(invitation.updatedAt.value)
+      .buildViewModel();
   }
 
   private async generateUniqueCode(

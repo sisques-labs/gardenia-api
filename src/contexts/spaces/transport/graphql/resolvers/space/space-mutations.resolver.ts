@@ -13,6 +13,7 @@ import {
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { AcceptSpaceInvitationCommand } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.command';
 import { AcceptSpaceInvitationResult } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.handler';
+import { ResolveInvitationSpaceContextService } from '@contexts/spaces/application/services/write/resolve-invitation-space-context/resolve-invitation-space-context.service';
 import { AddMemberCommand } from '@contexts/spaces/application/commands/add-member/add-member.command';
 import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
 import { CreateSpaceInvitationCommand } from '@contexts/spaces/application/commands/create-space-invitation/create-space-invitation.command';
@@ -40,6 +41,7 @@ export class SpaceMutationsResolver {
     private readonly commandBus: CommandBus,
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
     private readonly spaceInvitationGraphQLMapper: SpaceInvitationGraphQLMapper,
+    private readonly resolveInvitationSpaceContextService: ResolveInvitationSpaceContextService,
   ) {}
 
   @SkipSpace()
@@ -96,14 +98,18 @@ export class SpaceMutationsResolver {
   ): Promise<SpaceAcceptInvitationResponseDto> {
     this.logger.log(`Accepting invitation for user: ${user.userId}`);
 
-    const result = await this.commandBus.execute<
-      AcceptSpaceInvitationCommand,
-      AcceptSpaceInvitationResult
-    >(
-      new AcceptSpaceInvitationCommand({
-        code: input.code,
-        acceptingUserId: user.userId,
-      }),
+    const result = await this.resolveInvitationSpaceContextService.run(
+      input.code,
+      () =>
+        this.commandBus.execute<
+          AcceptSpaceInvitationCommand,
+          AcceptSpaceInvitationResult
+        >(
+          new AcceptSpaceInvitationCommand({
+            code: input.code,
+            acceptingUserId: user.userId,
+          }),
+        ),
     );
 
     return this.spaceInvitationGraphQLMapper.toAcceptResponse(result);

@@ -28,12 +28,17 @@ export class CreateSpaceInvitations1780000000013 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
+      CREATE INDEX "IDX_space_invitations_code" ON "space_invitations" ("code")
+    `);
+
+    await queryRunner.query(`
       CREATE INDEX "IDX_space_invitations_expires_at" ON "space_invitations" ("expires_at")
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX "IDX_space_invitations_expires_at"`);
+    await queryRunner.query(`DROP INDEX "IDX_space_invitations_code"`);
     await queryRunner.query(`DROP INDEX "IDX_space_invitations_space_id"`);
     await queryRunner.query(`DROP TABLE "space_invitations"`);
   }
