@@ -14,8 +14,14 @@ import { SPACE_USER_PORT } from './application/ports/space-user.port';
 import { MembershipFindByUserAndSpaceQueryHandler } from './application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.handler';
 import { SpaceFindByIdQueryHandler } from './application/queries/space-find-by-id/space-find-by-id.handler';
 import { SpacesFindByUserQueryHandler } from './application/queries/spaces-find-by-user/spaces-find-by-user.handler';
+import { AssertSpaceInvitationViewModelExistsByCodeService } from './application/services/read/assert-space-invitation-view-model-exists-by-code/assert-space-invitation-view-model-exists-by-code.service';
 import { AssertSpaceViewModelExistsService } from './application/services/read/assert-space-view-model-exists/assert-space-view-model-exists.service';
 import { AssertSpaceExistsService } from './application/services/write/assert-space-exists/assert-space-exists.service';
+import { AssertSpaceInvitationNotExpiredService } from './application/services/write/assert-space-invitation-not-expired/assert-space-invitation-not-expired.service';
+import { AssertUserIsSpaceMemberService } from './application/services/write/assert-user-is-space-member/assert-user-is-space-member.service';
+import { AssertUserIsSpaceOwnerService } from './application/services/write/assert-user-is-space-owner/assert-user-is-space-owner.service';
+import { AssertUserNotSpaceMemberService } from './application/services/write/assert-user-not-space-member/assert-user-not-space-member.service';
+import { GenerateUniqueInvitationCodeService } from './application/services/write/generate-unique-invitation-code/generate-unique-invitation-code.service';
 import { InviteCodeGeneratorService } from './application/services/write/invite-code-generator/invite-code-generator.service';
 import { ResolveInvitationSpaceContextService } from './application/services/write/resolve-invitation-space-context/resolve-invitation-space-context.service';
 import { SpaceInvitationTargetUrlBuilderService } from './application/services/write/space-invitation-target-url-builder/space-invitation-target-url-builder.service';
@@ -68,7 +74,13 @@ const QUERY_HANDLERS = [
 
 const APPLICATION_SERVICES = [
   AssertSpaceExistsService,
+  AssertSpaceInvitationNotExpiredService,
+  AssertSpaceInvitationViewModelExistsByCodeService,
   AssertSpaceViewModelExistsService,
+  AssertUserIsSpaceMemberService,
+  AssertUserIsSpaceOwnerService,
+  AssertUserNotSpaceMemberService,
+  GenerateUniqueInvitationCodeService,
   InviteCodeGeneratorService,
   ResolveInvitationSpaceContextService,
   SpaceInvitationTargetUrlBuilderService,

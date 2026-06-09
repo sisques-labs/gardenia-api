@@ -1,25 +1,18 @@
 import { Inject, Logger } from '@nestjs/common';
-import {
-  CommandHandler,
-  EventBus,
-  ICommandHandler,
-  QueryBus,
-} from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import {
   ISpaceQrPort,
   SPACE_QR_PORT,
 } from '@contexts/spaces/application/ports/space-qr.port';
-import { InviteCodeGeneratorService } from '@contexts/spaces/application/services/write/invite-code-generator/invite-code-generator.service';
 import { SpaceInvitationTargetUrlBuilderService } from '@contexts/spaces/application/services/write/space-invitation-target-url-builder/space-invitation-target-url-builder.service';
 import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
-import { MembershipFindByUserAndSpaceQuery } from '@contexts/spaces/application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.query';
+import { AssertUserIsSpaceMemberService } from '@contexts/spaces/application/services/write/assert-user-is-space-member/assert-user-is-space-member.service';
+import { AssertUserIsSpaceOwnerService } from '@contexts/spaces/application/services/write/assert-user-is-space-owner/assert-user-is-space-owner.service';
+import { GenerateUniqueInvitationCodeService } from '@contexts/spaces/application/services/write/generate-unique-invitation-code/generate-unique-invitation-code.service';
 import { SpaceInvitationAggregate } from '@contexts/spaces/domain/aggregates/space-invitation.aggregate';
 import { SpaceInvitationBuilder } from '@contexts/spaces/domain/builders/space-invitation.builder';
-import { SpaceMembership } from '@contexts/spaces/domain/entities/space-membership.entity';
-import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
-import { NotSpaceOwnerException } from '@contexts/spaces/domain/exceptions/not-space-owner.exception';
 import {
   ISpaceInvitationWriteRepository,
   SPACE_INVITATION_WRITE_REPOSITORY,
@@ -30,7 +23,6 @@ import { SpaceInvitationViewModel } from '@contexts/spaces/domain/view-models/sp
 import { CreateSpaceInvitationCommand } from './create-space-invitation.command';
 
 const DEFAULT_EXPIRY_HOURS = 24;
-const MAX_CODE_COLLISION_RETRIES = 5;
 
 @CommandHandler(CreateSpaceInvitationCommand)
 export class CreateSpaceInvitationCommandHandler
@@ -49,12 +41,13 @@ export class CreateSpaceInvitationCommandHandler
     @Inject(SPACE_INVITATION_WRITE_REPOSITORY)
     private readonly spaceInvitationWriteRepository: ISpaceInvitationWriteRepository,
     private readonly assertSpaceExistsService: AssertSpaceExistsService,
-    private readonly inviteCodeGeneratorService: InviteCodeGeneratorService,
+    private readonly assertUserIsSpaceMemberService: AssertUserIsSpaceMemberService,
+    private readonly assertUserIsSpaceOwnerService: AssertUserIsSpaceOwnerService,
+    private readonly generateUniqueInvitationCodeService: GenerateUniqueInvitationCodeService,
     private readonly targetUrlBuilder: SpaceInvitationTargetUrlBuilderService,
     @Inject(SPACE_QR_PORT)
     private readonly spaceQrPort: ISpaceQrPort,
     private readonly spaceInvitationBuilder: SpaceInvitationBuilder,
-    private readonly queryBus: QueryBus,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -65,38 +58,27 @@ export class CreateSpaceInvitationCommandHandler
   ): Promise<SpaceInvitationViewModel> {
     const space = await this.assertSpaceExistsService.execute(command.spaceId);
 
-    const requesterMembership = await this.queryBus.execute<
-      MembershipFindByUserAndSpaceQuery,
-      SpaceMembership | null
-    >(
-      new MembershipFindByUserAndSpaceQuery({
+    const requesterMembership =
+      await this.assertUserIsSpaceMemberService.execute({
         userId: command.requestingUserId.value,
         spaceId: command.spaceId.value,
-      }),
-    );
+      });
 
-    if (!requesterMembership) {
-      throw new NotASpaceMemberException(
-        command.requestingUserId.value,
-        command.spaceId.value,
-      );
-    }
-
-    if (!requesterMembership.role.isOwner()) {
-      throw new NotSpaceOwnerException(
-        command.requestingUserId.value,
-        command.spaceId.value,
-      );
-    }
+    await this.assertUserIsSpaceOwnerService.execute({
+      membership: requesterMembership,
+      userId: command.requestingUserId.value,
+      spaceId: command.spaceId.value,
+    });
 
     const now = new Date();
     const expiresAt =
       command.expiresAt ??
       new Date(now.getTime() + DEFAULT_EXPIRY_HOURS * 60 * 60 * 1000);
 
-    const { code, displayCode } = await this.generateUniqueCode(
-      space.name.value,
-    );
+    const { code, displayCode } =
+      await this.generateUniqueInvitationCodeService.execute({
+        spaceName: space.name.value,
+      });
     const targetUrl = await this.targetUrlBuilder.execute({ displayCode });
     const qrId = await this.spaceQrPort.createInvitationQr({
       targetUrl,
@@ -137,23 +119,5 @@ export class CreateSpaceInvitationCommandHandler
       .withCreatedAt(invitation.createdAt.value)
       .withUpdatedAt(invitation.updatedAt.value)
       .buildViewModel();
-  }
-
-  private async generateUniqueCode(
-    spaceName: string,
-  ): Promise<{ code: string; displayCode: string }> {
-    for (let attempt = 0; attempt < MAX_CODE_COLLISION_RETRIES; attempt++) {
-      const generated = await this.inviteCodeGeneratorService.execute({
-        spaceName,
-      });
-      const existing = await this.spaceInvitationWriteRepository.findByCode(
-        generated.code,
-      );
-      if (!existing) {
-        return generated;
-      }
-    }
-
-    throw new Error('Failed to generate a unique invitation code');
   }
 }

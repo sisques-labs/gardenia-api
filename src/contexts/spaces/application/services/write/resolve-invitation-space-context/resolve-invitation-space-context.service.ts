@@ -1,27 +1,20 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
-import { InvitationNotFoundException } from '@contexts/spaces/domain/exceptions/invitation-not-found.exception';
-import {
-  ISpaceInvitationReadRepository,
-  SPACE_INVITATION_READ_REPOSITORY,
-} from '@contexts/spaces/domain/repositories/read/space-invitation-read.repository';
+import { AssertSpaceInvitationViewModelExistsByCodeService } from '@contexts/spaces/application/services/read/assert-space-invitation-view-model-exists-by-code/assert-space-invitation-view-model-exists-by-code.service';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 
 @Injectable()
 export class ResolveInvitationSpaceContextService {
   constructor(
-    @Inject(SPACE_INVITATION_READ_REPOSITORY)
-    private readonly spaceInvitationReadRepository: ISpaceInvitationReadRepository,
+    private readonly assertSpaceInvitationViewModelExistsByCodeService: AssertSpaceInvitationViewModelExistsByCodeService,
     private readonly spaceContext: SpaceContext,
   ) {}
 
   async run<T>(code: string, fn: () => Promise<T>): Promise<T> {
     const invitation =
-      await this.spaceInvitationReadRepository.findByCode(code);
-
-    if (!invitation) {
-      throw new InvitationNotFoundException(code);
-    }
+      await this.assertSpaceInvitationViewModelExistsByCodeService.execute(
+        code,
+      );
 
     return this.spaceContext.run(invitation.spaceId, fn);
   }

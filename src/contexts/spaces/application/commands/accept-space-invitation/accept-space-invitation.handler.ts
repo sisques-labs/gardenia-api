@@ -1,27 +1,16 @@
 import { Inject, Logger } from '@nestjs/common';
-import {
-  CommandHandler,
-  EventBus,
-  ICommandHandler,
-  QueryBus,
-} from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
 import {
   ISpaceUserPort,
   SPACE_USER_PORT,
 } from '@contexts/spaces/application/ports/space-user.port';
+import { AssertSpaceInvitationViewModelExistsByCodeService } from '@contexts/spaces/application/services/read/assert-space-invitation-view-model-exists-by-code/assert-space-invitation-view-model-exists-by-code.service';
 import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
-import { MembershipFindByUserAndSpaceQuery } from '@contexts/spaces/application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.query';
+import { AssertSpaceInvitationNotExpiredService } from '@contexts/spaces/application/services/write/assert-space-invitation-not-expired/assert-space-invitation-not-expired.service';
+import { AssertUserNotSpaceMemberService } from '@contexts/spaces/application/services/write/assert-user-not-space-member/assert-user-not-space-member.service';
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
-import { SpaceMembership } from '@contexts/spaces/domain/entities/space-membership.entity';
-import { DuplicateMembershipException } from '@contexts/spaces/domain/exceptions/duplicate-membership.exception';
-import { InvitationExpiredException } from '@contexts/spaces/domain/exceptions/invitation-expired.exception';
-import { InvitationNotFoundException } from '@contexts/spaces/domain/exceptions/invitation-not-found.exception';
-import {
-  ISpaceInvitationReadRepository,
-  SPACE_INVITATION_READ_REPOSITORY,
-} from '@contexts/spaces/domain/repositories/read/space-invitation-read.repository';
 import {
   ISpaceWriteRepository,
   SPACE_WRITE_REPOSITORY,
@@ -47,14 +36,14 @@ export class AcceptSpaceInvitationCommandHandler
   );
 
   constructor(
-    @Inject(SPACE_INVITATION_READ_REPOSITORY)
-    private readonly spaceInvitationReadRepository: ISpaceInvitationReadRepository,
+    private readonly assertSpaceInvitationViewModelExistsByCodeService: AssertSpaceInvitationViewModelExistsByCodeService,
+    private readonly assertSpaceInvitationNotExpiredService: AssertSpaceInvitationNotExpiredService,
+    private readonly assertUserNotSpaceMemberService: AssertUserNotSpaceMemberService,
     private readonly assertSpaceExistsService: AssertSpaceExistsService,
     @Inject(SPACE_WRITE_REPOSITORY)
     private readonly spaceWriteRepository: ISpaceWriteRepository,
     @Inject(SPACE_USER_PORT)
     private readonly spaceUserPort: ISpaceUserPort,
-    private readonly queryBus: QueryBus,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -63,34 +52,17 @@ export class AcceptSpaceInvitationCommandHandler
   async execute(
     command: AcceptSpaceInvitationCommand,
   ): Promise<AcceptSpaceInvitationResult> {
-    const invitation = await this.spaceInvitationReadRepository.findByCode(
-      command.code.value,
-    );
-
-    if (!invitation) {
-      throw new InvitationNotFoundException(command.code.value);
-    }
-
-    if (invitation.expiresAt < new Date()) {
-      throw new InvitationExpiredException(command.code.value);
-    }
-
-    const existingMembership = await this.queryBus.execute<
-      MembershipFindByUserAndSpaceQuery,
-      SpaceMembership | null
-    >(
-      new MembershipFindByUserAndSpaceQuery({
-        userId: command.acceptingUserId.value,
-        spaceId: invitation.spaceId,
-      }),
-    );
-
-    if (existingMembership) {
-      throw new DuplicateMembershipException(
-        command.acceptingUserId.value,
-        invitation.spaceId,
+    const invitation =
+      await this.assertSpaceInvitationViewModelExistsByCodeService.execute(
+        command.code.value,
       );
-    }
+
+    await this.assertSpaceInvitationNotExpiredService.execute(invitation);
+
+    await this.assertUserNotSpaceMemberService.execute({
+      userId: command.acceptingUserId.value,
+      spaceId: invitation.spaceId,
+    });
 
     await this.spaceUserPort.ensureUserExists(command.acceptingUserId.value);
 
