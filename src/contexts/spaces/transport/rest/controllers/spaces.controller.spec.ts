@@ -9,6 +9,7 @@ import { SpacesFindByUserQuery } from '@contexts/spaces/application/queries/spac
 import { SpaceViewModel } from '@contexts/spaces/domain/view-models/space.view-model';
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 
+import { SpaceInvitationRestMapper } from '../mappers/space-invitation/space-invitation.mapper';
 import { SpaceRestMapper } from '../mappers/space/space.mapper';
 import { SpaceRestResponseDto } from '../dtos/space-rest-response.dto';
 import { CreateSpaceDto } from '../dtos/create-space.dto';
@@ -48,6 +49,7 @@ describe('SpacesController', () => {
   let commandBus: jest.Mocked<CommandBus>;
   let queryBus: jest.Mocked<QueryBus>;
   let spaceRestMapper: jest.Mocked<SpaceRestMapper>;
+  let spaceInvitationRestMapper: jest.Mocked<SpaceInvitationRestMapper>;
 
   beforeEach(() => {
     commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
@@ -55,7 +57,16 @@ describe('SpacesController', () => {
     spaceRestMapper = {
       toResponse: jest.fn(),
     } as unknown as jest.Mocked<SpaceRestMapper>;
-    sut = new SpacesController(commandBus, queryBus, spaceRestMapper);
+    spaceInvitationRestMapper = {
+      toResponse: jest.fn(),
+      toAcceptResponse: jest.fn(),
+    } as unknown as jest.Mocked<SpaceInvitationRestMapper>;
+    sut = new SpacesController(
+      commandBus,
+      queryBus,
+      spaceRestMapper,
+      spaceInvitationRestMapper,
+    );
   });
 
   describe('createSpace()', () => {
