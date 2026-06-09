@@ -49,7 +49,6 @@ import { SpaceInvitationTypeOrmWriteRepository } from './infrastructure/persiste
 import { SpaceMembershipTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/space-membership-typeorm-read.repository';
 import { SpaceTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/space-typeorm-read.repository';
 import { SpaceTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/space-typeorm-write.repository';
-import { SpaceContext } from '../../shared/space-context/space-context.service';
 import { SpaceGuard } from './transport/guards/space.guard';
 import { SpaceInterceptor } from './transport/interceptors/space.interceptor';
 import { SpaceInvitationGraphQLMapper } from './transport/graphql/mappers/space-invitation/space-invitation.mapper';
@@ -153,7 +152,6 @@ const REST_CONTROLLERS = [SpacesController, InvitationsController];
   ],
   controllers: [...REST_CONTROLLERS],
   providers: [
-    SpaceContext,
     ...COMMAND_HANDLERS,
     ...QUERY_HANDLERS,
     ...APPLICATION_SERVICES,
