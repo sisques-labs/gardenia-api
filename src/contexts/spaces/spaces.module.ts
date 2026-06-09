@@ -1,8 +1,11 @@
 import './transport/graphql/enums/space/space-registered-enums.graphql';
 
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { spacesConfig } from './infrastructure/config/spaces.config';
 
 import { AcceptSpaceInvitationCommandHandler } from './application/commands/accept-space-invitation/accept-space-invitation.handler';
 import { AddMemberCommandHandler } from './application/commands/add-member/add-member.handler';
@@ -143,7 +146,11 @@ const TRANSPORT_PROVIDERS = [
 const REST_CONTROLLERS = [SpacesController, InvitationsController];
 
 @Module({
-  imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
+  imports: [
+    ConfigModule.forFeature(spacesConfig),
+    CqrsModule,
+    TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES),
+  ],
   controllers: [...REST_CONTROLLERS],
   providers: [
     SpaceContext,
