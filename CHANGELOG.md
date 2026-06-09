@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.14.1-alpha.2] - 2026-06-09
+## [0.14.1-beta.0] - 2026-06-09
 
 ### Bug Fixes
 - **spaces:** Address PR review feedback on invitations (425a085)
@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Chore
 - Release v0.14.1-alpha.1 (746335c)
+- Release v0.14.1-alpha.2 (31a1340)
 
 ### Documentation
 - **spaces:** Add module README for spaces and invitations (7a26a4d)
@@ -25,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - **spaces:** Remove unused SpaceContext from SpacesModule (df11e61)
 - **spaces:** Drop EnsureUserExists from invitation accept flow (0cdbde2)
 - **spaces:** Reorganize imports and add TODO for invitation handling (ddfd52c)
-## [0.14.1-alpha.1] - 2026-06-08
+## [0.14.1-alpha.2] - 2026-06-08
 
 ### Bug Fixes
 - **auth:** Reset AuthSessionBuilder state on each withId chain (56f7bff)
