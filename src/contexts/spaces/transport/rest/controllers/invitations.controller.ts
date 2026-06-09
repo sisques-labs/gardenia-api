@@ -16,7 +16,6 @@ import {
 } from '@nestjs/swagger';
 
 import { AcceptSpaceInvitationCommand } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.command';
-import { AcceptSpaceInvitationResult } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.handler';
 import { ResolveInvitationSpaceContextService } from '@contexts/spaces/application/services/write/resolve-invitation-space-context/resolve-invitation-space-context.service';
 import {
   CurrentUser,
@@ -59,13 +58,10 @@ export class InvitationsController {
       `Accepting invitation for user ${user.userId} with code ${dto.code}`,
     );
 
-    const result = await this.resolveInvitationSpaceContextService.run(
+    const userId = await this.resolveInvitationSpaceContextService.run(
       dto.code,
       () =>
-        this.commandBus.execute<
-          AcceptSpaceInvitationCommand,
-          AcceptSpaceInvitationResult
-        >(
+        this.commandBus.execute<AcceptSpaceInvitationCommand, string>(
           new AcceptSpaceInvitationCommand({
             code: dto.code,
             acceptingUserId: user.userId,
@@ -73,6 +69,6 @@ export class InvitationsController {
         ),
     );
 
-    return this.mapper.toAcceptResponse(result);
+    return this.mapper.toAcceptResponse(userId);
   }
 }

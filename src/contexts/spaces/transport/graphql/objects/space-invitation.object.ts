@@ -25,12 +25,3 @@ export class SpaceInvitationResponseDto {
   @Field()
   spaceId!: string;
 }
-
-@ObjectType('SpaceAcceptInvitationResponseDto')
-export class SpaceAcceptInvitationResponseDto {
-  @Field()
-  spaceId!: string;
-
-  @Field(() => MembershipRoleEnum)
-  role!: MembershipRoleEnum;
-}

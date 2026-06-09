@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { AcceptSpaceInvitationResult } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.handler';
 import { SpaceInvitationViewModel } from '@contexts/spaces/domain/view-models/space-invitation.view-model';
-import {
-  SpaceAcceptInvitationResponseDto,
-  SpaceInvitationResponseDto,
-} from '../../objects/space-invitation.object';
+import { SpaceInvitationResponseDto } from '../../objects/space-invitation.object';
 
 @Injectable()
 export class SpaceInvitationGraphQLMapper {
@@ -18,15 +14,6 @@ export class SpaceInvitationGraphQLMapper {
       expiresAt: vm.expiresAt,
       role: vm.role,
       spaceId: vm.spaceId,
-    };
-  }
-
-  toAcceptResponse(
-    result: AcceptSpaceInvitationResult,
-  ): SpaceAcceptInvitationResponseDto {
-    return {
-      spaceId: result.spaceId,
-      role: result.role,
     };
   }
 }

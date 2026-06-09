@@ -12,7 +12,6 @@ import {
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { AcceptSpaceInvitationCommand } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.command';
-import { AcceptSpaceInvitationResult } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.handler';
 import { ResolveInvitationSpaceContextService } from '@contexts/spaces/application/services/write/resolve-invitation-space-context/resolve-invitation-space-context.service';
 import { AddMemberCommand } from '@contexts/spaces/application/commands/add-member/add-member.command';
 import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
@@ -27,10 +26,7 @@ import { SpaceCreateInvitationRequestDto } from '../../dtos/requests/space/space
 import { SpaceCreateRequestDto } from '../../dtos/requests/space/space-create.request.dto';
 import { SpaceRemoveMemberRequestDto } from '../../dtos/requests/space/space-remove-member.request.dto';
 import { SpaceInvitationGraphQLMapper } from '../../mappers/space-invitation/space-invitation.mapper';
-import {
-  SpaceAcceptInvitationResponseDto,
-  SpaceInvitationResponseDto,
-} from '../../objects/space-invitation.object';
+import { SpaceInvitationResponseDto } from '../../objects/space-invitation.object';
 
 @Resolver()
 @UseGuards(JwtAuthGuard)
@@ -91,20 +87,17 @@ export class SpaceMutationsResolver {
   }
 
   @IdentityOnly()
-  @Mutation(() => SpaceAcceptInvitationResponseDto)
+  @Mutation(() => MutationResponseDto)
   async spaceAcceptInvitation(
     @CurrentUser() user: CurrentUserPayload,
     @Args('input') input: SpaceAcceptInvitationRequestDto,
-  ): Promise<SpaceAcceptInvitationResponseDto> {
+  ): Promise<MutationResponseDto> {
     this.logger.log(`Accepting invitation for user: ${user.userId}`);
 
-    const result = await this.resolveInvitationSpaceContextService.run(
+    const userId = await this.resolveInvitationSpaceContextService.run(
       input.code,
       () =>
-        this.commandBus.execute<
-          AcceptSpaceInvitationCommand,
-          AcceptSpaceInvitationResult
-        >(
+        this.commandBus.execute<AcceptSpaceInvitationCommand, string>(
           new AcceptSpaceInvitationCommand({
             code: input.code,
             acceptingUserId: user.userId,
@@ -112,7 +105,11 @@ export class SpaceMutationsResolver {
         ),
     );
 
-    return this.spaceInvitationGraphQLMapper.toAcceptResponse(result);
+    return this.mutationResponseGraphQLMapper.toResponseDto({
+      success: true,
+      message: 'Invitation accepted successfully',
+      id: userId,
+    });
   }
 
   @Mutation(() => MutationResponseDto)

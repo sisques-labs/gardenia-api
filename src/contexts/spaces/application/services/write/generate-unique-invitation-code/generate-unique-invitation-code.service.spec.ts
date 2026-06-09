@@ -1,3 +1,5 @@
+import { ConfigService } from '@nestjs/config';
+
 import { InvitationCodeGenerationFailedException } from '@contexts/spaces/domain/exceptions/invitation-code-generation-failed.exception';
 import { ISpaceInvitationWriteRepository } from '@contexts/spaces/domain/repositories/write/space-invitation-write.repository';
 
@@ -8,6 +10,7 @@ describe('GenerateUniqueInvitationCodeService', () => {
   let service: GenerateUniqueInvitationCodeService;
   let inviteCodeGeneratorService: jest.Mocked<InviteCodeGeneratorService>;
   let writeRepository: jest.Mocked<ISpaceInvitationWriteRepository>;
+  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     inviteCodeGeneratorService = {
@@ -21,9 +24,14 @@ describe('GenerateUniqueInvitationCodeService', () => {
       findByCode: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<ISpaceInvitationWriteRepository>;
 
+    configService = {
+      get: jest.fn().mockReturnValue(5),
+    } as unknown as jest.Mocked<ConfigService>;
+
     service = new GenerateUniqueInvitationCodeService(
       inviteCodeGeneratorService,
       writeRepository,
+      configService,
     );
   });
 

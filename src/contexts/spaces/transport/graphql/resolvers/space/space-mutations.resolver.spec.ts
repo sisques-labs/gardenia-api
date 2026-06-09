@@ -32,7 +32,6 @@ describe('SpaceMutationsResolver', () => {
     } as unknown as jest.Mocked<MutationResponseGraphQLMapper>;
     spaceInvitationGraphQLMapper = {
       toResponse: jest.fn(),
-      toAcceptResponse: jest.fn(),
     } as unknown as jest.Mocked<SpaceInvitationGraphQLMapper>;
     resolveInvitationSpaceContextService = {
       run: jest.fn((_code, fn) => fn()),

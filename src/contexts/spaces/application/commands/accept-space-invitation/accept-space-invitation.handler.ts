@@ -15,21 +15,14 @@ import {
   ISpaceWriteRepository,
   SPACE_WRITE_REPOSITORY,
 } from '@contexts/spaces/domain/repositories/write/space-write.repository';
-import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { SpaceIdValueObject } from '@contexts/spaces/domain/value-objects/space-id/space-id.value-object';
 
 import { AcceptSpaceInvitationCommand } from './accept-space-invitation.command';
 
-export interface AcceptSpaceInvitationResult {
-  spaceId: string;
-  role: MembershipRoleEnum;
-}
-
 @CommandHandler(AcceptSpaceInvitationCommand)
 export class AcceptSpaceInvitationCommandHandler
   extends BaseCommandHandler<AcceptSpaceInvitationCommand, SpaceAggregate>
-  implements
-    ICommandHandler<AcceptSpaceInvitationCommand, AcceptSpaceInvitationResult>
+  implements ICommandHandler<AcceptSpaceInvitationCommand, string>
 {
   private readonly logger = new Logger(
     AcceptSpaceInvitationCommandHandler.name,
@@ -49,9 +42,7 @@ export class AcceptSpaceInvitationCommandHandler
     super(eventBus);
   }
 
-  async execute(
-    command: AcceptSpaceInvitationCommand,
-  ): Promise<AcceptSpaceInvitationResult> {
+  async execute(command: AcceptSpaceInvitationCommand): Promise<string> {
     const invitation =
       await this.assertSpaceInvitationViewModelExistsByCodeService.execute(
         command.code.value,
@@ -78,9 +69,6 @@ export class AcceptSpaceInvitationCommandHandler
       `User ${command.acceptingUserId.value} accepted invitation for space ${invitation.spaceId}`,
     );
 
-    return {
-      spaceId: invitation.spaceId,
-      role: invitation.role,
-    };
+    return command.acceptingUserId.value;
   }
 }

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-import { AcceptSpaceInvitationResult } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.handler';
 import { SpaceInvitationViewModel } from '@contexts/spaces/domain/view-models/space-invitation.view-model';
 import { AcceptSpaceInvitationResponseDto } from '../../dtos/accept-space-invitation-response.dto';
 import { SpaceInvitationRestResponseDto } from '../../dtos/space-invitation-rest-response.dto';
@@ -19,12 +18,7 @@ export class SpaceInvitationRestMapper {
     };
   }
 
-  toAcceptResponse(
-    result: AcceptSpaceInvitationResult,
-  ): AcceptSpaceInvitationResponseDto {
-    return {
-      spaceId: result.spaceId,
-      role: result.role,
-    };
+  toAcceptResponse(userId: string): AcceptSpaceInvitationResponseDto {
+    return { userId };
   }
 }

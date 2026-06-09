@@ -1,4 +1,5 @@
 import { Inject, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
@@ -21,8 +22,6 @@ import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-rol
 import { SpaceInvitationViewModel } from '@contexts/spaces/domain/view-models/space-invitation.view-model';
 
 import { CreateSpaceInvitationCommand } from './create-space-invitation.command';
-
-const DEFAULT_EXPIRY_HOURS = 24;
 
 @CommandHandler(CreateSpaceInvitationCommand)
 export class CreateSpaceInvitationCommandHandler
@@ -48,6 +47,7 @@ export class CreateSpaceInvitationCommandHandler
     @Inject(SPACE_QR_PORT)
     private readonly spaceQrPort: ISpaceQrPort,
     private readonly spaceInvitationBuilder: SpaceInvitationBuilder,
+    private readonly configService: ConfigService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -71,9 +71,13 @@ export class CreateSpaceInvitationCommandHandler
     });
 
     const now = new Date();
+    const defaultExpiryHours = this.configService.get<number>(
+      'SPACE_INVITATION_DEFAULT_EXPIRY_HOURS',
+      24,
+    );
     const expiresAt =
       command.expiresAt ??
-      new Date(now.getTime() + DEFAULT_EXPIRY_HOURS * 60 * 60 * 1000);
+      new Date(now.getTime() + defaultExpiryHours * 60 * 60 * 1000);
 
     const { code, displayCode } =
       await this.generateUniqueInvitationCodeService.execute({

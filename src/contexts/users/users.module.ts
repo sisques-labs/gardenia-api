@@ -5,8 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { USER_READ_REPOSITORY } from '@contexts/users/domain/repositories/read/user-read.repository';
 import { CreateUserCommandHandler } from './application/commands/create-user/create-user.handler';
 import { DeleteUserCommandHandler } from './application/commands/delete-user/delete-user.handler';
+import { EnsureUserExistsCommandHandler } from './application/commands/ensure-user-exists/ensure-user-exists.handler';
 import { UpdateUserCommandHandler } from './application/commands/update-user/update-user.handler';
-import { UserExistsByIdQueryHandler } from './application/queries/user-exists-by-id/user-exists-by-id.handler';
 import { UserFindByCriteriaQueryHandler } from './application/queries/user-find-by-criteria/user-find-by-criteria.handler';
 import { UserFindByIdQueryHandler } from './application/queries/user-find-by-id/user-find-by-id.handler';
 import { AssertUsernameAvailableService } from './application/services/read/assert-username-available/assert-username-available.service';
@@ -25,6 +25,7 @@ import { UserQueriesResolver } from './transport/graphql/resolvers/user/user-que
 
 const COMMAND_HANDLERS = [
   CreateUserCommandHandler,
+  EnsureUserExistsCommandHandler,
   UpdateUserCommandHandler,
   DeleteUserCommandHandler,
 ];
@@ -32,7 +33,6 @@ const COMMAND_HANDLERS = [
 const QUERY_HANDLERS = [
   UserFindByIdQueryHandler,
   UserFindByCriteriaQueryHandler,
-  UserExistsByIdQueryHandler,
 ];
 
 const APPLICATION_SERVICES = [

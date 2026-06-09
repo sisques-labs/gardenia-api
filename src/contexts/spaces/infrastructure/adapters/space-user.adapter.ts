@@ -1,30 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CommandBus } from '@nestjs/cqrs';
 
 import { ISpaceUserPort } from '@contexts/spaces/application/ports/space-user.port';
-import { CreateUserCommand } from '@contexts/users/application/commands/create-user/create-user.command';
-import { UserExistsByIdQuery } from '@contexts/users/application/queries/user-exists-by-id/user-exists-by-id.query';
+import { EnsureUserExistsCommand } from '@contexts/users/application/commands/ensure-user-exists/ensure-user-exists.command';
 
 @Injectable()
 export class SpaceUserAdapter implements ISpaceUserPort {
   private readonly logger = new Logger(SpaceUserAdapter.name);
 
-  constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
-  ) {}
+  constructor(private readonly commandBus: CommandBus) {}
 
   async ensureUserExists(userId: string): Promise<void> {
-    const exists = await this.queryBus.execute<UserExistsByIdQuery, boolean>(
-      new UserExistsByIdQuery({ id: userId }),
-    );
-
-    if (exists) {
-      this.logger.debug(`User ${userId} already exists globally`);
-      return;
-    }
-
-    this.logger.log(`Creating user ${userId} in current space context`);
-    await this.commandBus.execute(new CreateUserCommand(userId));
+    this.logger.log(`Ensuring user ${userId} exists in current space context`);
+    await this.commandBus.execute(new EnsureUserExistsCommand(userId));
   }
 }

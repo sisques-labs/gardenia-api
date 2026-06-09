@@ -75,8 +75,7 @@ describe('Space invitations (e2e)', () => {
       .expect(200);
 
     expect(acceptRes.body).toMatchObject({
-      spaceId,
-      role: 'member',
+      userId: expect.any(String),
     });
 
     const spacesRes = await ctx
