@@ -76,6 +76,7 @@ describe('Space invitations (e2e)', () => {
 
     expect(acceptRes.body).toMatchObject({
       userId: expect.any(String),
+      spaceId,
     });
 
     const spacesRes = await ctx
@@ -86,6 +87,15 @@ describe('Space invitations (e2e)', () => {
 
     const { items } = spacesRes.body as { items: { id: string }[] };
     expect(items.some((s) => s.id === spaceId)).toBe(true);
+
+    const acceptAgainRes = await ctx
+      .http()
+      .post('/api/invitations/accept')
+      .set('Authorization', `Bearer ${guestToken}`)
+      .send({ code: displayCode })
+      .expect(200);
+
+    expect(acceptAgainRes.body).toMatchObject({ spaceId });
   });
 
   it('returns 410 when invitation is expired', async () => {

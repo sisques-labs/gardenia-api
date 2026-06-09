@@ -7,6 +7,7 @@ import { AssertSpaceExistsService } from '@contexts/spaces/application/services/
 import { AssertSpaceInvitationNotExpiredService } from '@contexts/spaces/application/services/write/assert-space-invitation-not-expired/assert-space-invitation-not-expired.service';
 import { AssertUserNotSpaceMemberService } from '@contexts/spaces/application/services/write/assert-user-not-space-member/assert-user-not-space-member.service';
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
+import { DuplicateMembershipException } from '@contexts/spaces/domain/exceptions/duplicate-membership.exception';
 import {
   ISpaceWriteRepository,
   SPACE_WRITE_REPOSITORY,
@@ -44,10 +45,20 @@ export class AcceptSpaceInvitationCommandHandler
 
     await this.assertSpaceInvitationNotExpiredService.execute(invitation);
 
-    await this.assertUserNotSpaceMemberService.execute({
-      userId: command.acceptingUserId.value,
-      spaceId: invitation.spaceId,
-    });
+    try {
+      await this.assertUserNotSpaceMemberService.execute({
+        userId: command.acceptingUserId.value,
+        spaceId: invitation.spaceId,
+      });
+    } catch (error) {
+      if (error instanceof DuplicateMembershipException) {
+        this.logger.log(
+          `User ${command.acceptingUserId.value} already member of space ${invitation.spaceId} (idempotent accept)`,
+        );
+        return invitation.spaceId;
+      }
+      throw error;
+    }
 
     const space = await this.assertSpaceExistsService.execute(
       new SpaceIdValueObject(invitation.spaceId),
@@ -61,6 +72,6 @@ export class AcceptSpaceInvitationCommandHandler
       `User ${command.acceptingUserId.value} accepted invitation for space ${invitation.spaceId}`,
     );
 
-    return command.acceptingUserId.value;
+    return invitation.spaceId;
   }
 }

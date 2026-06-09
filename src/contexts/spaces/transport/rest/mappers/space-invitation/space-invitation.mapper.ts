@@ -18,7 +18,10 @@ export class SpaceInvitationRestMapper {
     };
   }
 
-  toAcceptResponse(userId: string): AcceptSpaceInvitationResponseDto {
-    return { userId };
+  toAcceptResponse(
+    userId: string,
+    spaceId: string,
+  ): AcceptSpaceInvitationResponseDto {
+    return { userId, spaceId };
   }
 }

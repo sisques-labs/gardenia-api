@@ -94,7 +94,7 @@ export class SpaceMutationsResolver {
   ): Promise<MutationResponseDto> {
     this.logger.log(`Accepting invitation for user: ${user.userId}`);
 
-    const userId = await this.resolveInvitationSpaceContextService.run(
+    const spaceId = await this.resolveInvitationSpaceContextService.run(
       input.code,
       () =>
         this.commandBus.execute<AcceptSpaceInvitationCommand, string>(
@@ -108,7 +108,7 @@ export class SpaceMutationsResolver {
     return this.mutationResponseGraphQLMapper.toResponseDto({
       success: true,
       message: 'Invitation accepted successfully',
-      id: userId,
+      id: spaceId,
     });
   }
 

@@ -58,7 +58,7 @@ export class InvitationsController {
       `Accepting invitation for user ${user.userId} with code ${dto.code}`,
     );
 
-    const userId = await this.resolveInvitationSpaceContextService.run(
+    const spaceId = await this.resolveInvitationSpaceContextService.run(
       dto.code,
       () =>
         this.commandBus.execute<AcceptSpaceInvitationCommand, string>(
@@ -69,6 +69,6 @@ export class InvitationsController {
         ),
     );
 
-    return this.mapper.toAcceptResponse(userId);
+    return this.mapper.toAcceptResponse(user.userId, spaceId);
   }
 }
