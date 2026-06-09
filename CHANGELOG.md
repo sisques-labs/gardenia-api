@@ -1,7 +1,30 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.14.1-alpha.2] - 2026-06-09
 
+### Bug Fixes
+- **spaces:** Address PR review feedback on invitations (425a085)
+- **spaces:** Return spaceId from accept invitation and make it idempotent (2a949f9)
+
+### Chore
+- Release v0.14.1-alpha.1 (746335c)
+
+### Documentation
+- **spaces:** Add module README for spaces and invitations (7a26a4d)
+
+### Features
+- **spaces:** Add QR and code space invitations (f8be488)
+
+### Refactor
+- **spaces:** Extract invitation assert services (4046af4)
+- **spaces:** Apply second round of PR review feedback (477b6f0)
+- **config:** Register spaces config namespace (5d03d05)
+- **spaces:** Move spaces config to bounded context infrastructure (c4f0dde)
+- **spaces:** Update date validation in SpaceCreateInvitationRequestDto (e04757e)
+- **spaces:** Remove unused SpaceContext from SpacesModule (df11e61)
+- **spaces:** Drop EnsureUserExists from invitation accept flow (0cdbde2)
+- **spaces:** Reorganize imports and add TODO for invitation handling (ddfd52c)
 ## [0.14.1-alpha.1] - 2026-06-08
 
 ### Bug Fixes
