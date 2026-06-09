@@ -1,4 +1,6 @@
 import { DuplicateMembershipException } from '@contexts/spaces/domain/exceptions/duplicate-membership.exception';
+import { InvitationExpiredException } from '@contexts/spaces/domain/exceptions/invitation-expired.exception';
+import { InvitationNotFoundException } from '@contexts/spaces/domain/exceptions/invitation-not-found.exception';
 import { LastOwnerRemovalException } from '@contexts/spaces/domain/exceptions/last-owner-removal.exception';
 import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
 import { NotSpaceOwnerException } from '@contexts/spaces/domain/exceptions/not-space-owner.exception';
@@ -17,9 +19,13 @@ export function resolveSpacesExceptionStatus(
   ) {
     return HttpStatus.CONFLICT;
   }
+  if (exception instanceof InvitationExpiredException) {
+    return HttpStatus.GONE;
+  }
   if (
     exception instanceof SpaceNotFoundException ||
-    exception instanceof NotASpaceMemberException
+    exception instanceof NotASpaceMemberException ||
+    exception instanceof InvitationNotFoundException
   ) {
     return HttpStatus.NOT_FOUND;
   }

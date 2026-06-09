@@ -1,6 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
 ## [0.14.1-alpha.1] - 2026-06-08
 
 ### Bug Fixes
