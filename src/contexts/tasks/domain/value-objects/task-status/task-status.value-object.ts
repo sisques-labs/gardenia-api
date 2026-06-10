@@ -1,6 +1,9 @@
 import { EnumValueObject } from '@sisques-labs/nestjs-kit';
 
-import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
+import {
+  TaskStatusEnum,
+  TERMINAL_TASK_STATUSES,
+} from '@contexts/tasks/domain/enums/task-status.enum';
 
 export class TaskStatusValueObject extends EnumValueObject<
   typeof TaskStatusEnum
@@ -11,5 +14,9 @@ export class TaskStatusValueObject extends EnumValueObject<
 
   protected get enumObject(): typeof TaskStatusEnum {
     return TaskStatusEnum as unknown as typeof TaskStatusEnum;
+  }
+
+  isTerminal(): boolean {
+    return TERMINAL_TASK_STATUSES.includes(this.value as TaskStatusEnum);
   }
 }

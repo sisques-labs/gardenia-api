@@ -101,6 +101,7 @@ export class TaskAggregate extends BaseAggregate {
   }
 
   public start(): void {
+    if (this._status.isTerminal()) return;
     this._status = new TaskStatusValueObject(TaskStatusEnum.ACTIVE);
     this._startedAt = new DateValueObject(new Date());
     this._runCount = new TaskRunCountValueObject(this._runCount.value + 1);
@@ -120,6 +121,7 @@ export class TaskAggregate extends BaseAggregate {
   }
 
   public complete(): void {
+    if (this._status.isTerminal()) return;
     this._status = new TaskStatusValueObject(TaskStatusEnum.COMPLETED);
     this._completedAt = new DateValueObject(new Date());
     this.touch();
@@ -138,6 +140,7 @@ export class TaskAggregate extends BaseAggregate {
   }
 
   public fail(error: string): void {
+    if (this._status.isTerminal()) return;
     this._status = new TaskStatusValueObject(TaskStatusEnum.FAILED);
     this._failedAt = new DateValueObject(new Date());
     this.touch();
@@ -177,6 +180,7 @@ export class TaskAggregate extends BaseAggregate {
   }
 
   public sendToDlq(error: string): void {
+    if (this._status.isTerminal()) return;
     this._status = new TaskStatusValueObject(TaskStatusEnum.FAILED);
     this._failedAt = new DateValueObject(new Date());
     this.touch();

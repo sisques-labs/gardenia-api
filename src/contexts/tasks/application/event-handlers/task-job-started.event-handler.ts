@@ -32,6 +32,13 @@ export class TaskJobStartedEventHandler implements IEventHandler<TaskJobStartedE
     const { taskId } = event.data;
     const task = await this.assertTaskExistsService.execute(taskId);
 
+    if (task.status.isTerminal()) {
+      this.logger.warn(
+        `Task ${taskId} already in terminal state ${task.status.value} — ignoring started event`,
+      );
+      return;
+    }
+
     const now = new Date();
     task.start();
     await this.taskWriteRepository.save(task);
