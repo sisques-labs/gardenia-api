@@ -13,4 +13,8 @@ export class NoopTaskQueueAdapter implements ITaskQueueProvider {
   }
 
   async cancel(_queueJobId: string): Promise<void> {}
+
+  async onModuleInit(): Promise<void> {}
+
+  async onModuleDestroy(): Promise<void> {}
 }
