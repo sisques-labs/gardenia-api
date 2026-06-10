@@ -5,6 +5,8 @@ import { ITaskTemplatePrimitives } from '@contexts/tasks/domain/primitives/task-
 export class TaskTemplateViewModel extends BaseViewModel {
   public readonly name: string;
   public readonly description: string | null;
+  public readonly taskTitle: string | null;
+  public readonly taskDescription: string | null;
   public readonly handlerKey: string | null;
   public readonly defaultPriority: number;
   public readonly defaultRetryCount: number;
@@ -19,6 +21,8 @@ export class TaskTemplateViewModel extends BaseViewModel {
     super(props.id, props.createdAt, props.updatedAt);
     this.name = props.name;
     this.description = props.description;
+    this.taskTitle = props.taskTitle;
+    this.taskDescription = props.taskDescription;
     this.handlerKey = props.handlerKey;
     this.defaultPriority = props.defaultPriority;
     this.defaultRetryCount = props.defaultRetryCount;

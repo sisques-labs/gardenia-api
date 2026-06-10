@@ -16,12 +16,28 @@ export class TaskTypeOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'task_template_id', type: 'uuid', nullable: false })
-  taskTemplateId!: string;
+  @Column({ name: 'task_template_id', type: 'uuid', nullable: true })
+  taskTemplateId!: string | null;
 
-  @ManyToOne(() => TaskTemplateTypeOrmEntity, { eager: false })
+  @ManyToOne(() => TaskTemplateTypeOrmEntity, { eager: false, nullable: true })
   @JoinColumn({ name: 'task_template_id' })
   taskTemplate?: TaskTemplateTypeOrmEntity;
+
+  @Index()
+  @Column({
+    name: 'trigger_type',
+    type: 'varchar',
+    length: 20,
+    nullable: false,
+    default: 'scheduled',
+  })
+  triggerType!: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  title!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  description!: string | null;
 
   @Index()
   @Column({ type: 'varchar', length: 20, nullable: false, default: 'pending' })
@@ -36,10 +52,20 @@ export class TaskTypeOrmEntity {
   @Column({ name: 'delay_ms', type: 'integer', nullable: true })
   delayMs!: number | null;
 
-  @Column({ name: 'cron_expression', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'cron_expression',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   cronExpression!: string | null;
 
-  @Column({ name: 'is_recurring', type: 'boolean', nullable: false, default: false })
+  @Column({
+    name: 'is_recurring',
+    type: 'boolean',
+    nullable: false,
+    default: false,
+  })
   isRecurring!: boolean;
 
   @Column({ name: 'max_runs', type: 'integer', nullable: true })
@@ -48,10 +74,21 @@ export class TaskTypeOrmEntity {
   @Column({ name: 'run_count', type: 'integer', nullable: false, default: 0 })
   runCount!: number;
 
-  @Column({ name: 'idempotency_key', type: 'varchar', length: 255, nullable: true, unique: true })
+  @Column({
+    name: 'idempotency_key',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    unique: true,
+  })
   idempotencyKey!: string | null;
 
-  @Column({ name: 'queue_job_id', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'queue_job_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   queueJobId!: string | null;
 
   @Index()

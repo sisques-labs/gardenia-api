@@ -30,6 +30,16 @@ export class UpdateTaskTemplateGraphQLDto {
   @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
+  taskTitle?: string | null;
+
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
+  taskDescription?: string | null;
+
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
   handlerKey?: string | null;
 
   @Field(() => Int, { nullable: true })

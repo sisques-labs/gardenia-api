@@ -36,8 +36,17 @@ export class TaskGraphQLResponseDto {
   @Field(() => ID)
   id!: string;
 
+  @Field(() => String, { nullable: true })
+  templateId!: string | null;
+
   @Field(() => String)
-  templateId!: string;
+  triggerType!: string;
+
+  @Field(() => String, { nullable: true })
+  title!: string | null;
+
+  @Field(() => String, { nullable: true })
+  description!: string | null;
 
   @Field(() => String)
   status!: string;

@@ -35,6 +35,8 @@ export class UpdateTaskTemplateCommandHandler
     template.update({
       name: command.name,
       description: command.description,
+      taskTitle: command.taskTitle,
+      taskDescription: command.taskDescription,
       handlerKey: command.handlerKey,
       defaultPriority: command.defaultPriority,
       defaultRetryCount: command.defaultRetryCount,

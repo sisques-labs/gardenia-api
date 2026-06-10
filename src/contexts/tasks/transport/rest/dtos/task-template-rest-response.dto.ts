@@ -4,6 +4,8 @@ export class TaskTemplateRestResponseDto {
   @ApiProperty() id!: string;
   @ApiProperty() name!: string;
   @ApiProperty({ nullable: true }) description!: string | null;
+  @ApiProperty({ nullable: true }) taskTitle!: string | null;
+  @ApiProperty({ nullable: true }) taskDescription!: string | null;
   @ApiProperty({ nullable: true }) handlerKey!: string | null;
   @ApiProperty() defaultPriority!: number;
   @ApiProperty() defaultRetryCount!: number;

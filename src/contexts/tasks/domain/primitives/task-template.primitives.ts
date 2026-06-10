@@ -4,6 +4,8 @@ export interface ITaskTemplatePrimitives extends BasePrimitives {
   id: string;
   name: string;
   description: string | null;
+  taskTitle: string | null;
+  taskDescription: string | null;
   handlerKey: string | null;
   defaultPriority: number;
   defaultRetryCount: number;

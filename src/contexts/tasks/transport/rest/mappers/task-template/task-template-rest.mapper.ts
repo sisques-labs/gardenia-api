@@ -10,6 +10,8 @@ export class TaskTemplateRestMapper {
       id: vm.id,
       name: vm.name,
       description: vm.description,
+      taskTitle: vm.taskTitle,
+      taskDescription: vm.taskDescription,
       handlerKey: vm.handlerKey,
       defaultPriority: vm.defaultPriority,
       defaultRetryCount: vm.defaultRetryCount,

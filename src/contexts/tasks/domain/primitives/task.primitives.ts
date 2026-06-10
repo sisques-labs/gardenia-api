@@ -2,7 +2,10 @@ import { BasePrimitives } from '@sisques-labs/nestjs-kit';
 
 export interface ITaskPrimitives extends BasePrimitives {
   id: string;
-  templateId: string;
+  templateId: string | null;
+  triggerType: string;
+  title: string | null;
+  description: string | null;
   status: string;
   payload: Record<string, unknown>;
   priority: number;

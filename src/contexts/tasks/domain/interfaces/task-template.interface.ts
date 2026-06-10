@@ -16,6 +16,8 @@ export interface ITaskTemplate {
   id: TaskTemplateIdValueObject;
   name: TaskNameValueObject;
   description: TaskDescriptionValueObject | null;
+  taskTitle: TaskNameValueObject | null;
+  taskDescription: TaskDescriptionValueObject | null;
   handlerKey: TaskHandlerKeyValueObject | null;
   defaultPriority: TaskPriorityValueObject;
   defaultRetryCount: TaskRetryCountValueObject;

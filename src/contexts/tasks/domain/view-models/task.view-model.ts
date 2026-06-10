@@ -3,7 +3,10 @@ import { BaseViewModel } from '@sisques-labs/nestjs-kit';
 import { ITaskPrimitives } from '@contexts/tasks/domain/primitives/task.primitives';
 
 export class TaskViewModel extends BaseViewModel {
-  public readonly templateId: string;
+  public readonly templateId: string | null;
+  public readonly triggerType: string;
+  public readonly title: string | null;
+  public readonly description: string | null;
   public readonly status: string;
   public readonly payload: Record<string, unknown>;
   public readonly priority: number;
@@ -28,6 +31,9 @@ export class TaskViewModel extends BaseViewModel {
   constructor(props: ITaskPrimitives) {
     super(props.id, props.createdAt, props.updatedAt);
     this.templateId = props.templateId;
+    this.triggerType = props.triggerType;
+    this.title = props.title;
+    this.description = props.description;
     this.status = props.status;
     this.payload = props.payload;
     this.priority = props.priority;

@@ -13,6 +13,12 @@ export class TaskTemplateGraphQLResponseDto {
   description!: string | null;
 
   @Field(() => String, { nullable: true })
+  taskTitle!: string | null;
+
+  @Field(() => String, { nullable: true })
+  taskDescription!: string | null;
+
+  @Field(() => String, { nullable: true })
   handlerKey!: string | null;
 
   @Field(() => Int)

@@ -20,6 +20,16 @@ export class CreateTaskTemplateRestDto {
   @IsOptional()
   description?: string | null;
 
+  @ApiPropertyOptional({ nullable: true })
+  @IsString()
+  @IsOptional()
+  taskTitle?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsString()
+  @IsOptional()
+  taskDescription?: string | null;
+
   @ApiPropertyOptional({
     description:
       'Handler key for automation scheduling. Null for informative-only templates.',

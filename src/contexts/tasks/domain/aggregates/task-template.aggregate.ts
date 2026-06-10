@@ -10,6 +10,8 @@ import { TaskTemplateDescriptionChangedEvent } from '@contexts/tasks/domain/even
 import { TaskTemplateHandlerKeyChangedEvent } from '@contexts/tasks/domain/events/field-changed/handler-key-changed/task-template-handler-key-changed.event';
 import { TaskTemplateMaxConcurrencyChangedEvent } from '@contexts/tasks/domain/events/field-changed/max-concurrency-changed/task-template-max-concurrency-changed.event';
 import { TaskTemplateNameChangedEvent } from '@contexts/tasks/domain/events/field-changed/name-changed/task-template-name-changed.event';
+import { TaskTemplateTaskDescriptionChangedEvent } from '@contexts/tasks/domain/events/field-changed/task-description-changed/task-template-task-description-changed.event';
+import { TaskTemplateTaskTitleChangedEvent } from '@contexts/tasks/domain/events/field-changed/task-title-changed/task-template-task-title-changed.event';
 import { TaskTemplateCreatedEvent } from '@contexts/tasks/domain/events/task-template-created/task-template-created.event';
 import { TaskTemplateDeletedEvent } from '@contexts/tasks/domain/events/task-template-deleted/task-template-deleted.event';
 import { TaskTemplateUpdatedEvent } from '@contexts/tasks/domain/events/task-template-updated/task-template-updated.event';
@@ -31,6 +33,8 @@ export class TaskTemplateAggregate extends BaseAggregate {
   private readonly _id: TaskTemplateIdValueObject;
   private _name: TaskNameValueObject;
   private _description: TaskDescriptionValueObject | null;
+  private _taskTitle: TaskNameValueObject | null;
+  private _taskDescription: TaskDescriptionValueObject | null;
   private _handlerKey: TaskHandlerKeyValueObject | null;
   private _defaultPriority: TaskPriorityValueObject;
   private _defaultRetryCount: TaskRetryCountValueObject;
@@ -46,6 +50,8 @@ export class TaskTemplateAggregate extends BaseAggregate {
     this._id = props.id;
     this._name = props.name;
     this._description = props.description;
+    this._taskTitle = props.taskTitle;
+    this._taskDescription = props.taskDescription;
     this._handlerKey = props.handlerKey;
     this._defaultPriority = props.defaultPriority;
     this._defaultRetryCount = props.defaultRetryCount;
@@ -84,6 +90,14 @@ export class TaskTemplateAggregate extends BaseAggregate {
 
     if (props.description !== undefined) {
       this.changeDescription(props.description);
+    }
+
+    if ('taskTitle' in props) {
+      this.changeTaskTitle(props.taskTitle ?? null);
+    }
+
+    if ('taskDescription' in props) {
+      this.changeTaskDescription(props.taskDescription ?? null);
     }
 
     if ('handlerKey' in props) {
@@ -166,6 +180,36 @@ export class TaskTemplateAggregate extends BaseAggregate {
     this.apply(
       new TaskTemplateDescriptionChangedEvent(
         this.eventMetadata(TaskTemplateDescriptionChangedEvent.name),
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changeTaskTitle(newTaskTitle: TaskNameValueObject | null): void {
+    const oldValue = this._taskTitle?.value ?? null;
+    const newValue = newTaskTitle?.value ?? null;
+    if (oldValue === newValue) return;
+    this._taskTitle = newTaskTitle;
+    this.touch();
+    this.apply(
+      new TaskTemplateTaskTitleChangedEvent(
+        this.eventMetadata(TaskTemplateTaskTitleChangedEvent.name),
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changeTaskDescription(
+    newTaskDescription: TaskDescriptionValueObject | null,
+  ): void {
+    const oldValue = this._taskDescription?.value ?? null;
+    const newValue = newTaskDescription?.value ?? null;
+    if (oldValue === newValue) return;
+    this._taskDescription = newTaskDescription;
+    this.touch();
+    this.apply(
+      new TaskTemplateTaskDescriptionChangedEvent(
+        this.eventMetadata(TaskTemplateTaskDescriptionChangedEvent.name),
         { id: this._id.value, oldValue, newValue },
       ),
     );
@@ -317,6 +361,14 @@ export class TaskTemplateAggregate extends BaseAggregate {
     return this._description;
   }
 
+  get taskTitle(): TaskNameValueObject | null {
+    return this._taskTitle;
+  }
+
+  get taskDescription(): TaskDescriptionValueObject | null {
+    return this._taskDescription;
+  }
+
   get handlerKey(): TaskHandlerKeyValueObject | null {
     return this._handlerKey;
   }
@@ -358,6 +410,8 @@ export class TaskTemplateAggregate extends BaseAggregate {
       id: this._id.value,
       name: this._name.value,
       description: this._description?.value ?? null,
+      taskTitle: this._taskTitle?.value ?? null,
+      taskDescription: this._taskDescription?.value ?? null,
       handlerKey: this._handlerKey?.value ?? null,
       defaultPriority: this._defaultPriority.value,
       defaultRetryCount: this._defaultRetryCount.value,

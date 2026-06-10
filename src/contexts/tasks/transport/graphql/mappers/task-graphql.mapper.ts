@@ -15,6 +15,9 @@ export class TaskGraphQLMapper {
     return {
       id: vm.id,
       templateId: vm.templateId,
+      triggerType: vm.triggerType,
+      title: vm.title,
+      description: vm.description,
       status: vm.status,
       payload: JSON.stringify(vm.payload),
       priority: vm.priority,
@@ -53,7 +56,9 @@ export class TaskGraphQLMapper {
     };
   }
 
-  toPaginatedResponseDto(result: PaginatedResult<TaskViewModel>): PaginatedTaskResultDto {
+  toPaginatedResponseDto(
+    result: PaginatedResult<TaskViewModel>,
+  ): PaginatedTaskResultDto {
     return {
       items: result.items.map((vm) => this.toResponseDto(vm)),
       total: result.total,

@@ -24,6 +24,16 @@ export class UpdateTaskTemplateRestDto {
   @ApiPropertyOptional({ nullable: true })
   @IsString()
   @IsOptional()
+  taskTitle?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsString()
+  @IsOptional()
+  taskDescription?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsString()
+  @IsOptional()
   handlerKey?: string | null;
 
   @ApiPropertyOptional({ minimum: 1, maximum: 10 })

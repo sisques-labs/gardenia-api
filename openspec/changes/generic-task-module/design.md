@@ -193,7 +193,9 @@ CREATE TABLE task_templates (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name          VARCHAR(255) NOT NULL UNIQUE,
   description   TEXT,
-  handler_key   VARCHAR(255) NOT NULL,           -- matches ITaskHandler.handlerKey
+  task_title    VARCHAR(255),                    -- title inherited by generated tasks (NULL = no default)
+  task_description TEXT,                         -- description inherited by generated tasks
+  handler_key   VARCHAR(255),                    -- NULL = informative-only template
   default_priority    SMALLINT NOT NULL DEFAULT 5,   -- 1–10
   default_retry_count SMALLINT NOT NULL DEFAULT 3,
   default_backoff_strategy VARCHAR(20) NOT NULL DEFAULT 'exponential',
@@ -206,29 +208,37 @@ CREATE TABLE task_templates (
 
 -- tasks
 CREATE TABLE tasks (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  task_template_id UUID NOT NULL REFERENCES task_templates(id),
-  status          VARCHAR(20) NOT NULL DEFAULT 'pending',
-  payload         JSONB NOT NULL DEFAULT '{}',
-  priority        SMALLINT NOT NULL DEFAULT 5,
-  delay_ms        INTEGER,                       -- NULL = immediate
-  cron_expression VARCHAR(100),                  -- NULL = one-shot
-  is_recurring    BOOLEAN NOT NULL DEFAULT false,
-  max_runs        INTEGER,                       -- NULL = infinite (only when is_recurring)
-  run_count       INTEGER NOT NULL DEFAULT 0,
-  idempotency_key VARCHAR(255),
-  queue_job_id    VARCHAR(255),                  -- BullMQ job ID for cancellation
-  user_id         UUID NOT NULL,
-  scheduled_at    TIMESTAMPTZ,
-  started_at      TIMESTAMPTZ,
-  completed_at    TIMESTAMPTZ,
-  failed_at       TIMESTAMPTZ,
-  cancelled_at    TIMESTAMPTZ,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  task_template_id UUID REFERENCES task_templates(id),  -- NULL = ad-hoc task
+  trigger_type     VARCHAR(20) NOT NULL DEFAULT 'scheduled',  -- 'scheduled' | 'user'
+  title            VARCHAR(255),                         -- NULL for scheduled tasks without explicit title
+  description      TEXT,
+  status           VARCHAR(20) NOT NULL DEFAULT 'pending',
+  payload          JSONB NOT NULL DEFAULT '{}',
+  priority         SMALLINT NOT NULL DEFAULT 5,
+  delay_ms         INTEGER,                       -- NULL = immediate
+  cron_expression  VARCHAR(100),                  -- NULL = one-shot
+  is_recurring     BOOLEAN NOT NULL DEFAULT false,
+  max_runs         INTEGER,                       -- NULL = infinite (only when is_recurring)
+  run_count        INTEGER NOT NULL DEFAULT 0,
+  idempotency_key  VARCHAR(255),
+  queue_job_id     VARCHAR(255),                  -- BullMQ job ID for cancellation
+  user_id          UUID NOT NULL,
+  target_type      VARCHAR(100),
+  target_id        UUID,
+  valid_from       TIMESTAMPTZ,
+  valid_until      TIMESTAMPTZ,
+  scheduled_at     TIMESTAMPTZ,
+  started_at       TIMESTAMPTZ,
+  completed_at     TIMESTAMPTZ,
+  failed_at        TIMESTAMPTZ,
+  cancelled_at     TIMESTAMPTZ,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IDX_tasks_status ON tasks(status);
 CREATE INDEX IDX_tasks_user_id ON tasks(user_id);
+CREATE INDEX IDX_tasks_trigger_type ON tasks(trigger_type);
 CREATE UNIQUE INDEX UQ_tasks_idempotency_key ON tasks(idempotency_key) WHERE idempotency_key IS NOT NULL AND status NOT IN ('completed','failed','cancelled');
 
 -- task_runs

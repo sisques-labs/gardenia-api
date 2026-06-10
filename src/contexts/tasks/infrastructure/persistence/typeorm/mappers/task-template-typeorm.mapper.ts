@@ -14,6 +14,8 @@ export class TaskTemplateTypeOrmMapper {
       .withId(entity.id)
       .withName(entity.name)
       .withDescription(entity.description)
+      .withTaskTitle(entity.taskTitle)
+      .withTaskDescription(entity.taskDescription)
       .withHandlerKey(entity.handlerKey)
       .withDefaultPriority(entity.defaultPriority)
       .withDefaultRetryCount(entity.defaultRetryCount)
@@ -28,12 +30,16 @@ export class TaskTemplateTypeOrmMapper {
       .build();
   }
 
-  public toPersistence(aggregate: TaskTemplateAggregate): TaskTemplateTypeOrmEntity {
+  public toPersistence(
+    aggregate: TaskTemplateAggregate,
+  ): TaskTemplateTypeOrmEntity {
     const p = aggregate.toPrimitives();
     const entity = new TaskTemplateTypeOrmEntity();
     entity.id = p.id;
     entity.name = p.name;
     entity.description = p.description;
+    entity.taskTitle = p.taskTitle;
+    entity.taskDescription = p.taskDescription;
     entity.handlerKey = p.handlerKey;
     entity.defaultPriority = p.defaultPriority;
     entity.defaultRetryCount = p.defaultRetryCount;
@@ -53,6 +59,8 @@ export class TaskTemplateTypeOrmMapper {
       .withId(entity.id)
       .withName(entity.name)
       .withDescription(entity.description)
+      .withTaskTitle(entity.taskTitle)
+      .withTaskDescription(entity.taskDescription)
       .withHandlerKey(entity.handlerKey)
       .withDefaultPriority(entity.defaultPriority)
       .withDefaultRetryCount(entity.defaultRetryCount)

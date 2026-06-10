@@ -9,6 +9,9 @@ export class TaskRestMapper {
     return {
       id: vm.id,
       templateId: vm.templateId,
+      triggerType: vm.triggerType,
+      title: vm.title,
+      description: vm.description,
       status: vm.status,
       payload: vm.payload,
       priority: vm.priority,

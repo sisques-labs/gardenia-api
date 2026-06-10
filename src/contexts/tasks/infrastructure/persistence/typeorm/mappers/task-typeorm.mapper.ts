@@ -13,6 +13,9 @@ export class TaskTypeOrmMapper {
     return this.builder
       .withId(entity.id)
       .withTemplateId(entity.taskTemplateId)
+      .withTriggerType(entity.triggerType)
+      .withTitle(entity.title)
+      .withDescription(entity.description)
       .withStatus(entity.status)
       .withPayload(entity.payload)
       .withPriority(entity.priority)
@@ -43,6 +46,9 @@ export class TaskTypeOrmMapper {
     const entity = new TaskTypeOrmEntity();
     entity.id = p.id;
     entity.taskTemplateId = p.templateId;
+    entity.triggerType = p.triggerType;
+    entity.title = p.title;
+    entity.description = p.description;
     entity.status = p.status;
     entity.payload = p.payload;
     entity.priority = p.priority;
@@ -72,6 +78,9 @@ export class TaskTypeOrmMapper {
     return this.builder
       .withId(entity.id)
       .withTemplateId(entity.taskTemplateId)
+      .withTriggerType(entity.triggerType)
+      .withTitle(entity.title)
+      .withDescription(entity.description)
       .withStatus(entity.status)
       .withPayload(entity.payload)
       .withPriority(entity.priority)

@@ -8,18 +8,23 @@ import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
 import { TaskCancelledEvent } from '@contexts/tasks/domain/events/task-cancelled/task-cancelled.event';
 import { TaskCompletedEvent } from '@contexts/tasks/domain/events/task-completed/task-completed.event';
 import { TaskFailedEvent } from '@contexts/tasks/domain/events/task-failed/task-failed.event';
+import { TaskRescheduledEvent } from '@contexts/tasks/domain/events/task-rescheduled/task-rescheduled.event';
 import { TaskScheduledEvent } from '@contexts/tasks/domain/events/task-scheduled/task-scheduled.event';
 import { TaskSentToDlqEvent } from '@contexts/tasks/domain/events/task-sent-to-dlq/task-sent-to-dlq.event';
 import { TaskStartedEvent } from '@contexts/tasks/domain/events/task-started/task-started.event';
 import { TaskNotCancellableException } from '@contexts/tasks/domain/exceptions/task-not-cancellable.exception';
+import { TaskNotCompletableException } from '@contexts/tasks/domain/exceptions/task-not-completable.exception';
+import { TaskNotReschedulableException } from '@contexts/tasks/domain/exceptions/task-not-reschedulable.exception';
 import { ITask } from '@contexts/tasks/domain/interfaces/task.interface';
 import { ITaskPrimitives } from '@contexts/tasks/domain/primitives/task.primitives';
 import { TaskCronExpressionValueObject } from '@contexts/tasks/domain/value-objects/task-cron-expression/task-cron-expression.value-object';
 import { TaskDelayMsValueObject } from '@contexts/tasks/domain/value-objects/task-delay-ms/task-delay-ms.value-object';
+import { TaskDescriptionValueObject } from '@contexts/tasks/domain/value-objects/task-description/task-description.value-object';
 import { TaskIdValueObject } from '@contexts/tasks/domain/value-objects/task-id/task-id.value-object';
 import { TaskIdempotencyKeyValueObject } from '@contexts/tasks/domain/value-objects/task-idempotency-key/task-idempotency-key.value-object';
 import { TaskIsRecurringValueObject } from '@contexts/tasks/domain/value-objects/task-is-recurring/task-is-recurring.value-object';
 import { TaskMaxRunsValueObject } from '@contexts/tasks/domain/value-objects/task-max-runs/task-max-runs.value-object';
+import { TaskNameValueObject } from '@contexts/tasks/domain/value-objects/task-name/task-name.value-object';
 import { TaskPayloadValueObject } from '@contexts/tasks/domain/value-objects/task-payload/task-payload.value-object';
 import { TaskPriorityValueObject } from '@contexts/tasks/domain/value-objects/task-priority/task-priority.value-object';
 import { TaskQueueJobIdValueObject } from '@contexts/tasks/domain/value-objects/task-queue-job-id/task-queue-job-id.value-object';
@@ -28,10 +33,14 @@ import { TaskStatusValueObject } from '@contexts/tasks/domain/value-objects/task
 import { TaskTargetIdValueObject } from '@contexts/tasks/domain/value-objects/task-target-id/task-target-id.value-object';
 import { TaskTargetTypeValueObject } from '@contexts/tasks/domain/value-objects/task-target-type/task-target-type.value-object';
 import { TaskTemplateIdValueObject } from '@contexts/tasks/domain/value-objects/task-template-id/task-template-id.value-object';
+import { TaskTriggerTypeValueObject } from '@contexts/tasks/domain/value-objects/task-trigger-type/task-trigger-type.value-object';
 
 export class TaskAggregate extends BaseAggregate {
   private readonly _id: TaskIdValueObject;
-  private readonly _templateId: TaskTemplateIdValueObject;
+  private readonly _templateId: TaskTemplateIdValueObject | null;
+  private readonly _triggerType: TaskTriggerTypeValueObject;
+  private readonly _title: TaskNameValueObject | null;
+  private readonly _description: TaskDescriptionValueObject | null;
   private _status: TaskStatusValueObject;
   private readonly _payload: TaskPayloadValueObject;
   private readonly _priority: TaskPriorityValueObject;
@@ -57,6 +66,9 @@ export class TaskAggregate extends BaseAggregate {
     super(props.createdAt, props.updatedAt);
     this._id = props.id;
     this._templateId = props.templateId;
+    this._triggerType = props.triggerType;
+    this._title = props.title;
+    this._description = props.description;
     this._status = props.status;
     this._payload = props.payload;
     this._priority = props.priority;
@@ -139,6 +151,80 @@ export class TaskAggregate extends BaseAggregate {
     );
   }
 
+  public completeByUser(today: Date): void {
+    if (!this._triggerType.isUser()) {
+      throw new TaskNotCompletableException(
+        'only user-triggered tasks can be completed manually',
+      );
+    }
+    if (this._status.isTerminal()) {
+      throw new TaskNotCompletableException(
+        `task is already ${this._status.value}`,
+      );
+    }
+    if (this._scheduledAt !== null) {
+      const scheduledDay = this.toDateOnly(this._scheduledAt.value);
+      const todayDay = this.toDateOnly(today);
+      if (scheduledDay > todayDay) {
+        throw new TaskNotCompletableException(
+          'task is scheduled for a future date',
+        );
+      }
+    }
+    this._status = new TaskStatusValueObject(TaskStatusEnum.COMPLETED);
+    this._completedAt = new DateValueObject(new Date());
+    this.touch();
+    this.apply(
+      new TaskCompletedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: TaskAggregate.name,
+          entityId: this._id.value,
+          entityType: TaskAggregate.name,
+          eventType: TaskCompletedEvent.name,
+        },
+        this.toEventData(),
+      ),
+    );
+  }
+
+  public reschedule(newDate: Date): void {
+    if (!this._triggerType.isUser()) {
+      throw new TaskNotReschedulableException(
+        'only user-triggered tasks can be rescheduled',
+      );
+    }
+    if (this._status.value !== TaskStatusEnum.PENDING) {
+      throw new TaskNotReschedulableException(
+        `task status is ${this._status.value}`,
+      );
+    }
+    const oldScheduledAt = this._scheduledAt?.value ?? null;
+    this._scheduledAt = new DateValueObject(newDate);
+    this.touch();
+    this.apply(
+      new TaskRescheduledEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: TaskAggregate.name,
+          entityId: this._id.value,
+          entityType: TaskAggregate.name,
+          eventType: TaskRescheduledEvent.name,
+        },
+        {
+          id: this._id.value,
+          userId: this._userId.value,
+          oldScheduledAt,
+          newScheduledAt: newDate,
+        },
+      ),
+    );
+  }
+
+  private toDateOnly(date: Date): number {
+    return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
   public fail(error: string): void {
     if (this._status.isTerminal()) return;
     this._status = new TaskStatusValueObject(TaskStatusEnum.FAILED);
@@ -201,7 +287,7 @@ export class TaskAggregate extends BaseAggregate {
   private toEventData() {
     return {
       id: this._id.value,
-      templateId: this._templateId.value,
+      templateId: this._templateId?.value ?? null,
       handlerKey: '',
       userId: this._userId.value,
       status: this._status.value,
@@ -212,8 +298,20 @@ export class TaskAggregate extends BaseAggregate {
     return this._id;
   }
 
-  get templateId(): TaskTemplateIdValueObject {
+  get templateId(): TaskTemplateIdValueObject | null {
     return this._templateId;
+  }
+
+  get triggerType(): TaskTriggerTypeValueObject {
+    return this._triggerType;
+  }
+
+  get title(): TaskNameValueObject | null {
+    return this._title;
+  }
+
+  get description(): TaskDescriptionValueObject | null {
+    return this._description;
   }
 
   get status(): TaskStatusValueObject {
@@ -299,7 +397,10 @@ export class TaskAggregate extends BaseAggregate {
   toPrimitives(): ITaskPrimitives {
     return {
       id: this._id.value,
-      templateId: this._templateId.value,
+      templateId: this._templateId?.value ?? null,
+      triggerType: this._triggerType.value,
+      title: this._title?.value ?? null,
+      description: this._description?.value ?? null,
       status: this._status.value,
       payload: this._payload.value,
       priority: this._priority.value,

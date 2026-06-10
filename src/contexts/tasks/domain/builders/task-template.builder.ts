@@ -28,6 +28,8 @@ export class TaskTemplateBuilder extends BaseBuilder<
 > {
   private _name!: string;
   private _description: string | null = null;
+  private _taskTitle: string | null = null;
+  private _taskDescription: string | null = null;
   private _handlerKey: string | null = null;
   private _defaultPriority: number = 5;
   private _defaultRetryCount: number = 3;
@@ -45,6 +47,16 @@ export class TaskTemplateBuilder extends BaseBuilder<
 
   withDescription(description: string | null): this {
     this._description = description;
+    return this;
+  }
+
+  withTaskTitle(taskTitle: string | null): this {
+    this._taskTitle = taskTitle;
+    return this;
+  }
+
+  withTaskDescription(taskDescription: string | null): this {
+    this._taskDescription = taskDescription;
     return this;
   }
 
@@ -108,6 +120,12 @@ export class TaskTemplateBuilder extends BaseBuilder<
       description: this._description
         ? new TaskDescriptionValueObject(this._description)
         : null,
+      taskTitle: this._taskTitle
+        ? new TaskNameValueObject(this._taskTitle)
+        : null,
+      taskDescription: this._taskDescription
+        ? new TaskDescriptionValueObject(this._taskDescription)
+        : null,
       handlerKey: TaskHandlerKeyValueObject.fromNullable(this._handlerKey),
       defaultPriority: new TaskPriorityValueObject(this._defaultPriority),
       defaultRetryCount: new TaskRetryCountValueObject(this._defaultRetryCount),
@@ -135,6 +153,8 @@ export class TaskTemplateBuilder extends BaseBuilder<
       id: this._id,
       name: this._name,
       description: this._description,
+      taskTitle: this._taskTitle,
+      taskDescription: this._taskDescription,
       handlerKey: this._handlerKey,
       defaultPriority: this._defaultPriority,
       defaultRetryCount: this._defaultRetryCount,

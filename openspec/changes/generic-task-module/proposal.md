@@ -13,16 +13,18 @@ Why now: the `planting-spots` and `plants` contexts are stable, giving the task 
 ### In Scope
 - New `tasks` bounded context (`domain → application → infrastructure → transport`), following existing DDD + CQRS + Hexagonal patterns.
 - New `src/core/task-queue/` cross-cutting infrastructure: provider abstraction (`ITaskQueueProvider`), BullMQ adapter, SQS stub adapter, RabbitMQ stub adapter, config factory (`task-queue.config.ts`), `TaskQueueModule` (global).
-- **TaskTemplate aggregate**: named recipe for a task type — default retry count, backoff strategy, timeout, priority, max concurrency, handler key.
-- **Task aggregate**: single schedulable unit of work — payload, schedule (immediate / delayed / cron), recurrence, idempotency key, priority override, current status.
+- **TaskTemplate aggregate**: named recipe for a task type — default retry count, backoff strategy, timeout, priority, max concurrency, handler key (optional), `taskTitle` and `taskDescription` (title/description inherited by tasks generated from this template).
+- **Task aggregate**: single unit of work, triggered by automation or by a user. Fields: payload, schedule, recurrence, idempotency key, priority, status, `triggerType` (`scheduled | user`), `title` (nullable), `description` (nullable), `templateId` (nullable — ad-hoc tasks have no template).
 - **TaskRun entity** (TypeORM, no aggregate): immutable audit record of one execution attempt — start time, end time, status, progress snapshots, error.
 - Task lifecycle: `pending → active → completed | failed | cancelled`; failed tasks retry per template config; exhausted tasks move to Dead Letter Queue.
+- `triggerType = scheduled`: task created programmatically from a template, goes through BullMQ.
+- `triggerType = user`: task created or triggered manually by the user; if template has `handlerKey`, dispatched to queue on complete; otherwise just marked done. Completable only if `scheduledAt <= today`. Reschedulable while `pending`.
 - Scheduling modes: immediate dispatch, delayed by duration, cron expression (with recurrence flag to re-enqueue on completion).
 - Cancellation: cancel a `pending` task before it is picked up.
 - Progress reporting: worker can emit 0–100% progress; stored on the active TaskRun.
 - Priorities: 1–10 (1 = highest), passed to BullMQ job options.
 - Idempotency: optional `idempotencyKey` prevents duplicate enqueue within a configurable TTL window.
-- Commands: `CreateTaskTemplate`, `UpdateTaskTemplate`, `ScheduleTask`, `CancelTask`.
+- Commands: `CreateTaskTemplate`, `UpdateTaskTemplate`, `ScheduleTask`, `CreateTask` (ad-hoc), `CancelTask`, `RescheduleTask`, `CompleteUserTask`.
 - Queries: `TaskTemplateFindById`, `TaskTemplateFindByCriteria`, `TaskFindById`, `TaskFindByCriteria`, `TaskRunFindByTask`.
 - TypeORM entities + migrations for `task_templates`, `tasks`, `task_runs`.
 - Transport: REST + GraphQL (mirrors pattern from `planting-spots`).
@@ -42,8 +44,8 @@ Why now: the `planting-spots` and `plants` contexts are stable, giving the task 
 ## Capabilities
 
 ### New Capabilities
-- `task-templates`: Define reusable task blueprints with retry/timeout/priority/concurrency defaults.
-- `tasks`: Schedule, track, cancel, and audit any unit of work against a template.
+- `task-templates`: Define reusable task blueprints with retry/timeout/priority/concurrency defaults; includes `taskTitle`/`taskDescription` inherited by generated tasks.
+- `tasks`: Schedule, create ad-hoc, track, cancel, reschedule, and audit any unit of work — from automation or from a user action.
 - `task-queue`: Provider-agnostic queue infrastructure (BullMQ by default, SQS/RabbitMQ stubs).
 
 ### Modified Capabilities

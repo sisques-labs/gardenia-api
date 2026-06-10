@@ -254,3 +254,91 @@ These live in the bounded contexts that own the entities, not in `tasks/`. They 
   - Invalid templateId → 404
   - Duplicate idempotencyKey → 409
 - [ ] 8.14 E2E — `tasks-graphql.e2e-spec.ts`: `scheduleTask` mutation + `task(id)` query; `cancelTask` mutation
+
+---
+
+## Phase 9: Unified Task model (triggerType + ad-hoc + user-facing)
+
+> Refactor: eliminates the separate `user-tasks` context. Tasks become the single aggregate for both automated and user-triggered work.
+
+### 9.1 Cleanup
+
+- [ ] 9.1.1 Delete `src/contexts/user-tasks/` in its entirety (context, module, migrations)
+- [ ] 9.1.2 Remove `UserTasksModule` from `src/app.module.ts`
+- [ ] 9.1.3 Drop migration that creates `user_tasks` table (or create a `down` migration to drop it)
+
+### 9.2 Domain — new enum + VO
+
+- [ ] 9.2.1 Create `src/contexts/tasks/domain/enums/task-trigger-type.enum.ts` — `SCHEDULED = 'scheduled' | USER = 'user'`
+- [ ] 9.2.2 Create `src/contexts/tasks/domain/value-objects/task-trigger-type/task-trigger-type.value-object.ts` — extends `EnumValueObject<typeof TaskTriggerTypeEnum>`
+
+### 9.3 Domain — TaskTemplate
+
+- [ ] 9.3.1 Add `taskTitle: string | null` and `taskDescription: string | null` to `ITaskTemplatePrimitives`
+- [ ] 9.3.2 Add `taskTitle` and `taskDescription` fields to `ITaskTemplate` interface (as `TaskNameValueObject | null` and `TaskDescriptionValueObject | null`)
+- [ ] 9.3.3 Add fields to `TaskTemplateAggregate`: `_taskTitle`, `_taskDescription`; expose as getters; include in `toPrimitives()`
+- [ ] 9.3.4 Update `CreateTaskTemplateCommand` + handler to accept optional `taskTitle` / `taskDescription`
+- [ ] 9.3.5 Update `UpdateTaskTemplateCommand` + handler to support patching `taskTitle` / `taskDescription`
+- [ ] 9.3.6 Add `task-template-task-title-changed` and `task-template-task-description-changed` field-changed events
+- [ ] 9.3.7 Update `TaskTemplateBuilder` to wire new fields
+
+### 9.4 Domain — Task
+
+- [ ] 9.4.1 Make `templateId` nullable in `ITask`, `ITaskPrimitives`, and `TaskAggregate` (`TaskTemplateIdValueObject | null`)
+- [ ] 9.4.2 Add `triggerType: TaskTriggerTypeValueObject` to `ITask`, `ITaskPrimitives`, `TaskAggregate`
+- [ ] 9.4.3 Add `title: TaskNameValueObject | null` and `description: TaskDescriptionValueObject | null` to `ITask`, `ITaskPrimitives`, `TaskAggregate`
+- [ ] 9.4.4 Add `completeByUser(today: Date): void` to `TaskAggregate` — throws `TaskNotCompletableException` if `triggerType !== USER` or `scheduledAt > today`; sets status COMPLETED; if template has `handlerKey` fires handler via queue
+- [ ] 9.4.5 Add `reschedule(newDate: Date): void` to `TaskAggregate` — throws `TaskNotReschedulableException` if `triggerType !== USER` or status !== PENDING
+- [ ] 9.4.6 Add `task-rescheduled/task-rescheduled.event.ts` domain event
+- [ ] 9.4.7 Create `src/contexts/tasks/domain/exceptions/task-not-completable.exception.ts` — HTTP 409
+- [ ] 9.4.8 Create `src/contexts/tasks/domain/exceptions/task-not-reschedulable.exception.ts` — HTTP 409
+- [ ] 9.4.9 Update `TaskBuilder` to wire new fields
+
+### 9.5 Domain — view models
+
+- [ ] 9.5.1 Add `triggerType`, `title`, `description` to `TaskViewModel`
+- [ ] 9.5.2 Add `taskTitle`, `taskDescription` to `TaskTemplateViewModel`
+
+### 9.6 Infrastructure — migrations
+
+- [ ] 9.6.1 Create migration `AlterTaskTemplatesAddTaskTitleDescription` — `ALTER TABLE task_templates ADD COLUMN task_title VARCHAR(255), ADD COLUMN task_description TEXT`
+- [ ] 9.6.2 Create migration `AlterTasksUnifiedModel` — add `trigger_type VARCHAR(20) NOT NULL DEFAULT 'scheduled'`, `title VARCHAR(255)`, `description TEXT`; make `task_template_id` nullable (`DROP NOT NULL`); add `IDX_tasks_trigger_type`
+- [ ] 9.6.3 Create migration `DropUserTasks` — `DROP TABLE IF EXISTS user_tasks`
+
+### 9.7 Infrastructure — entities + mappers
+
+- [ ] 9.7.1 Update `TaskTemplateEntity`: add `taskTitle`, `taskDescription` columns
+- [ ] 9.7.2 Update `TaskEntity`: make `taskTemplateId` nullable; add `triggerType`, `title`, `description` columns
+- [ ] 9.7.3 Update `TaskTypeOrmMapper`: map new fields in `toDomain()` and `toPersistence()`
+- [ ] 9.7.4 Update `TaskTemplateTypeOrmMapper`: map new fields
+
+### 9.8 Application — new commands
+
+- [ ] 9.8.1 Create `create-task` command + handler (`triggerType = USER`, no templateId required) — builds `TaskAggregate`, calls `create()`, saves, publishes event
+- [ ] 9.8.2 Create `reschedule-task` command + handler — `AssertTaskExistsService`; calls `task.reschedule(newDate)`; saves; publishes `TaskRescheduledEvent`
+- [ ] 9.8.3 Create `complete-user-task` command + handler — `AssertTaskExistsService`; calls `task.completeByUser(today)`; if `handlerKey` present dispatches to queue; saves; publishes event
+
+### 9.9 Transport — REST
+
+- [ ] 9.9.1 Add `POST /tasks` (ad-hoc) endpoint — `CreateTaskRestDto`: `title` (required), `description?`, `scheduledAt?`
+- [ ] 9.9.2 Add `PATCH /tasks/:id/reschedule` endpoint — body: `{ scheduledAt: Date }`
+- [ ] 9.9.3 Add `POST /tasks/:id/complete` endpoint (user complete)
+- [ ] 9.9.4 Update `TaskRestResponseDto` + mapper to include `triggerType`, `title`, `description`
+- [ ] 9.9.5 Update `TaskTemplateRestResponseDto` + mapper to include `taskTitle`, `taskDescription`
+
+### 9.10 Transport — GraphQL
+
+- [ ] 9.10.1 Add `createTask` mutation — input: `CreateTaskGraphqlDto` (`title`, `description?`, `scheduledAt?`)
+- [ ] 9.10.2 Add `rescheduleTask` mutation — input: `RescheduleTaskGraphqlDto` (`id`, `scheduledAt`)
+- [ ] 9.10.3 Add `completeUserTask` mutation — input: `id`
+- [ ] 9.10.4 Update `TaskGraphqlResponseDto` + mapper with new fields
+- [ ] 9.10.5 Update `TaskTemplateGraphqlResponseDto` + mapper with new fields
+- [ ] 9.10.6 Register `TaskTriggerTypeEnum` in `tasks-registered-enums.graphql.ts`
+
+### 9.11 Tests
+
+- [ ] 9.11.1 Unit — `task.aggregate.spec.ts`: add cases for `completeByUser()` (blocks if future date, passes if today/past, throws if not USER trigger), `reschedule()` (blocks if ACTIVE/COMPLETED, passes if PENDING + USER)
+- [ ] 9.11.2 Unit — `reschedule-task.handler.spec.ts`: happy path; non-pending throws 409; non-user trigger throws 409
+- [ ] 9.11.3 Unit — `complete-user-task.handler.spec.ts`: happy path no handler; happy path with handlerKey dispatches queue; future date throws
+- [ ] 9.11.4 Unit — `create-task.handler.spec.ts`: creates ad-hoc task without templateId
+- [ ] 9.11.5 Update `task-template.aggregate.spec.ts`: `create()` includes `taskTitle`/`taskDescription`; `update()` patches them

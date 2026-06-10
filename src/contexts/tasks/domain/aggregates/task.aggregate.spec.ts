@@ -6,7 +6,11 @@ import { TaskCompletedEvent } from '@contexts/tasks/domain/events/task-completed
 import { TaskFailedEvent } from '@contexts/tasks/domain/events/task-failed/task-failed.event';
 import { TaskScheduledEvent } from '@contexts/tasks/domain/events/task-scheduled/task-scheduled.event';
 import { TaskStartedEvent } from '@contexts/tasks/domain/events/task-started/task-started.event';
+import { TaskRescheduledEvent } from '@contexts/tasks/domain/events/task-rescheduled/task-rescheduled.event';
 import { TaskNotCancellableException } from '@contexts/tasks/domain/exceptions/task-not-cancellable.exception';
+import { TaskNotCompletableException } from '@contexts/tasks/domain/exceptions/task-not-completable.exception';
+import { TaskNotReschedulableException } from '@contexts/tasks/domain/exceptions/task-not-reschedulable.exception';
+import { TaskTriggerTypeEnum } from '@contexts/tasks/domain/enums/task-trigger-type.enum';
 
 const TASK_ID = '550e8400-e29b-41d4-a716-446655440001';
 const TEMPLATE_ID = '550e8400-e29b-41d4-a716-446655440002';
@@ -23,13 +27,28 @@ const buildTask = (status = TaskStatusEnum.PENDING): TaskAggregate =>
     .withUpdatedAt(DATE)
     .build();
 
+const buildUserTask = (
+  status = TaskStatusEnum.PENDING,
+  scheduledAt: Date | null = DATE,
+): TaskAggregate =>
+  new TaskBuilder()
+    .withId(TASK_ID)
+    .withTriggerType(TaskTriggerTypeEnum.USER)
+    .withTitle('Buy milk')
+    .withUserId(USER_ID)
+    .withStatus(status)
+    .withScheduledAt(scheduledAt)
+    .withCreatedAt(DATE)
+    .withUpdatedAt(DATE)
+    .build();
+
 describe('TaskAggregate', () => {
   describe('constructor — hydration', () => {
     it('constructs with matching field values', () => {
       const task = buildTask();
 
       expect(task.id.value).toBe(TASK_ID);
-      expect(task.templateId.value).toBe(TEMPLATE_ID);
+      expect(task.templateId?.value).toBe(TEMPLATE_ID);
       expect(task.userId.value).toBe(USER_ID);
       expect(task.status.value).toBe(TaskStatusEnum.PENDING);
     });
@@ -234,6 +253,84 @@ describe('TaskAggregate', () => {
     it('throws TaskNotCancellableException when status is COMPLETED', () => {
       const task = buildTask(TaskStatusEnum.COMPLETED);
       expect(() => task.cancel()).toThrow(TaskNotCancellableException);
+    });
+  });
+
+  describe('completeByUser()', () => {
+    const TODAY = new Date('2024-01-15T12:00:00.000Z');
+
+    it('transitions PENDING → COMPLETED for a user task scheduled in the past', () => {
+      const task = buildUserTask(TaskStatusEnum.PENDING, DATE);
+      task.completeByUser(TODAY);
+      expect(task.status.value).toBe(TaskStatusEnum.COMPLETED);
+    });
+
+    it('sets completedAt', () => {
+      const task = buildUserTask(TaskStatusEnum.PENDING, DATE);
+      task.completeByUser(TODAY);
+      expect(task.completedAt).not.toBeNull();
+    });
+
+    it('emits TaskCompletedEvent', () => {
+      const task = buildUserTask(TaskStatusEnum.PENDING, DATE);
+      task.completeByUser(TODAY);
+      const events = task.getUncommittedEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(TaskCompletedEvent);
+    });
+
+    it('throws TaskNotCompletableException for a scheduled (non-user) task', () => {
+      const scheduledTask = buildTask(TaskStatusEnum.PENDING);
+      expect(() => scheduledTask.completeByUser(TODAY)).toThrow(
+        TaskNotCompletableException,
+      );
+    });
+
+    it('throws TaskNotCompletableException when already COMPLETED', () => {
+      const task = buildUserTask(TaskStatusEnum.COMPLETED, DATE);
+      expect(() => task.completeByUser(TODAY)).toThrow(
+        TaskNotCompletableException,
+      );
+    });
+
+    it('throws TaskNotCompletableException when scheduledAt is in the future', () => {
+      const future = new Date('2024-12-31T00:00:00.000Z');
+      const task = buildUserTask(TaskStatusEnum.PENDING, future);
+      expect(() => task.completeByUser(TODAY)).toThrow(
+        TaskNotCompletableException,
+      );
+    });
+  });
+
+  describe('reschedule()', () => {
+    const NEW_DATE = new Date('2024-03-01T00:00:00.000Z');
+
+    it('updates scheduledAt', () => {
+      const task = buildUserTask();
+      task.reschedule(NEW_DATE);
+      expect(task.scheduledAt?.value).toEqual(NEW_DATE);
+    });
+
+    it('emits TaskRescheduledEvent', () => {
+      const task = buildUserTask();
+      task.reschedule(NEW_DATE);
+      const events = task.getUncommittedEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(TaskRescheduledEvent);
+    });
+
+    it('throws TaskNotReschedulableException for a non-user task', () => {
+      const scheduledTask = buildTask(TaskStatusEnum.PENDING);
+      expect(() => scheduledTask.reschedule(NEW_DATE)).toThrow(
+        TaskNotReschedulableException,
+      );
+    });
+
+    it('throws TaskNotReschedulableException when task is not PENDING', () => {
+      const task = buildUserTask(TaskStatusEnum.COMPLETED);
+      expect(() => task.reschedule(NEW_DATE)).toThrow(
+        TaskNotReschedulableException,
+      );
     });
   });
 

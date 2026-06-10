@@ -34,6 +34,8 @@ export class CreateTaskTemplateCommandHandler
       .withId(id)
       .withName(command.name.value)
       .withDescription(command.description?.value ?? null)
+      .withTaskTitle(command.taskTitle?.value ?? null)
+      .withTaskDescription(command.taskDescription?.value ?? null)
       .withHandlerKey(command.handlerKey?.value ?? null)
       .withDefaultPriority(command.defaultPriority.value)
       .withDefaultRetryCount(command.defaultRetryCount.value)

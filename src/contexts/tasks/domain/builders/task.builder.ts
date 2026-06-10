@@ -8,13 +8,16 @@ import {
 
 import { TaskAggregate } from '@contexts/tasks/domain/aggregates/task.aggregate';
 import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
+import { TaskTriggerTypeEnum } from '@contexts/tasks/domain/enums/task-trigger-type.enum';
 import { TaskViewModel } from '@contexts/tasks/domain/view-models/task.view-model';
 import { TaskCronExpressionValueObject } from '@contexts/tasks/domain/value-objects/task-cron-expression/task-cron-expression.value-object';
 import { TaskDelayMsValueObject } from '@contexts/tasks/domain/value-objects/task-delay-ms/task-delay-ms.value-object';
+import { TaskDescriptionValueObject } from '@contexts/tasks/domain/value-objects/task-description/task-description.value-object';
 import { TaskIdValueObject } from '@contexts/tasks/domain/value-objects/task-id/task-id.value-object';
 import { TaskIdempotencyKeyValueObject } from '@contexts/tasks/domain/value-objects/task-idempotency-key/task-idempotency-key.value-object';
 import { TaskIsRecurringValueObject } from '@contexts/tasks/domain/value-objects/task-is-recurring/task-is-recurring.value-object';
 import { TaskMaxRunsValueObject } from '@contexts/tasks/domain/value-objects/task-max-runs/task-max-runs.value-object';
+import { TaskNameValueObject } from '@contexts/tasks/domain/value-objects/task-name/task-name.value-object';
 import { TaskPayloadValueObject } from '@contexts/tasks/domain/value-objects/task-payload/task-payload.value-object';
 import { TaskPriorityValueObject } from '@contexts/tasks/domain/value-objects/task-priority/task-priority.value-object';
 import { TaskQueueJobIdValueObject } from '@contexts/tasks/domain/value-objects/task-queue-job-id/task-queue-job-id.value-object';
@@ -23,10 +26,14 @@ import { TaskStatusValueObject } from '@contexts/tasks/domain/value-objects/task
 import { TaskTargetIdValueObject } from '@contexts/tasks/domain/value-objects/task-target-id/task-target-id.value-object';
 import { TaskTargetTypeValueObject } from '@contexts/tasks/domain/value-objects/task-target-type/task-target-type.value-object';
 import { TaskTemplateIdValueObject } from '@contexts/tasks/domain/value-objects/task-template-id/task-template-id.value-object';
+import { TaskTriggerTypeValueObject } from '@contexts/tasks/domain/value-objects/task-trigger-type/task-trigger-type.value-object';
 
 @Injectable()
 export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
-  private _templateId!: string;
+  private _templateId: string | null = null;
+  private _triggerType: string = TaskTriggerTypeEnum.SCHEDULED;
+  private _title: string | null = null;
+  private _description: string | null = null;
   private _status: string = TaskStatusEnum.PENDING;
   private _payload: Record<string, unknown> = {};
   private _priority: number = 5;
@@ -48,8 +55,23 @@ export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
   private _failedAt: Date | null = null;
   private _cancelledAt: Date | null = null;
 
-  withTemplateId(templateId: string): this {
+  withTemplateId(templateId: string | null): this {
     this._templateId = templateId;
+    return this;
+  }
+
+  withTriggerType(triggerType: string): this {
+    this._triggerType = triggerType;
+    return this;
+  }
+
+  withTitle(title: string | null): this {
+    this._title = title;
+    return this;
+  }
+
+  withDescription(description: string | null): this {
+    this._description = description;
     return this;
   }
 
@@ -155,7 +177,6 @@ export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
 
   public override validate(): void {
     super.validate();
-    if (!this._templateId) throw new FieldIsRequiredException('templateId');
     if (!this._userId) throw new FieldIsRequiredException('userId');
   }
 
@@ -164,7 +185,16 @@ export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
     const now = new Date();
     return new TaskAggregate({
       id: new TaskIdValueObject(this._id),
-      templateId: new TaskTemplateIdValueObject(this._templateId),
+      templateId: this._templateId
+        ? new TaskTemplateIdValueObject(this._templateId)
+        : null,
+      triggerType: new TaskTriggerTypeValueObject(
+        this._triggerType as TaskTriggerTypeEnum,
+      ),
+      title: this._title ? new TaskNameValueObject(this._title) : null,
+      description: this._description
+        ? new TaskDescriptionValueObject(this._description)
+        : null,
       status: new TaskStatusValueObject(this._status as TaskStatusEnum),
       payload: new TaskPayloadValueObject(this._payload),
       priority: new TaskPriorityValueObject(this._priority),
@@ -220,6 +250,9 @@ export class TaskBuilder extends BaseBuilder<TaskAggregate, TaskViewModel> {
     return new TaskViewModel({
       id: this._id,
       templateId: this._templateId,
+      triggerType: this._triggerType,
+      title: this._title,
+      description: this._description,
       status: this._status,
       payload: this._payload,
       priority: this._priority,

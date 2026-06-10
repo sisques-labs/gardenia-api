@@ -54,6 +54,44 @@ describe('TaskTemplateAggregate — delete', () => {
   });
 });
 
+describe('TaskTemplateAggregate — taskTitle and taskDescription', () => {
+  it('builds with null taskTitle and taskDescription by default', () => {
+    const template = buildTemplate(null);
+    expect(template.taskTitle).toBeNull();
+    expect(template.taskDescription).toBeNull();
+  });
+
+  it('stores taskTitle from builder', () => {
+    const template = new TaskTemplateBuilder()
+      .withId(TEMPLATE_ID)
+      .withName('morning-routine')
+      .withTaskTitle('Morning Routine')
+      .withTaskDescription('Complete all morning tasks')
+      .withUserId(USER_ID)
+      .withCreatedAt(DATE)
+      .withUpdatedAt(DATE)
+      .build();
+
+    expect(template.taskTitle?.value).toBe('Morning Routine');
+    expect(template.taskDescription?.value).toBe('Complete all morning tasks');
+  });
+
+  it('exposes taskTitle and taskDescription in toPrimitives()', () => {
+    const template = new TaskTemplateBuilder()
+      .withId(TEMPLATE_ID)
+      .withName('morning-routine')
+      .withTaskTitle('Morning Routine')
+      .withUserId(USER_ID)
+      .withCreatedAt(DATE)
+      .withUpdatedAt(DATE)
+      .build();
+
+    const primitives = template.toPrimitives();
+    expect(primitives.taskTitle).toBe('Morning Routine');
+    expect(primitives.taskDescription).toBeNull();
+  });
+});
+
 describe('TaskTemplateHandlerKeyRequiredException', () => {
   it('is constructable', () => {
     const err = new TaskTemplateHandlerKeyRequiredException(TEMPLATE_ID);

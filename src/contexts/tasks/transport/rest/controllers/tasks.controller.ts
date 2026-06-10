@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Logger,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -29,6 +30,9 @@ import {
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CancelTaskCommand } from '@contexts/tasks/application/commands/cancel-task/cancel-task.command';
+import { CompleteUserTaskCommand } from '@contexts/tasks/application/commands/complete-user-task/complete-user-task.command';
+import { CreateTaskCommand } from '@contexts/tasks/application/commands/create-task/create-task.command';
+import { RescheduleTaskCommand } from '@contexts/tasks/application/commands/reschedule-task/reschedule-task.command';
 import { ScheduleTaskCommand } from '@contexts/tasks/application/commands/schedule-task/schedule-task.command';
 import { TaskFindByCriteriaQuery } from '@contexts/tasks/application/queries/task-find-by-criteria/task-find-by-criteria.query';
 import { TaskFindByIdQuery } from '@contexts/tasks/application/queries/task-find-by-id/task-find-by-id.query';
@@ -36,6 +40,8 @@ import { TaskRunFindByTaskQuery } from '@contexts/tasks/application/queries/task
 import { TaskNotFoundException } from '@contexts/tasks/domain/exceptions/task-not-found.exception';
 import { TaskRunViewModel } from '@contexts/tasks/domain/view-models/task-run.view-model';
 import { TaskViewModel } from '@contexts/tasks/domain/view-models/task.view-model';
+import { CreateTaskRestDto } from '@contexts/tasks/transport/rest/dtos/create-task-rest.dto';
+import { RescheduleTaskRestDto } from '@contexts/tasks/transport/rest/dtos/reschedule-task-rest.dto';
 import { ScheduleTaskRestDto } from '@contexts/tasks/transport/rest/dtos/schedule-task-rest.dto';
 import { TaskRestResponseDto } from '@contexts/tasks/transport/rest/dtos/task-rest-response.dto';
 import { TaskRestMapper } from '@contexts/tasks/transport/rest/mappers/task/task-rest.mapper';
@@ -86,6 +92,83 @@ export class TasksController {
 
     const vm = await this.queryBus.execute<TaskFindByIdQuery, TaskViewModel>(
       new TaskFindByIdQuery({ id: taskId }),
+    );
+    return this.mapper.toResponse(vm);
+  }
+
+  @Post('adhoc')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create an ad-hoc user task' })
+  @ApiResponse({ status: 201, type: TaskRestResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async createTask(
+    @Body() dto: CreateTaskRestDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<TaskRestResponseDto> {
+    this.logger.log(`POST /tasks/adhoc title=${dto.title}`);
+
+    const taskId = await this.commandBus.execute<CreateTaskCommand, string>(
+      new CreateTaskCommand({
+        title: dto.title,
+        description: dto.description ?? null,
+        scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
+        userId: user.userId,
+      }),
+    );
+
+    const vm = await this.queryBus.execute<TaskFindByIdQuery, TaskViewModel>(
+      new TaskFindByIdQuery({ id: taskId }),
+    );
+    return this.mapper.toResponse(vm);
+  }
+
+  @Patch(':id/reschedule')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reschedule a user task' })
+  @ApiResponse({ status: 200, type: TaskRestResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Task not found' })
+  @ApiResponse({ status: 409, description: 'Task not reschedulable' })
+  async rescheduleTask(
+    @Param('id') id: string,
+    @Body() dto: RescheduleTaskRestDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<TaskRestResponseDto> {
+    this.logger.log(`PATCH /tasks/${id}/reschedule`);
+
+    await this.commandBus.execute(
+      new RescheduleTaskCommand({
+        id,
+        scheduledAt: new Date(dto.scheduledAt),
+        userId: user.userId,
+      }),
+    );
+
+    const vm = await this.queryBus.execute<TaskFindByIdQuery, TaskViewModel>(
+      new TaskFindByIdQuery({ id }),
+    );
+    return this.mapper.toResponse(vm);
+  }
+
+  @Post(':id/complete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Complete a user task' })
+  @ApiResponse({ status: 200, type: TaskRestResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Task not found' })
+  @ApiResponse({ status: 409, description: 'Task not completable' })
+  async completeUserTask(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<TaskRestResponseDto> {
+    this.logger.log(`POST /tasks/${id}/complete`);
+
+    await this.commandBus.execute(
+      new CompleteUserTaskCommand({ id, userId: user.userId }),
+    );
+
+    const vm = await this.queryBus.execute<TaskFindByIdQuery, TaskViewModel>(
+      new TaskFindByIdQuery({ id }),
     );
     return this.mapper.toResponse(vm);
   }

@@ -17,6 +17,12 @@ export class TaskTemplateTypeOrmEntity {
   @Column({ type: 'text', nullable: true })
   description!: string | null;
 
+  @Column({ name: 'task_title', type: 'varchar', length: 255, nullable: true })
+  taskTitle!: string | null;
+
+  @Column({ name: 'task_description', type: 'text', nullable: true })
+  taskDescription!: string | null;
+
   @Column({ name: 'handler_key', type: 'varchar', length: 255, nullable: true })
   handlerKey!: string | null;
 

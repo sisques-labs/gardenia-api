@@ -2,7 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class TaskRestResponseDto {
   @ApiProperty() id!: string;
-  @ApiProperty() templateId!: string;
+  @ApiProperty({ nullable: true }) templateId!: string | null;
+  @ApiProperty() triggerType!: string;
+  @ApiProperty({ nullable: true }) title!: string | null;
+  @ApiProperty({ nullable: true }) description!: string | null;
   @ApiProperty() status!: string;
   @ApiProperty() payload!: Record<string, unknown>;
   @ApiProperty() priority!: number;

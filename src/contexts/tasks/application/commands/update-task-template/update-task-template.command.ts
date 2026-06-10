@@ -15,6 +15,8 @@ export interface UpdateTaskTemplateCommandInput {
   id: string;
   name?: string;
   description?: string | null;
+  taskTitle?: string | null;
+  taskDescription?: string | null;
   handlerKey?: string | null;
   defaultPriority?: number;
   defaultRetryCount?: number;
@@ -29,6 +31,8 @@ export class UpdateTaskTemplateCommand {
   public readonly id: TaskTemplateIdValueObject;
   public readonly name?: TaskNameValueObject;
   public readonly description?: TaskDescriptionValueObject | null;
+  public readonly taskTitle?: TaskNameValueObject | null;
+  public readonly taskDescription?: TaskDescriptionValueObject | null;
   public readonly handlerKey?: TaskHandlerKeyValueObject | null;
   public readonly defaultPriority?: TaskPriorityValueObject;
   public readonly defaultRetryCount?: TaskRetryCountValueObject;
@@ -45,6 +49,16 @@ export class UpdateTaskTemplateCommand {
     if (input.description !== undefined) {
       this.description = input.description
         ? new TaskDescriptionValueObject(input.description)
+        : null;
+    }
+    if (input.taskTitle !== undefined) {
+      this.taskTitle = input.taskTitle
+        ? new TaskNameValueObject(input.taskTitle)
+        : null;
+    }
+    if (input.taskDescription !== undefined) {
+      this.taskDescription = input.taskDescription
+        ? new TaskDescriptionValueObject(input.taskDescription)
         : null;
     }
     if (input.handlerKey !== undefined) {
