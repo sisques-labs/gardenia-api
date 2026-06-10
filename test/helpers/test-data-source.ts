@@ -3,6 +3,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
+import { SpaceInvitationEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-invitation.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
 import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
@@ -19,6 +20,10 @@ import { CreateQrs1780000000006 } from '../../src/database/migrations/1780000000
 import { LinkPlantsToQrs1780000000007 } from '../../src/database/migrations/1780000000007-LinkPlantsToQrs';
 import { CreatePlantSpecies1780000000008 } from '../../src/database/migrations/1780000000008-CreatePlantSpecies';
 import { AlterPlantsPlantSpeciesId1780000000009 } from '../../src/database/migrations/1780000000009-AlterPlantsPlantSpeciesId';
+import { CreatePlantingSpots1780000000010 } from '../../src/database/migrations/1780000000010-CreatePlantingSpots';
+import { AddPlantingSpotIdToPlants1780000000011 } from '../../src/database/migrations/1780000000011-AddPlantingSpotIdToPlants';
+import { AddExpiresAtToQrs1780000000012 } from '../../src/database/migrations/1780000000012-AddExpiresAtToQrs';
+import { CreateSpaceInvitations1780000000013 } from '../../src/database/migrations/1780000000013-CreateSpaceInvitations';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -26,6 +31,7 @@ const TEST_ENTITIES = [
   UserTypeOrmEntity,
   SpaceEntity,
   SpaceMembershipEntity,
+  SpaceInvitationEntity,
   PlantSpeciesTypeOrmEntity,
   PlantTypeOrmEntity,
   QrTypeOrmEntity,
@@ -43,6 +49,10 @@ const TEST_MIGRATIONS = [
   LinkPlantsToQrs1780000000007,
   CreatePlantSpecies1780000000008,
   AlterPlantsPlantSpeciesId1780000000009,
+  CreatePlantingSpots1780000000010,
+  AddPlantingSpotIdToPlants1780000000011,
+  AddExpiresAtToQrs1780000000012,
+  CreateSpaceInvitations1780000000013,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

@@ -51,7 +51,10 @@ export class AddMemberCommandHandler
       );
     }
 
-    space.addMember(command.targetUserId.value, MembershipRoleEnum.MEMBER);
+    space.addMember(
+      command.targetUserId.value,
+      command.role.value as MembershipRoleEnum,
+    );
 
     await this.spaceWriteRepository.save(space);
     await this.publishEvents(space);
