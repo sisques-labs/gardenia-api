@@ -1,7 +1,10 @@
 import { Logger, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { MutationResponseDto, MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
+import {
+  MutationResponseDto,
+  MutationResponseGraphQLMapper,
+} from '@sisques-labs/nestjs-kit';
 
 import {
   CurrentUser,
@@ -9,6 +12,7 @@ import {
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CreateTaskTemplateCommand } from '@contexts/tasks/application/commands/create-task-template/create-task-template.command';
+import { DeleteTaskTemplateCommand } from '@contexts/tasks/application/commands/delete-task-template/delete-task-template.command';
 import { UpdateTaskTemplateCommand } from '@contexts/tasks/application/commands/update-task-template/update-task-template.command';
 import { CreateTaskTemplateGraphQLDto } from '@contexts/tasks/transport/graphql/dtos/requests/create-task-template-graphql.dto';
 import { UpdateTaskTemplateGraphQLDto } from '@contexts/tasks/transport/graphql/dtos/requests/update-task-template-graphql.dto';
@@ -49,6 +53,21 @@ export class TaskTemplateMutationsResolver {
     return this.mutationResponseGraphQLMapper.toResponseDto({
       success: true,
       message: 'Task template created successfully',
+      id,
+    });
+  }
+
+  @Mutation(() => MutationResponseDto)
+  async deleteTaskTemplate(
+    @Args('id') id: string,
+  ): Promise<MutationResponseDto> {
+    this.logger.log(`Deleting task template: ${id}`);
+
+    await this.commandBus.execute(new DeleteTaskTemplateCommand({ id }));
+
+    return this.mutationResponseGraphQLMapper.toResponseDto({
+      success: true,
+      message: 'Task template deleted successfully',
       id,
     });
   }

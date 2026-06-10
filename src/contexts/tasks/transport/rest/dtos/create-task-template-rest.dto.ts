@@ -20,10 +20,13 @@ export class CreateTaskTemplateRestDto {
   @IsOptional()
   description?: string | null;
 
-  @ApiProperty()
+  @ApiPropertyOptional({
+    description:
+      'Handler key for automation scheduling. Null for informative-only templates.',
+  })
   @IsString()
-  @IsNotEmpty()
-  handlerKey!: string;
+  @IsOptional()
+  handlerKey?: string | null;
 
   @ApiPropertyOptional({ default: 5, minimum: 1, maximum: 10 })
   @IsInt()
@@ -39,7 +42,10 @@ export class CreateTaskTemplateRestDto {
   @IsOptional()
   defaultRetryCount?: number;
 
-  @ApiPropertyOptional({ default: 'exponential', enum: ['exponential', 'linear', 'fixed'] })
+  @ApiPropertyOptional({
+    default: 'exponential',
+    enum: ['exponential', 'linear', 'fixed'],
+  })
   @IsString()
   @IsOptional()
   defaultBackoffStrategy?: string;
@@ -57,7 +63,9 @@ export class CreateTaskTemplateRestDto {
   @IsOptional()
   maxConcurrency?: number;
 
-  @ApiPropertyOptional({ description: '5-field cron expression applied to tasks by default' })
+  @ApiPropertyOptional({
+    description: '5-field cron expression applied to tasks by default',
+  })
   @IsString()
   @IsOptional()
   defaultCronExpression?: string | null;

@@ -29,9 +29,8 @@ export class UpdateTaskTemplateGraphQLDto {
 
   @Field(() => String, { nullable: true })
   @IsString()
-  @IsNotEmpty()
   @IsOptional()
-  handlerKey?: string;
+  handlerKey?: string | null;
 
   @Field(() => Int, { nullable: true })
   @IsInt()

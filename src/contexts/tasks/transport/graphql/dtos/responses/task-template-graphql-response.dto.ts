@@ -12,8 +12,8 @@ export class TaskTemplateGraphQLResponseDto {
   @Field(() => String, { nullable: true })
   description!: string | null;
 
-  @Field(() => String)
-  handlerKey!: string;
+  @Field(() => String, { nullable: true })
+  handlerKey!: string | null;
 
   @Field(() => Int)
   defaultPriority!: number;

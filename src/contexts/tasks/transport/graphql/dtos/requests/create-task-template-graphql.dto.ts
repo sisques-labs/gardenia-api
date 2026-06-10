@@ -21,10 +21,10 @@ export class CreateTaskTemplateGraphQLDto {
   @IsOptional()
   description?: string | null;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsString()
-  @IsNotEmpty()
-  handlerKey!: string;
+  @IsOptional()
+  handlerKey?: string | null;
 
   @Field(() => Int, { nullable: true, defaultValue: 5 })
   @IsInt()
@@ -58,7 +58,10 @@ export class CreateTaskTemplateGraphQLDto {
   @IsOptional()
   maxConcurrency?: number;
 
-  @Field(() => String, { nullable: true, description: '5-field cron expression applied to tasks by default' })
+  @Field(() => String, {
+    nullable: true,
+    description: '5-field cron expression applied to tasks by default',
+  })
   @IsString()
   @IsOptional()
   defaultCronExpression?: string | null;

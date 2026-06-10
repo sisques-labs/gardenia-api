@@ -2,6 +2,7 @@ import { HealthModule } from '@core/health/health.module';
 import { QueueModule } from '@core/queue/queue.module';
 import { SupportModule } from './support/support.module';
 import { TasksModule } from '@contexts/tasks/tasks.module';
+import { UserTasksModule } from '@contexts/user-tasks/user-tasks.module';
 import { SharedModule } from './shared/shared.module';
 import { AuthModule } from '@contexts/auth/auth.module';
 import { UsersModule } from '@contexts/users/users.module';
@@ -64,6 +65,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     PlantingSpotsModule,
     QueueModule,
     TasksModule,
+    UserTasksModule,
   ],
   providers: [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through

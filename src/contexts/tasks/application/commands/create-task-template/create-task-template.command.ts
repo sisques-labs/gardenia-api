@@ -15,7 +15,7 @@ import { TaskTimeoutValueObject } from '@contexts/tasks/domain/value-objects/tas
 export interface CreateTaskTemplateCommandInput {
   name: string;
   description?: string | null;
-  handlerKey: string;
+  handlerKey?: string | null;
   defaultPriority?: number;
   defaultRetryCount?: number;
   defaultBackoffStrategy?: string;
@@ -29,7 +29,7 @@ export interface CreateTaskTemplateCommandInput {
 export class CreateTaskTemplateCommand {
   public readonly name: TaskNameValueObject;
   public readonly description: TaskDescriptionValueObject | null;
-  public readonly handlerKey: TaskHandlerKeyValueObject;
+  public readonly handlerKey: TaskHandlerKeyValueObject | null;
   public readonly defaultPriority: TaskPriorityValueObject;
   public readonly defaultRetryCount: TaskRetryCountValueObject;
   public readonly defaultBackoffStrategy: TaskBackoffStrategyValueObject;
@@ -44,7 +44,9 @@ export class CreateTaskTemplateCommand {
     this.description = input.description
       ? new TaskDescriptionValueObject(input.description)
       : null;
-    this.handlerKey = new TaskHandlerKeyValueObject(input.handlerKey);
+    this.handlerKey = TaskHandlerKeyValueObject.fromNullable(
+      input.handlerKey ?? null,
+    );
     this.defaultPriority = new TaskPriorityValueObject(
       input.defaultPriority ?? 5,
     );

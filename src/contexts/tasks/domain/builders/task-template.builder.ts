@@ -28,7 +28,7 @@ export class TaskTemplateBuilder extends BaseBuilder<
 > {
   private _name!: string;
   private _description: string | null = null;
-  private _handlerKey!: string;
+  private _handlerKey: string | null = null;
   private _defaultPriority: number = 5;
   private _defaultRetryCount: number = 3;
   private _defaultBackoffStrategy: string = TaskBackoffStrategyEnum.EXPONENTIAL;
@@ -48,7 +48,7 @@ export class TaskTemplateBuilder extends BaseBuilder<
     return this;
   }
 
-  withHandlerKey(handlerKey: string): this {
+  withHandlerKey(handlerKey: string | null): this {
     this._handlerKey = handlerKey;
     return this;
   }
@@ -96,7 +96,6 @@ export class TaskTemplateBuilder extends BaseBuilder<
   public override validate(): void {
     super.validate();
     if (!this._name) throw new FieldIsRequiredException('name');
-    if (!this._handlerKey) throw new FieldIsRequiredException('handlerKey');
     if (!this._userId) throw new FieldIsRequiredException('userId');
   }
 
@@ -109,7 +108,7 @@ export class TaskTemplateBuilder extends BaseBuilder<
       description: this._description
         ? new TaskDescriptionValueObject(this._description)
         : null,
-      handlerKey: new TaskHandlerKeyValueObject(this._handlerKey),
+      handlerKey: TaskHandlerKeyValueObject.fromNullable(this._handlerKey),
       defaultPriority: new TaskPriorityValueObject(this._defaultPriority),
       defaultRetryCount: new TaskRetryCountValueObject(this._defaultRetryCount),
       defaultBackoffStrategy: new TaskBackoffStrategyValueObject(

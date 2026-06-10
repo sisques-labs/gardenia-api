@@ -5,9 +5,12 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 export class TaskTemplateHandlerKeyChangedEvent extends BaseEvent<
-  IFieldChangedEventData<string>
+  IFieldChangedEventData<string | null>
 > {
-  constructor(metadata: IEventMetadata, data: IFieldChangedEventData<string>) {
+  constructor(
+    metadata: IEventMetadata,
+    data: IFieldChangedEventData<string | null>,
+  ) {
     super(metadata, data);
   }
 }

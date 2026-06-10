@@ -4,7 +4,7 @@ export interface ITaskTemplatePrimitives extends BasePrimitives {
   id: string;
   name: string;
   description: string | null;
-  handlerKey: string;
+  handlerKey: string | null;
   defaultPriority: number;
   defaultRetryCount: number;
   defaultBackoffStrategy: string;

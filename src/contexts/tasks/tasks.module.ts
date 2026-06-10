@@ -10,6 +10,7 @@ import { TaskJobFailedEventHandler } from '@contexts/tasks/application/event-han
 import { TaskJobProgressEventHandler } from '@contexts/tasks/application/event-handlers/task-job-progress.event-handler';
 import { TaskJobStartedEventHandler } from '@contexts/tasks/application/event-handlers/task-job-started.event-handler';
 import { CreateTaskTemplateCommandHandler } from '@contexts/tasks/application/commands/create-task-template/create-task-template.handler';
+import { DeleteTaskTemplateCommandHandler } from '@contexts/tasks/application/commands/delete-task-template/delete-task-template.handler';
 import { UpdateTaskTemplateCommandHandler } from '@contexts/tasks/application/commands/update-task-template/update-task-template.handler';
 import { ScheduleTaskCommandHandler } from '@contexts/tasks/application/commands/schedule-task/schedule-task.handler';
 import { CancelTaskCommandHandler } from '@contexts/tasks/application/commands/cancel-task/cancel-task.handler';
@@ -59,6 +60,7 @@ import { TaskRestMapper } from '@contexts/tasks/transport/rest/mappers/task/task
 const COMMAND_HANDLERS = [
   CreateTaskTemplateCommandHandler,
   UpdateTaskTemplateCommandHandler,
+  DeleteTaskTemplateCommandHandler,
   ScheduleTaskCommandHandler,
   CancelTaskCommandHandler,
 ];
@@ -149,6 +151,6 @@ const GRAPHQL_PROVIDERS = [
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
   ],
-  exports: [TASK_CANCELLATION_CHECK_PORT],
+  exports: [TASK_CANCELLATION_CHECK_PORT, TASK_TEMPLATE_READ_REPOSITORY],
 })
 export class TasksModule {}

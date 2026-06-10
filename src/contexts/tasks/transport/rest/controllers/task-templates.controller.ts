@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -25,6 +26,7 @@ import {
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CreateTaskTemplateCommand } from '@contexts/tasks/application/commands/create-task-template/create-task-template.command';
+import { DeleteTaskTemplateCommand } from '@contexts/tasks/application/commands/delete-task-template/delete-task-template.command';
 import { UpdateTaskTemplateCommand } from '@contexts/tasks/application/commands/update-task-template/update-task-template.command';
 import { TaskTemplateFindByCriteriaQuery } from '@contexts/tasks/application/queries/task-template-find-by-criteria/task-template-find-by-criteria.query';
 import { TaskTemplateFindByIdQuery } from '@contexts/tasks/application/queries/task-template-find-by-id/task-template-find-by-id.query';
@@ -74,9 +76,10 @@ export class TaskTemplatesController {
       }),
     );
 
-    const vm = await this.queryBus.execute<TaskTemplateFindByIdQuery, TaskTemplateViewModel>(
-      new TaskTemplateFindByIdQuery({ id }),
-    );
+    const vm = await this.queryBus.execute<
+      TaskTemplateFindByIdQuery,
+      TaskTemplateViewModel
+    >(new TaskTemplateFindByIdQuery({ id }));
     return this.mapper.toResponse(vm);
   }
 
@@ -96,10 +99,22 @@ export class TaskTemplatesController {
       new UpdateTaskTemplateCommand({ id, ...dto }),
     );
 
-    const vm = await this.queryBus.execute<TaskTemplateFindByIdQuery, TaskTemplateViewModel>(
-      new TaskTemplateFindByIdQuery({ id }),
-    );
+    const vm = await this.queryBus.execute<
+      TaskTemplateFindByIdQuery,
+      TaskTemplateViewModel
+    >(new TaskTemplateFindByIdQuery({ id }));
     return this.mapper.toResponse(vm);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a task template' })
+  @ApiResponse({ status: 204, description: 'Deleted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Not found' })
+  async deleteTaskTemplate(@Param('id') id: string): Promise<void> {
+    this.logger.log(`DELETE /task-templates/${id}`);
+    await this.commandBus.execute(new DeleteTaskTemplateCommand({ id }));
   }
 
   @Get(':id')
@@ -108,11 +123,14 @@ export class TaskTemplatesController {
   @ApiResponse({ status: 200, type: TaskTemplateRestResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Not found' })
-  async getTaskTemplate(@Param('id') id: string): Promise<TaskTemplateRestResponseDto> {
+  async getTaskTemplate(
+    @Param('id') id: string,
+  ): Promise<TaskTemplateRestResponseDto> {
     this.logger.log(`GET /task-templates/${id}`);
-    const vm = await this.queryBus.execute<TaskTemplateFindByIdQuery, TaskTemplateViewModel>(
-      new TaskTemplateFindByIdQuery({ id }),
-    );
+    const vm = await this.queryBus.execute<
+      TaskTemplateFindByIdQuery,
+      TaskTemplateViewModel
+    >(new TaskTemplateFindByIdQuery({ id }));
     return this.mapper.toResponse(vm);
   }
 
@@ -121,7 +139,9 @@ export class TaskTemplatesController {
   @ApiOperation({ summary: 'List task templates' })
   @ApiResponse({ status: 200 })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async listTaskTemplates(): Promise<PaginatedResult<TaskTemplateRestResponseDto>> {
+  async listTaskTemplates(): Promise<
+    PaginatedResult<TaskTemplateRestResponseDto>
+  > {
     this.logger.log('GET /task-templates');
     const result = await this.queryBus.execute<
       TaskTemplateFindByCriteriaQuery,

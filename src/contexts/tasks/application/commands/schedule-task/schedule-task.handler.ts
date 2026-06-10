@@ -7,6 +7,7 @@ import { TaskAggregate } from '@contexts/tasks/domain/aggregates/task.aggregate'
 import { TaskBuilder } from '@contexts/tasks/domain/builders/task.builder';
 import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
 import { TaskDuplicateIdempotencyKeyException } from '@contexts/tasks/domain/exceptions/task-duplicate-idempotency-key.exception';
+import { TaskTemplateHandlerKeyRequiredException } from '@contexts/tasks/domain/exceptions/task-template-handler-key-required.exception';
 import {
   ITaskReadRepository,
   TASK_READ_REPOSITORY,
@@ -49,6 +50,10 @@ export class ScheduleTaskCommandHandler
       command.templateId.value,
     );
     const primitives = template.toPrimitives();
+
+    if (primitives.handlerKey === null) {
+      throw new TaskTemplateHandlerKeyRequiredException(primitives.id);
+    }
 
     if (command.idempotencyKey) {
       const existing = await this.taskReadRepository.findByIdempotencyKey(

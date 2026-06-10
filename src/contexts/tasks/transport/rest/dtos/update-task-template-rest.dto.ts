@@ -21,11 +21,10 @@ export class UpdateTaskTemplateRestDto {
   @IsOptional()
   description?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsString()
-  @IsNotEmpty()
   @IsOptional()
-  handlerKey?: string;
+  handlerKey?: string | null;
 
   @ApiPropertyOptional({ minimum: 1, maximum: 10 })
   @IsInt()
@@ -59,7 +58,9 @@ export class UpdateTaskTemplateRestDto {
   @IsOptional()
   maxConcurrency?: number;
 
-  @ApiPropertyOptional({ description: '5-field cron expression applied to tasks by default' })
+  @ApiPropertyOptional({
+    description: '5-field cron expression applied to tasks by default',
+  })
   @IsString()
   @IsOptional()
   defaultCronExpression?: string | null;

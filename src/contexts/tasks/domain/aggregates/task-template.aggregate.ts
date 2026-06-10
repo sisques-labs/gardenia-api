@@ -11,6 +11,7 @@ import { TaskTemplateHandlerKeyChangedEvent } from '@contexts/tasks/domain/event
 import { TaskTemplateMaxConcurrencyChangedEvent } from '@contexts/tasks/domain/events/field-changed/max-concurrency-changed/task-template-max-concurrency-changed.event';
 import { TaskTemplateNameChangedEvent } from '@contexts/tasks/domain/events/field-changed/name-changed/task-template-name-changed.event';
 import { TaskTemplateCreatedEvent } from '@contexts/tasks/domain/events/task-template-created/task-template-created.event';
+import { TaskTemplateDeletedEvent } from '@contexts/tasks/domain/events/task-template-deleted/task-template-deleted.event';
 import { TaskTemplateUpdatedEvent } from '@contexts/tasks/domain/events/task-template-updated/task-template-updated.event';
 import { ITaskTemplate } from '@contexts/tasks/domain/interfaces/task-template.interface';
 import { ITaskTemplatePrimitives } from '@contexts/tasks/domain/primitives/task-template.primitives';
@@ -30,7 +31,7 @@ export class TaskTemplateAggregate extends BaseAggregate {
   private readonly _id: TaskTemplateIdValueObject;
   private _name: TaskNameValueObject;
   private _description: TaskDescriptionValueObject | null;
-  private _handlerKey: TaskHandlerKeyValueObject;
+  private _handlerKey: TaskHandlerKeyValueObject | null;
   private _defaultPriority: TaskPriorityValueObject;
   private _defaultRetryCount: TaskRetryCountValueObject;
   private _defaultBackoffStrategy: TaskBackoffStrategyValueObject;
@@ -85,8 +86,8 @@ export class TaskTemplateAggregate extends BaseAggregate {
       this.changeDescription(props.description);
     }
 
-    if (props.handlerKey !== undefined) {
-      this.changeHandlerKey(props.handlerKey);
+    if ('handlerKey' in props) {
+      this.changeHandlerKey(props.handlerKey ?? null);
     }
 
     if (props.defaultPriority !== undefined) {
@@ -131,6 +132,15 @@ export class TaskTemplateAggregate extends BaseAggregate {
     );
   }
 
+  public delete(): void {
+    this.apply(
+      new TaskTemplateDeletedEvent(
+        this.eventMetadata(TaskTemplateDeletedEvent.name),
+        { taskTemplateId: this._id.value },
+      ),
+    );
+  }
+
   private changeName(newName: TaskNameValueObject): void {
     const oldValue = this._name.value;
     const newValue = newName.value;
@@ -161,9 +171,11 @@ export class TaskTemplateAggregate extends BaseAggregate {
     );
   }
 
-  private changeHandlerKey(newHandlerKey: TaskHandlerKeyValueObject): void {
-    const oldValue = this._handlerKey.value;
-    const newValue = newHandlerKey.value;
+  private changeHandlerKey(
+    newHandlerKey: TaskHandlerKeyValueObject | null,
+  ): void {
+    const oldValue = this._handlerKey?.value ?? null;
+    const newValue = newHandlerKey?.value ?? null;
     if (oldValue === newValue) return;
     this._handlerKey = newHandlerKey;
     this.touch();
@@ -305,7 +317,7 @@ export class TaskTemplateAggregate extends BaseAggregate {
     return this._description;
   }
 
-  get handlerKey(): TaskHandlerKeyValueObject {
+  get handlerKey(): TaskHandlerKeyValueObject | null {
     return this._handlerKey;
   }
 
@@ -346,7 +358,7 @@ export class TaskTemplateAggregate extends BaseAggregate {
       id: this._id.value,
       name: this._name.value,
       description: this._description?.value ?? null,
-      handlerKey: this._handlerKey.value,
+      handlerKey: this._handlerKey?.value ?? null,
       defaultPriority: this._defaultPriority.value,
       defaultRetryCount: this._defaultRetryCount.value,
       defaultBackoffStrategy: this._defaultBackoffStrategy.value,

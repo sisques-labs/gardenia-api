@@ -5,7 +5,7 @@ import { ITaskTemplatePrimitives } from '@contexts/tasks/domain/primitives/task-
 export class TaskTemplateViewModel extends BaseViewModel {
   public readonly name: string;
   public readonly description: string | null;
-  public readonly handlerKey: string;
+  public readonly handlerKey: string | null;
   public readonly defaultPriority: number;
   public readonly defaultRetryCount: number;
   public readonly defaultBackoffStrategy: string;
