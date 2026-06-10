@@ -30,7 +30,7 @@ import {
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CancelTaskCommand } from '@contexts/tasks/application/commands/cancel-task/cancel-task.command';
-import { CompleteUserTaskCommand } from '@contexts/tasks/application/commands/complete-user-task/complete-user-task.command';
+import { CompleteTaskByUserCommand } from '@contexts/tasks/application/commands/complete-task-by-user/complete-task-by-user.command';
 import { CreateTaskCommand } from '@contexts/tasks/application/commands/create-task/create-task.command';
 import { RescheduleTaskCommand } from '@contexts/tasks/application/commands/reschedule-task/reschedule-task.command';
 import { ScheduleTaskCommand } from '@contexts/tasks/application/commands/schedule-task/schedule-task.command';
@@ -157,14 +157,14 @@ export class TasksController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Task not found' })
   @ApiResponse({ status: 409, description: 'Task not completable' })
-  async completeUserTask(
+  async completeTaskByUser(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<TaskRestResponseDto> {
     this.logger.log(`POST /tasks/${id}/complete`);
 
     await this.commandBus.execute(
-      new CompleteUserTaskCommand({ id, userId: user.userId }),
+      new CompleteTaskByUserCommand({ id, userId: user.userId }),
     );
 
     const vm = await this.queryBus.execute<TaskFindByIdQuery, TaskViewModel>(

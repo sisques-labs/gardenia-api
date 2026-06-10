@@ -14,7 +14,7 @@ import { DeleteTaskTemplateCommandHandler } from '@contexts/tasks/application/co
 import { UpdateTaskTemplateCommandHandler } from '@contexts/tasks/application/commands/update-task-template/update-task-template.handler';
 import { ScheduleTaskCommandHandler } from '@contexts/tasks/application/commands/schedule-task/schedule-task.handler';
 import { CancelTaskCommandHandler } from '@contexts/tasks/application/commands/cancel-task/cancel-task.handler';
-import { CompleteUserTaskCommandHandler } from '@contexts/tasks/application/commands/complete-user-task/complete-user-task.handler';
+import { CompleteTaskByUserCommandHandler } from '@contexts/tasks/application/commands/complete-task-by-user/complete-task-by-user.handler';
 import { CreateTaskCommandHandler } from '@contexts/tasks/application/commands/create-task/create-task.handler';
 import { RescheduleTaskCommandHandler } from '@contexts/tasks/application/commands/reschedule-task/reschedule-task.handler';
 import { TaskTemplateFindByIdQueryHandler } from '@contexts/tasks/application/queries/task-template-find-by-id/task-template-find-by-id.handler';
@@ -68,7 +68,7 @@ const COMMAND_HANDLERS = [
   CancelTaskCommandHandler,
   CreateTaskCommandHandler,
   RescheduleTaskCommandHandler,
-  CompleteUserTaskCommandHandler,
+  CompleteTaskByUserCommandHandler,
 ];
 
 const QUERY_HANDLERS = [

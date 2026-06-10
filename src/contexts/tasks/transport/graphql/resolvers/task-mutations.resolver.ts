@@ -12,7 +12,7 @@ import {
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CancelTaskCommand } from '@contexts/tasks/application/commands/cancel-task/cancel-task.command';
-import { CompleteUserTaskCommand } from '@contexts/tasks/application/commands/complete-user-task/complete-user-task.command';
+import { CompleteTaskByUserCommand } from '@contexts/tasks/application/commands/complete-task-by-user/complete-task-by-user.command';
 import { CreateTaskCommand } from '@contexts/tasks/application/commands/create-task/create-task.command';
 import { RescheduleTaskCommand } from '@contexts/tasks/application/commands/reschedule-task/reschedule-task.command';
 import { ScheduleTaskCommand } from '@contexts/tasks/application/commands/schedule-task/schedule-task.command';
@@ -108,14 +108,14 @@ export class TaskMutationsResolver {
   }
 
   @Mutation(() => MutationResponseDto)
-  async completeUserTask(
+  async completeTaskByUser(
     @Args('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<MutationResponseDto> {
-    this.logger.log(`Completing user task: ${id}`);
+    this.logger.log(`Completing task by user: ${id}`);
 
     await this.commandBus.execute(
-      new CompleteUserTaskCommand({ id, userId: user.userId }),
+      new CompleteTaskByUserCommand({ id, userId: user.userId }),
     );
 
     return this.mutationResponseGraphQLMapper.toResponseDto({

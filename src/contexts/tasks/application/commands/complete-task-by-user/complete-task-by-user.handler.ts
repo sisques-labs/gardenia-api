@@ -9,14 +9,14 @@ import {
   TASK_WRITE_REPOSITORY,
 } from '@contexts/tasks/domain/repositories/write/task-write.repository';
 
-import { CompleteUserTaskCommand } from './complete-user-task.command';
+import { CompleteTaskByUserCommand } from './complete-task-by-user.command';
 
-@CommandHandler(CompleteUserTaskCommand)
-export class CompleteUserTaskCommandHandler
-  extends BaseCommandHandler<CompleteUserTaskCommand, TaskAggregate>
-  implements ICommandHandler<CompleteUserTaskCommand, void>
+@CommandHandler(CompleteTaskByUserCommand)
+export class CompleteTaskByUserCommandHandler
+  extends BaseCommandHandler<CompleteTaskByUserCommand, TaskAggregate>
+  implements ICommandHandler<CompleteTaskByUserCommand, void>
 {
-  private readonly logger = new Logger(CompleteUserTaskCommandHandler.name);
+  private readonly logger = new Logger(CompleteTaskByUserCommandHandler.name);
 
   constructor(
     @Inject(TASK_WRITE_REPOSITORY)
@@ -27,11 +27,11 @@ export class CompleteUserTaskCommandHandler
     super(eventBus);
   }
 
-  async execute(command: CompleteUserTaskCommand): Promise<void> {
+  async execute(command: CompleteTaskByUserCommand): Promise<void> {
     const task = await this.assertTaskExistsService.execute(command.id.value);
     task.completeByUser(new Date());
     await this.taskWriteRepository.save(task);
     await this.publishEvents(task);
-    this.logger.log(`User task completed: ${command.id.value}`);
+    this.logger.log(`Task completed by user: ${command.id.value}`);
   }
 }

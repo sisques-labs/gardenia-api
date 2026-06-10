@@ -7,8 +7,8 @@ import { TaskStatusEnum } from '@contexts/tasks/domain/enums/task-status.enum';
 import { TaskNotCompletableException } from '@contexts/tasks/domain/exceptions/task-not-completable.exception';
 import { ITaskWriteRepository } from '@contexts/tasks/domain/repositories/write/task-write.repository';
 
-import { CompleteUserTaskCommand } from './complete-user-task.command';
-import { CompleteUserTaskCommandHandler } from './complete-user-task.handler';
+import { CompleteTaskByUserCommand } from './complete-task-by-user.command';
+import { CompleteTaskByUserCommandHandler } from './complete-task-by-user.handler';
 
 const TASK_ID = '550e8400-e29b-41d4-a716-446655440001';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
@@ -41,10 +41,10 @@ const buildScheduledTask = () =>
     .build();
 
 const buildCommand = () =>
-  new CompleteUserTaskCommand({ id: TASK_ID, userId: USER_ID });
+  new CompleteTaskByUserCommand({ id: TASK_ID, userId: USER_ID });
 
-describe('CompleteUserTaskCommandHandler', () => {
-  let handler: CompleteUserTaskCommandHandler;
+describe('CompleteTaskByUserCommandHandler', () => {
+  let handler: CompleteTaskByUserCommandHandler;
   let taskWriteRepo: jest.Mocked<ITaskWriteRepository>;
   let assertTaskExistsService: jest.Mocked<AssertTaskExistsService>;
   let eventBus: jest.Mocked<EventBus>;
@@ -66,7 +66,7 @@ describe('CompleteUserTaskCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
-    handler = new CompleteUserTaskCommandHandler(
+    handler = new CompleteTaskByUserCommandHandler(
       taskWriteRepo,
       assertTaskExistsService,
       eventBus,
