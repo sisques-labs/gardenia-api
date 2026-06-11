@@ -1,14 +1,9 @@
 import { BaseEvent, IEventMetadata } from '@sisques-labs/nestjs-kit';
 
-export interface TaskRescheduledEventData {
-  id: string;
-  userId: string;
-  oldScheduledAt: Date | null;
-  newScheduledAt: Date;
-}
+import { ITaskRescheduledEventData } from '@contexts/tasks/domain/events/interfaces/task-rescheduled-event-data.interface';
 
-export class TaskRescheduledEvent extends BaseEvent<TaskRescheduledEventData> {
-  constructor(metadata: IEventMetadata, data: TaskRescheduledEventData) {
+export class TaskRescheduledEvent extends BaseEvent<ITaskRescheduledEventData> {
+  constructor(metadata: IEventMetadata, data: ITaskRescheduledEventData) {
     super(metadata, data);
   }
 }

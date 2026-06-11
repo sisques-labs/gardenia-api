@@ -29,7 +29,7 @@ export class RescheduleTaskCommandHandler
 
   async execute(command: RescheduleTaskCommand): Promise<void> {
     const task = await this.assertTaskExistsService.execute(command.id.value);
-    task.reschedule(command.scheduledAt);
+    task.reschedule(command.scheduledAt.value);
     await this.taskWriteRepository.save(task);
     await this.publishEvents(task);
     this.logger.log(`Task rescheduled: ${command.id.value}`);

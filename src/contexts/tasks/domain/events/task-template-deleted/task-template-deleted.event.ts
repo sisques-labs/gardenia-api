@@ -1,11 +1,9 @@
 import { BaseEvent, IEventMetadata } from '@sisques-labs/nestjs-kit';
 
-export interface TaskTemplateDeletedEventData {
-  taskTemplateId: string;
-}
+import { ITaskTemplateDeletedEventData } from '@contexts/tasks/domain/events/interfaces/task-template-deleted-event-data.interface';
 
-export class TaskTemplateDeletedEvent extends BaseEvent<TaskTemplateDeletedEventData> {
-  constructor(metadata: IEventMetadata, data: TaskTemplateDeletedEventData) {
+export class TaskTemplateDeletedEvent extends BaseEvent<ITaskTemplateDeletedEventData> {
+  constructor(metadata: IEventMetadata, data: ITaskTemplateDeletedEventData) {
     super(metadata, data);
   }
 }

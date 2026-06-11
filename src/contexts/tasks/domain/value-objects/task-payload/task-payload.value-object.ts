@@ -1,11 +1,7 @@
-export class TaskPayloadValueObject {
-  private readonly _value: Record<string, unknown>;
+import { JsonValueObject } from '@sisques-labs/nestjs-kit';
 
+export class TaskPayloadValueObject extends JsonValueObject {
   constructor(value: Record<string, unknown>) {
-    this._value = value ?? {};
-  }
-
-  get value(): Record<string, unknown> {
-    return this._value;
+    super(value);
   }
 }

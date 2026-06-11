@@ -1,3 +1,5 @@
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
+
 import { TaskIdValueObject } from '@contexts/tasks/domain/value-objects/task-id/task-id.value-object';
 
 export interface CompleteTaskByUserCommandInput {
@@ -7,10 +9,10 @@ export interface CompleteTaskByUserCommandInput {
 
 export class CompleteTaskByUserCommand {
   public readonly id: TaskIdValueObject;
-  public readonly userId: string;
+  public readonly userId: UuidValueObject;
 
   constructor(input: CompleteTaskByUserCommandInput) {
     this.id = new TaskIdValueObject(input.id);
-    this.userId = input.userId;
+    this.userId = new UuidValueObject(input.userId);
   }
 }

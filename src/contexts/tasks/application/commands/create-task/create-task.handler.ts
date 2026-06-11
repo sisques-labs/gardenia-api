@@ -38,7 +38,7 @@ export class CreateTaskCommandHandler
       .withTriggerType(TaskTriggerTypeEnum.USER)
       .withTitle(command.title.value)
       .withDescription(command.description?.value ?? null)
-      .withScheduledAt(command.scheduledAt ?? now)
+      .withScheduledAt(command.scheduledAt?.value ?? now)
       .withUserId(command.userId.value)
       .withCreatedAt(now)
       .withUpdatedAt(now)

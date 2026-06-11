@@ -1,4 +1,6 @@
-import { TaskTemplateIdValueObject } from '@contexts/tasks/domain/value-objects/task-template-id/task-template-id.value-object';
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
+
+import { TaskIdValueObject } from '@contexts/tasks/domain/value-objects/task-id/task-id.value-object';
 
 export interface RescheduleTaskCommandInput {
   id: string;
@@ -7,13 +9,13 @@ export interface RescheduleTaskCommandInput {
 }
 
 export class RescheduleTaskCommand {
-  public readonly id: TaskTemplateIdValueObject;
-  public readonly scheduledAt: Date;
-  public readonly userId: string;
+  public readonly id: TaskIdValueObject;
+  public readonly scheduledAt: DateValueObject;
+  public readonly userId: UuidValueObject;
 
   constructor(input: RescheduleTaskCommandInput) {
-    this.id = new TaskTemplateIdValueObject(input.id);
-    this.scheduledAt = input.scheduledAt;
-    this.userId = input.userId;
+    this.id = new TaskIdValueObject(input.id);
+    this.scheduledAt = new DateValueObject(input.scheduledAt);
+    this.userId = new UuidValueObject(input.userId);
   }
 }

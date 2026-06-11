@@ -1,7 +1,7 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { BaseException } from '@sisques-labs/nestjs-kit';
 
-export class TaskNotCompletableException extends HttpException {
+export class TaskNotCompletableException extends BaseException {
   constructor(reason: string) {
-    super(`Task cannot be completed: ${reason}`, HttpStatus.CONFLICT);
+    super(`Task cannot be completed: ${reason}`);
   }
 }

@@ -1,7 +1,7 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { BaseException } from '@sisques-labs/nestjs-kit';
 
-export class TaskNotReschedulableException extends HttpException {
+export class TaskNotReschedulableException extends BaseException {
   constructor(reason: string) {
-    super(`Task cannot be rescheduled: ${reason}`, HttpStatus.CONFLICT);
+    super(`Task cannot be rescheduled: ${reason}`);
   }
 }
