@@ -28,14 +28,14 @@ export class TaskJobCompletedEventHandler implements IEventHandler<TaskJobComple
     const { taskId } = event.data;
     const task = await this.assertTaskExistsService.execute(taskId);
 
-    task.complete();
-    await this.taskWriteRepository.save(task);
-
     const run = await this.taskRunWriteRepository.findActiveByTaskId(taskId);
     if (run) {
       run.complete();
       await this.taskRunWriteRepository.save(run);
     }
+
+    task.complete();
+    await this.taskWriteRepository.save(task);
 
     this.logger.log(`Task ${taskId} completed`);
   }
