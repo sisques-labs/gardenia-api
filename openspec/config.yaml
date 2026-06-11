@@ -39,6 +39,7 @@ rules:
     - Keep tasks completable in one session
     - Each task must include migration plan if DB schema changes
   apply:
+    - For every change that adds, removes, or modifies public API (commands, queries, events, endpoints, guards, decorators) or domain concepts in a bounded context, update or create the README.md at src/contexts/{context}/README.md. The README must reflect the current state of the context — not just the delta. If no README exists, create one following the auth context README as a reference template.
     - Follow existing DDD+CQRS+Hexagonal patterns (see architecture skill)
     - When adding or changing a feature, include tests at all applicable layers: unit (src/**/*.spec.ts), integration (test/integration/**/*.integration-spec.ts for persistence/tenant boundaries), and API E2E (test/**/*.e2e-spec.ts for HTTP/GraphQL flows). Skip a layer only when clearly out of scope and document why in the PR.
     - NestJS modules: group providers into named const arrays (COMMAND_HANDLERS, QUERY_HANDLERS, APPLICATION_SERVICES, DOMAIN_BUILDERS, INFRASTRUCTURE_REPOSITORIES, INFRASTRUCTURE_MAPPERS, INFRASTRUCTURE_ENTITIES, TRANSPORT_PROVIDERS) and spread them in @Module. Always import CqrsModule. Use useClass (not useExisting) for repository DI tokens.
