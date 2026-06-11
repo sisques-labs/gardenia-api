@@ -1,22 +1,34 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.0-alpha.0] - 2026-06-11
+## [0.15.0-alpha.1] - 2026-06-11
 
 ### Bug Fixes
 - **plant-species:** Add TODO comment to verify adapter correctness (269e303)
+- **spaces:** Update expired invitation test date to 2099 (5785988)
+- **auth:** Builder withAppRole accepts string primitive, not VO (0642316)
+- **auth:** Add appRole to CurrentUserPayload mocks in transport specs (744fa8d)
+- **auth:** Add appRole to CurrentUserPayload mocks in planting-spots and plants specs (9566ac3)
+
+### Chore
+- Release v0.15.0-alpha.0 (2e72c1a)
+- **migrations:** Add CHECK constraint to app_role column (59ef097)
+
+### Documentation
+- **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
 
 ### Features
 - **plant-species:** Enrich catalog and add bulk import from GBIF (81efc60)
 - **plant-species:** Add enrich command with GBIF validation gate (84b1e65)
 - **plants:** Align linked species view model with plant-species catalog (312f91c)
+- **auth:** Implement app-level RBAC with ADMIN and USER roles (28d5810)
 
 ### Refactor
 - **plant-species:** Address PR review on import command and GBIF types (a392dcf)
 
 ### Testing
 - **spaces:** Fix invitation expiry fixture past current date (397c16f)
-## [0.14.1] - 2026-06-09
+## [0.15.0-alpha.0] - 2026-06-09
 
 ### Bug Fixes
 - **spaces:** Address PR review feedback on invitations (425a085)
