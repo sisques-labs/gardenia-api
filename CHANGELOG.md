@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.15.1-beta.1] - 2026-06-11
+
+### Chore
+- Update version to 0.15.0-beta.0 (607f541)
+- Update version to 0.15.1-beta.0 (d55aaff)
 ## [0.15.0-alpha.8] - 2026-06-11
 
 ### Bug Fixes
@@ -33,6 +38,8 @@ All notable changes to this project will be documented in this file.
 - Release v0.15.0-alpha.7 (3eb5f96)
 - Release v0.15.0-beta.0 (ae1c3f5)
 - Merge staging into develop to align histories (037a28a)
+- Release v0.15.0-alpha.8 (52aa3ef)
+- Release v0.15.0 (654097e)
 
 ### Documentation
 - **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
