@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.0-beta.0] - 2026-06-11
+## [0.15.0] - 2026-06-11
 
 ### Bug Fixes
 - **plant-species:** Add TODO comment to verify adapter correctness (269e303)
@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Add docker-compose for local PostgreSQL development (af6bd61)
 - Release v0.15.0-alpha.4 (38c23ad)
 - Release v0.15.0-alpha.5 (d56d0ee)
+- Release v0.15.0-beta.0 (ae1c3f5)
 
 ### Documentation
 - **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
@@ -40,7 +41,7 @@ All notable changes to this project will be documented in this file.
 
 ### Testing
 - **spaces:** Fix invitation expiry fixture past current date (397c16f)
-## [0.15.0-alpha.5] - 2026-06-09
+## [0.15.0-beta.0] - 2026-06-09
 
 ### Bug Fixes
 - **spaces:** Address PR review feedback on invitations (425a085)
