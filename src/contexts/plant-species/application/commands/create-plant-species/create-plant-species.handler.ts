@@ -30,12 +30,14 @@ export class CreatePlantSpeciesCommandHandler
   }
 
   async execute(command: CreatePlantSpeciesCommand): Promise<string> {
-    await this.assertPlantSpeciesNameAvailableService.execute(command.name);
+    await this.assertPlantSpeciesNameAvailableService.execute(
+      command.scientificName,
+    );
 
     const now = new Date();
     const plantSpecies = this.plantSpeciesBuilder
       .withId(UuidValueObject.generate().value)
-      .withName(command.name.value)
+      .withScientificName(command.scientificName.value)
       .withCreatedAt(now)
       .withUpdatedAt(now)
       .build();

@@ -7,7 +7,7 @@ export const PLANT_SPECIES_WRITE_REPOSITORY = Symbol(
 );
 
 export interface IPlantSpeciesWriteRepository extends IBaseWriteRepository<PlantSpeciesAggregate> {
-  findByNameNormalized(
-    normalizedName: string,
+  findByScientificName(
+    normalizedScientificName: string,
   ): Promise<PlantSpeciesAggregate | null>;
 }

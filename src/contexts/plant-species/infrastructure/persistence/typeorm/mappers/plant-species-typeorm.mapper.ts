@@ -11,7 +11,9 @@ export class PlantSpeciesTypeOrmMapper {
   public toDomain(entity: PlantSpeciesTypeOrmEntity): PlantSpeciesAggregate {
     return this.plantSpeciesBuilder
       .withId(entity.id)
-      .withName(entity.name)
+      .withScientificName(entity.scientificName)
+      .withDescription(entity.description ?? null)
+      .withImageUrl(entity.imageUrl ?? null)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -24,7 +26,9 @@ export class PlantSpeciesTypeOrmMapper {
     const entity = new PlantSpeciesTypeOrmEntity();
 
     entity.id = primitives.id;
-    entity.name = primitives.name;
+    entity.scientificName = primitives.scientificName;
+    entity.description = primitives.description;
+    entity.imageUrl = primitives.imageUrl;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
 

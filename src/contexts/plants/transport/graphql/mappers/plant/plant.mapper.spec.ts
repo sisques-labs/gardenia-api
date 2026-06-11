@@ -26,7 +26,9 @@ function makeQrData(): PlantQrViewModel {
 function makeSpeciesData(): PlantSpeciesViewModel {
   return new PlantSpeciesViewModel({
     id: SPECIES_ID,
-    name: 'Rosa canina',
+    scientificName: 'Rosa canina',
+    description: 'Wild rose species',
+    imageUrl: 'https://example.com/rosa-canina.jpg',
     createdAt: NOW,
     updatedAt: NOW,
   });
@@ -60,7 +62,9 @@ describe('PlantGraphQLMapper', () => {
       expect(dto.id).toBe(PLANT_ID);
       expect(dto.name).toBe('Rose');
       expect(dto.plantSpeciesId).toBe(SPECIES_ID);
-      expect(dto.species?.name).toBe('Rosa canina');
+      expect(dto.species?.scientificName).toBe('Rosa canina');
+      expect(dto.species?.description).toBe('Wild rose species');
+      expect(dto.species?.imageUrl).toBe('https://example.com/rosa-canina.jpg');
       expect(dto.imageUrl).toBe('https://example.com/rose.jpg');
       expect(dto.userId).toBe(USER_ID);
       expect(dto.spaceId).toBe(SPACE_ID);

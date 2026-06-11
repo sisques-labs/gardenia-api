@@ -15,10 +15,10 @@ import { truncateAll } from '../../helpers/db-reset';
 
 const NOW = new Date('2024-06-01T00:00:00.000Z');
 
-function buildSpecies(name: string) {
+function buildSpecies(scientificName: string) {
   return new PlantSpeciesBuilder()
     .withId(randomUUID())
-    .withName(name)
+    .withScientificName(scientificName)
     .withCreatedAt(NOW)
     .withUpdatedAt(NOW)
     .build();
@@ -49,17 +49,17 @@ describe('PlantSpeciesTypeOrmWriteRepository (integration)', () => {
     const found = await writeRepo.findById(saved.id.value);
 
     expect(found).not.toBeNull();
-    expect(found!.name.value).toBe('Monstera');
+    expect(found!.scientificName.value).toBe('Monstera');
   });
 
-  it('findByNameNormalized() is case-insensitive', async () => {
+  it('findByScientificName() is case-insensitive', async () => {
     const species = buildSpecies('Basil');
     species.create();
     await writeRepo.save(species);
 
-    const found = await writeRepo.findByNameNormalized('basil');
+    const found = await writeRepo.findByScientificName('basil');
     expect(found).not.toBeNull();
-    expect(found!.name.value).toBe('Basil');
+    expect(found!.scientificName.value).toBe('Basil');
   });
 
   it('delete() removes the record', async () => {
