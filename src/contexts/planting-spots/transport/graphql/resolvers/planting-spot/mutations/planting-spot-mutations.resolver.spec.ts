@@ -1,3 +1,4 @@
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { CreatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/create-planting-spot/create-planting-spot.command';
 import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.command';
 import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
@@ -18,7 +19,11 @@ const SPOT_ID = '11111111-1111-4111-8111-111111111111';
 const USER_ID = '22222222-2222-4222-8222-222222222222';
 const SPACE_ID = '33333333-3333-4333-8333-333333333333';
 
-const mockUser = { userId: USER_ID, email: 'test@test.com' };
+const mockUser = {
+  userId: USER_ID,
+  email: 'test@test.com',
+  appRole: AppRoleEnum.USER,
+};
 
 describe('PlantingSpotMutationsResolver', () => {
   let sut: PlantingSpotMutationsResolver;

@@ -1,4 +1,5 @@
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
 import { PlantRestMapper } from '../mappers/plant/plant.mapper';
@@ -63,6 +64,7 @@ describe('PlantsController', () => {
     const result = await controller.createPlant(dto, {
       userId: USER_ID,
       email: 'user@example.com',
+      appRole: AppRoleEnum.USER,
     });
 
     expect(commandBus.execute).toHaveBeenCalledTimes(1);
@@ -107,7 +109,7 @@ describe('PlantsController', () => {
     const result = await controller.updatePlant(
       PLANT_ID,
       { name: 'Tulip' },
-      { userId: USER_ID, email: 'user@example.com' },
+      { userId: USER_ID, email: 'user@example.com', appRole: AppRoleEnum.USER },
     );
 
     expect(commandBus.execute).toHaveBeenCalledTimes(1);
