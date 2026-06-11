@@ -38,8 +38,8 @@ export class AccountBuilder extends BaseBuilder<
     return this;
   }
 
-  withAppRole(role: AppRoleValueObject): this {
-    this._appRole = role.value;
+  withAppRole(role: string): this {
+    this._appRole = role;
     return this;
   }
 
