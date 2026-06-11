@@ -1,12 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.1-beta.1] - 2026-06-11
+## [0.15.1] - 2026-06-11
 
 ### Chore
 - Update version to 0.15.0-beta.0 (607f541)
 - Update version to 0.15.1-beta.0 (d55aaff)
-## [0.15.0-alpha.8] - 2026-06-11
+- Release v0.15.1-beta.1 (3b792fa)
+## [0.15.1-beta.1] - 2026-06-11
 
 ### Bug Fixes
 - **plant-species:** Add TODO comment to verify adapter correctness (269e303)
