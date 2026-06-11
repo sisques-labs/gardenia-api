@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.0-alpha.5] - 2026-06-11
+## [0.15.0-alpha.6] - 2026-06-11
 
 ### Bug Fixes
 - **plant-species:** Add TODO comment to verify adapter correctness (269e303)
@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - **docker:** Trigger build only on pull requests (3a53a58)
 - Trigger CI workflow only on pull requests (80d1b8b)
 - Auto-open promotion PRs on merge to develop and staging (5a9f4e6)
+- Remove auto-promote workflow (e1e90d9)
 
 ### Chore
 - Release v0.15.0-alpha.0 (2e72c1a)
@@ -24,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Release v0.15.0-alpha.3 (9969c4e)
 - Add docker-compose for local PostgreSQL development (af6bd61)
 - Release v0.15.0-alpha.4 (38c23ad)
+- Release v0.15.0-alpha.5 (d56d0ee)
 
 ### Documentation
 - **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
@@ -39,7 +41,7 @@ All notable changes to this project will be documented in this file.
 
 ### Testing
 - **spaces:** Fix invitation expiry fixture past current date (397c16f)
-## [0.15.0-alpha.4] - 2026-06-09
+## [0.15.0-beta.0] - 2026-06-09
 
 ### Bug Fixes
 - **spaces:** Address PR review feedback on invitations (425a085)
