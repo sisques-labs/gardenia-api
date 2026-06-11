@@ -20,6 +20,7 @@ describe('ImportPlantSpeciesCommandHandler', () => {
 
     importPort = {
       fetchPage: jest.fn(),
+      fetchByScientificName: jest.fn(),
     };
 
     writeRepository = {

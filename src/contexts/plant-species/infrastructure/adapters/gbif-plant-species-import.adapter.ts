@@ -13,6 +13,13 @@ const GBIF_BASE_URL = 'https://api.gbif.org/v1';
 const REQUEST_TIMEOUT_MS = 5000;
 const VASCULAR_PLANTS_TAXON_KEY = 7707728;
 
+type GbifSpeciesMatchResponse = {
+  matchType?: string;
+  usageKey?: number;
+  canonicalName?: string;
+  scientificName?: string;
+};
+
 type GbifSpeciesSearchResult = {
   key?: number;
   scientificName?: string;
@@ -38,6 +45,40 @@ export class GbifPlantSpeciesImportAdapter implements IPlantSpeciesImportPort {
 
   constructor(private readonly httpService: HttpService) {}
 
+  async fetchByScientificName(
+    scientificName: string,
+  ): Promise<PlantSpeciesImportRecord | null> {
+    try {
+      const match = await this.getSpeciesMatch(scientificName);
+      if (!match?.usageKey || match.matchType === 'NONE') {
+        return null;
+      }
+
+      const resolvedName = (
+        match.canonicalName ??
+        match.scientificName ??
+        scientificName
+      ).trim();
+      if (!resolvedName) {
+        return null;
+      }
+
+      const { description, imageUrl } = await this.enrichFromUsageKey(
+        match.usageKey,
+      );
+      if (description == null && imageUrl == null) {
+        return null;
+      }
+
+      return { scientificName: resolvedName, description, imageUrl };
+    } catch (error) {
+      this.logger.warn(
+        `GBIF enrichment lookup failed for "${scientificName}": ${error}`,
+      );
+      return null;
+    }
+  }
+
   async fetchPage(
     limit: number,
     offset: number,
@@ -55,6 +96,22 @@ export class GbifPlantSpeciesImportAdapter implements IPlantSpeciesImportPort {
       this.logger.warn(`GBIF import page failed: ${error}`);
       return [];
     }
+  }
+
+  private async getSpeciesMatch(
+    scientificName: string,
+  ): Promise<GbifSpeciesMatchResponse | null> {
+    const { data } = await firstValueFrom(
+      this.httpService.get<GbifSpeciesMatchResponse>(
+        `${GBIF_BASE_URL}/species/match`,
+        {
+          params: { name: scientificName },
+          timeout: REQUEST_TIMEOUT_MS,
+        },
+      ),
+    );
+
+    return data;
   }
 
   private async searchSpecies(

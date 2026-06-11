@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CreatePlantSpeciesCommandHandler } from './application/commands/create-plant-species/create-plant-species.handler';
 import { DeletePlantSpeciesCommandHandler } from './application/commands/delete-plant-species/delete-plant-species.handler';
+import { EnrichPlantSpeciesCommandHandler } from './application/commands/enrich-plant-species/enrich-plant-species.handler';
 import { ImportPlantSpeciesCommandHandler } from './application/commands/import-plant-species/import-plant-species.handler';
 import { UpdatePlantSpeciesCommandHandler } from './application/commands/update-plant-species/update-plant-species.handler';
 import { PLANT_SPECIES_IMPORT_PORT } from './application/ports/plant-species-import.port';
@@ -36,6 +37,7 @@ const COMMAND_HANDLERS = [
   CreatePlantSpeciesCommandHandler,
   UpdatePlantSpeciesCommandHandler,
   DeletePlantSpeciesCommandHandler,
+  EnrichPlantSpeciesCommandHandler,
   ImportPlantSpeciesCommandHandler,
 ];
 

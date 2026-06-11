@@ -8,4 +8,13 @@ export type PlantSpeciesImportRecord = {
 
 export interface IPlantSpeciesImportPort {
   fetchPage(limit: number, offset: number): Promise<PlantSpeciesImportRecord[]>;
+
+  /**
+   * Resolves a single scientific name against the external catalog.
+   * Returns null when the name does not match a known species or when no
+   * enrichment data (description or image) is available.
+   */
+  fetchByScientificName(
+    scientificName: string,
+  ): Promise<PlantSpeciesImportRecord | null>;
 }

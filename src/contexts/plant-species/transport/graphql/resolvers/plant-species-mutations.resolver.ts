@@ -9,12 +9,14 @@ import {
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CreatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/create-plant-species/create-plant-species.command';
 import { DeletePlantSpeciesCommand } from '@contexts/plant-species/application/commands/delete-plant-species/delete-plant-species.command';
+import { EnrichPlantSpeciesCommand } from '@contexts/plant-species/application/commands/enrich-plant-species/enrich-plant-species.command';
 import { ImportPlantSpeciesCommand } from '@contexts/plant-species/application/commands/import-plant-species/import-plant-species.command';
 import { UpdatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/update-plant-species/update-plant-species.command';
 import { SkipSpace } from '@shared/decorators/skip-space.decorator';
 
 import { PlantSpeciesCreateRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-create.request.dto';
 import { PlantSpeciesDeleteRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-delete.request.dto';
+import { PlantSpeciesEnrichRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-enrich.request.dto';
 import { PlantSpeciesImportRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-import.request.dto';
 import { PlantSpeciesUpdateRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-update.request.dto';
 import { ImportPlantSpeciesResultResponseDto } from '@contexts/plant-species/transport/graphql/dtos/responses/import-plant-species-result.response.dto';
@@ -90,6 +92,36 @@ export class PlantSpeciesMutationsResolver {
       success: true,
       message: 'Plant species deleted successfully',
       id: input.id,
+    });
+  }
+
+  // TODO: add admin auth guard
+  @Mutation(() => MutationResponseDto)
+  async enrichPlantSpecies(
+    @Args('input') input: PlantSpeciesEnrichRequestDto,
+  ): Promise<MutationResponseDto> {
+    this.logger.log(`Enriching plant species: ${input.scientificName}`);
+
+    const plantSpeciesId = await this.commandBus.execute<
+      EnrichPlantSpeciesCommand,
+      string | null
+    >(
+      new EnrichPlantSpeciesCommand({
+        scientificName: input.scientificName,
+      }),
+    );
+
+    if (!plantSpeciesId) {
+      return this.mutationResponseGraphQLMapper.toResponseDto({
+        success: true,
+        message: 'No enrichment data found for the provided scientific name',
+      });
+    }
+
+    return this.mutationResponseGraphQLMapper.toResponseDto({
+      success: true,
+      message: 'Plant species enriched successfully',
+      id: plantSpeciesId,
     });
   }
 
