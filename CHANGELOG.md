@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.0-alpha.2] - 2026-06-11
+## [0.15.0-alpha.3] - 2026-06-11
 
 ### Bug Fixes
 - **plant-species:** Add TODO comment to verify adapter correctness (269e303)
@@ -12,11 +12,13 @@ All notable changes to this project will be documented in this file.
 
 ### CI
 - **docker:** Trigger build only on pull requests (3a53a58)
+- Trigger CI workflow only on pull requests (80d1b8b)
 
 ### Chore
 - Release v0.15.0-alpha.0 (2e72c1a)
 - **migrations:** Add CHECK constraint to app_role column (59ef097)
 - Release v0.15.0-alpha.1 (d9c8d6d)
+- Release v0.15.0-alpha.2 (44afcf3)
 
 ### Documentation
 - **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
@@ -32,7 +34,7 @@ All notable changes to this project will be documented in this file.
 
 ### Testing
 - **spaces:** Fix invitation expiry fixture past current date (397c16f)
-## [0.15.0-alpha.1] - 2026-06-09
+## [0.15.0-alpha.2] - 2026-06-09
 
 ### Bug Fixes
 - **spaces:** Address PR review feedback on invitations (425a085)
