@@ -1,13 +1,15 @@
-import { PlantSpeciesNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-name/plant-species-name.value-object';
+import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 
 export interface CreatePlantSpeciesCommandInput {
-  name: string;
+  scientificName: string;
 }
 
 export class CreatePlantSpeciesCommand {
-  public readonly name: PlantSpeciesNameValueObject;
+  public readonly scientificName: PlantSpeciesScientificNameValueObject;
 
   constructor(input: CreatePlantSpeciesCommandInput) {
-    this.name = new PlantSpeciesNameValueObject(input.name);
+    this.scientificName = new PlantSpeciesScientificNameValueObject(
+      input.scientificName,
+    );
   }
 }

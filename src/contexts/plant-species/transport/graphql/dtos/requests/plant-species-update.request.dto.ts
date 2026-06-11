@@ -1,6 +1,7 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
+// TODO: restrict to admin
 @InputType('PlantSpeciesUpdateRequestDto')
 export class PlantSpeciesUpdateRequestDto {
   @Field(() => String, { description: 'The id of the plant species to update' })
@@ -10,10 +11,26 @@ export class PlantSpeciesUpdateRequestDto {
 
   @Field(() => String, {
     nullable: true,
-    description: 'Updated globally unique species name',
+    description: 'Updated globally unique species scientific name',
   })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  name?: string;
+  scientificName?: string;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Updated species description',
+  })
+  @IsOptional()
+  @IsString()
+  description?: string | null;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Updated species image URL',
+  })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string | null;
 }

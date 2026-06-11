@@ -39,10 +39,10 @@ describe('Plant Species REST API (e2e)', () => {
       .http()
       .post('/api/plant-species')
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Monstera deliciosa' })
+      .send({ scientificName: 'Monstera deliciosa' })
       .expect(201);
 
-    expect(res.body).toMatchObject({ name: 'Monstera deliciosa' });
+    expect(res.body).toMatchObject({ scientificName: 'Monstera deliciosa' });
     expect(res.body.id).toBeDefined();
   });
 
@@ -51,14 +51,14 @@ describe('Plant Species REST API (e2e)', () => {
       .http()
       .post('/api/plant-species')
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'monstera' })
+      .send({ scientificName: 'monstera' })
       .expect(201);
 
     await ctx
       .http()
       .post('/api/plant-species')
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Monstera' })
+      .send({ scientificName: 'Monstera' })
       .expect(409);
   });
 
@@ -67,7 +67,7 @@ describe('Plant Species REST API (e2e)', () => {
       .http()
       .post('/api/plant-species')
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Basil' })
+      .send({ scientificName: 'Basil' })
       .expect(201);
 
     const res = await ctx
@@ -77,6 +77,6 @@ describe('Plant Species REST API (e2e)', () => {
       .expect(200);
 
     expect(res.body.items).toHaveLength(1);
-    expect(res.body.items[0].name).toBe('Basil');
+    expect(res.body.items[0].scientificName).toBe('Basil');
   });
 });

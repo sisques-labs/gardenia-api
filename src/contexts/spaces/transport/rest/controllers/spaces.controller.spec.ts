@@ -7,6 +7,7 @@ import { RemoveMemberCommand } from '@contexts/spaces/application/commands/remov
 import { SpaceFindByIdQuery } from '@contexts/spaces/application/queries/space-find-by-id/space-find-by-id.query';
 import { SpacesFindByUserQuery } from '@contexts/spaces/application/queries/spaces-find-by-user/spaces-find-by-user.query';
 import { SpaceViewModel } from '@contexts/spaces/domain/view-models/space.view-model';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 
 import { SpaceInvitationRestMapper } from '../mappers/space-invitation/space-invitation.mapper';
@@ -23,6 +24,7 @@ const TARGET_USER_ID = '770e8400-e29b-41d4-a716-446655440002';
 const buildCurrentUser = (userId = USER_ID): CurrentUserPayload => ({
   userId,
   email: 'owner@example.com',
+  appRole: AppRoleEnum.USER,
 });
 
 const buildSpaceViewModel = (id = SPACE_ID): SpaceViewModel =>

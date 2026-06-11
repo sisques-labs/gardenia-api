@@ -61,7 +61,7 @@ export class PlantSpeciesController {
     const plantSpeciesId = await this.commandBus.execute<
       CreatePlantSpeciesCommand,
       string
-    >(new CreatePlantSpeciesCommand({ name: dto.name }));
+    >(new CreatePlantSpeciesCommand({ scientificName: dto.scientificName }));
 
     const vm = await this.queryBus.execute<
       PlantSpeciesFindByIdQuery,
@@ -137,7 +137,12 @@ export class PlantSpeciesController {
     @Body() dto: UpdatePlantSpeciesDto,
   ): Promise<PlantSpeciesRestResponseDto> {
     await this.commandBus.execute(
-      new UpdatePlantSpeciesCommand({ id, name: dto.name }),
+      new UpdatePlantSpeciesCommand({
+        id,
+        scientificName: dto.scientificName,
+        description: dto.description,
+        imageUrl: dto.imageUrl,
+      }),
     );
 
     const vm = await this.queryBus.execute<

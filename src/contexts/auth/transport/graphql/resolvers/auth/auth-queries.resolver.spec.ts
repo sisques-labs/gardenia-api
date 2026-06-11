@@ -4,6 +4,7 @@ import { FilterOperator } from '@sisques-labs/nestjs-kit';
 import { AccountFindByCriteriaQuery } from '@contexts/auth/application/queries/account-find-by-criteria/account-find-by-criteria.query';
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { AccountGraphQLMapper } from '@contexts/auth/transport/graphql/mappers/account/account.mapper';
 import { AccountObject } from '@contexts/auth/transport/graphql/objects/account.object';
@@ -36,6 +37,7 @@ describe('AuthQueriesResolver', () => {
     const currentUser: CurrentUserPayload = {
       userId: '660e8400-e29b-41d4-a716-446655440001',
       email: 'test@example.com',
+      appRole: AppRoleEnum.USER,
     };
 
     it('should return AccountObject with all 5 fields when account is found', async () => {

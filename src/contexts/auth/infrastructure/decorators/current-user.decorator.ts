@@ -1,15 +1,17 @@
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 export interface CurrentUserPayload {
   userId: string;
   email: string;
+  appRole: AppRoleEnum;
 }
 
 /**
- * Stub @CurrentUser() decorator.
+ * @CurrentUser() decorator.
  * Extracts req.user from HTTP context or GQL context.
- * Phase 7 will wire the real JWT payload here.
+ * Populated by JwtStrategy.validate() — always contains appRole.
  */
 export const CurrentUser = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): CurrentUserPayload => {

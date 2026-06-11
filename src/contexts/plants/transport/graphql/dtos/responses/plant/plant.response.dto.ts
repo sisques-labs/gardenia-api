@@ -32,8 +32,20 @@ export class PlantLinkedSpeciesResponseDto {
   @Field(() => ID, { description: 'UUID of the plant species catalog entry' })
   id!: string;
 
-  @Field(() => String, { description: 'Globally unique species name' })
-  name!: string;
+  @Field(() => String, { description: 'Scientific name of the species' })
+  scientificName!: string;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'General description of the species',
+  })
+  description!: string | null;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Representative image URL of the species',
+  })
+  imageUrl!: string | null;
 
   @Field(() => Date, { description: 'When the catalog entry was created' })
   createdAt!: Date;

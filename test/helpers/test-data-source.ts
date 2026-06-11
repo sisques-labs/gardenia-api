@@ -24,6 +24,7 @@ import { CreatePlantingSpots1780000000010 } from '../../src/database/migrations/
 import { AddPlantingSpotIdToPlants1780000000011 } from '../../src/database/migrations/1780000000011-AddPlantingSpotIdToPlants';
 import { AddExpiresAtToQrs1780000000012 } from '../../src/database/migrations/1780000000012-AddExpiresAtToQrs';
 import { CreateSpaceInvitations1780000000013 } from '../../src/database/migrations/1780000000013-CreateSpaceInvitations';
+import { AlterPlantSpeciesEnrich1780000000014 } from '../../src/database/migrations/1780000000014-AlterPlantSpeciesEnrich';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -53,6 +54,7 @@ const TEST_MIGRATIONS = [
   AddPlantingSpotIdToPlants1780000000011,
   AddExpiresAtToQrs1780000000012,
   CreateSpaceInvitations1780000000013,
+  AlterPlantSpeciesEnrich1780000000014,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

@@ -5,11 +5,15 @@ import { JwtService } from '@nestjs/jwt';
 export class TokenService {
   constructor(private readonly jwtService: JwtService) {}
 
-  sign(userId: string, email: string): string {
-    return this.jwtService.sign({ sub: userId, email });
+  sign(userId: string, email: string, role: string): string {
+    return this.jwtService.sign({ sub: userId, email, role });
   }
 
-  verify(token: string): { sub: string; email: string } {
-    return this.jwtService.verify<{ sub: string; email: string }>(token);
+  verify(token: string): { sub: string; email: string; role?: string } {
+    return this.jwtService.verify<{
+      sub: string;
+      email: string;
+      role?: string;
+    }>(token);
   }
 }
