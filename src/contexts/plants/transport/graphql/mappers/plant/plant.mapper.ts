@@ -83,7 +83,9 @@ export class PlantGraphQLMapper {
   ): PlantLinkedSpeciesResponseDto {
     return {
       id: vm.id,
-      name: vm.name,
+      scientificName: vm.scientificName,
+      description: vm.description,
+      imageUrl: vm.imageUrl,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
     };
@@ -94,7 +96,9 @@ export class PlantGraphQLMapper {
   ): PlantLinkedSpeciesResponseDto {
     return {
       id: species.id,
-      name: species.name,
+      scientificName: species.scientificName,
+      description: species.description,
+      imageUrl: species.imageUrl,
       createdAt: species.createdAt,
       updatedAt: species.updatedAt,
     };

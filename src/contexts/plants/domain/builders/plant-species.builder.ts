@@ -6,7 +6,9 @@ import { PlantSpeciesViewModel } from '@contexts/plants/domain/view-models/plant
 @Injectable()
 export class PlantSpeciesBuilder {
   private _id!: string;
-  private _name!: string;
+  private _scientificName!: string;
+  private _description: string | null = null;
+  private _imageUrl: string | null = null;
   private _createdAt!: Date;
   private _updatedAt!: Date;
 
@@ -15,8 +17,18 @@ export class PlantSpeciesBuilder {
     return this;
   }
 
-  withName(name: string): this {
-    this._name = name;
+  withScientificName(scientificName: string): this {
+    this._scientificName = scientificName;
+    return this;
+  }
+
+  withDescription(description: string | null): this {
+    this._description = description;
+    return this;
+  }
+
+  withImageUrl(imageUrl: string | null): this {
+    this._imageUrl = imageUrl;
     return this;
   }
 
@@ -34,7 +46,9 @@ export class PlantSpeciesBuilder {
     this.validate();
     return new PlantSpeciesViewModel({
       id: this._id,
-      name: this._name,
+      scientificName: this._scientificName,
+      description: this._description,
+      imageUrl: this._imageUrl,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });
@@ -42,7 +56,8 @@ export class PlantSpeciesBuilder {
 
   private validate(): void {
     if (!this._id) throw new FieldIsRequiredException('id');
-    if (!this._name) throw new FieldIsRequiredException('name');
+    if (!this._scientificName)
+      throw new FieldIsRequiredException('scientificName');
     if (!this._createdAt) throw new FieldIsRequiredException('createdAt');
     if (!this._updatedAt) throw new FieldIsRequiredException('updatedAt');
   }
