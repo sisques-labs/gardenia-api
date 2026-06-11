@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.0-alpha.3] - 2026-06-11
+## [0.15.0-alpha.4] - 2026-06-11
 
 ### Bug Fixes
 - **plant-species:** Add TODO comment to verify adapter correctness (269e303)
@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - **auth:** Builder withAppRole accepts string primitive, not VO (0642316)
 - **auth:** Add appRole to CurrentUserPayload mocks in transport specs (744fa8d)
 - **auth:** Add appRole to CurrentUserPayload mocks in planting-spots and plants specs (9566ac3)
+- **spaces:** Update expiration date for space invitations (276bbde)
 
 ### CI
 - **docker:** Trigger build only on pull requests (3a53a58)
@@ -19,6 +20,8 @@ All notable changes to this project will be documented in this file.
 - **migrations:** Add CHECK constraint to app_role column (59ef097)
 - Release v0.15.0-alpha.1 (d9c8d6d)
 - Release v0.15.0-alpha.2 (44afcf3)
+- Release v0.15.0-alpha.3 (9969c4e)
+- Add docker-compose for local PostgreSQL development (af6bd61)
 
 ### Documentation
 - **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
@@ -34,7 +37,7 @@ All notable changes to this project will be documented in this file.
 
 ### Testing
 - **spaces:** Fix invitation expiry fixture past current date (397c16f)
-## [0.15.0-alpha.2] - 2026-06-09
+## [0.15.0-alpha.3] - 2026-06-09
 
 ### Bug Fixes
 - **spaces:** Address PR review feedback on invitations (425a085)
