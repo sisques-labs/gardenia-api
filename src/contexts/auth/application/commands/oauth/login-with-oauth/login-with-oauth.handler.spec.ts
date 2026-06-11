@@ -163,6 +163,7 @@ describe('LoginWithOAuthCommandHandler', () => {
     const fakeAccount = {
       userId: { value: existingUserId },
       email: { value: 'user@example.com' },
+      appRole: { value: 'user' },
     } as unknown as AccountAggregate;
     accountRepo.findByEmail.mockResolvedValue(fakeAccount);
 

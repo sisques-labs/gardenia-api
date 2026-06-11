@@ -10,6 +10,7 @@ import { LoginAccountCommand } from '@contexts/auth/application/commands/login-a
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { InvalidRefreshTokenException } from '@contexts/auth/domain/exceptions/invalid-refresh-token.exception';
 import { RefreshTokenReuseDetectedException } from '@contexts/auth/domain/exceptions/refresh-token-reuse-detected.exception';
@@ -184,6 +185,7 @@ describe('AuthController', () => {
     const currentUser: CurrentUserPayload = {
       userId: '660e8400-e29b-41d4-a716-446655440001',
       email: 'test@example.com',
+      appRole: AppRoleEnum.USER,
     };
 
     it('should return the mapped response dto when account is found', async () => {
@@ -252,6 +254,7 @@ describe('AuthController', () => {
     const currentUser: CurrentUserPayload = {
       userId: '550e8400-e29b-41d4-a716-446655440000',
       email: 'test@example.com',
+      appRole: AppRoleEnum.USER,
     };
 
     it('should dispatch DeleteAccountCommand with userId from CurrentUser', async () => {

@@ -23,6 +23,7 @@ import {
   IAuthSessionWriteRepository,
 } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { RefreshTokenCommand } from './refresh-token.command';
 
 @CommandHandler(RefreshTokenCommand)
@@ -106,6 +107,7 @@ export class RefreshTokenCommandHandler
     const accessToken = this.tokenService.sign(
       resolvedUserId!,
       account?.email.value ?? '',
+      account?.appRole.value ?? AppRoleEnum.USER,
     );
 
     return { accessToken, refreshToken: newToken };
