@@ -29,8 +29,14 @@
 ## Project setup
 
 ```bash
-$ pnpm install
+# Install dependencies
+pnpm install
+
+# Configure git (run once per clone)
+bash scripts/setup.sh
 ```
+
+> `scripts/setup.sh` registers the `merge=ours` driver so git automatically resolves `package.json` and `CHANGELOG.md` conflicts on promotion merges (develop→staging, staging→main).
 
 ## Compile and run the project
 
