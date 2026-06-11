@@ -34,14 +34,18 @@ export class UpdatePlantSpeciesCommandHandler
       command.id,
     );
 
-    if (command.name) {
+    if (command.scientificName) {
       await this.assertPlantSpeciesNameAvailableService.execute(
-        command.name,
+        command.scientificName,
         command.id.value,
       );
     }
 
-    plantSpecies.update({ name: command.name });
+    plantSpecies.update({
+      scientificName: command.scientificName,
+      description: command.description,
+      imageUrl: command.imageUrl,
+    });
 
     await this.plantSpeciesWriteRepository.save(plantSpecies);
     await this.publishEvents(plantSpecies);

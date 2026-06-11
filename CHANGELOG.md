@@ -1,6 +1,21 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.15.0-alpha.0] - 2026-06-11
+
+### Bug Fixes
+- **plant-species:** Add TODO comment to verify adapter correctness (269e303)
+
+### Features
+- **plant-species:** Enrich catalog and add bulk import from GBIF (81efc60)
+- **plant-species:** Add enrich command with GBIF validation gate (84b1e65)
+- **plants:** Align linked species view model with plant-species catalog (312f91c)
+
+### Refactor
+- **plant-species:** Address PR review on import command and GBIF types (a392dcf)
+
+### Testing
+- **spaces:** Fix invitation expiry fixture past current date (397c16f)
 ## [0.14.1] - 2026-06-09
 
 ### Bug Fixes
@@ -11,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - Release v0.14.1-alpha.1 (746335c)
 - Release v0.14.1-alpha.2 (31a1340)
 - Release v0.14.1-beta.0 (52c7d40)
+- Release v0.14.1 (dc3cc74)
 
 ### Documentation
 - **spaces:** Add module README for spaces and invitations (7a26a4d)

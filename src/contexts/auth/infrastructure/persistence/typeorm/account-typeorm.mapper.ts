@@ -14,6 +14,7 @@ export class AccountTypeOrmMapper {
       .withUserId(entity.userId)
       .withEmail(entity.email)
       .withPasswordHash(entity.passwordHash)
+      .withAppRole(entity.appRole)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -26,6 +27,7 @@ export class AccountTypeOrmMapper {
     entity.userId = primitives.userId;
     entity.email = primitives.email;
     entity.passwordHash = primitives.passwordHash;
+    entity.appRole = primitives.appRole;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
     return entity;

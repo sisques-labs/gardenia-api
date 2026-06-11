@@ -1,4 +1,5 @@
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
@@ -11,7 +12,11 @@ const SPOT_ID = '11111111-1111-4111-8111-111111111111';
 const USER_ID = '22222222-2222-4222-8222-222222222222';
 const SPACE_ID = '33333333-3333-4333-8333-333333333333';
 
-const mockUser = { userId: USER_ID, email: 'test@test.com' };
+const mockUser = {
+  userId: USER_ID,
+  email: 'test@test.com',
+  appRole: AppRoleEnum.USER,
+};
 const now = new Date('2024-01-01T00:00:00Z');
 
 const mockVm = new PlantingSpotViewModel({

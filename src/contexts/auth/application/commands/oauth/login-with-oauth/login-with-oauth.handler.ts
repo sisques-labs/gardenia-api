@@ -31,6 +31,7 @@ import { TokenService } from '@contexts/auth/application/services/token.service'
 import { GenerateRefreshTokenService } from '@contexts/auth/application/services/write/generate-refresh-token/generate-refresh-token.service';
 import { HashRefreshTokenService } from '@contexts/auth/application/services/write/hash-refresh-token/hash-refresh-token.service';
 import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { LoginWithOAuthCommand } from './login-with-oauth.command';
 
 @CommandHandler(LoginWithOAuthCommand)
@@ -75,6 +76,7 @@ export class LoginWithOAuthCommandHandler
 
     let userId: string;
     let resolvedEmail: string;
+    let resolvedRole: AppRoleEnum = AppRoleEnum.USER;
 
     // Step 1: check for an existing oauth identity
     const existingIdentity = await this.oauthIdentityRepo.findByProviderUserId(
@@ -85,9 +87,12 @@ export class LoginWithOAuthCommandHandler
     const emailValue = email?.value ?? null;
 
     if (existingIdentity) {
-      // Returning OAuth user — resolve userId from existing identity
+      // Returning OAuth user — resolve userId and actual app role from account
       userId = existingIdentity.userId.value;
       resolvedEmail = existingIdentity.email?.value ?? emailValue ?? '';
+      const existingAccount = await this.accountRepo.findByUserId(userId);
+      if (existingAccount)
+        resolvedRole = existingAccount.appRole.value as AppRoleEnum;
     } else {
       // No existing identity — attempt email-based auto-link or provision new user
       if (!emailValue) {
@@ -102,9 +107,10 @@ export class LoginWithOAuthCommandHandler
         if (!emailVerified.value) {
           throw new OAuthEmailNotVerifiedException(provider.value);
         }
-        // Auto-link: create oauth identity for the existing account
+        // Auto-link: preserve the account's existing app role
         userId = existingAccount.userId.value;
         resolvedEmail = emailValue;
+        resolvedRole = existingAccount.appRole.value as AppRoleEnum;
       } else {
         // Brand new user — provision user + space
         if (!emailVerified.value) {
@@ -154,7 +160,11 @@ export class LoginWithOAuthCommandHandler
     }
 
     // Step 2: issue session (same flow as LoginAccountCommandHandler)
-    const jwtAccessToken = this.tokenService.sign(userId, resolvedEmail);
+    const jwtAccessToken = this.tokenService.sign(
+      userId,
+      resolvedEmail,
+      resolvedRole,
+    );
 
     const plainToken = await this.generateRefreshTokenService.execute();
     const tokenHash = await this.hashRefreshTokenService.execute(plainToken);

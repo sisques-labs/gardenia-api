@@ -3,8 +3,10 @@ import { IsNotEmpty, IsString } from 'class-validator';
 
 @InputType('PlantSpeciesCreateRequestDto')
 export class PlantSpeciesCreateRequestDto {
-  @Field(() => String, { description: 'Globally unique species name' })
+  @Field(() => String, {
+    description: 'Globally unique species scientific name',
+  })
   @IsString()
   @IsNotEmpty()
-  name!: string;
+  scientificName!: string;
 }

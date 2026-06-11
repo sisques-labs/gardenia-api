@@ -182,6 +182,7 @@ describe('RefreshTokenCommandHandler', () => {
     expect(tokenService.sign).toHaveBeenCalledWith(
       activeSession.userId.value,
       account.email.value,
+      account.appRole.value,
     );
     expect(result).toHaveProperty('accessToken', 'new-access-token');
     expect(result).toHaveProperty('refreshToken');
