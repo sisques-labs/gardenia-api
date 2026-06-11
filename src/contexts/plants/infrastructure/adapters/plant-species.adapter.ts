@@ -36,7 +36,7 @@ export class PlantSpeciesAdapter implements IPlantSpeciesPort {
 
     return this.plantSpeciesBuilder
       .withId(catalogViewModel.id)
-      .withName(catalogViewModel.name)
+      .withName(catalogViewModel.scientificName)
       .withCreatedAt(catalogViewModel.createdAt)
       .withUpdatedAt(catalogViewModel.updatedAt)
       .buildViewModel();

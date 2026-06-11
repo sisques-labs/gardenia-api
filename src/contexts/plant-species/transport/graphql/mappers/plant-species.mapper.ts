@@ -21,7 +21,9 @@ export class PlantSpeciesGraphQLMapper {
 
     return {
       id: vm.id,
-      name: vm.name,
+      scientificName: vm.scientificName,
+      description: vm.description,
+      imageUrl: vm.imageUrl,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
     };

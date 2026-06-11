@@ -81,7 +81,7 @@ describe('Plants REST API (e2e)', () => {
         .http()
         .post('/api/plant-species')
         .set('Authorization', `Bearer ${owner.token}`)
-        .send({ name: 'Rosa canina' })
+        .send({ scientificName: 'Rosa canina' })
         .expect(201);
 
       const { id: plantSpeciesId } = speciesRes.body as { id: string };

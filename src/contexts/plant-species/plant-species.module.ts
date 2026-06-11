@@ -1,12 +1,15 @@
 import '@contexts/plant-species/transport/graphql/enums/plant-species-registered-enums.graphql';
 
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CreatePlantSpeciesCommandHandler } from './application/commands/create-plant-species/create-plant-species.handler';
 import { DeletePlantSpeciesCommandHandler } from './application/commands/delete-plant-species/delete-plant-species.handler';
+import { ImportPlantSpeciesCommandHandler } from './application/commands/import-plant-species/import-plant-species.handler';
 import { UpdatePlantSpeciesCommandHandler } from './application/commands/update-plant-species/update-plant-species.handler';
+import { PLANT_SPECIES_IMPORT_PORT } from './application/ports/plant-species-import.port';
 import { PLANT_SPECIES_REFERENCE_PORT } from './application/ports/plant-species-reference.port';
 import { PlantSpeciesFindByCriteriaQueryHandler } from './application/queries/plant-species-find-by-criteria/plant-species-find-by-criteria.handler';
 import { PlantSpeciesFindByIdQueryHandler } from './application/queries/plant-species-find-by-id/plant-species-find-by-id.handler';
@@ -17,6 +20,7 @@ import { AssertPlantSpeciesNotInUseService } from './application/services/write/
 import { PlantSpeciesBuilder } from './domain/builders/plant-species.builder';
 import { PLANT_SPECIES_READ_REPOSITORY } from './domain/repositories/read/plant-species-read.repository';
 import { PLANT_SPECIES_WRITE_REPOSITORY } from './domain/repositories/write/plant-species-write.repository';
+import { GbifPlantSpeciesImportAdapter } from './infrastructure/adapters/gbif-plant-species-import.adapter';
 import { PlantSpeciesReferenceAdapter } from './infrastructure/adapters/plant-species-reference.adapter';
 import { PlantSpeciesTypeOrmEntity } from './infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantSpeciesTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/plant-species-typeorm.mapper';
@@ -32,6 +36,7 @@ const COMMAND_HANDLERS = [
   CreatePlantSpeciesCommandHandler,
   UpdatePlantSpeciesCommandHandler,
   DeletePlantSpeciesCommandHandler,
+  ImportPlantSpeciesCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -66,6 +71,10 @@ const INFRASTRUCTURE_ADAPTERS = [
     provide: PLANT_SPECIES_REFERENCE_PORT,
     useClass: PlantSpeciesReferenceAdapter,
   },
+  {
+    provide: PLANT_SPECIES_IMPORT_PORT,
+    useClass: GbifPlantSpeciesImportAdapter,
+  },
 ];
 
 const REST_CONTROLLERS = [PlantSpeciesController];
@@ -78,7 +87,11 @@ const GRAPHQL_PROVIDERS = [
 ];
 
 @Module({
-  imports: [CqrsModule, TypeOrmModule.forFeature([PlantSpeciesTypeOrmEntity])],
+  imports: [
+    CqrsModule,
+    HttpModule,
+    TypeOrmModule.forFeature([PlantSpeciesTypeOrmEntity]),
+  ],
   controllers: [...REST_CONTROLLERS],
   providers: [
     ...COMMAND_HANDLERS,
