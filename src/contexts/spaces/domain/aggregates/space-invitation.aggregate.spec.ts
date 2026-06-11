@@ -3,7 +3,7 @@ import { MembershipRoleEnum } from '../enums/membership-role.enum';
 import { SpaceInvitationCreatedEvent } from '../events/space-invitation-created/space-invitation-created.event';
 
 const NOW = new Date('2026-06-09T12:00:00.000Z');
-const EXPIRES = new Date('2026-06-10T12:00:00.000Z');
+const EXPIRES = new Date('2026-12-31T12:00:00.000Z');
 
 describe('SpaceInvitationAggregate', () => {
   function buildInvitation() {
