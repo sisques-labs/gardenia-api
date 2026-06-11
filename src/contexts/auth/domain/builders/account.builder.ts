@@ -1,4 +1,6 @@
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
+import { AppRoleValueObject } from '@contexts/auth/domain/value-objects/app-role/app-role.vo';
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
 import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
@@ -19,6 +21,7 @@ export class AccountBuilder extends BaseBuilder<
   private _userId!: string;
   private _email!: string;
   private _passwordHash!: string;
+  private _appRole: string = AppRoleEnum.USER;
 
   withUserId(userId: string): this {
     this._userId = userId;
@@ -32,6 +35,11 @@ export class AccountBuilder extends BaseBuilder<
 
   withPasswordHash(passwordHash: string): this {
     this._passwordHash = passwordHash;
+    return this;
+  }
+
+  withAppRole(role: AppRoleValueObject): this {
+    this._appRole = role.value;
     return this;
   }
 
@@ -57,6 +65,7 @@ export class AccountBuilder extends BaseBuilder<
       userId: new UuidValueObject(this._userId),
       email: new AccountEmailValueObject(this._email),
       passwordHash: new AccountPasswordHashValueObject(this._passwordHash),
+      appRole: new AppRoleValueObject(this._appRole),
       createdAt: new DateValueObject(this._createdAt ?? new Date()),
       updatedAt: new DateValueObject(this._updatedAt ?? new Date()),
     });

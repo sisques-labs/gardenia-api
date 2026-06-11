@@ -1,6 +1,8 @@
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
+import { AppRoleValueObject } from '@contexts/auth/domain/value-objects/app-role/app-role.vo';
 import {
   ACCOUNT_WRITE_REPOSITORY,
   IAccountWriteRepository,
@@ -57,6 +59,7 @@ export class RegisterAccountCommandHandler
       .withUserId(userId)
       .withEmail(email.value)
       .withPasswordHash(hashedPassword)
+      .withAppRole(new AppRoleValueObject(AppRoleEnum.USER))
       .withCreatedAt(now)
       .withUpdatedAt(now)
       .build();

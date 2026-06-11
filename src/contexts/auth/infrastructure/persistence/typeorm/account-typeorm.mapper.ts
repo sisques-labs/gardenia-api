@@ -1,5 +1,6 @@
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
+import { AppRoleValueObject } from '@contexts/auth/domain/value-objects/app-role/app-role.vo';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import { Injectable } from '@nestjs/common';
 import { AccountEntity } from './account.entity';
@@ -14,6 +15,7 @@ export class AccountTypeOrmMapper {
       .withUserId(entity.userId)
       .withEmail(entity.email)
       .withPasswordHash(entity.passwordHash)
+      .withAppRole(new AppRoleValueObject(entity.appRole))
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -26,6 +28,7 @@ export class AccountTypeOrmMapper {
     entity.userId = primitives.userId;
     entity.email = primitives.email;
     entity.passwordHash = primitives.passwordHash;
+    entity.appRole = primitives.appRole;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
     return entity;

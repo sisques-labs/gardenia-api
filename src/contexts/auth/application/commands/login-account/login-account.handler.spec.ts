@@ -110,6 +110,7 @@ describe('LoginAccountCommandHandler', () => {
     expect(tokenService.sign).toHaveBeenCalledWith(
       account.userId.value,
       account.email.value,
+      account.appRole.value,
     );
   });
 

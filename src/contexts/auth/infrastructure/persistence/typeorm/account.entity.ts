@@ -25,6 +25,9 @@ export class AccountEntity {
   @Column({ type: 'varchar' })
   passwordHash!: string;
 
+  @Column({ name: 'app_role', type: 'varchar', default: 'user' })
+  appRole!: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
 
