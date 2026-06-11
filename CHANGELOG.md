@@ -1,12 +1,17 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.15.1-beta.2] - 2026-06-11
+
+### CI
+- **release-train:** Freeze package.json version to 0.0.0-dev on develop (d43b56d)
 ## [0.15.1] - 2026-06-11
 
 ### Chore
 - Update version to 0.15.0-beta.0 (607f541)
 - Update version to 0.15.1-beta.0 (d55aaff)
 - Release v0.15.1-beta.1 (3b792fa)
+- Release v0.15.1 (6450dd7)
 ## [0.15.1-beta.1] - 2026-06-11
 
 ### Bug Fixes
