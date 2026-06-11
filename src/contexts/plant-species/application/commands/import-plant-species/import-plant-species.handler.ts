@@ -47,12 +47,12 @@ export class ImportPlantSpeciesCommandHandler
     command: ImportPlantSpeciesCommand,
   ): Promise<ImportPlantSpeciesResult> {
     this.logger.log(
-      `Importing plant species with limit=${command.limit} and offset=${command.offset}`,
+      `Importing plant species with limit=${command.limit.value} and offset=${command.offset.value}`,
     );
 
     const records = await this.importPort.fetchPage(
-      command.limit,
-      command.offset,
+      command.limit.value,
+      command.offset.value,
     );
 
     let imported = 0;

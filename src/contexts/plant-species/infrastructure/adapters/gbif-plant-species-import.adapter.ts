@@ -9,35 +9,17 @@ import {
 import { PlantSpeciesDescriptionValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-description/plant-species-description.value-object';
 import { PlantSpeciesImageUrlValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-image-url/plant-species-image-url.value-object';
 
+import {
+  GbifMediaResponse,
+  GbifSpeciesMatchResponse,
+  GbifSpeciesResponse,
+  GbifSpeciesSearchResponse,
+  GbifSpeciesSearchResult,
+} from './gbif/types/gbif-api.types';
+
 const GBIF_BASE_URL = 'https://api.gbif.org/v1';
 const REQUEST_TIMEOUT_MS = 5000;
 const VASCULAR_PLANTS_TAXON_KEY = 7707728;
-
-type GbifSpeciesMatchResponse = {
-  matchType?: string;
-  usageKey?: number;
-  canonicalName?: string;
-  scientificName?: string;
-};
-
-type GbifSpeciesSearchResult = {
-  key?: number;
-  scientificName?: string;
-  canonicalName?: string;
-};
-
-type GbifSpeciesSearchResponse = {
-  results?: GbifSpeciesSearchResult[];
-};
-
-type GbifSpeciesResponse = {
-  descriptions?: Array<{ description?: string; language?: string }>;
-  vernacularNames?: Array<{ vernacularName?: string; language?: string }>;
-};
-
-type GbifMediaResponse = {
-  results?: Array<{ identifier?: string }>;
-};
 
 @Injectable()
 export class GbifPlantSpeciesImportAdapter implements IPlantSpeciesImportPort {
