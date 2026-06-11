@@ -7,6 +7,7 @@ export class AddAppRoleToAccounts1780000000014 implements MigrationInterface {
     await queryRunner.query(`
       ALTER TABLE "accounts"
       ADD COLUMN "app_role" varchar NOT NULL DEFAULT 'user'
+      CONSTRAINT "chk_accounts_app_role" CHECK ("app_role" IN ('admin', 'user'))
     `);
   }
 
