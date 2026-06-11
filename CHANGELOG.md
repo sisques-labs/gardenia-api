@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.0-alpha.7] - 2026-06-11
+## [0.15.0-alpha.8] - 2026-06-11
 
 ### Bug Fixes
 - **plant-species:** Add TODO comment to verify adapter correctness (269e303)
@@ -30,6 +30,9 @@ All notable changes to this project will be documented in this file.
 - Release v0.15.0-alpha.6 (291328f)
 - Release v0.15.0-beta.0 (2390260)
 - Fix version back to alpha pre-release on develop (44b4583)
+- Release v0.15.0-alpha.7 (3eb5f96)
+- Release v0.15.0-beta.0 (ae1c3f5)
+- Merge staging into develop to align histories (037a28a)
 
 ### Documentation
 - **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
