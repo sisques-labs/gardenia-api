@@ -43,7 +43,7 @@ export class PlantSpeciesTypeOrmReadRepository
       take: limit,
       order: criteria.sorts?.reduce(
         (acc, s) => ({ ...acc, [s.field]: s.direction }),
-        { name: 'ASC' },
+        { scientificName: 'ASC' },
       ),
     });
 

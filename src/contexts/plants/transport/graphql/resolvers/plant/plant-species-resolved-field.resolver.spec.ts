@@ -12,7 +12,9 @@ const NOW = new Date('2024-01-01T00:00:00Z');
 function makeSpeciesVm(): PlantSpeciesViewModel {
   return new PlantSpeciesViewModel({
     id: SPECIES_ID,
-    name: 'Rosa canina',
+    scientificName: 'Rosa canina',
+    description: 'Wild rose species',
+    imageUrl: null,
     createdAt: NOW,
     updatedAt: NOW,
   });

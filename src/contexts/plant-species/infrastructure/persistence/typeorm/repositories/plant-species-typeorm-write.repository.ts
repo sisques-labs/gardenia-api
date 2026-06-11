@@ -40,12 +40,14 @@ export class PlantSpeciesTypeOrmWriteRepository
     return entity ? this.plantSpeciesMapper.toDomain(entity) : null;
   }
 
-  async findByNameNormalized(
-    normalizedName: string,
+  async findByScientificName(
+    normalizedScientificName: string,
   ): Promise<PlantSpeciesAggregate | null> {
     const entity = await this.plantSpeciesRepo
       .createQueryBuilder('ps')
-      .where('LOWER(TRIM(ps.name)) = :normalizedName', { normalizedName })
+      .where('LOWER(TRIM(ps.scientific_name)) = :normalizedScientificName', {
+        normalizedScientificName,
+      })
       .getOne();
 
     return entity ? this.plantSpeciesMapper.toDomain(entity) : null;
@@ -61,7 +63,7 @@ export class PlantSpeciesTypeOrmWriteRepository
       take: limit,
       order: criteria.sorts?.reduce(
         (acc, s) => ({ ...acc, [s.field]: s.direction }),
-        { name: 'ASC' },
+        { scientificName: 'ASC' },
       ),
     });
 

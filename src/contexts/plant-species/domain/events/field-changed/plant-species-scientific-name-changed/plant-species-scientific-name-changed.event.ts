@@ -4,7 +4,7 @@ import {
   IFieldChangedEventData,
 } from '@sisques-labs/nestjs-kit';
 
-export class PlantSpeciesNameChangedEvent extends BaseEvent<
+export class PlantSpeciesScientificNameChangedEvent extends BaseEvent<
   IFieldChangedEventData<string>
 > {
   constructor(metadata: IEventMetadata, data: IFieldChangedEventData<string>) {
