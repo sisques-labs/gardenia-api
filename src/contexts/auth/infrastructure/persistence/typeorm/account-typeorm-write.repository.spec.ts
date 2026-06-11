@@ -25,6 +25,7 @@ const buildEntity = (): AccountEntity => {
   entity.spaceId = SPACE_ID;
   entity.email = 'test@example.com';
   entity.passwordHash = 'hashed-password';
+  entity.appRole = 'user';
   entity.createdAt = new Date('2024-01-01');
   entity.updatedAt = new Date('2024-01-01');
   return entity;

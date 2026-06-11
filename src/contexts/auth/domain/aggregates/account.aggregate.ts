@@ -4,6 +4,7 @@ import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import { IAccount } from '@contexts/auth/domain/interfaces/account.interface';
 import { IAccountPrimitives } from '@contexts/auth/domain/primitives/account.primitives';
+import { AppRoleValueObject } from '@contexts/auth/domain/value-objects/app-role/app-role.vo';
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
 import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
@@ -15,6 +16,7 @@ export class AccountAggregate extends BaseAggregate {
   private readonly _userId: UuidValueObject;
   private readonly _email: AccountEmailValueObject;
   private _passwordHash: AccountPasswordHashValueObject;
+  private readonly _appRole: AppRoleValueObject;
 
   constructor(props: IAccount) {
     super(props.createdAt, props.updatedAt);
@@ -22,6 +24,7 @@ export class AccountAggregate extends BaseAggregate {
     this._userId = props.userId;
     this._email = props.email;
     this._passwordHash = props.passwordHash;
+    this._appRole = props.appRole;
   }
 
   public create(): void {
@@ -111,12 +114,17 @@ export class AccountAggregate extends BaseAggregate {
     return this._passwordHash;
   }
 
+  get appRole(): AppRoleValueObject {
+    return this._appRole;
+  }
+
   toPrimitives(): IAccountPrimitives {
     return {
       id: this._id.value,
       userId: this._userId.value,
       email: this._email.value,
       passwordHash: this._passwordHash.value,
+      appRole: this._appRole.value,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };

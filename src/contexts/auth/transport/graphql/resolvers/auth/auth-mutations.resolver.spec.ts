@@ -5,6 +5,7 @@ import { ChangePasswordCommand } from '@contexts/auth/application/commands/chang
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
 import { LoginAccountCommand } from '@contexts/auth/application/commands/login-account/login-account.command';
 import { RegisterAccountCommand } from '@contexts/auth/application/commands/register-account/register-account.command';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 
 import { AuthMutationsResolver } from './auth-mutations.resolver';
@@ -78,6 +79,7 @@ describe('AuthMutationsResolver', () => {
     const currentUser: CurrentUserPayload = {
       userId: '550e8400-e29b-41d4-a716-446655440000',
       email: 'test@example.com',
+      appRole: AppRoleEnum.USER,
     };
 
     it('should dispatch DeleteAccountCommand with correct userId', async () => {
@@ -104,6 +106,7 @@ describe('AuthMutationsResolver', () => {
     const currentUser: CurrentUserPayload = {
       userId: '550e8400-e29b-41d4-a716-446655440000',
       email: 'test@example.com',
+      appRole: AppRoleEnum.USER,
     };
 
     it('should dispatch ChangePasswordCommand with correct fields', async () => {

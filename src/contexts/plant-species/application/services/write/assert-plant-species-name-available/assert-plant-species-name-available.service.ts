@@ -6,7 +6,7 @@ import {
   IPlantSpeciesWriteRepository,
   PLANT_SPECIES_WRITE_REPOSITORY,
 } from '@contexts/plant-species/domain/repositories/write/plant-species-write.repository';
-import { PlantSpeciesNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-name/plant-species-name.value-object';
+import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 
 @Injectable()
 export class AssertPlantSpeciesNameAvailableService implements IBaseService {
@@ -16,15 +16,15 @@ export class AssertPlantSpeciesNameAvailableService implements IBaseService {
   ) {}
 
   async execute(
-    name: PlantSpeciesNameValueObject,
+    scientificName: PlantSpeciesScientificNameValueObject,
     excludeId?: string,
   ): Promise<void> {
-    const normalized = name.value.toLowerCase();
+    const normalized = scientificName.value.toLowerCase();
     const existing =
-      await this.plantSpeciesWriteRepository.findByNameNormalized(normalized);
+      await this.plantSpeciesWriteRepository.findByScientificName(normalized);
 
     if (existing && existing.id.value !== excludeId) {
-      throw new PlantSpeciesNameAlreadyExistsException(name.value);
+      throw new PlantSpeciesNameAlreadyExistsException(scientificName.value);
     }
   }
 }

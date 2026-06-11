@@ -1,3 +1,4 @@
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
@@ -15,10 +16,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  validate(payload: { sub: string; email: string }): {
+  validate(payload: { sub: string; email: string; role?: string }): {
     userId: string;
     email: string;
+    appRole: AppRoleEnum;
   } {
-    return { userId: payload.sub, email: payload.email };
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      appRole: (payload.role as AppRoleEnum) ?? AppRoleEnum.USER,
+    };
   }
 }

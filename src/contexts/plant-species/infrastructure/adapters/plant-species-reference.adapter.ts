@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 
 import { IPlantSpeciesReferencePort } from '@contexts/plant-species/application/ports/plant-species-reference.port';
 
+// TODO: check this adapter, is it correct?
 @Injectable()
 export class PlantSpeciesReferenceAdapter implements IPlantSpeciesReferencePort {
   constructor(private readonly dataSource: DataSource) {}

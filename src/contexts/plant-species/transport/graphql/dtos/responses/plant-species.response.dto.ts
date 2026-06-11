@@ -6,8 +6,22 @@ export class PlantSpeciesResponseDto {
   @Field(() => ID, { description: 'The id of the plant species catalog entry' })
   id!: string;
 
-  @Field(() => String, { description: 'Globally unique species name' })
-  name!: string;
+  @Field(() => String, {
+    description: 'Globally unique species scientific name',
+  })
+  scientificName!: string;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Species description',
+  })
+  description!: string | null;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Species image URL',
+  })
+  imageUrl!: string | null;
 
   @Field(() => Date, { description: 'When the catalog entry was created' })
   createdAt!: Date;

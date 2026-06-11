@@ -1,7 +1,45 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.14.1-beta.0] - 2026-06-09
+## [0.15.0-alpha.5] - 2026-06-11
+
+### Bug Fixes
+- **plant-species:** Add TODO comment to verify adapter correctness (269e303)
+- **spaces:** Update expired invitation test date to 2099 (5785988)
+- **auth:** Builder withAppRole accepts string primitive, not VO (0642316)
+- **auth:** Add appRole to CurrentUserPayload mocks in transport specs (744fa8d)
+- **auth:** Add appRole to CurrentUserPayload mocks in planting-spots and plants specs (9566ac3)
+- **spaces:** Update expiration date for space invitations (276bbde)
+
+### CI
+- **docker:** Trigger build only on pull requests (3a53a58)
+- Trigger CI workflow only on pull requests (80d1b8b)
+- Auto-open promotion PRs on merge to develop and staging (5a9f4e6)
+
+### Chore
+- Release v0.15.0-alpha.0 (2e72c1a)
+- **migrations:** Add CHECK constraint to app_role column (59ef097)
+- Release v0.15.0-alpha.1 (d9c8d6d)
+- Release v0.15.0-alpha.2 (44afcf3)
+- Release v0.15.0-alpha.3 (9969c4e)
+- Add docker-compose for local PostgreSQL development (af6bd61)
+- Release v0.15.0-alpha.4 (38c23ad)
+
+### Documentation
+- **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
+
+### Features
+- **plant-species:** Enrich catalog and add bulk import from GBIF (81efc60)
+- **plant-species:** Add enrich command with GBIF validation gate (84b1e65)
+- **plants:** Align linked species view model with plant-species catalog (312f91c)
+- **auth:** Implement app-level RBAC with ADMIN and USER roles (28d5810)
+
+### Refactor
+- **plant-species:** Address PR review on import command and GBIF types (a392dcf)
+
+### Testing
+- **spaces:** Fix invitation expiry fixture past current date (397c16f)
+## [0.15.0-alpha.4] - 2026-06-09
 
 ### Bug Fixes
 - **spaces:** Address PR review feedback on invitations (425a085)
@@ -10,6 +48,8 @@ All notable changes to this project will be documented in this file.
 ### Chore
 - Release v0.14.1-alpha.1 (746335c)
 - Release v0.14.1-alpha.2 (31a1340)
+- Release v0.14.1-beta.0 (52c7d40)
+- Release v0.14.1 (dc3cc74)
 
 ### Documentation
 - **spaces:** Add module README for spaces and invitations (7a26a4d)
@@ -26,7 +66,7 @@ All notable changes to this project will be documented in this file.
 - **spaces:** Remove unused SpaceContext from SpacesModule (df11e61)
 - **spaces:** Drop EnsureUserExists from invitation accept flow (0cdbde2)
 - **spaces:** Reorganize imports and add TODO for invitation handling (ddfd52c)
-## [0.14.1-alpha.2] - 2026-06-08
+## [0.14.1-beta.0] - 2026-06-08
 
 ### Bug Fixes
 - **auth:** Reset AuthSessionBuilder state on each withId chain (56f7bff)

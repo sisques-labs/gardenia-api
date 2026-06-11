@@ -19,7 +19,7 @@ describe('CreatePlantSpeciesCommandHandler', () => {
     writeRepository = {
       findById: jest.fn(),
       findByCriteria: jest.fn(),
-      findByNameNormalized: jest.fn(),
+      findByScientificName: jest.fn(),
       save: jest
         .fn()
         .mockImplementation((aggregate) => Promise.resolve(aggregate)),
@@ -44,7 +44,9 @@ describe('CreatePlantSpeciesCommandHandler', () => {
   });
 
   it('returns a valid UUID', async () => {
-    const command = new CreatePlantSpeciesCommand({ name: 'Monstera' });
+    const command = new CreatePlantSpeciesCommand({
+      scientificName: 'Monstera',
+    });
 
     const id = await handler.execute(command);
 
@@ -53,8 +55,10 @@ describe('CreatePlantSpeciesCommandHandler', () => {
     );
   });
 
-  it('asserts name is globally available', async () => {
-    const command = new CreatePlantSpeciesCommand({ name: 'Monstera' });
+  it('asserts scientificName is globally available', async () => {
+    const command = new CreatePlantSpeciesCommand({
+      scientificName: 'Monstera',
+    });
 
     await handler.execute(command);
 
@@ -62,7 +66,9 @@ describe('CreatePlantSpeciesCommandHandler', () => {
   });
 
   it('saves the aggregate', async () => {
-    const command = new CreatePlantSpeciesCommand({ name: 'Monstera' });
+    const command = new CreatePlantSpeciesCommand({
+      scientificName: 'Monstera',
+    });
 
     await handler.execute(command);
 
@@ -70,7 +76,9 @@ describe('CreatePlantSpeciesCommandHandler', () => {
   });
 
   it('publishes events after saving', async () => {
-    const command = new CreatePlantSpeciesCommand({ name: 'Monstera' });
+    const command = new CreatePlantSpeciesCommand({
+      scientificName: 'Monstera',
+    });
 
     await handler.execute(command);
 

@@ -4,6 +4,7 @@ import { AccountDeletedEvent } from '@contexts/auth/domain/events/account-delete
 import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt');
@@ -195,6 +196,20 @@ describe('AccountAggregate', () => {
       expect(primitives.passwordHash).toBe(PASSWORD_HASH);
       expect(primitives.createdAt).toEqual(CREATED_AT);
       expect(primitives.updatedAt).toEqual(UPDATED_AT);
+    });
+
+    it('should include appRole in primitives', () => {
+      const account = buildAccount();
+      const primitives = account.toPrimitives();
+
+      expect(primitives.appRole).toBe(AppRoleEnum.USER);
+    });
+  });
+
+  describe('AccountBuilder defaults', () => {
+    it('should default appRole to USER when not explicitly set', () => {
+      const account = buildAccount();
+      expect(account.appRole.value).toBe(AppRoleEnum.USER);
     });
   });
 });

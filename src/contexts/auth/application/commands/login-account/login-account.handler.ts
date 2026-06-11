@@ -51,6 +51,7 @@ export class LoginAccountCommandHandler
     const accessToken = this.tokenService.sign(
       account.userId.value,
       account.email.value,
+      account.appRole.value,
     );
 
     const plainToken = await this.generateRefreshTokenService.execute();
