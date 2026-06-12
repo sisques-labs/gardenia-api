@@ -1,7 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-// TODO: restrict to admin
 @InputType('PlantSpeciesUpdateRequestDto')
 export class PlantSpeciesUpdateRequestDto {
   @Field(() => String, { description: 'The id of the plant species to update' })

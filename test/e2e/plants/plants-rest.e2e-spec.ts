@@ -1,4 +1,5 @@
 import { createE2EApp, E2EContext } from '../../helpers/app-bootstrap';
+import { loginAsAdmin } from '../../helpers/auth-seed';
 import { truncateAll } from '../../helpers/db-reset';
 
 const PASSWORD = 'SuperStr0ng!Pass';
@@ -77,10 +78,16 @@ describe('Plants REST API (e2e)', () => {
     });
 
     it('201 — creates a plant with plantSpeciesId and imageUrl', async () => {
+      const admin = await loginAsAdmin(
+        ctx,
+        'plants-admin@example.com',
+        PASSWORD,
+      );
+
       const speciesRes = await ctx
         .http()
         .post('/api/plant-species')
-        .set('Authorization', `Bearer ${owner.token}`)
+        .set('Authorization', `Bearer ${admin.token}`)
         .send({ scientificName: 'Rosa canina' })
         .expect(201);
 
