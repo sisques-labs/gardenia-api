@@ -8,8 +8,10 @@ permissions:
   contents: write
   packages: write
 
+# One group for the whole repo: develop/staging/main releases are serialized
+# so two channels never compute versions from a half-updated tag state.
 concurrency:
-  group: release-train-${{ github.ref_name }}
+  group: release-train
   cancel-in-progress: false
 
 jobs:
