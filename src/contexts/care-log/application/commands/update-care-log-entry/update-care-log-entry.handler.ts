@@ -8,9 +8,6 @@ import {
   CARE_LOG_ENTRY_WRITE_REPOSITORY,
   ICareLogEntryWriteRepository,
 } from '@contexts/care-log/domain/repositories/write/care-log-entry-write.repository';
-import { CareLogNotesValueObject } from '@contexts/care-log/domain/value-objects/care-log-notes/care-log-notes.value-object';
-import { CareLogPerformedAtValueObject } from '@contexts/care-log/domain/value-objects/care-log-performed-at/care-log-performed-at.value-object';
-import { CareLogQuantityValueObject } from '@contexts/care-log/domain/value-objects/care-log-quantity/care-log-quantity.value-object';
 import { AssertCareLogEntryExistsService } from '@contexts/care-log/application/services/write/assert-care-log-entry-exists/assert-care-log-entry-exists.service';
 
 import { UpdateCareLogEntryCommand } from './update-care-log-entry.command';
@@ -43,23 +40,10 @@ export class UpdateCareLogEntryCommandHandler
 
     entry.update({
       activityType: command.activityType,
-      performedAt:
-        command.performedAt != null
-          ? new CareLogPerformedAtValueObject(command.performedAt)
-          : undefined,
-      notes:
-        command.notes !== undefined
-          ? command.notes != null
-            ? new CareLogNotesValueObject(command.notes)
-            : null
-          : undefined,
-      quantity:
-        command.quantity !== undefined
-          ? command.quantity != null
-            ? new CareLogQuantityValueObject(command.quantity)
-            : null
-          : undefined,
-      unit: command.unit !== undefined ? command.unit : undefined,
+      performedAt: command.performedAt,
+      notes: command.notes,
+      quantity: command.quantity,
+      unit: command.unit,
     });
 
     await this.writeRepository.save(entry);
