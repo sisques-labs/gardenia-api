@@ -19,6 +19,12 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import {
+  Criteria,
+  FilterOperator,
+  PaginatedResult,
+  SortDirection,
+} from '@sisques-labs/nestjs-kit';
 
 import {
   CurrentUser,
@@ -28,8 +34,7 @@ import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guar
 import { CreateCareLogEntryCommand } from '@contexts/care-log/application/commands/create-care-log-entry/create-care-log-entry.command';
 import { DeleteCareLogEntryCommand } from '@contexts/care-log/application/commands/delete-care-log-entry/delete-care-log-entry.command';
 import { UpdateCareLogEntryCommand } from '@contexts/care-log/application/commands/update-care-log-entry/update-care-log-entry.command';
-import { CareLogFindByPlantQuery } from '@contexts/care-log/application/queries/care-log-find-by-plant/care-log-find-by-plant.query';
-import { CareLogFindBySpaceQuery } from '@contexts/care-log/application/queries/care-log-find-by-space/care-log-find-by-space.query';
+import { CareLogFindByCriteriaQuery } from '@contexts/care-log/application/queries/care-log-find-by-criteria/care-log-find-by-criteria.query';
 import { AssertCareLogEntryViewModelExistsService } from '@contexts/care-log/application/services/read/assert-care-log-entry-view-model-exists/assert-care-log-entry-view-model-exists.service';
 import { CareLogEntryViewModel } from '@contexts/care-log/domain/view-models/care-log-entry.view-model';
 import { SpaceContext } from '@shared/space-context/space-context.service';
@@ -100,12 +105,20 @@ export class CareLogController {
   ): Promise<CareLogRestResponseDto[]> {
     this.logger.log(`Listing care log entries for plant: ${plantId}`);
 
-    const entries = await this.queryBus.execute<
-      CareLogFindByPlantQuery,
-      CareLogEntryViewModel[]
-    >(new CareLogFindByPlantQuery({ plantId, page, limit }));
+    const criteria = new Criteria(
+      [{ field: 'plantId', operator: FilterOperator.EQUALS, value: plantId }],
+      [{ field: 'performedAt', direction: SortDirection.DESC }],
+      page != null
+        ? { page: Number(page), perPage: Number(limit ?? 20) }
+        : undefined,
+    );
 
-    return entries.map((vm) => this.restMapper.toResponse(vm));
+    const result = await this.queryBus.execute<
+      CareLogFindByCriteriaQuery,
+      PaginatedResult<CareLogEntryViewModel>
+    >(new CareLogFindByCriteriaQuery({ criteria }));
+
+    return result.items.map((vm) => this.restMapper.toResponse(vm));
   }
 
   @Get()
@@ -122,20 +135,43 @@ export class CareLogController {
   ): Promise<CareLogRestResponseDto[]> {
     this.logger.log('Listing care log entries by space');
 
-    const entries = await this.queryBus.execute<
-      CareLogFindBySpaceQuery,
-      CareLogEntryViewModel[]
-    >(
-      new CareLogFindBySpaceQuery({
-        activityTypes: activityTypes?.split(','),
-        fromDate: fromDate ? new Date(fromDate) : undefined,
-        toDate: toDate ? new Date(toDate) : undefined,
-        page,
-        limit,
-      }),
+    const filters = [];
+    if (activityTypes) {
+      filters.push({
+        field: 'activityType',
+        operator: FilterOperator.IN,
+        value: activityTypes.split(','),
+      });
+    }
+    if (fromDate) {
+      filters.push({
+        field: 'performedAt',
+        operator: FilterOperator.GREATER_THAN_OR_EQUAL,
+        value: new Date(fromDate),
+      });
+    }
+    if (toDate) {
+      filters.push({
+        field: 'performedAt',
+        operator: FilterOperator.LESS_THAN_OR_EQUAL,
+        value: new Date(toDate),
+      });
+    }
+
+    const criteria = new Criteria(
+      filters,
+      [{ field: 'performedAt', direction: SortDirection.DESC }],
+      page != null
+        ? { page: Number(page), perPage: Number(limit ?? 20) }
+        : undefined,
     );
 
-    return entries.map((vm) => this.restMapper.toResponse(vm));
+    const result = await this.queryBus.execute<
+      CareLogFindByCriteriaQuery,
+      PaginatedResult<CareLogEntryViewModel>
+    >(new CareLogFindByCriteriaQuery({ criteria }));
+
+    return result.items.map((vm) => this.restMapper.toResponse(vm));
   }
 
   @Get(':id')

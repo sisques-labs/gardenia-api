@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
 
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
 import { CareLogUnitEnum } from '@contexts/care-log/domain/enums/care-log-unit.enum';
@@ -37,4 +38,10 @@ export class CareLogEntryResponseDto {
 
   @Field(() => Date)
   updatedAt!: Date;
+}
+
+@ObjectType('PaginatedCareLogEntryResultDto')
+export class PaginatedCareLogEntryResultDto extends BasePaginatedResultDto {
+  @Field(() => [CareLogEntryResponseDto])
+  items!: CareLogEntryResponseDto[];
 }

@@ -1,5 +1,10 @@
 import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { CareLogActivityTypeChangedEvent } from '@contexts/care-log/domain/events/field-changed/care-log-activity-type-changed/care-log-activity-type-changed.event';
+import { CareLogNotesChangedEvent } from '@contexts/care-log/domain/events/field-changed/care-log-notes-changed/care-log-notes-changed.event';
+import { CareLogPerformedAtChangedEvent } from '@contexts/care-log/domain/events/field-changed/care-log-performed-at-changed/care-log-performed-at-changed.event';
+import { CareLogQuantityChangedEvent } from '@contexts/care-log/domain/events/field-changed/care-log-quantity-changed/care-log-quantity-changed.event';
+import { CareLogUnitChangedEvent } from '@contexts/care-log/domain/events/field-changed/care-log-unit-changed/care-log-unit-changed.event';
 import { CareLogEntryCreatedEvent } from '@contexts/care-log/domain/events/care-log-entry-created/care-log-entry-created.event';
 import { CareLogEntryUpdatedEvent } from '@contexts/care-log/domain/events/care-log-entry-updated/care-log-entry-updated.event';
 import { CareLogEntryDeletedEvent } from '@contexts/care-log/domain/events/care-log-entry-deleted/care-log-entry-deleted.event';
@@ -65,13 +70,21 @@ export class CareLogEntryAggregate extends BaseAggregate {
     const newUnit = props.unit !== undefined ? props.unit : this._unit;
     this.assertQuantityUnitPair(newQuantity, newUnit);
 
-    if (props.activityType !== undefined)
-      this._activityType = props.activityType;
-    if (props.performedAt !== undefined) this._performedAt = props.performedAt;
-    if (props.notes !== undefined) this._notes = props.notes;
-    if (props.quantity !== undefined) this._quantity = props.quantity;
-    if (props.unit !== undefined) this._unit = props.unit;
-    this.touch();
+    if (props.activityType !== undefined) {
+      this.changeActivityType(props.activityType);
+    }
+    if (props.performedAt !== undefined) {
+      this.changePerformedAt(props.performedAt);
+    }
+    if (props.notes !== undefined) {
+      this.changeNotes(props.notes);
+    }
+    if (props.quantity !== undefined) {
+      this.changeQuantity(props.quantity);
+    }
+    if (props.unit !== undefined) {
+      this.changeUnit(props.unit);
+    }
 
     this.apply(
       new CareLogEntryUpdatedEvent(
@@ -98,6 +111,117 @@ export class CareLogEntryAggregate extends BaseAggregate {
           eventType: CareLogEntryDeletedEvent.name,
         },
         this.toEventData(),
+      ),
+    );
+  }
+
+  private changeActivityType(newValue: CareLogActivityTypeValueObject): void {
+    if (this._activityType.equals(newValue)) return;
+
+    const oldValue = this._activityType.value;
+    this._activityType = newValue;
+    this.touch();
+
+    this.apply(
+      new CareLogActivityTypeChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: CareLogEntryAggregate.name,
+          entityId: this._id.value,
+          entityType: CareLogEntryAggregate.name,
+          eventType: CareLogActivityTypeChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue: newValue.value },
+      ),
+    );
+  }
+
+  private changePerformedAt(newValue: CareLogPerformedAtValueObject): void {
+    if (this._performedAt.equals(newValue)) return;
+
+    const oldValue = this._performedAt.value;
+    this._performedAt = newValue;
+    this.touch();
+
+    this.apply(
+      new CareLogPerformedAtChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: CareLogEntryAggregate.name,
+          entityId: this._id.value,
+          entityType: CareLogEntryAggregate.name,
+          eventType: CareLogPerformedAtChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue: newValue.value },
+      ),
+    );
+  }
+
+  private changeNotes(newValue: CareLogNotesValueObject | null): void {
+    const currentVal = this._notes?.value ?? null;
+    const incomingVal = newValue?.value ?? null;
+    if (currentVal === incomingVal) return;
+
+    const oldValue = currentVal;
+    this._notes = newValue;
+    this.touch();
+
+    this.apply(
+      new CareLogNotesChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: CareLogEntryAggregate.name,
+          entityId: this._id.value,
+          entityType: CareLogEntryAggregate.name,
+          eventType: CareLogNotesChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue: incomingVal },
+      ),
+    );
+  }
+
+  private changeQuantity(newValue: CareLogQuantityValueObject | null): void {
+    const currentVal = this._quantity?.value ?? null;
+    const incomingVal = newValue?.value ?? null;
+    if (currentVal === incomingVal) return;
+
+    const oldValue = currentVal;
+    this._quantity = newValue;
+    this.touch();
+
+    this.apply(
+      new CareLogQuantityChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: CareLogEntryAggregate.name,
+          entityId: this._id.value,
+          entityType: CareLogEntryAggregate.name,
+          eventType: CareLogQuantityChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue: incomingVal },
+      ),
+    );
+  }
+
+  private changeUnit(newValue: CareLogUnitValueObject | null): void {
+    const currentVal = this._unit?.value ?? null;
+    const incomingVal = newValue?.value ?? null;
+    if (currentVal === incomingVal) return;
+
+    const oldValue = currentVal;
+    this._unit = newValue;
+    this.touch();
+
+    this.apply(
+      new CareLogUnitChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: CareLogEntryAggregate.name,
+          entityId: this._id.value,
+          entityType: CareLogEntryAggregate.name,
+          eventType: CareLogUnitChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue: incomingVal },
       ),
     );
   }

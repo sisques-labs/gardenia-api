@@ -1,14 +1,17 @@
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
-import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
+import { Args, ID, Query, Resolver } from '@nestjs/graphql';
+import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 
-import { CareLogFindByPlantQuery } from '@contexts/care-log/application/queries/care-log-find-by-plant/care-log-find-by-plant.query';
-import { CareLogFindBySpaceQuery } from '@contexts/care-log/application/queries/care-log-find-by-space/care-log-find-by-space.query';
+import { CareLogFindByCriteriaQuery } from '@contexts/care-log/application/queries/care-log-find-by-criteria/care-log-find-by-criteria.query';
 import { CareLogEntryViewModel } from '@contexts/care-log/domain/view-models/care-log-entry.view-model';
 import { AssertCareLogEntryViewModelExistsService } from '@contexts/care-log/application/services/read/assert-care-log-entry-view-model-exists/assert-care-log-entry-view-model-exists.service';
 
-import { CareLogFindBySpaceGraphQLDto } from '../dtos/requests/care-log-find-by-space-graphql.dto';
-import { CareLogEntryResponseDto } from '../dtos/responses/care-log-entry.response.dto';
+import { CareLogFindByCriteriaGraphQLDto } from '../dtos/requests/care-log-find-by-criteria-graphql.dto';
+import {
+  CareLogEntryResponseDto,
+  PaginatedCareLogEntryResultDto,
+} from '../dtos/responses/care-log-entry.response.dto';
 import { CareLogGraphQLMapper } from '../mappers/care-log/care-log.mapper';
 
 @Resolver(() => CareLogEntryResponseDto)
@@ -31,41 +34,31 @@ export class CareLogQueriesResolver {
     return this.careLogGraphQLMapper.toResponseDto(vm);
   }
 
-  @Query(() => [CareLogEntryResponseDto])
-  async careLogEntriesByPlant(
-    @Args('plantId', { type: () => ID }) plantId: string,
-    @Args('page', { type: () => Int, nullable: true }) page?: number,
-    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
-  ): Promise<CareLogEntryResponseDto[]> {
-    this.logger.log(`Listing care log entries for plant: ${plantId}`);
+  @Query(() => PaginatedCareLogEntryResultDto)
+  async careLogFindByCriteria(
+    @Args('input', { nullable: true }) input?: CareLogFindByCriteriaGraphQLDto,
+  ): Promise<PaginatedCareLogEntryResultDto> {
+    this.logger.log('Finding care log entries by criteria');
 
-    const entries = await this.queryBus.execute<
-      CareLogFindByPlantQuery,
-      CareLogEntryViewModel[]
-    >(new CareLogFindByPlantQuery({ plantId, page, limit }));
-
-    return entries.map((vm) => this.careLogGraphQLMapper.toResponseDto(vm));
-  }
-
-  @Query(() => [CareLogEntryResponseDto])
-  async careLogEntriesBySpace(
-    @Args('input', { nullable: true }) input?: CareLogFindBySpaceGraphQLDto,
-  ): Promise<CareLogEntryResponseDto[]> {
-    this.logger.log('Listing care log entries by space');
-
-    const entries = await this.queryBus.execute<
-      CareLogFindBySpaceQuery,
-      CareLogEntryViewModel[]
-    >(
-      new CareLogFindBySpaceQuery({
-        activityTypes: input?.activityTypes,
-        fromDate: input?.fromDate,
-        toDate: input?.toDate,
-        page: input?.page,
-        limit: input?.limit,
-      }),
+    const criteria = new Criteria(
+      input?.filters,
+      input?.sorts,
+      input?.pagination,
     );
 
-    return entries.map((vm) => this.careLogGraphQLMapper.toResponseDto(vm));
+    const result = await this.queryBus.execute<
+      CareLogFindByCriteriaQuery,
+      PaginatedResult<CareLogEntryViewModel>
+    >(new CareLogFindByCriteriaQuery({ criteria }));
+
+    return {
+      items: result.items.map((vm) =>
+        this.careLogGraphQLMapper.toResponseDto(vm),
+      ),
+      total: result.total,
+      page: result.page,
+      perPage: result.perPage,
+      totalPages: result.totalPages,
+    };
   }
 }

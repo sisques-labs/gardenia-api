@@ -3,15 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   BaseDatabaseRepository,
   Criteria,
+  FilterOperator,
   PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
-import {
-  CareLogSpaceCriteria,
-  ICareLogEntryReadRepository,
-  Pagination,
-} from '@contexts/care-log/domain/repositories/read/care-log-entry-read.repository';
+import { ICareLogEntryReadRepository } from '@contexts/care-log/domain/repositories/read/care-log-entry-read.repository';
 import { CareLogEntryViewModel } from '@contexts/care-log/domain/view-models/care-log-entry.view-model';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
@@ -36,60 +33,67 @@ export class CareLogEntryTypeOrmReadRepository
   }
 
   async findByCriteria(
-    _criteria: Criteria,
+    criteria: Criteria,
   ): Promise<PaginatedResult<CareLogEntryViewModel>> {
-    throw new Error('Method not implemented.');
+    const { page, limit, skip } = await this.calculatePagination(criteria);
+
+    const qb = this.repository
+      .createQueryBuilder('entry')
+      .skip(skip)
+      .take(limit);
+
+    if (criteria.sorts.length > 0) {
+      criteria.sorts.forEach((sort) => {
+        qb.addOrderBy(`entry.${sort.field}`, sort.direction);
+      });
+    } else {
+      qb.orderBy('entry.performedAt', 'DESC');
+    }
+
+    criteria.filters.forEach((filter, index) => {
+      const param = `p${index}`;
+      switch (filter.operator) {
+        case FilterOperator.EQUALS:
+          qb.andWhere(`entry.${filter.field} = :${param}`, {
+            [param]: filter.value,
+          });
+          break;
+        case FilterOperator.IN:
+          qb.andWhere(`entry.${filter.field} IN (:...${param})`, {
+            [param]: filter.value,
+          });
+          break;
+        case FilterOperator.GREATER_THAN_OR_EQUAL:
+          qb.andWhere(`entry.${filter.field} >= :${param}`, {
+            [param]: filter.value,
+          });
+          break;
+        case FilterOperator.LESS_THAN_OR_EQUAL:
+          qb.andWhere(`entry.${filter.field} <= :${param}`, {
+            [param]: filter.value,
+          });
+          break;
+        case FilterOperator.GREATER_THAN:
+          qb.andWhere(`entry.${filter.field} > :${param}`, {
+            [param]: filter.value,
+          });
+          break;
+        case FilterOperator.LESS_THAN:
+          qb.andWhere(`entry.${filter.field} < :${param}`, {
+            [param]: filter.value,
+          });
+          break;
+      }
+    });
+
+    const [entities, total] = await qb.getManyAndCount();
+    const items = entities.map((e) => this.mapper.toViewModel(e));
+    return new PaginatedResult(items, total, page, limit);
   }
 
   async findById(id: string): Promise<CareLogEntryViewModel | null> {
     const entity = await this.repository.findOne({ where: { id } });
     return entity ? this.mapper.toViewModel(entity) : null;
-  }
-
-  async findByPlant(
-    plantId: string,
-    pagination: Pagination,
-  ): Promise<CareLogEntryViewModel[]> {
-    const skip = (pagination.page - 1) * pagination.limit;
-    const entities = await this.repository.find({
-      where: { plantId },
-      order: { performedAt: 'DESC' },
-      skip,
-      take: pagination.limit,
-    });
-    return entities.map((e) => this.mapper.toViewModel(e));
-  }
-
-  async findBySpace(
-    criteria: CareLogSpaceCriteria,
-  ): Promise<CareLogEntryViewModel[]> {
-    const skip = (criteria.page - 1) * criteria.limit;
-    const qb = this.repository
-      .createQueryBuilder('entry')
-      .orderBy('entry.performedAt', 'DESC')
-      .skip(skip)
-      .take(criteria.limit);
-
-    if (criteria.activityTypes?.length) {
-      qb.andWhere('entry.activityType IN (:...activityTypes)', {
-        activityTypes: criteria.activityTypes,
-      });
-    }
-
-    if (criteria.fromDate) {
-      qb.andWhere('entry.performedAt >= :fromDate', {
-        fromDate: criteria.fromDate,
-      });
-    }
-
-    if (criteria.toDate) {
-      qb.andWhere('entry.performedAt <= :toDate', {
-        toDate: criteria.toDate,
-      });
-    }
-
-    const entities = await qb.getMany();
-    return entities.map((e) => this.mapper.toViewModel(e));
   }
 
   async findLastByType(

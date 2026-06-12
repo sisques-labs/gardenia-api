@@ -5,8 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateCareLogEntryCommandHandler } from './application/commands/create-care-log-entry/create-care-log-entry.handler';
 import { DeleteCareLogEntryCommandHandler } from './application/commands/delete-care-log-entry/delete-care-log-entry.handler';
 import { UpdateCareLogEntryCommandHandler } from './application/commands/update-care-log-entry/update-care-log-entry.handler';
-import { CareLogFindByPlantQueryHandler } from './application/queries/care-log-find-by-plant/care-log-find-by-plant.handler';
-import { CareLogFindBySpaceQueryHandler } from './application/queries/care-log-find-by-space/care-log-find-by-space.handler';
+import { CareLogFindByCriteriaQueryHandler } from './application/queries/care-log-find-by-criteria/care-log-find-by-criteria.handler';
 import { CareLogFindLastByTypeQueryHandler } from './application/queries/care-log-find-last-by-type/care-log-find-last-by-type.handler';
 import { AssertCareLogEntryViewModelExistsService } from './application/services/read/assert-care-log-entry-view-model-exists/assert-care-log-entry-view-model-exists.service';
 import { AssertCareLogEntryExistsService } from './application/services/write/assert-care-log-entry-exists/assert-care-log-entry-exists.service';
@@ -31,8 +30,7 @@ const COMMAND_HANDLERS = [
 ];
 
 const QUERY_HANDLERS = [
-  CareLogFindByPlantQueryHandler,
-  CareLogFindBySpaceQueryHandler,
+  CareLogFindByCriteriaQueryHandler,
   CareLogFindLastByTypeQueryHandler,
 ];
 
