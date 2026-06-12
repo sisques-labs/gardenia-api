@@ -1,0 +1,16 @@
+change: harvest-module
+status: design
+created: 2026-06-12
+artifact_store: hybrid
+context: harvests
+phases:
+  explore: done
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending
+next_recommended:
+  - sdd-apply
