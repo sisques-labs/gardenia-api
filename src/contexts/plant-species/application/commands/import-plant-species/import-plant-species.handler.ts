@@ -23,7 +23,6 @@ export type ImportPlantSpeciesResult = {
   errors: number;
 };
 
-// TODO: add admin auth guard
 @CommandHandler(ImportPlantSpeciesCommand)
 export class ImportPlantSpeciesCommandHandler
   extends BaseCommandHandler<ImportPlantSpeciesCommand, PlantSpeciesAggregate>

@@ -5,13 +5,26 @@ All notable changes to this project will be documented in this file.
 
 ### CI
 - **release-train:** Serialize release channels with a repo-wide concurrency group (#237) (2d74c92)
-## [0.15.2-alpha.3] - 2026-06-11
+## [0.15.2-beta.0] - 2026-06-12
+
+### Bug Fixes
+- **plant-species:** Restrict write mutations to admin role (885d3a0)
+- **ci:** Use valid 32-byte base64 OAUTH_TOKEN_ENC_KEY (edd2da8)
+- **security:** Whitelist CORS origins instead of reflecting any origin (c4a87e8)
 
 ### CI
 - **release-train:** Freeze package.json version to 0.0.0-dev on develop (d43b56d)
 
 ### Chore
 - Release v0.15.1-beta.2 (32f9ddd)
+- Release v0.15.1-beta.3 (85c6616)
+
+### Features
+- **database:** Add tenant relationship indexes and FK constraints (610f362)
+- **security:** Validate critical secrets at startup with Zod (b8c0e12)
+
+### Testing
+- **integration:** Seed FK parent rows for tenant constraints (fa41657)
 ## [0.15.1-beta.2] - 2026-06-11
 
 ### Chore

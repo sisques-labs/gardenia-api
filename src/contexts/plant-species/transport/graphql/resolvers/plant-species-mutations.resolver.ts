@@ -6,12 +6,15 @@ import {
   MutationResponseGraphQLMapper,
 } from '@sisques-labs/nestjs-kit';
 
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
+import { AppRoleGuard } from '@contexts/auth/infrastructure/guards/app-role.guard';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CreatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/create-plant-species/create-plant-species.command';
 import { DeletePlantSpeciesCommand } from '@contexts/plant-species/application/commands/delete-plant-species/delete-plant-species.command';
 import { EnrichPlantSpeciesCommand } from '@contexts/plant-species/application/commands/enrich-plant-species/enrich-plant-species.command';
 import { ImportPlantSpeciesCommand } from '@contexts/plant-species/application/commands/import-plant-species/import-plant-species.command';
 import { UpdatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/update-plant-species/update-plant-species.command';
+import { RequireAppRole } from '@shared/decorators/require-app-role.decorator';
 import { SkipSpace } from '@shared/decorators/skip-space.decorator';
 
 import { PlantSpeciesCreateRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-create.request.dto';
@@ -32,7 +35,8 @@ export class PlantSpeciesMutationsResolver {
     private readonly mutationResponseGraphQLMapper: MutationResponseGraphQLMapper,
   ) {}
 
-  // TODO: restrict to admin
+  @UseGuards(AppRoleGuard)
+  @RequireAppRole(AppRoleEnum.ADMIN)
   @Mutation(() => MutationResponseDto)
   async createPlantSpecies(
     @Args('input') input: PlantSpeciesCreateRequestDto,
@@ -55,7 +59,8 @@ export class PlantSpeciesMutationsResolver {
     });
   }
 
-  // TODO: restrict to admin
+  @UseGuards(AppRoleGuard)
+  @RequireAppRole(AppRoleEnum.ADMIN)
   @Mutation(() => MutationResponseDto)
   async updatePlantSpecies(
     @Args('input') input: PlantSpeciesUpdateRequestDto,
@@ -78,6 +83,8 @@ export class PlantSpeciesMutationsResolver {
     });
   }
 
+  @UseGuards(AppRoleGuard)
+  @RequireAppRole(AppRoleEnum.ADMIN)
   @Mutation(() => MutationResponseDto)
   async deletePlantSpecies(
     @Args('input') input: PlantSpeciesDeleteRequestDto,
@@ -95,7 +102,8 @@ export class PlantSpeciesMutationsResolver {
     });
   }
 
-  // TODO: add admin auth guard
+  @UseGuards(AppRoleGuard)
+  @RequireAppRole(AppRoleEnum.ADMIN)
   @Mutation(() => MutationResponseDto)
   async enrichPlantSpecies(
     @Args('input') input: PlantSpeciesEnrichRequestDto,
@@ -125,7 +133,8 @@ export class PlantSpeciesMutationsResolver {
     });
   }
 
-  // TODO: add admin auth guard
+  @UseGuards(AppRoleGuard)
+  @RequireAppRole(AppRoleEnum.ADMIN)
   @Mutation(() => ImportPlantSpeciesResultResponseDto)
   async importPlantSpecies(
     @Args('input') input: PlantSpeciesImportRequestDto,

@@ -19,7 +19,10 @@ import {
 } from '@nestjs/swagger';
 import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
 
+import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
+import { AppRoleGuard } from '@contexts/auth/infrastructure/guards/app-role.guard';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
+import { RequireAppRole } from '@shared/decorators/require-app-role.decorator';
 import { CreatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/create-plant-species/create-plant-species.command';
 import { DeletePlantSpeciesCommand } from '@contexts/plant-species/application/commands/delete-plant-species/delete-plant-species.command';
 import { UpdatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/update-plant-species/update-plant-species.command';
@@ -46,6 +49,8 @@ export class PlantSpeciesController {
   ) {}
 
   @Post()
+  @UseGuards(AppRoleGuard)
+  @RequireAppRole(AppRoleEnum.ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a plant species catalog entry' })
   @ApiResponse({
@@ -54,6 +59,7 @@ export class PlantSpeciesController {
     type: PlantSpeciesRestResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden — admin role required' })
   @ApiResponse({ status: 409, description: 'Name already exists' })
   async createPlantSpecies(
     @Body() dto: CreatePlantSpeciesDto,
@@ -122,6 +128,8 @@ export class PlantSpeciesController {
   }
 
   @Patch(':id')
+  @UseGuards(AppRoleGuard)
+  @RequireAppRole(AppRoleEnum.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a plant species catalog entry' })
   @ApiResponse({
@@ -130,6 +138,7 @@ export class PlantSpeciesController {
     type: PlantSpeciesRestResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden — admin role required' })
   @ApiResponse({ status: 404, description: 'Plant species not found' })
   @ApiResponse({ status: 409, description: 'Name already exists' })
   async updatePlantSpecies(
@@ -154,6 +163,8 @@ export class PlantSpeciesController {
   }
 
   @Delete(':id')
+  @UseGuards(AppRoleGuard)
+  @RequireAppRole(AppRoleEnum.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a plant species catalog entry' })
   @ApiResponse({
@@ -161,6 +172,7 @@ export class PlantSpeciesController {
     description: 'Plant species deleted successfully',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden — admin role required' })
   @ApiResponse({ status: 404, description: 'Plant species not found' })
   @ApiResponse({ status: 409, description: 'Plant species is in use' })
   async deletePlantSpecies(@Param('id') id: string): Promise<void> {
