@@ -314,7 +314,7 @@ All notable changes to this project will be documented in this file.
 - **plant:** Reorganize imports in plant-find-by-criteria handler (4c8eb2a)
 - **plant:** Streamline import statements in plant-find-by-id handler (7fabddf)
 - **plants:** Align PlantQrTargetUrlBuilder with IBaseService (72cac29)
-- **plant:** Update import statements in plant.builder.ts for consistency (203fbe1)
+- **plant:** Update import statement in plant.builder.ts for consistency (203fbe1)
 - **tsconfig:** Add path alias for shared module (7ca9309)
 - **plant:** Utilize PlantBuilder in EnrichPlantWithQrService for improved object construction (5553e7e)
 - **qr:** Replace relative imports with @ path aliases (714e2f8)
