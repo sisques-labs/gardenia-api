@@ -18,6 +18,7 @@ import {
   IntegrationContext,
 } from '../../helpers/integration-bootstrap';
 import { truncateAll } from '../../helpers/db-reset';
+import { seedSpace } from '../../helpers/tenant-seed';
 
 const NOW = new Date('2024-06-01T00:00:00.000Z');
 
@@ -51,6 +52,8 @@ describe('UserTypeOrmReadRepository (integration)', () => {
 
   beforeEach(async () => {
     await truncateAll(ctx.dataSource);
+    await seedSpace(ctx.dataSource, spaceAId, randomUUID(), 'Space A');
+    await seedSpace(ctx.dataSource, spaceBId, randomUUID(), 'Space B');
   });
 
   it('returns only users from the active space via findById', async () => {

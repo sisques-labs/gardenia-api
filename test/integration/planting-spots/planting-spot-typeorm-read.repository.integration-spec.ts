@@ -18,6 +18,7 @@ import {
   IntegrationContext,
 } from '../../helpers/integration-bootstrap';
 import { truncateAll } from '../../helpers/db-reset';
+import { seedSpaceWithUser } from '../../helpers/tenant-seed';
 
 const NOW = new Date('2024-06-01T00:00:00.000Z');
 
@@ -26,13 +27,14 @@ const PLACEHOLDER_SPACE_ID = randomUUID();
 
 function buildSpot(
   name: string,
+  userId: string,
   type: PlantingSpotTypeEnum = PlantingSpotTypeEnum.RAISED_BED,
 ) {
   return new PlantingSpotBuilder()
     .withId(randomUUID())
     .withName(name)
     .withType(type)
-    .withUserId(randomUUID())
+    .withUserId(userId)
     .withSpaceId(PLACEHOLDER_SPACE_ID)
     .withCreatedAt(NOW)
     .withUpdatedAt(NOW)
@@ -46,6 +48,8 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
 
   const spaceAId = randomUUID();
   const spaceBId = randomUUID();
+  const userAId = randomUUID();
+  const userBId = randomUUID();
 
   beforeAll(async () => {
     ctx = await createIntegrationModule({ imports: [PlantingSpotsModule] });
@@ -59,6 +63,14 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
 
   beforeEach(async () => {
     await truncateAll(ctx.dataSource);
+    await seedSpaceWithUser(ctx.dataSource, spaceAId, userAId, {
+      spaceName: 'Space A',
+      username: 'owner_a',
+    });
+    await seedSpaceWithUser(ctx.dataSource, spaceBId, userBId, {
+      spaceName: 'Space B',
+      username: 'owner_b',
+    });
   });
 
   describe('findById()', () => {
@@ -66,7 +78,7 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
       let spotId: string;
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const spot = buildSpot('Bancal Norte');
+        const spot = buildSpot('Bancal Norte', userAId);
         await writeRepo.save(spot);
         spotId = spot.id.value;
       });
@@ -90,7 +102,7 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
       let spotId: string;
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const spot = buildSpot('Spot in A');
+        const spot = buildSpot('Spot in A', userAId);
         await writeRepo.save(spot);
         spotId = spot.id.value;
       });
@@ -106,12 +118,12 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
   describe('findByCriteria()', () => {
     it('returns paginated results scoped to the active space (SC-12)', async () => {
       await ctx.spaceContext.run(spaceAId, async () => {
-        await writeRepo.save(buildSpot('Spot 1'));
-        await writeRepo.save(buildSpot('Spot 2'));
+        await writeRepo.save(buildSpot('Spot 1', userAId));
+        await writeRepo.save(buildSpot('Spot 2', userAId));
       });
 
       await ctx.spaceContext.run(spaceBId, async () => {
-        await writeRepo.save(buildSpot('Spot B'));
+        await writeRepo.save(buildSpot('Spot B', userBId));
       });
 
       await ctx.spaceContext.run(spaceAId, async () => {
@@ -148,7 +160,7 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
       let spotAId: string;
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const spot = buildSpot('Cross-space Spot');
+        const spot = buildSpot('Cross-space Spot', userAId);
         await writeRepo.save(spot);
         spotAId = spot.id.value;
       });
