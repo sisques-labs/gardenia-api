@@ -26,6 +26,7 @@ import { AddExpiresAtToQrs1780000000012 } from '../../src/database/migrations/17
 import { CreateSpaceInvitations1780000000013 } from '../../src/database/migrations/1780000000013-CreateSpaceInvitations';
 import { AddAppRoleToAccounts1780000000014 } from '../../src/database/migrations/1780000000014-AddAppRoleToAccounts';
 import { AlterPlantSpeciesEnrich1780000000014 } from '../../src/database/migrations/1780000000014-AlterPlantSpeciesEnrich';
+import { AddTenantRelationshipIndexesAndFks1780000000015 } from '../../src/database/migrations/1780000000015-AddTenantRelationshipIndexesAndFks';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -57,6 +58,7 @@ const TEST_MIGRATIONS = [
   CreateSpaceInvitations1780000000013,
   AddAppRoleToAccounts1780000000014,
   AlterPlantSpeciesEnrich1780000000014,
+  AddTenantRelationshipIndexesAndFks1780000000015,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {
