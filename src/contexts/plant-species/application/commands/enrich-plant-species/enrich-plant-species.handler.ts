@@ -14,7 +14,6 @@ import {
 
 import { EnrichPlantSpeciesCommand } from './enrich-plant-species.command';
 
-// TODO: add admin auth guard
 @CommandHandler(EnrichPlantSpeciesCommand)
 export class EnrichPlantSpeciesCommandHandler implements ICommandHandler<
   EnrichPlantSpeciesCommand,

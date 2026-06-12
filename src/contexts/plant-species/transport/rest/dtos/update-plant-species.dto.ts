@@ -1,7 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-// TODO: restrict to admin
 export class UpdatePlantSpeciesDto {
   @ApiPropertyOptional({
     example: 'Monstera deliciosa',
