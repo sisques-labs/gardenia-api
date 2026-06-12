@@ -13,6 +13,7 @@ import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
 import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
 import { authConfig } from '@core/config/auth.config';
+import { validateEnv } from '@core/config/env.validation';
 import { postgresConfig } from '@core/config/postgres.config';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -31,6 +32,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     SharedGraphQLModule,
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: validateEnv,
       load: [postgresConfig, authConfig, appConfig],
       cache: true,
     }),
