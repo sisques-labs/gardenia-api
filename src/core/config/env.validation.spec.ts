@@ -83,6 +83,29 @@ describe('validateEnv', () => {
 
     expect(() => validateEnv(env)).not.toThrow();
   });
+
+  it('rejects missing CORS origins in production', () => {
+    const env = validEnv({
+      NODE_ENV: 'production',
+      JWT_SECRET: 'a'.repeat(32),
+      OAUTH_STATE_SECRET: 'a'.repeat(32),
+    });
+
+    expect(() => validateEnv(env)).toThrow(
+      /CORS_ORIGINS or FRONTEND_URL: at least one origin must be configured in production/,
+    );
+  });
+
+  it('accepts FRONTEND_URL as CORS origin in production', () => {
+    const env = validEnv({
+      NODE_ENV: 'production',
+      JWT_SECRET: 'a'.repeat(32),
+      OAUTH_STATE_SECRET: 'a'.repeat(32),
+      FRONTEND_URL: 'https://app.example.com',
+    });
+
+    expect(() => validateEnv(env)).not.toThrow();
+  });
 });
 
 describe('validateProductionSecrets', () => {
