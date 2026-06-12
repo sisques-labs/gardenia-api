@@ -1,11 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.1-beta.2] - 2026-06-11
+## [0.15.2] - 2026-06-12
+
+### CI
+- **release-train:** Serialize release channels with a repo-wide concurrency group (#237) (2d74c92)
+## [0.15.2-alpha.3] - 2026-06-11
 
 ### CI
 - **release-train:** Freeze package.json version to 0.0.0-dev on develop (d43b56d)
-## [0.15.1] - 2026-06-11
+
+### Chore
+- Release v0.15.1-beta.2 (32f9ddd)
+## [0.15.1-beta.2] - 2026-06-11
 
 ### Chore
 - Update version to 0.15.0-beta.0 (607f541)
