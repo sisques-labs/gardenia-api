@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -9,6 +10,7 @@ import {
 
 @Entity('accounts')
 @Unique(['spaceId', 'email'])
+@Index('IDX_accounts_space_id', ['spaceId'])
 export class AccountEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

@@ -28,5 +28,10 @@ process.env.DATABASE_DATABASE =
   process.env.DATABASE_DATABASE ?? 'gardenia_test';
 process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'test-jwt-secret';
 process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? '1d';
+process.env.OAUTH_TOKEN_ENC_KEY =
+  process.env.OAUTH_TOKEN_ENC_KEY ??
+  Buffer.alloc(32).fill('k').toString('base64');
+process.env.OAUTH_STATE_SECRET =
+  process.env.OAUTH_STATE_SECRET ?? 'test-oauth-state-secret-for-e2e';
 process.env.NODE_ENV = 'test';
 process.env.QR_BASE_URL = process.env.QR_BASE_URL ?? 'http://localhost:3000';

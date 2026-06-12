@@ -12,7 +12,7 @@ export class QrTypeOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Index()
+  @Index('IDX_qrs_space_id')
   @Column({ name: 'space_id', type: 'uuid', nullable: false })
   spaceId!: string;
 

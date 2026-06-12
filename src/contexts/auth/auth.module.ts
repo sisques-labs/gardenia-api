@@ -38,6 +38,7 @@ import { AssertAccountExistsService } from './application/services/write/assert-
 import { AccountBuilder } from './domain/builders/account.builder';
 import { ACCOUNT_READ_REPOSITORY } from './domain/repositories/read/account-read.repository';
 import { ACCOUNT_WRITE_REPOSITORY } from './domain/repositories/write/account-write.repository';
+import { AppRoleGuard } from './infrastructure/guards/app-role.guard';
 import { DynamicOAuthGuard } from './infrastructure/guards/dynamic-oauth.guard';
 import { JwtAuthGuard } from './infrastructure/guards/jwt-auth.guard';
 import { LocalAuthGuard } from './infrastructure/guards/local-auth.guard';
@@ -155,7 +156,7 @@ const STRATEGIES = [
   },
 ];
 
-const GUARDS = [JwtAuthGuard, LocalAuthGuard, DynamicOAuthGuard];
+const GUARDS = [JwtAuthGuard, LocalAuthGuard, DynamicOAuthGuard, AppRoleGuard];
 
 const OAUTH_INFRASTRUCTURE = [OAuthProviderRegistry];
 
@@ -198,6 +199,6 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController, OAuthController];
     ...OAUTH_INFRASTRUCTURE,
     ...TRANSPORT_GRAPHQL_RESOLVERS,
   ],
-  exports: [JwtAuthGuard, LocalAuthGuard, TokenService],
+  exports: [JwtAuthGuard, LocalAuthGuard, AppRoleGuard, TokenService],
 })
 export class AuthModule {}

@@ -21,10 +21,11 @@ export class PlantingSpotTypeOrmEntity {
   @Column({ type: 'varchar', length: 1000, nullable: true })
   description!: string | null;
 
+  @Index('IDX_planting_spots_user_id')
   @Column({ name: 'user_id', type: 'uuid', nullable: false })
   userId!: string;
 
-  @Index()
+  @Index('IDX_planting_spots_space_id')
   @Column({ name: 'space_id', type: 'uuid', nullable: false })
   spaceId!: string;
 
