@@ -19,7 +19,12 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { PaginatedResult } from '@sisques-labs/nestjs-kit';
+import {
+  Criteria,
+  Filter,
+  FilterOperator,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 
 import {
   CurrentUser,
@@ -94,21 +99,47 @@ export class HarvestsController {
     @Query('unit') unit?: HarvestUnitEnum,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ): Promise<PaginatedResult<HarvestRestResponseDto>> {
+    const filters: Filter[] = [];
+    if (cropType)
+      filters.push({
+        field: 'crop_type',
+        operator: FilterOperator.LIKE,
+        value: cropType,
+      });
+    if (unit)
+      filters.push({
+        field: 'unit',
+        operator: FilterOperator.EQUALS,
+        value: unit,
+      });
+    if (dateFrom)
+      filters.push({
+        field: 'harvested_at',
+        operator: FilterOperator.GREATER_THAN_OR_EQUAL,
+        value: new Date(dateFrom),
+      });
+    if (dateTo)
+      filters.push({
+        field: 'harvested_at',
+        operator: FilterOperator.LESS_THAN_OR_EQUAL,
+        value: new Date(dateTo),
+      });
+
+    const pagination =
+      page || limit
+        ? { page: page ? Number(page) : 1, perPage: limit ? Number(limit) : 20 }
+        : undefined;
+
     const result = await this.queryBus.execute<
       HarvestFindByCriteriaQuery,
       PaginatedResult<HarvestViewModel>
     >(
-      new HarvestFindByCriteriaQuery({
-        cropType,
-        unit,
-        dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-        dateTo: dateTo ? new Date(dateTo) : undefined,
-        page: page ? Number(page) : undefined,
-        limit: limit ? Number(limit) : undefined,
-      }),
+      new HarvestFindByCriteriaQuery(
+        new Criteria(filters, undefined, pagination),
+      ),
     );
 
     return {

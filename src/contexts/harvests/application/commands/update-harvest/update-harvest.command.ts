@@ -1,17 +1,18 @@
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
+import { IHarvestPrimitives } from '@contexts/harvests/domain/primitives/harvest.primitives';
 import { HarvestCropTypeValueObject } from '@contexts/harvests/domain/value-objects/harvest-crop-type/harvest-crop-type.value-object';
 import { HarvestHarvestedAtValueObject } from '@contexts/harvests/domain/value-objects/harvest-harvested-at/harvest-harvested-at.value-object';
 import { HarvestIdValueObject } from '@contexts/harvests/domain/value-objects/harvest-id/harvest-id.value-object';
 import { HarvestQuantityValueObject } from '@contexts/harvests/domain/value-objects/harvest-quantity/harvest-quantity.value-object';
 import { HarvestUnitValueObject } from '@contexts/harvests/domain/value-objects/harvest-unit/harvest-unit.value-object';
 
-export type UpdateHarvestCommandInput = {
-  id: string;
-  cropType?: string;
-  quantity?: number;
-  unit?: string;
-  harvestedAt?: Date;
-};
+export type UpdateHarvestCommandInput = Pick<IHarvestPrimitives, 'id'> &
+  Partial<
+    Omit<
+      IHarvestPrimitives,
+      'id' | 'userId' | 'spaceId' | 'createdAt' | 'updatedAt'
+    >
+  >;
 
 export class UpdateHarvestCommand {
   public readonly id: HarvestIdValueObject;

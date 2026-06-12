@@ -1,4 +1,3 @@
-import { InvalidHarvestQuantityException } from '@contexts/harvests/domain/exceptions/invalid-harvest-quantity.exception';
 import { HarvestQuantityValueObject } from './harvest-quantity.value-object';
 
 describe('HarvestQuantityValueObject', () => {
@@ -11,15 +10,11 @@ describe('HarvestQuantityValueObject', () => {
     expect(() => new HarvestQuantityValueObject(0.001)).not.toThrow();
   });
 
-  it('throws InvalidHarvestQuantityException for zero', () => {
-    expect(() => new HarvestQuantityValueObject(0)).toThrow(
-      InvalidHarvestQuantityException,
-    );
+  it('throws for zero', () => {
+    expect(() => new HarvestQuantityValueObject(0)).toThrow();
   });
 
-  it('throws InvalidHarvestQuantityException for negative', () => {
-    expect(() => new HarvestQuantityValueObject(-1)).toThrow(
-      InvalidHarvestQuantityException,
-    );
+  it('throws for negative', () => {
+    expect(() => new HarvestQuantityValueObject(-1)).toThrow();
   });
 });

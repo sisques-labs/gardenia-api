@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
+import { Criteria } from '@sisques-labs/nestjs-kit';
 
 import { HarvestFindByCriteriaQuery } from '@contexts/harvests/application/queries/harvest-find-by-criteria/harvest-find-by-criteria.query';
 import { HarvestFindByIdQuery } from '@contexts/harvests/application/queries/harvest-find-by-id/harvest-find-by-id.query';
@@ -28,15 +29,14 @@ export class HarvestQueriesResolver {
   ): Promise<PaginatedHarvestResultDto> {
     this.logger.log(`Finding harvests by criteria: ${JSON.stringify(input)}`);
 
+    const criteria = new Criteria(
+      input?.filters,
+      input?.sorts,
+      input?.pagination,
+    );
+
     const result = await this.queryBus.execute(
-      new HarvestFindByCriteriaQuery({
-        cropType: input?.cropType,
-        unit: input?.unit,
-        dateFrom: input?.dateFrom,
-        dateTo: input?.dateTo,
-        page: input?.page,
-        limit: input?.limit,
-      }),
+      new HarvestFindByCriteriaQuery(criteria),
     );
 
     return this.harvestGraphQLMapper.toPaginatedResponseDto(result);

@@ -1,9 +1,9 @@
-import { HarvestCriteria } from '@contexts/harvests/domain/repositories/read/harvest-read.repository';
+import { Criteria } from '@sisques-labs/nestjs-kit';
 
 export class HarvestFindByCriteriaQuery {
-  public readonly criteria: HarvestCriteria;
+  public readonly criteria: Criteria;
 
-  constructor(criteria: HarvestCriteria) {
+  constructor(criteria: Criteria) {
     this.criteria = criteria;
   }
 }

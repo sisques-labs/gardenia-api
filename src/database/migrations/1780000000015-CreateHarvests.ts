@@ -21,9 +21,13 @@ export class CreateHarvests1780000000015 implements MigrationInterface {
     await queryRunner.query(`
       CREATE INDEX "IDX_harvests_space_id" ON "harvests" ("space_id")
     `);
+    await queryRunner.query(`
+      CREATE INDEX "IDX_harvests_harvested_at" ON "harvests" ("harvested_at")
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP INDEX "IDX_harvests_harvested_at"`);
     await queryRunner.query(`DROP INDEX "IDX_harvests_space_id"`);
     await queryRunner.query(`DROP TABLE "harvests"`);
   }

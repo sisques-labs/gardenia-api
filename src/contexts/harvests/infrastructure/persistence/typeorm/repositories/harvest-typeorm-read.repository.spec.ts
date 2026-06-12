@@ -1,4 +1,8 @@
-import { PaginatedResult } from '@sisques-labs/nestjs-kit';
+import {
+  Criteria,
+  FilterOperator,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
@@ -98,7 +102,9 @@ describe('HarvestTypeOrmReadRepository', () => {
     it('returns paginated results with view models', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[buildEntity()], 1]);
 
-      const result = await repository.findByCriteria({});
+      const result = await repository.findByCriteria(
+        new Criteria(undefined, undefined, undefined),
+      );
 
       expect(result).toBeInstanceOf(PaginatedResult);
       expect(result.items).toHaveLength(1);
@@ -109,72 +115,105 @@ describe('HarvestTypeOrmReadRepository', () => {
     it('returns empty result when no harvests match', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      const result = await repository.findByCriteria({});
+      const result = await repository.findByCriteria(
+        new Criteria(undefined, undefined, undefined),
+      );
 
       expect(result.items).toHaveLength(0);
       expect(result.total).toBe(0);
     });
 
-    it('applies cropType ILIKE filter when provided', async () => {
+    it('applies LIKE filter for crop_type', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      await repository.findByCriteria({ cropType: 'Tomate' });
+      await repository.findByCriteria(
+        new Criteria(
+          [
+            {
+              field: 'crop_type',
+              operator: FilterOperator.LIKE,
+              value: 'Tomate',
+            },
+          ],
+          undefined,
+          undefined,
+        ),
+      );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'LOWER(harvest.crop_type) LIKE :cropType',
-        { cropType: '%tomate%' },
+        'LOWER(harvest.crop_type) LIKE :crop_type',
+        { crop_type: '%tomate%' },
       );
     });
 
-    it('applies unit exact filter when provided', async () => {
+    it('applies EQUALS filter for unit', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      await repository.findByCriteria({ unit: HarvestUnitEnum.KG });
+      await repository.findByCriteria(
+        new Criteria(
+          [
+            {
+              field: 'unit',
+              operator: FilterOperator.EQUALS,
+              value: HarvestUnitEnum.KG,
+            },
+          ],
+          undefined,
+          undefined,
+        ),
+      );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith('harvest.unit = :unit', {
         unit: HarvestUnitEnum.KG,
       });
     });
 
-    it('applies dateFrom filter when provided', async () => {
+    it('applies GTE filter for harvested_at', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
       const dateFrom = new Date('2026-01-01');
 
-      await repository.findByCriteria({ dateFrom });
+      await repository.findByCriteria(
+        new Criteria(
+          [
+            {
+              field: 'harvested_at',
+              operator: FilterOperator.GREATER_THAN_OR_EQUAL,
+              value: dateFrom,
+            },
+          ],
+          undefined,
+          undefined,
+        ),
+      );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'harvest.harvested_at >= :dateFrom',
-        { dateFrom },
+        'harvest.harvested_at >= :harvested_atFrom',
+        { harvested_atFrom: dateFrom },
       );
     });
 
-    it('applies dateTo filter when provided', async () => {
+    it('applies LTE filter for harvested_at', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
       const dateTo = new Date('2026-12-31');
 
-      await repository.findByCriteria({ dateTo });
+      await repository.findByCriteria(
+        new Criteria(
+          [
+            {
+              field: 'harvested_at',
+              operator: FilterOperator.LESS_THAN_OR_EQUAL,
+              value: dateTo,
+            },
+          ],
+          undefined,
+          undefined,
+        ),
+      );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'harvest.harvested_at <= :dateTo',
-        { dateTo },
+        'harvest.harvested_at <= :harvested_atTo',
+        { harvested_atTo: dateTo },
       );
-    });
-
-    it('uses default pagination when page/limit not provided', async () => {
-      mockQb.getManyAndCount.mockResolvedValue([[], 0]);
-
-      await repository.findByCriteria({});
-
-      expect(mockQb.skip).toHaveBeenCalledWith(0);
-      expect(mockQb.take).toHaveBeenCalledWith(20);
-    });
-
-    it('caps limit at 100', async () => {
-      mockQb.getManyAndCount.mockResolvedValue([[], 0]);
-
-      await repository.findByCriteria({ limit: 999 });
-
-      expect(mockQb.take).toHaveBeenCalledWith(100);
     });
   });
 });

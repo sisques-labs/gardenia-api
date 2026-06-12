@@ -21,6 +21,7 @@ export class HarvestTypeOrmEntity {
   @Column({ type: 'varchar', length: 50, nullable: false })
   unit!: string;
 
+  @Index()
   @Column({ name: 'harvested_at', type: 'timestamptz', nullable: false })
   harvestedAt!: Date;
 

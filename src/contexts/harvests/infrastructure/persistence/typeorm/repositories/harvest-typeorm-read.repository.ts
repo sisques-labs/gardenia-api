@@ -2,23 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   BaseDatabaseRepository,
+  Criteria,
+  FilterOperator,
   PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
-import {
-  HarvestCriteria,
-  IHarvestReadRepository,
-} from '@contexts/harvests/domain/repositories/read/harvest-read.repository';
+import { IHarvestReadRepository } from '@contexts/harvests/domain/repositories/read/harvest-read.repository';
 import { HarvestViewModel } from '@contexts/harvests/domain/view-models/harvest.view-model';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
 import { HarvestTypeOrmEntity } from '../entities/harvest.entity';
 import { HarvestTypeOrmMapper } from '../mappers/harvest-typeorm.mapper';
-
-const DEFAULT_PAGE = 1;
-const DEFAULT_LIMIT = 20;
-const MAX_LIMIT = 100;
 
 @Injectable()
 export class HarvestTypeOrmReadRepository
@@ -43,34 +38,35 @@ export class HarvestTypeOrmReadRepository
   }
 
   async findByCriteria(
-    criteria: HarvestCriteria,
+    criteria: Criteria,
   ): Promise<PaginatedResult<HarvestViewModel>> {
-    const page = criteria.page ?? DEFAULT_PAGE;
-    const limit = Math.min(criteria.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = await this.calculatePagination(criteria);
 
     const qb = this.repository.createQueryBuilder('harvest');
 
-    if (criteria.cropType) {
-      qb.andWhere('LOWER(harvest.crop_type) LIKE :cropType', {
-        cropType: `%${criteria.cropType.toLowerCase()}%`,
-      });
-    }
-
-    if (criteria.unit) {
-      qb.andWhere('harvest.unit = :unit', { unit: criteria.unit });
-    }
-
-    if (criteria.dateFrom) {
-      qb.andWhere('harvest.harvested_at >= :dateFrom', {
-        dateFrom: criteria.dateFrom,
-      });
-    }
-
-    if (criteria.dateTo) {
-      qb.andWhere('harvest.harvested_at <= :dateTo', {
-        dateTo: criteria.dateTo,
-      });
+    for (const filter of criteria.filters) {
+      switch (filter.operator) {
+        case FilterOperator.LIKE:
+          qb.andWhere(`LOWER(harvest.${filter.field}) LIKE :${filter.field}`, {
+            [filter.field]: `%${String(filter.value).toLowerCase()}%`,
+          });
+          break;
+        case FilterOperator.EQUALS:
+          qb.andWhere(`harvest.${filter.field} = :${filter.field}`, {
+            [filter.field]: filter.value,
+          });
+          break;
+        case FilterOperator.GREATER_THAN_OR_EQUAL:
+          qb.andWhere(`harvest.${filter.field} >= :${filter.field}From`, {
+            [`${filter.field}From`]: filter.value,
+          });
+          break;
+        case FilterOperator.LESS_THAN_OR_EQUAL:
+          qb.andWhere(`harvest.${filter.field} <= :${filter.field}To`, {
+            [`${filter.field}To`]: filter.value,
+          });
+          break;
+      }
     }
 
     qb.skip(skip).take(limit);
