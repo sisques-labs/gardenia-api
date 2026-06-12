@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.1-beta.3] - 2026-06-12
+## [0.15.2-beta.0] - 2026-06-12
 
 ### Bug Fixes
 - **plant-species:** Restrict write mutations to admin role (885d3a0)
@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 
 ### Chore
 - Release v0.15.1-beta.2 (32f9ddd)
+- Release v0.15.1-beta.3 (85c6616)
 
 ### Features
 - **database:** Add tenant relationship indexes and FK constraints (610f362)
