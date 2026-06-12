@@ -62,7 +62,7 @@ jobs:
       DATABASE_PASSWORD: gardenia
       JWT_SECRET: ci-test-jwt-secret
       JWT_EXPIRES_IN: 1d
-      OAUTH_TOKEN_ENC_KEY: a2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tp
+      OAUTH_TOKEN_ENC_KEY: a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2s=
       OAUTH_STATE_SECRET: ci-test-oauth-state-secret-value
       QR_BASE_URL: http://localhost:3000
       NODE_ENV: test
@@ -114,7 +114,7 @@ jobs:
       DATABASE_PASSWORD: gardenia
       JWT_SECRET: ci-test-jwt-secret
       JWT_EXPIRES_IN: 1d
-      OAUTH_TOKEN_ENC_KEY: a2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tpa2tp
+      OAUTH_TOKEN_ENC_KEY: a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2s=
       OAUTH_STATE_SECRET: ci-test-oauth-state-secret-value
       QR_BASE_URL: http://localhost:3000
       NODE_ENV: test
