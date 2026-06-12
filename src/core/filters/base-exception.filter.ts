@@ -1,4 +1,5 @@
 import { resolveAuthExceptionStatus } from '@contexts/auth/transport/exceptions/auth-exception.filter';
+import { resolveCareLogExceptionStatus } from '@contexts/care-log/transport/exceptions/care-log-exception.filter';
 import { resolvePlantSpeciesExceptionStatus } from '@contexts/plant-species/transport/exceptions/plant-species-exception.filter';
 import { resolvePlantingSpotsExceptionStatus } from '@contexts/planting-spots/transport/exceptions/planting-spots-exception.filter';
 import { resolvePlantsExceptionStatus } from '@contexts/plants/transport/exceptions/plants-exception.filter';
@@ -46,6 +47,7 @@ export class BaseExceptionFilter
       resolvePlantSpeciesExceptionStatus(exception) ??
       resolvePlantingSpotsExceptionStatus(exception) ??
       resolveQrExceptionStatus(exception) ??
+      resolveCareLogExceptionStatus(exception) ??
       HttpStatus.BAD_REQUEST
     );
   }

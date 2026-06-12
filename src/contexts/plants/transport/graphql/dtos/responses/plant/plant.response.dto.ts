@@ -110,6 +110,18 @@ export class PlantResponseDto {
   })
   plantingSpot?: PlantLinkedPlantingSpotResponseDto | null;
 
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last watered (resolved from care log)',
+  })
+  lastWateredAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last fertilized (resolved from care log)',
+  })
+  lastFertilizedAt?: Date | null;
+
   @Field(() => Date, { description: 'When the plant was created' })
   createdAt!: Date;
 

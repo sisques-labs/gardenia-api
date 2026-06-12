@@ -1,0 +1,72 @@
+import { Inject, Logger } from '@nestjs/common';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
+
+import { CareLogEntryAggregate } from '@contexts/care-log/domain/aggregates/care-log-entry.aggregate';
+import { CareLogEntryForbiddenException } from '@contexts/care-log/domain/exceptions/care-log-entry-forbidden.exception';
+import {
+  CARE_LOG_ENTRY_WRITE_REPOSITORY,
+  ICareLogEntryWriteRepository,
+} from '@contexts/care-log/domain/repositories/write/care-log-entry-write.repository';
+import { CareLogNotesValueObject } from '@contexts/care-log/domain/value-objects/care-log-notes/care-log-notes.value-object';
+import { CareLogPerformedAtValueObject } from '@contexts/care-log/domain/value-objects/care-log-performed-at/care-log-performed-at.value-object';
+import { CareLogQuantityValueObject } from '@contexts/care-log/domain/value-objects/care-log-quantity/care-log-quantity.value-object';
+import { AssertCareLogEntryExistsService } from '@contexts/care-log/application/services/write/assert-care-log-entry-exists/assert-care-log-entry-exists.service';
+
+import { UpdateCareLogEntryCommand } from './update-care-log-entry.command';
+
+@CommandHandler(UpdateCareLogEntryCommand)
+export class UpdateCareLogEntryCommandHandler
+  extends BaseCommandHandler<UpdateCareLogEntryCommand, CareLogEntryAggregate>
+  implements ICommandHandler<UpdateCareLogEntryCommand, void>
+{
+  private readonly logger = new Logger(UpdateCareLogEntryCommandHandler.name);
+
+  constructor(
+    @Inject(CARE_LOG_ENTRY_WRITE_REPOSITORY)
+    private readonly writeRepository: ICareLogEntryWriteRepository,
+    private readonly assertExists: AssertCareLogEntryExistsService,
+    eventBus: EventBus,
+  ) {
+    super(eventBus);
+  }
+
+  async execute(command: UpdateCareLogEntryCommand): Promise<void> {
+    const entry = await this.assertExists.execute(command.id);
+
+    if (entry.userId.value !== command.requestingUserId.value) {
+      throw new CareLogEntryForbiddenException(
+        command.requestingUserId.value,
+        command.id.value,
+      );
+    }
+
+    entry.update({
+      activityType: command.activityType,
+      performedAt:
+        command.performedAt != null
+          ? new CareLogPerformedAtValueObject(command.performedAt)
+          : undefined,
+      notes:
+        command.notes !== undefined
+          ? command.notes != null
+            ? new CareLogNotesValueObject(command.notes)
+            : null
+          : undefined,
+      quantity:
+        command.quantity !== undefined
+          ? command.quantity != null
+            ? new CareLogQuantityValueObject(command.quantity)
+            : null
+          : undefined,
+      unit: command.unit !== undefined ? command.unit : undefined,
+    });
+
+    await this.writeRepository.save(entry);
+    await this.publishEvents(entry);
+
+    this.logger.log(
+      `CareLogEntry updated: ${command.id.value} by user: ${command.requestingUserId.value}`,
+    );
+  }
+}

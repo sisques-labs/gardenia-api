@@ -7,6 +7,7 @@ import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { PlantsModule } from '@contexts/plants/plants.module';
 import { PlantingSpotsModule } from '@contexts/planting-spots/planting-spots.module';
 import { QrModule } from '@contexts/qr/qr.module';
+import { CareLogModule } from '@contexts/care-log/care-log.module';
 import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
 import { appConfig } from '@core/config/app.config';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
@@ -60,6 +61,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     PlantSpeciesModule,
     PlantsModule,
     PlantingSpotsModule,
+    CareLogModule,
   ],
   providers: [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through
