@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { validateProductionCorsOrigins } from './cors-origins';
+
 const PLACEHOLDER_PATTERN = /^change_me/i;
 
 function isValidOAuthTokenEncKey(value: string): boolean {
@@ -91,7 +93,19 @@ export function validateEnv(
   }
 
   if (parsed.data.NODE_ENV === 'production') {
-    const productionErrors = validateProductionSecrets(parsed.data);
+    const productionErrors = [
+      ...validateProductionSecrets(parsed.data),
+      ...validateProductionCorsOrigins({
+        CORS_ORIGINS:
+          typeof config.CORS_ORIGINS === 'string'
+            ? config.CORS_ORIGINS
+            : undefined,
+        FRONTEND_URL:
+          typeof config.FRONTEND_URL === 'string'
+            ? config.FRONTEND_URL
+            : undefined,
+      }),
+    ];
 
     if (productionErrors.length > 0) {
       throw new Error(
