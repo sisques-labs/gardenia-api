@@ -1,17 +1,26 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.2] - 2026-06-12
+## [0.15.2-beta.0] - 2026-06-12
 
-### CI
-- **release-train:** Serialize release channels with a repo-wide concurrency group (#237) (2d74c92)
-## [0.15.2-alpha.3] - 2026-06-11
+### Bug Fixes
+- **plant-species:** Restrict write mutations to admin role (885d3a0)
+- **ci:** Use valid 32-byte base64 OAUTH_TOKEN_ENC_KEY (edd2da8)
+- **security:** Whitelist CORS origins instead of reflecting any origin (c4a87e8)
 
 ### CI
 - **release-train:** Freeze package.json version to 0.0.0-dev on develop (d43b56d)
 
 ### Chore
 - Release v0.15.1-beta.2 (32f9ddd)
+- Release v0.15.1-beta.3 (85c6616)
+
+### Features
+- **database:** Add tenant relationship indexes and FK constraints (610f362)
+- **security:** Validate critical secrets at startup with Zod (b8c0e12)
+
+### Testing
+- **integration:** Seed FK parent rows for tenant constraints (fa41657)
 ## [0.15.1-beta.2] - 2026-06-11
 
 ### Chore
@@ -305,7 +314,7 @@ All notable changes to this project will be documented in this file.
 - **plant:** Reorganize imports in plant-find-by-criteria handler (4c8eb2a)
 - **plant:** Streamline import statements in plant-find-by-id handler (7fabddf)
 - **plants:** Align PlantQrTargetUrlBuilder with IBaseService (72cac29)
-- **plant:** Update import statements in plant.builder.ts for consistency (203fbe1)
+- **plant:** Update import statement in plant.builder.ts for consistency (203fbe1)
 - **tsconfig:** Add path alias for shared module (7ca9309)
 - **plant:** Utilize PlantBuilder in EnrichPlantWithQrService for improved object construction (5553e7e)
 - **qr:** Replace relative imports with @ path aliases (714e2f8)
