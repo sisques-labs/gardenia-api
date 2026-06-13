@@ -43,6 +43,9 @@ export class HarvestTypeOrmReadRepository
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
     const qb = this.repository.createQueryBuilder('harvest');
+    qb.where('harvest.space_id = :spaceId', {
+      spaceId: this.spaceContext.require(),
+    });
 
     for (const filter of criteria.filters) {
       switch (filter.operator) {
