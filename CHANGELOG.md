@@ -1,6 +1,27 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.17.0-alpha.1] - 2026-06-13
+
+### Features
+- **harvests:** Make harvestedAt optional, default to now on create (e8ec3ae)
+## [0.17.0-alpha.0] - 2026-06-13
+
+### Bug Fixes
+- **harvests:** Add spaceId filter to findByCriteria query builder for tenant isolation (8e7571d)
+
+### Documentation
+- **harvests:** Add module README (db4a044)
+
+### Features
+- **openspec:** Add harvest-module change proposal (5e580c3)
+- Implement harvests bounded context (phases 1-6) (1f2683b)
+
+### Refactor
+- **harvests:** Address PR review comments (57ce465)
+
+### Testing
+- **harvests:** Add where mock and spaceId assertion to read repository spec (e505179)
 ## [0.15.2] - 2026-06-12
 
 ### CI
