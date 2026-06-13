@@ -38,13 +38,14 @@ describe('HarvestTypeOrmReadRepository', () => {
   let mockQb: jest.Mocked<
     Pick<
       SelectQueryBuilder<HarvestTypeOrmEntity>,
-      'andWhere' | 'skip' | 'take' | 'getManyAndCount'
+      'where' | 'andWhere' | 'skip' | 'take' | 'getManyAndCount'
     >
   >;
   let mapper: HarvestTypeOrmMapper;
 
   beforeEach(() => {
     mockQb = {
+      where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       take: jest.fn().mockReturnThis(),
@@ -110,6 +111,9 @@ describe('HarvestTypeOrmReadRepository', () => {
       expect(result.items).toHaveLength(1);
       expect(result.items[0]).toBeInstanceOf(HarvestViewModel);
       expect(result.total).toBe(1);
+      expect(mockQb.where).toHaveBeenCalledWith('harvest.space_id = :spaceId', {
+        spaceId: SPACE_ID,
+      });
     });
 
     it('returns empty result when no harvests match', async () => {
