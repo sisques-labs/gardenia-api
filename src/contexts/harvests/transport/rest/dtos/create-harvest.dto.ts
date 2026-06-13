@@ -1,10 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsDate,
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsString,
 } from 'class-validator';
@@ -29,11 +30,12 @@ export class CreateHarvestDto {
   @IsEnum(HarvestUnitEnum)
   unit!: HarvestUnitEnum;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '2026-06-12T10:00:00.000Z',
-    description: 'When the harvest occurred',
+    description: 'When the harvest occurred. Defaults to now if omitted.',
   })
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  harvestedAt!: Date;
+  harvestedAt?: Date;
 }

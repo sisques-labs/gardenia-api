@@ -50,6 +50,25 @@ describe('CreateHarvestCommandHandler', () => {
     expect(result).toHaveLength(36);
   });
 
+  it('defaults harvestedAt to now when omitted', async () => {
+    const before = new Date();
+    const command = new CreateHarvestCommand({
+      cropType: 'Tomate Cherry',
+      quantity: 2.5,
+      unit: HarvestUnitEnum.KG,
+      userId: '660e8400-e29b-41d4-a716-446655440001',
+      spaceId: '770e8400-e29b-41d4-a716-446655440002',
+    });
+    const after = new Date();
+
+    expect(command.harvestedAt.value.getTime()).toBeGreaterThanOrEqual(
+      before.getTime(),
+    );
+    expect(command.harvestedAt.value.getTime()).toBeLessThanOrEqual(
+      after.getTime(),
+    );
+  });
+
   it('throws when cropType is empty', () => {
     expect(
       () =>

@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsString,
 } from 'class-validator';
@@ -27,8 +28,12 @@ export class HarvestCreateRequestDto {
   @IsEnum(HarvestUnitEnum)
   unit!: HarvestUnitEnum;
 
-  @Field(() => Date, { description: 'When the harvest occurred' })
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the harvest occurred. Defaults to now if omitted.',
+  })
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  harvestedAt!: Date;
+  harvestedAt?: Date;
 }

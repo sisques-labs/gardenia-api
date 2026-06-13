@@ -10,7 +10,7 @@ export type CreateHarvestCommandInput = {
   cropType: string;
   quantity: number;
   unit: string;
-  harvestedAt: Date;
+  harvestedAt?: Date;
   userId: string;
   spaceId: string;
 };
@@ -27,7 +27,9 @@ export class CreateHarvestCommand {
     this.cropType = new HarvestCropTypeValueObject(input.cropType);
     this.quantity = new HarvestQuantityValueObject(input.quantity);
     this.unit = new HarvestUnitValueObject(input.unit as HarvestUnitEnum);
-    this.harvestedAt = new HarvestHarvestedAtValueObject(input.harvestedAt);
+    this.harvestedAt = new HarvestHarvestedAtValueObject(
+      input.harvestedAt ?? new Date(),
+    );
     this.userId = new UuidValueObject(input.userId);
     this.spaceId = new UuidValueObject(input.spaceId);
   }
