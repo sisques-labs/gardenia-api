@@ -1,11 +1,11 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 
-import { AddTenantRelationshipIndexesAndFks1780000000015 } from 'src/database/migrations/1780000000015-AddTenantRelationshipIndexesAndFks';
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
 import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
+import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
 import { SpaceInvitationEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-invitation.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
@@ -40,6 +40,7 @@ const TEST_ENTITIES = [
   PlantSpeciesTypeOrmEntity,
   PlantTypeOrmEntity,
   QrTypeOrmEntity,
+  PlantingSpotTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
 ];
 
@@ -62,7 +63,6 @@ const TEST_MIGRATIONS = [
   AddAppRoleToAccounts1780000000014,
   AlterPlantSpeciesEnrich1780000000014,
   CreateCareLog1780000000016,
-  AddTenantRelationshipIndexesAndFks1780000000015,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {
