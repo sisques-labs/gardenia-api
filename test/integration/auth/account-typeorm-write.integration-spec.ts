@@ -12,6 +12,7 @@ import {
   IntegrationContext,
 } from '../../helpers/integration-bootstrap';
 import { truncateAll } from '../../helpers/db-reset';
+import { seedSpaceWithUser, seedUser } from '../../helpers/tenant-seed';
 
 const NOW = new Date('2024-06-01T00:00:00.000Z');
 const SHARED_EMAIL = 'tenant-user@example.com';
@@ -48,6 +49,14 @@ describe('AccountTypeOrmWriteRepository (integration)', () => {
 
   beforeEach(async () => {
     await truncateAll(ctx.dataSource);
+    await seedSpaceWithUser(ctx.dataSource, spaceAId, userAId, {
+      spaceName: 'Space A',
+      username: 'user_a',
+    });
+    await seedSpaceWithUser(ctx.dataSource, spaceBId, userBId, {
+      spaceName: 'Space B',
+      username: 'user_b',
+    });
   });
 
   it('allows the same email in different spaces', async () => {
@@ -70,7 +79,11 @@ describe('AccountTypeOrmWriteRepository (integration)', () => {
 
     await expect(
       ctx.spaceContext.run(spaceAId, async () => {
-        await accountWriteRepo.save(buildAccount(randomUUID(), SHARED_EMAIL));
+        const duplicateUserId = randomUUID();
+        await seedUser(ctx.dataSource, duplicateUserId, spaceAId, 'dup_user');
+        await accountWriteRepo.save(
+          buildAccount(duplicateUserId, SHARED_EMAIL),
+        );
       }),
     ).rejects.toThrow();
   });

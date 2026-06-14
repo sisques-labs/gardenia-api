@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -10,6 +11,7 @@ import {
 
 @Entity('users')
 @Unique(['spaceId', 'username'])
+@Index('IDX_users_space_id', ['spaceId'])
 export class UserTypeOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

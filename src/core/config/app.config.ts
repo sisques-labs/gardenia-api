@@ -1,5 +1,7 @@
 import { registerAs } from '@nestjs/config';
 
+import { resolveCorsOrigins } from './cors-origins';
+
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value?.trim()) {
@@ -17,5 +19,10 @@ export const appConfig = registerAs('app', () => {
       /\/$/,
       '',
     ),
+    corsOrigins: resolveCorsOrigins({
+      CORS_ORIGINS: process.env.CORS_ORIGINS,
+      FRONTEND_URL: process.env.FRONTEND_URL,
+      NODE_ENV: process.env.NODE_ENV,
+    }),
   };
 });

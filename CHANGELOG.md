@@ -1,11 +1,52 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.15.1-beta.2] - 2026-06-11
+## [0.17.0-alpha.1] - 2026-06-13
+
+### Features
+- **harvests:** Make harvestedAt optional, default to now on create (e8ec3ae)
+## [0.17.0-alpha.0] - 2026-06-13
+
+### Bug Fixes
+- **harvests:** Add spaceId filter to findByCriteria query builder for tenant isolation (8e7571d)
+
+### Documentation
+- **harvests:** Add module README (db4a044)
+
+### Features
+- **openspec:** Add harvest-module change proposal (5e580c3)
+- Implement harvests bounded context (phases 1-6) (1f2683b)
+
+### Refactor
+- **harvests:** Address PR review comments (57ce465)
+
+### Testing
+- **harvests:** Add where mock and spaceId assertion to read repository spec (e505179)
+## [0.15.2] - 2026-06-12
+
+### CI
+- **release-train:** Serialize release channels with a repo-wide concurrency group (#237) (2d74c92)
+## [0.15.2-beta.0] - 2026-06-12
+
+### Bug Fixes
+- **plant-species:** Restrict write mutations to admin role (885d3a0)
+- **ci:** Use valid 32-byte base64 OAUTH_TOKEN_ENC_KEY (edd2da8)
+- **security:** Whitelist CORS origins instead of reflecting any origin (c4a87e8)
 
 ### CI
 - **release-train:** Freeze package.json version to 0.0.0-dev on develop (d43b56d)
-## [0.15.1] - 2026-06-11
+
+### Chore
+- Release v0.15.1-beta.2 (32f9ddd)
+- Release v0.15.1-beta.3 (85c6616)
+
+### Features
+- **database:** Add tenant relationship indexes and FK constraints (610f362)
+- **security:** Validate critical secrets at startup with Zod (b8c0e12)
+
+### Testing
+- **integration:** Seed FK parent rows for tenant constraints (fa41657)
+## [0.15.1-beta.2] - 2026-06-11
 
 ### Chore
 - Update version to 0.15.0-beta.0 (607f541)

@@ -2,11 +2,16 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('plants')
+@Index('IDX_plants_space_id', ['spaceId'])
+@Index('IDX_plants_user_id', ['userId'])
+@Index('IDX_plants_plant_species_id', ['plantSpeciesId'])
+@Index('IDX_plants_planting_spot_id', ['plantingSpotId'])
 export class PlantTypeOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

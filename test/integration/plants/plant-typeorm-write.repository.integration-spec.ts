@@ -12,6 +12,7 @@ import {
   IntegrationContext,
 } from '../../helpers/integration-bootstrap';
 import { truncateAll } from '../../helpers/db-reset';
+import { seedPlantSpecies, seedSpaceWithUser } from '../../helpers/tenant-seed';
 
 const NOW = new Date('2024-06-01T00:00:00.000Z');
 
@@ -19,11 +20,11 @@ const NOW = new Date('2024-06-01T00:00:00.000Z');
 // requires a valid UUID — pass a dummy UUID that satisfies the VO constraint.
 const PLACEHOLDER_SPACE_ID = randomUUID();
 
-function buildPlant(name: string, userId?: string) {
+function buildPlant(name: string, userId: string) {
   return new PlantBuilder()
     .withId(randomUUID())
     .withName(name)
-    .withUserId(userId ?? randomUUID())
+    .withUserId(userId)
     .withSpaceId(PLACEHOLDER_SPACE_ID)
     .withCreatedAt(NOW)
     .withUpdatedAt(NOW)
@@ -36,6 +37,8 @@ describe('PlantTypeOrmWriteRepository (integration)', () => {
 
   const spaceAId = randomUUID();
   const spaceBId = randomUUID();
+  const userAId = randomUUID();
+  const userBId = randomUUID();
 
   beforeAll(async () => {
     ctx = await createIntegrationModule({ imports: [PlantsModule] });
@@ -48,12 +51,20 @@ describe('PlantTypeOrmWriteRepository (integration)', () => {
 
   beforeEach(async () => {
     await truncateAll(ctx.dataSource);
+    await seedSpaceWithUser(ctx.dataSource, spaceAId, userAId, {
+      spaceName: 'Space A',
+      username: 'owner_a',
+    });
+    await seedSpaceWithUser(ctx.dataSource, spaceBId, userBId, {
+      spaceName: 'Space B',
+      username: 'owner_b',
+    });
   });
 
   describe('save() and findById()', () => {
     it('persists a PlantAggregate and returns it with the same id', async () => {
       await ctx.spaceContext.run(spaceAId, async () => {
-        const plant = buildPlant('Rose');
+        const plant = buildPlant('Rose', userAId);
         const saved = await plantWriteRepo.save(plant);
 
         expect(saved.id.value).toBe(plant.id.value);
@@ -65,7 +76,7 @@ describe('PlantTypeOrmWriteRepository (integration)', () => {
       let plantId: string;
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const plant = buildPlant('Fern');
+        const plant = buildPlant('Fern', userAId);
         const saved = await plantWriteRepo.save(plant);
         plantId = saved.id.value;
       });
@@ -88,13 +99,15 @@ describe('PlantTypeOrmWriteRepository (integration)', () => {
       const speciesId = randomUUID();
       let plantId: string;
 
+      await seedPlantSpecies(ctx.dataSource, speciesId, 'Cactaceae testus');
+
       await ctx.spaceContext.run(spaceAId, async () => {
         const plant = new PlantBuilder()
           .withId(randomUUID())
           .withName('Cactus')
           .withPlantSpeciesId(speciesId)
           .withImageUrl('https://example.com/cactus.jpg')
-          .withUserId(randomUUID())
+          .withUserId(userAId)
           .withSpaceId(PLACEHOLDER_SPACE_ID)
           .withCreatedAt(NOW)
           .withUpdatedAt(NOW)
@@ -118,7 +131,7 @@ describe('PlantTypeOrmWriteRepository (integration)', () => {
       let plantId: string;
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const plant = buildPlant('Orchid');
+        const plant = buildPlant('Orchid', userAId);
         const saved = await plantWriteRepo.save(plant);
         plantId = saved.id.value;
       });
@@ -136,7 +149,7 @@ describe('PlantTypeOrmWriteRepository (integration)', () => {
       let plantId: string;
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const plant = buildPlant('Tulip');
+        const plant = buildPlant('Tulip', userAId);
         const saved = await plantWriteRepo.save(plant);
         plantId = saved.id.value;
       });
@@ -152,13 +165,13 @@ describe('PlantTypeOrmWriteRepository (integration)', () => {
       let plantBId: string;
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const plant = buildPlant('Daisy');
+        const plant = buildPlant('Daisy', userAId);
         const saved = await plantWriteRepo.save(plant);
         plantAId = saved.id.value;
       });
 
       await ctx.spaceContext.run(spaceBId, async () => {
-        const plant = buildPlant('Lily');
+        const plant = buildPlant('Lily', userBId);
         const saved = await plantWriteRepo.save(plant);
         plantBId = saved.id.value;
       });
