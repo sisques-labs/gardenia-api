@@ -39,6 +39,7 @@ export class CareLogEntryTypeOrmReadRepository
 
     const qb = this.repository
       .createQueryBuilder('entry')
+      .where('entry.space_id = :spaceId', { spaceId: this.spaceContext.require() })
       .skip(skip)
       .take(limit);
 
