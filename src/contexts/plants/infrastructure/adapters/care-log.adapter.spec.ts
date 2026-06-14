@@ -11,7 +11,10 @@ const NOW = new Date('2024-06-01T10:00:00.000Z');
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440003';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
 
-function buildVm(activityType: CareLogActivityTypeEnum, performedAt: Date): CareLogEntryViewModel {
+function buildVm(
+  activityType: CareLogActivityTypeEnum,
+  performedAt: Date,
+): CareLogEntryViewModel {
   return new CareLogEntryViewModel({
     id: '550e8400-e29b-41d4-a716-446655440000',
     plantId: PLANT_ID,

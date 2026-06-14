@@ -175,7 +175,10 @@ describe('Care Log REST API (e2e)', () => {
         .post('/api/care-log')
         .set('Authorization', `Bearer ${owner.token}`)
         .set('X-Space-ID', owner.spaceId)
-        .send({ plantId: ownerPlantId, activityType: CareLogActivityTypeEnum.WATERING })
+        .send({
+          plantId: ownerPlantId,
+          activityType: CareLogActivityTypeEnum.WATERING,
+        })
         .expect(201);
 
       // Other user queries for the same plantId but in their own space — should see nothing
