@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { CARE_LOG_PORT } from '@contexts/plants/application/ports/care-log.port';
 import { PLANT_QR_PORT } from '@contexts/plants/application/ports/plant-qr.port';
 import { PLANT_SPECIES_PORT } from '@contexts/plants/application/ports/plant-species.port';
 import { PLANTING_SPOT_PORT } from '@contexts/plants/application/ports/planting-spot.port';
+import { CareLogAdapter } from '@contexts/plants/infrastructure/adapters/care-log.adapter';
 import { PlantQrAdapter } from '@contexts/plants/infrastructure/adapters/plant-qr.adapter';
 import { PlantSpeciesAdapter } from '@contexts/plants/infrastructure/adapters/plant-species.adapter';
 import { PlantingSpotAdapter } from '@contexts/plants/infrastructure/adapters/planting-spot.adapter';
@@ -34,6 +36,7 @@ import './transport/graphql/enums/plant/plant-registered-enums.graphql';
 import { PlantGraphQLMapper } from './transport/graphql/mappers/plant/plant.mapper';
 import { PlantMutationsResolver } from './transport/graphql/resolvers/plant/plant-mutations.resolver';
 import { PlantQueriesResolver } from './transport/graphql/resolvers/plant/plant-queries.resolver';
+import { PlantCareLogResolvedFieldsResolver } from './transport/graphql/resolvers/plant/plant-care-log-resolved-fields.resolver';
 import { PlantQrResolvedFieldResolver } from './transport/graphql/resolvers/plant/plant-qr-resolved-field.resolver';
 import { PlantResolvedFieldsResolver } from './transport/graphql/resolvers/plant/plant-resolved-fields.resolver';
 import { PlantSpeciesResolvedFieldResolver } from './transport/graphql/resolvers/plant/plant-species-resolved-field.resolver';
@@ -79,6 +82,7 @@ const INFRASTRUCTURE_ADAPTERS = [
   { provide: PLANT_QR_PORT, useClass: PlantQrAdapter },
   { provide: PLANT_SPECIES_PORT, useClass: PlantSpeciesAdapter },
   { provide: PLANTING_SPOT_PORT, useClass: PlantingSpotAdapter },
+  { provide: CARE_LOG_PORT, useClass: CareLogAdapter },
 ];
 
 const REST_CONTROLLERS = [PlantsController];
@@ -89,6 +93,7 @@ const GRAPHQL_PROVIDERS = [
   PlantResolvedFieldsResolver,
   PlantQrResolvedFieldResolver,
   PlantSpeciesResolvedFieldResolver,
+  PlantCareLogResolvedFieldsResolver,
   PlantGraphQLMapper,
 ];
 

@@ -2,13 +2,17 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
-import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
-import { SpaceInvitationEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-invitation.entity';
-import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
-import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
+import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
+import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
+import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
 import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
+import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
+import { SpaceInvitationEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-invitation.entity';
+import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
+import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
+import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
 import { InitialSchema1779729423499 } from '../../src/database/migrations/1779729423499-InitialSchema';
 import { CreateAuthSessions1779953632660 } from '../../src/database/migrations/1779953632660-CreateAuthSessions';
 import { CreateSpaces1780000000001 } from '../../src/database/migrations/1780000000001-CreateSpaces';
@@ -27,6 +31,8 @@ import { CreateSpaceInvitations1780000000013 } from '../../src/database/migratio
 import { AddAppRoleToAccounts1780000000014 } from '../../src/database/migrations/1780000000014-AddAppRoleToAccounts';
 import { AlterPlantSpeciesEnrich1780000000014 } from '../../src/database/migrations/1780000000014-AlterPlantSpeciesEnrich';
 import { AddTenantRelationshipIndexesAndFks1780000000015 } from '../../src/database/migrations/1780000000015-AddTenantRelationshipIndexesAndFks';
+import { CreateHarvests1780000000015 } from '../../src/database/migrations/1780000000015-CreateHarvests';
+import { CreateCareLog1780000000016 } from '../../src/database/migrations/1780000000016-CreateCareLog';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -38,6 +44,10 @@ const TEST_ENTITIES = [
   PlantSpeciesTypeOrmEntity,
   PlantTypeOrmEntity,
   QrTypeOrmEntity,
+  PlantingSpotTypeOrmEntity,
+  OAuthIdentityTypeOrmEntity,
+  HarvestTypeOrmEntity,
+  CareLogEntryTypeOrmEntity,
 ];
 
 const TEST_MIGRATIONS = [
@@ -59,6 +69,8 @@ const TEST_MIGRATIONS = [
   AddAppRoleToAccounts1780000000014,
   AlterPlantSpeciesEnrich1780000000014,
   AddTenantRelationshipIndexesAndFks1780000000015,
+  CreateHarvests1780000000015,
+  CreateCareLog1780000000016,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {
