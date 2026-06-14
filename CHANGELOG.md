@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.18.0-alpha.0] - 2026-06-14
+
+### Bug Fixes
+- **test:** Cast query param in care-log adapter mock to avoid IQuery incompatibility (5a1b6cb)
+- **test:** Remove nonexistent migration 15, restore PlantingSpotTypeOrmEntity in test-data-source (50a71a7)
+- **test:** Add missing migrations 11-OAuth and both 15s, add missing entities to test helpers (c8d0b2a)
+- **test:** Reorder imports in test-data-source and remove unused migration import (73f8a41)
+- **care-log:** Add space_id tenant filter to findByCriteria query builder (46f5dc1)
 ## [0.17.0-alpha.1] - 2026-06-13
 
 ### Features
@@ -33,19 +41,35 @@ All notable changes to this project will be documented in this file.
 - **ci:** Use valid 32-byte base64 OAUTH_TOKEN_ENC_KEY (edd2da8)
 - **security:** Whitelist CORS origins instead of reflecting any origin (c4a87e8)
 
+### Chore
+- Release v0.15.1-beta.3 (85c6616)
+
+### Documentation
+- **care-log:** Add README for the care log bounded context (8bae3e0)
+
+### Features
+- **openspec:** Add care-log change — full proposal, design, spec and tasks (b53a827)
+- **care-log:** Implement care journal bounded context (#216) (3e3769d)
+- **database:** Add tenant relationship indexes and FK constraints (610f362)
+- **security:** Validate critical secrets at startup with Zod (b8c0e12)
+
+### Refactor
+- **care-log:** Commands use Pick/Omit input types and full VO class fields (b35fc9a)
+- **care-log:** Per-field change events on update + FindByCriteria query (3cec1d0)
+- **care-log:** Address PR review comments (a7a452a)
+- **care-log:** Address remaining PR review comments (4694821)
+- **care-log:** Update CareLogFindLastByTypeQuery to use UuidValueObject for plantId (25dfcee)
+
+### Testing
+- **care-log:** Add unit, integration and e2e tests (374c62b)
+- **integration:** Seed FK parent rows for tenant constraints (fa41657)
+## [0.15.2-alpha.3] - 2026-06-11
+
 ### CI
 - **release-train:** Freeze package.json version to 0.0.0-dev on develop (d43b56d)
 
 ### Chore
 - Release v0.15.1-beta.2 (32f9ddd)
-- Release v0.15.1-beta.3 (85c6616)
-
-### Features
-- **database:** Add tenant relationship indexes and FK constraints (610f362)
-- **security:** Validate critical secrets at startup with Zod (b8c0e12)
-
-### Testing
-- **integration:** Seed FK parent rows for tenant constraints (fa41657)
 ## [0.15.1-beta.2] - 2026-06-11
 
 ### Chore
