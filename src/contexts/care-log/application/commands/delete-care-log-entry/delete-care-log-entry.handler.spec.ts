@@ -27,7 +27,9 @@ const buildAggregate = (): CareLogEntryAggregate =>
     plantId: new UuidValueObject(PLANT_ID),
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
-    activityType: new CareLogActivityTypeValueObject(CareLogActivityTypeEnum.WATERING),
+    activityType: new CareLogActivityTypeValueObject(
+      CareLogActivityTypeEnum.WATERING,
+    ),
     performedAt: new CareLogPerformedAtValueObject(NOW),
     notes: null,
     quantity: null,

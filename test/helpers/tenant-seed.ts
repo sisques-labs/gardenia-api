@@ -50,6 +50,20 @@ export async function seedSpaceWithUser(
   );
 }
 
+export async function seedMembership(
+  dataSource: DataSource,
+  spaceId: string,
+  userId: string,
+  role = 'member',
+): Promise<void> {
+  await dataSource.query(
+    `INSERT INTO "space_memberships" ("id", "space_id", "user_id", "role", "joined_at")
+     VALUES (gen_random_uuid(), $1, $2, $3, $4)
+     ON CONFLICT ("space_id", "user_id") DO NOTHING`,
+    [spaceId, userId, role, SEED_TIMESTAMP],
+  );
+}
+
 export async function seedPlantSpecies(
   dataSource: DataSource,
   id: string,

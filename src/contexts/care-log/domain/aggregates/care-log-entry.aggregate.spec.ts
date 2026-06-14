@@ -22,17 +22,21 @@ const USER_ID = '550e8400-e29b-41d4-a716-446655440002';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440003';
 const NOW = new Date('2024-01-01T00:00:00.000Z');
 
-const buildAggregate = (overrides?: Partial<{
-  quantity: CareLogQuantityValueObject | null;
-  unit: CareLogUnitValueObject | null;
-  notes: CareLogNotesValueObject | null;
-}>): CareLogEntryAggregate =>
+const buildAggregate = (
+  overrides?: Partial<{
+    quantity: CareLogQuantityValueObject | null;
+    unit: CareLogUnitValueObject | null;
+    notes: CareLogNotesValueObject | null;
+  }>,
+): CareLogEntryAggregate =>
   new CareLogEntryAggregate({
     id: new CareLogIdValueObject(ENTRY_ID),
     plantId: new UuidValueObject(PLANT_ID),
     userId: new UuidValueObject(USER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
-    activityType: new CareLogActivityTypeValueObject(CareLogActivityTypeEnum.WATERING),
+    activityType: new CareLogActivityTypeValueObject(
+      CareLogActivityTypeEnum.WATERING,
+    ),
     performedAt: new CareLogPerformedAtValueObject(NOW),
     notes: overrides?.notes !== undefined ? overrides.notes : null,
     quantity: overrides?.quantity !== undefined ? overrides.quantity : null,
@@ -56,7 +60,9 @@ describe('CareLogEntryAggregate', () => {
         quantity: new CareLogQuantityValueObject(100),
         unit: null,
       });
-      expect(() => entry.create()).toThrow(CareLogQuantityUnitMismatchException);
+      expect(() => entry.create()).toThrow(
+        CareLogQuantityUnitMismatchException,
+      );
     });
 
     it('should throw CareLogQuantityUnitMismatchException when unit provided without quantity', () => {
@@ -64,7 +70,9 @@ describe('CareLogEntryAggregate', () => {
         quantity: null,
         unit: new CareLogUnitValueObject(CareLogUnitEnum.ML),
       });
-      expect(() => entry.create()).toThrow(CareLogQuantityUnitMismatchException);
+      expect(() => entry.create()).toThrow(
+        CareLogQuantityUnitMismatchException,
+      );
     });
 
     it('should not throw when both quantity and unit are null', () => {
@@ -85,11 +93,17 @@ describe('CareLogEntryAggregate', () => {
     it('should emit field-changed event and CareLogEntryUpdatedEvent when activityType changes', () => {
       const entry = buildAggregate();
       entry.update({
-        activityType: new CareLogActivityTypeValueObject(CareLogActivityTypeEnum.FERTILIZING),
+        activityType: new CareLogActivityTypeValueObject(
+          CareLogActivityTypeEnum.FERTILIZING,
+        ),
       });
       const events = entry.getUncommittedEvents();
-      expect(events.some((e) => e instanceof CareLogActivityTypeChangedEvent)).toBe(true);
-      expect(events.some((e) => e instanceof CareLogEntryUpdatedEvent)).toBe(true);
+      expect(
+        events.some((e) => e instanceof CareLogActivityTypeChangedEvent),
+      ).toBe(true);
+      expect(events.some((e) => e instanceof CareLogEntryUpdatedEvent)).toBe(
+        true,
+      );
     });
 
     it('should only emit CareLogEntryUpdatedEvent when no field changes', () => {
@@ -105,9 +119,9 @@ describe('CareLogEntryAggregate', () => {
         quantity: new CareLogQuantityValueObject(100),
         unit: new CareLogUnitValueObject(CareLogUnitEnum.ML),
       });
-      expect(() =>
-        entry.update({ unit: null }),
-      ).toThrow(CareLogQuantityUnitMismatchException);
+      expect(() => entry.update({ unit: null })).toThrow(
+        CareLogQuantityUnitMismatchException,
+      );
     });
   });
 

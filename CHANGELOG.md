@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [Unreleased]
+
+### Fixed
+- **users**: `UserTypeOrmReadRepository` now resolves space members via `space_memberships` JOIN instead of `users.space_id` filter, so invited members appear in `usersFindByCriteria` and `userFindById` (#167)
+
 ## [0.18.0-alpha.0] - 2026-06-14
 
 ### Bug Fixes

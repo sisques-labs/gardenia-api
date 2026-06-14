@@ -6,6 +6,18 @@ The `users` context owns user profiles: display names, avatars, bios, locale, ti
 
 ---
 
+## Identity vs. Membership Model
+
+Understanding the distinction between a user's identity and their space membership is important for working with this context correctly.
+
+- `users.id` is a **global primary key** — there is exactly one row per user across the entire system, not one per space.
+- `users.space_id` is the **home space** from registration: it records the space the user was registered in. The write repository uses this column to stamp new rows. It is **not** used as a membership filter on reads.
+- Space membership is tracked in the `space_memberships (space_id, user_id, role, joined_at)` table. A user may belong to multiple spaces; invited members only appear in `space_memberships` — they do not get a new `users` row.
+- The read repository (`UserTypeOrmReadRepository`) resolves "users in this space" via an `INNER JOIN space_memberships ON sm.user_id = users.id AND sm.space_id = :spaceId` in every query.
+- This ensures invited members (who only have a `space_memberships` row, not a matching `users.space_id`) appear correctly in all read queries including `usersFindByCriteria` and `userFindById`.
+
+---
+
 ## Conceptual Flow (for newcomers)
 
 Here is what happens when a user is created end-to-end:

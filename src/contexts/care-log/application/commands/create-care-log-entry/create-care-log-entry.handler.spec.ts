@@ -78,8 +78,12 @@ describe('CreateCareLogEntryCommandHandler', () => {
 
       const savedEntry = writeRepository.save.mock.calls[0][0];
       const savedPrimitives = savedEntry.toPrimitives();
-      expect(savedPrimitives.performedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(savedPrimitives.performedAt.getTime()).toBeLessThanOrEqual(after.getTime());
+      expect(savedPrimitives.performedAt.getTime()).toBeGreaterThanOrEqual(
+        before.getTime(),
+      );
+      expect(savedPrimitives.performedAt.getTime()).toBeLessThanOrEqual(
+        after.getTime(),
+      );
     });
   });
 });

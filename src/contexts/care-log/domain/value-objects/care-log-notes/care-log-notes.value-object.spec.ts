@@ -2,7 +2,9 @@ import { CareLogNotesValueObject } from './care-log-notes.value-object';
 
 describe('CareLogNotesValueObject', () => {
   it('should not throw for valid notes', () => {
-    expect(() => new CareLogNotesValueObject('Watered the plant')).not.toThrow();
+    expect(
+      () => new CareLogNotesValueObject('Watered the plant'),
+    ).not.toThrow();
   });
 
   it('should throw for an empty string', () => {
