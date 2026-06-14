@@ -25,6 +25,8 @@ import { AddPlantingSpotIdToPlants1780000000011 } from '../../src/database/migra
 import { AddExpiresAtToQrs1780000000012 } from '../../src/database/migrations/1780000000012-AddExpiresAtToQrs';
 import { CreateSpaceInvitations1780000000013 } from '../../src/database/migrations/1780000000013-CreateSpaceInvitations';
 import { AlterPlantSpeciesEnrich1780000000014 } from '../../src/database/migrations/1780000000014-AlterPlantSpeciesEnrich';
+import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
+import { CreateCareLog1780000000016 } from '../../src/database/migrations/1780000000016-CreateCareLog';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -36,6 +38,7 @@ const TEST_ENTITIES = [
   PlantSpeciesTypeOrmEntity,
   PlantTypeOrmEntity,
   QrTypeOrmEntity,
+  CareLogEntryTypeOrmEntity,
 ];
 
 const TEST_MIGRATIONS = [
@@ -55,6 +58,7 @@ const TEST_MIGRATIONS = [
   AddExpiresAtToQrs1780000000012,
   CreateSpaceInvitations1780000000013,
   AlterPlantSpeciesEnrich1780000000014,
+  CreateCareLog1780000000016,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

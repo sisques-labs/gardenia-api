@@ -16,6 +16,7 @@ import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infr
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
 import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
+import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
 import { appConfig } from '../../src/core/config/app.config';
 import { authConfig } from '../../src/core/config/auth.config';
 import { SharedModule } from '../../src/shared/shared.module';
@@ -39,6 +40,7 @@ const TEST_ENTITIES = [
   PlantTypeOrmEntity,
   QrTypeOrmEntity,
   PlantingSpotTypeOrmEntity,
+  CareLogEntryTypeOrmEntity,
 ];
 
 export interface IntegrationModuleOptions {
