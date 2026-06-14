@@ -2,7 +2,9 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
+import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
 import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
+import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
 import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
@@ -24,10 +26,13 @@ import { CreatePlantSpecies1780000000008 } from '../../src/database/migrations/1
 import { AlterPlantsPlantSpeciesId1780000000009 } from '../../src/database/migrations/1780000000009-AlterPlantsPlantSpeciesId';
 import { CreatePlantingSpots1780000000010 } from '../../src/database/migrations/1780000000010-CreatePlantingSpots';
 import { AddPlantingSpotIdToPlants1780000000011 } from '../../src/database/migrations/1780000000011-AddPlantingSpotIdToPlants';
+import { CreateOAuthIdentities1780000000011 } from '../../src/database/migrations/1780000000011-CreateOAuthIdentities';
 import { AddExpiresAtToQrs1780000000012 } from '../../src/database/migrations/1780000000012-AddExpiresAtToQrs';
 import { CreateSpaceInvitations1780000000013 } from '../../src/database/migrations/1780000000013-CreateSpaceInvitations';
 import { AddAppRoleToAccounts1780000000014 } from '../../src/database/migrations/1780000000014-AddAppRoleToAccounts';
 import { AlterPlantSpeciesEnrich1780000000014 } from '../../src/database/migrations/1780000000014-AlterPlantSpeciesEnrich';
+import { AddTenantRelationshipIndexesAndFks1780000000015 } from '../../src/database/migrations/1780000000015-AddTenantRelationshipIndexesAndFks';
+import { CreateHarvests1780000000015 } from '../../src/database/migrations/1780000000015-CreateHarvests';
 import { CreateCareLog1780000000016 } from '../../src/database/migrations/1780000000016-CreateCareLog';
 
 const TEST_ENTITIES = [
@@ -41,6 +46,8 @@ const TEST_ENTITIES = [
   PlantTypeOrmEntity,
   QrTypeOrmEntity,
   PlantingSpotTypeOrmEntity,
+  OAuthIdentityTypeOrmEntity,
+  HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
 ];
 
@@ -62,6 +69,8 @@ const TEST_MIGRATIONS = [
   CreateSpaceInvitations1780000000013,
   AddAppRoleToAccounts1780000000014,
   AlterPlantSpeciesEnrich1780000000014,
+  AddTenantRelationshipIndexesAndFks1780000000015,
+  CreateHarvests1780000000015,
   CreateCareLog1780000000016,
 ];
 
