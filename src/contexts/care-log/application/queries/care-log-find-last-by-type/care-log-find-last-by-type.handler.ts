@@ -29,7 +29,7 @@ export class CareLogFindLastByTypeQueryHandler implements IQueryHandler<
     );
 
     return this.readRepository.findLastByType(
-      query.plantId,
+      query.plantId.value,
       query.activityType.value,
     );
   }
