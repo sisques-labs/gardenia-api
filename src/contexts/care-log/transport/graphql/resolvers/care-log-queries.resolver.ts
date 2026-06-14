@@ -7,7 +7,7 @@ import { CareLogFindByCriteriaQuery } from '@contexts/care-log/application/queri
 import { CareLogEntryViewModel } from '@contexts/care-log/domain/view-models/care-log-entry.view-model';
 import { AssertCareLogEntryViewModelExistsService } from '@contexts/care-log/application/services/read/assert-care-log-entry-view-model-exists/assert-care-log-entry-view-model-exists.service';
 
-import { CareLogFindByCriteriaGraphQLDto } from '../dtos/requests/care-log-find-by-criteria-graphql.dto';
+import { CareLogFindByCriteriaRequestDto } from '../dtos/requests/care-log-find-by-criteria-graphql.dto';
 import {
   CareLogEntryResponseDto,
   PaginatedCareLogEntryResultDto,
@@ -36,7 +36,7 @@ export class CareLogQueriesResolver {
 
   @Query(() => PaginatedCareLogEntryResultDto)
   async careLogFindByCriteria(
-    @Args('input', { nullable: true }) input?: CareLogFindByCriteriaGraphQLDto,
+    @Args('input', { nullable: true }) input?: CareLogFindByCriteriaRequestDto,
   ): Promise<PaginatedCareLogEntryResultDto> {
     this.logger.log('Finding care log entries by criteria');
 

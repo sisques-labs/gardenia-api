@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.18.1-alpha.0] - 2026-06-14
+
+### Refactor
+- **care-log:** Rename CareLogFindByCriteriaGraphQLDto to CareLogFindByCriteriaRequestDto and update imports (9d56b53)
 ## [0.18.0-alpha.0] - 2026-06-14
 
 ### Bug Fixes
