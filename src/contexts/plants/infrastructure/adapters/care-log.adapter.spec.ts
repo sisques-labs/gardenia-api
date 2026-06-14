@@ -43,8 +43,9 @@ describe('CareLogAdapter', () => {
 
   describe('getCareLogSummary()', () => {
     it('should dispatch 9 queries in parallel and return correct CareLogSummary shape', async () => {
-      queryBus.execute.mockImplementation(async (query: CareLogFindLastByTypeQuery) => {
-        if (query.activityType.value === CareLogActivityTypeEnum.WATERING) {
+      queryBus.execute.mockImplementation(async (query) => {
+        const q = query as CareLogFindLastByTypeQuery;
+        if (q.activityType.value === CareLogActivityTypeEnum.WATERING) {
           return buildVm(CareLogActivityTypeEnum.WATERING, NOW);
         }
         return null;
