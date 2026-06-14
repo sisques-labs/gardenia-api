@@ -1,6 +1,21 @@
 import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 
+@ObjectType('PlantCareLogSummaryResponseDto')
+export class PlantCareLogSummaryResponseDto {
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last watered',
+  })
+  lastWateredAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last fertilized',
+  })
+  lastFertilizedAt?: Date | null;
+}
+
 @ObjectType('PlantQrResponseDto')
 export class PlantQrResponseDto {
   @Field(() => ID, { description: 'UUID of the QR record' })
@@ -110,17 +125,11 @@ export class PlantResponseDto {
   })
   plantingSpot?: PlantLinkedPlantingSpotResponseDto | null;
 
-  @Field(() => Date, {
+  @Field(() => PlantCareLogSummaryResponseDto, {
     nullable: true,
-    description: 'When the plant was last watered (resolved from care log)',
+    description: 'Care log summary resolved from the care-log context',
   })
-  lastWateredAt?: Date | null;
-
-  @Field(() => Date, {
-    nullable: true,
-    description: 'When the plant was last fertilized (resolved from care log)',
-  })
-  lastFertilizedAt?: Date | null;
+  careLog?: PlantCareLogSummaryResponseDto | null;
 
   @Field(() => Date, { description: 'When the plant was created' })
   createdAt!: Date;

@@ -7,7 +7,6 @@ export const CARE_LOG_ENTRY_READ_REPOSITORY = Symbol(
 );
 
 export interface ICareLogEntryReadRepository extends IBaseReadRepository<CareLogEntryViewModel> {
-  findById(id: string): Promise<CareLogEntryViewModel | null>;
   findLastByType(
     plantId: string,
     activityType: string,

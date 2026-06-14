@@ -25,12 +25,12 @@ export class CareLogFindLastByTypeQueryHandler implements IQueryHandler<
     query: CareLogFindLastByTypeQuery,
   ): Promise<CareLogEntryViewModel | null> {
     this.logger.log(
-      `Finding last care log entry of type ${query.activityType} for plant: ${query.plantId}`,
+      `Finding last care log entry of type ${query.activityType.value} for plant: ${query.plantId}`,
     );
 
     return this.readRepository.findLastByType(
       query.plantId,
-      query.activityType,
+      query.activityType.value,
     );
   }
 }

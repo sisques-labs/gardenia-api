@@ -6,9 +6,11 @@ import {
   CARE_LOG_PORT,
   ICareLogPort,
 } from '@contexts/plants/application/ports/care-log.port';
-import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
 
-import { PlantResponseDto } from '../../dtos/responses/plant/plant.response.dto';
+import {
+  PlantCareLogSummaryResponseDto,
+  PlantResponseDto,
+} from '../../dtos/responses/plant/plant.response.dto';
 
 @UseGuards(JwtAuthGuard)
 @Resolver(() => PlantResponseDto)
@@ -18,21 +20,14 @@ export class PlantCareLogResolvedFieldsResolver {
     private readonly careLogPort: ICareLogPort,
   ) {}
 
-  @ResolveField('lastWateredAt', () => Date, { nullable: true })
-  async lastWateredAt(@Parent() plant: PlantResponseDto): Promise<Date | null> {
-    return this.careLogPort.findLastActivityByType(
-      plant.id,
-      CareLogActivityTypeEnum.WATERING,
-    );
-  }
-
-  @ResolveField('lastFertilizedAt', () => Date, { nullable: true })
-  async lastFertilizedAt(
+  @ResolveField('careLog', () => PlantCareLogSummaryResponseDto, {
+    nullable: true,
+  })
+  async careLog(
     @Parent() plant: PlantResponseDto,
-  ): Promise<Date | null> {
-    return this.careLogPort.findLastActivityByType(
-      plant.id,
-      CareLogActivityTypeEnum.FERTILIZING,
-    );
+  ): Promise<PlantCareLogSummaryResponseDto | null> {
+    const summary = await this.careLogPort.getCareLogSummary(plant.id);
+    if (!summary.lastWateredAt && !summary.lastFertilizedAt) return null;
+    return summary;
   }
 }
