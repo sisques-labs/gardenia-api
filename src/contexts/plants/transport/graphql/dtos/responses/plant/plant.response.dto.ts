@@ -14,6 +14,48 @@ export class PlantCareLogSummaryResponseDto {
     description: 'When the plant was last fertilized',
   })
   lastFertilizedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last pruned',
+  })
+  lastPrunedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last repotted',
+  })
+  lastRepottedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last transplanted',
+  })
+  lastTransplantedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant last had pest treatment',
+  })
+  lastPestTreatmentAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last misted',
+  })
+  lastMistedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last rotated',
+  })
+  lastRotatedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant last had another care activity',
+  })
+  lastOtherAt?: Date | null;
 }
 
 @ObjectType('PlantQrResponseDto')

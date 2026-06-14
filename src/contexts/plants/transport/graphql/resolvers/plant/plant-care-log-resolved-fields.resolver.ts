@@ -27,7 +27,8 @@ export class PlantCareLogResolvedFieldsResolver {
     @Parent() plant: PlantResponseDto,
   ): Promise<PlantCareLogSummaryResponseDto | null> {
     const summary = await this.careLogPort.getCareLogSummary(plant.id);
-    if (!summary.lastWateredAt && !summary.lastFertilizedAt) return null;
+    const allNull = Object.values(summary).every((v) => v === null);
+    if (allNull) return null;
     return summary;
   }
 }
