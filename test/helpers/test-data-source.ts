@@ -6,8 +6,8 @@ import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructu
 import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
 import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
 import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
-import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
+import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
 import { SpaceInvitationEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-invitation.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
@@ -26,7 +26,6 @@ import { CreatePlantSpecies1780000000008 } from '../../src/database/migrations/1
 import { AlterPlantsPlantSpeciesId1780000000009 } from '../../src/database/migrations/1780000000009-AlterPlantsPlantSpeciesId';
 import { CreatePlantingSpots1780000000010 } from '../../src/database/migrations/1780000000010-CreatePlantingSpots';
 import { AddPlantingSpotIdToPlants1780000000011 } from '../../src/database/migrations/1780000000011-AddPlantingSpotIdToPlants';
-import { CreateOAuthIdentities1780000000011 } from '../../src/database/migrations/1780000000011-CreateOAuthIdentities';
 import { AddExpiresAtToQrs1780000000012 } from '../../src/database/migrations/1780000000012-AddExpiresAtToQrs';
 import { CreateSpaceInvitations1780000000013 } from '../../src/database/migrations/1780000000013-CreateSpaceInvitations';
 import { AddAppRoleToAccounts1780000000014 } from '../../src/database/migrations/1780000000014-AddAppRoleToAccounts';
