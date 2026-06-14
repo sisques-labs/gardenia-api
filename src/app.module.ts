@@ -1,30 +1,31 @@
-import { HealthModule } from '@core/health/health.module';
-import { SupportModule } from './support/support.module';
-import { SharedModule } from './shared/shared.module';
 import { AuthModule } from '@contexts/auth/auth.module';
-import { UsersModule } from '@contexts/users/users.module';
-import { SpacesModule } from '@contexts/spaces/spaces.module';
-import { PlantsModule } from '@contexts/plants/plants.module';
-import { PlantingSpotsModule } from '@contexts/planting-spots/planting-spots.module';
+import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
+import { CareLogModule } from '@contexts/care-log/care-log.module';
 import { HarvestsModule } from '@contexts/harvests/harvests.module';
-import { QrModule } from '@contexts/qr/qr.module';
 import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
-import { appConfig } from '@core/config/app.config';
+import { PlantingSpotsModule } from '@contexts/planting-spots/planting-spots.module';
+import { PlantsModule } from '@contexts/plants/plants.module';
+import { QrModule } from '@contexts/qr/qr.module';
+import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
-import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
+import { UsersModule } from '@contexts/users/users.module';
+import { appConfig } from '@core/config/app.config';
 import { authConfig } from '@core/config/auth.config';
 import { validateEnv } from '@core/config/env.validation';
 import { postgresConfig } from '@core/config/postgres.config';
+import { HealthModule } from '@core/health/health.module';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { SharedModule } from './shared/shared.module';
+import { SupportModule } from './support/support.module';
 @Module({
   imports: [
     SharedModule,
@@ -63,6 +64,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
     PlantSpeciesModule,
     PlantsModule,
     PlantingSpotsModule,
+    CareLogModule,
     HarvestsModule,
   ],
   providers: [

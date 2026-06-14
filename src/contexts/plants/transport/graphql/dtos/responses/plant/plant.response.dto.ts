@@ -1,6 +1,63 @@
 import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 
+@ObjectType('PlantCareLogSummaryResponseDto')
+export class PlantCareLogSummaryResponseDto {
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last watered',
+  })
+  lastWateredAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last fertilized',
+  })
+  lastFertilizedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last pruned',
+  })
+  lastPrunedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last repotted',
+  })
+  lastRepottedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last transplanted',
+  })
+  lastTransplantedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant last had pest treatment',
+  })
+  lastPestTreatmentAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last misted',
+  })
+  lastMistedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant was last rotated',
+  })
+  lastRotatedAt?: Date | null;
+
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the plant last had another care activity',
+  })
+  lastOtherAt?: Date | null;
+}
+
 @ObjectType('PlantQrResponseDto')
 export class PlantQrResponseDto {
   @Field(() => ID, { description: 'UUID of the QR record' })
@@ -109,6 +166,12 @@ export class PlantResponseDto {
     description: 'Resolved planting spot linked to this plant',
   })
   plantingSpot?: PlantLinkedPlantingSpotResponseDto | null;
+
+  @Field(() => PlantCareLogSummaryResponseDto, {
+    nullable: true,
+    description: 'Care log summary resolved from the care-log context',
+  })
+  careLog?: PlantCareLogSummaryResponseDto | null;
 
   @Field(() => Date, { description: 'When the plant was created' })
   createdAt!: Date;
