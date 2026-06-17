@@ -1,6 +1,6 @@
 {
   "name": "sisques-labs/gardenia-api",
-  "version": "0.18.1-beta.0",
+  "version": "0.18.1",
   "description": "Garden & plant manager API",
   "author": "Sisques Labs",
   "repository": {
@@ -53,6 +53,8 @@
     "@nestjs/swagger": "^7.4.2",
     "@nestjs/typeorm": "^11.0.1",
     "@nicokaiser/passport-apple": "^3.3.0",
+    "@sentry/nestjs": "^10.58.0",
+    "@sentry/profiling-node": "^10.58.0",
     "@sisques-labs/nestjs-kit": "^0.10.2",
     "@types/passport-github2": "^1.2.9",
     "@types/passport-google-oauth20": "^2.0.17",
@@ -61,6 +63,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "graphql": "^16.14.0",
     "graphql-query-complexity": "^1.1.0",
