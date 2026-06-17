@@ -14,7 +14,9 @@ import { appConfig } from '@core/config/app.config';
 import { authConfig } from '@core/config/auth.config';
 import { validateEnv } from '@core/config/env.validation';
 import { postgresConfig } from '@core/config/postgres.config';
+import { sentryConfig } from '@core/config/sentry.config';
 import { HealthModule } from '@core/health/health.module';
+import { ObservabilityModule } from '@core/observability/observability.module';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
@@ -35,7 +37,7 @@ import { SupportModule } from './support/support.module';
     ConfigModule.forRoot({
       isGlobal: true,
       validate: validateEnv,
-      load: [postgresConfig, authConfig, appConfig],
+      load: [postgresConfig, authConfig, appConfig, sentryConfig],
       cache: true,
     }),
     TypeOrmModule.forRootAsync({
@@ -56,6 +58,7 @@ import { SupportModule } from './support/support.module';
         res,
       }),
     }),
+    ObservabilityModule,
     HealthModule,
     SpacesModule,
     AuthModule,
