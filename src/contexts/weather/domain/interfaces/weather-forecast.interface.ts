@@ -1,14 +1,8 @@
-export interface DailyForecast {
-  date: string;
-  temperatureMin: number;
-  temperatureMax: number;
-  precipitationSum: number;
-  weatherCode: number;
-}
+import { IDailyForecast } from './daily-forecast.interface';
 
-export interface WeatherForecast {
+export interface IWeatherForecast {
   latitude: number;
   longitude: number;
   timezone: string;
-  daily: DailyForecast[];
+  daily: IDailyForecast[];
 }
