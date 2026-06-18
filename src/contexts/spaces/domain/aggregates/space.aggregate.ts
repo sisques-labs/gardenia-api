@@ -56,16 +56,11 @@ export class SpaceAggregate extends BaseAggregate {
     );
   }
 
-  public update(props: {
-    name?: SpaceNameValueObject;
-    latitude?: SpaceLatitudeValueObject | null;
-    longitude?: SpaceLongitudeValueObject | null;
-    environment?: SpaceEnvironmentValueObject | null;
-  }): void {
+  public update(props: Partial<Pick<ISpace, 'name' | 'latitude' | 'longitude' | 'environment'>>): void {
     if (props.name !== undefined) this.changeName(props.name);
-    if (props.latitude !== undefined) this.changeLatitude(props.latitude);
-    if (props.longitude !== undefined) this.changeLongitude(props.longitude);
-    if (props.environment !== undefined) this.changeEnvironment(props.environment);
+    if (props.latitude !== undefined) this.changeLatitude(props.latitude ?? null);
+    if (props.longitude !== undefined) this.changeLongitude(props.longitude ?? null);
+    if (props.environment !== undefined) this.changeEnvironment(props.environment ?? null);
 
     this.apply(
       new SpaceUpdatedEvent(
