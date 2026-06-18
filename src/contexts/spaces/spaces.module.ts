@@ -5,6 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { WeatherModule } from '@contexts/weather/weather.module';
+
 import { spacesConfig } from './infrastructure/config/spaces.config';
 
 import { AcceptSpaceInvitationCommandHandler } from './application/commands/accept-space-invitation/accept-space-invitation.handler';
@@ -12,7 +14,9 @@ import { AddMemberCommandHandler } from './application/commands/add-member/add-m
 import { CreateSpaceInvitationCommandHandler } from './application/commands/create-space-invitation/create-space-invitation.handler';
 import { CreateSpaceCommandHandler } from './application/commands/create-space/create-space.handler';
 import { RemoveMemberCommandHandler } from './application/commands/remove-member/remove-member.handler';
+import { UpdateSpaceGeolocationCommandHandler } from './application/commands/update-space-geolocation/update-space-geolocation.handler';
 import { SPACE_QR_PORT } from './application/ports/space-qr.port';
+import { GetSpaceWeatherQueryHandler } from './application/queries/get-space-weather/get-space-weather.handler';
 import { MembershipFindByUserAndSpaceQueryHandler } from './application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.handler';
 import { SpaceFindByIdQueryHandler } from './application/queries/space-find-by-id/space-find-by-id.handler';
 import { SpacesFindByUserQueryHandler } from './application/queries/spaces-find-by-user/spaces-find-by-user.handler';
@@ -64,12 +68,14 @@ const COMMAND_HANDLERS = [
   AcceptSpaceInvitationCommandHandler,
   AddMemberCommandHandler,
   RemoveMemberCommandHandler,
+  UpdateSpaceGeolocationCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
   SpaceFindByIdQueryHandler,
   SpacesFindByUserQueryHandler,
   MembershipFindByUserAndSpaceQueryHandler,
+  GetSpaceWeatherQueryHandler,
 ];
 
 const APPLICATION_SERVICES = [
@@ -146,6 +152,7 @@ const REST_CONTROLLERS = [SpacesController, InvitationsController];
     ConfigModule.forFeature(spacesConfig),
     CqrsModule,
     TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES),
+    WeatherModule,
   ],
   controllers: [...REST_CONTROLLERS],
   providers: [

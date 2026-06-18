@@ -1,5 +1,5 @@
 import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 
 @ObjectType('SpaceResponseDto')
 export class SpaceResponseDto {
@@ -20,6 +20,15 @@ export class SpaceResponseDto {
     description: 'When the space was last updated',
   })
   updatedAt?: Date;
+
+  @Field(() => Float, { nullable: true, description: 'Latitude of the space location' })
+  latitude?: number | null;
+
+  @Field(() => Float, { nullable: true, description: 'Longitude of the space location' })
+  longitude?: number | null;
+
+  @Field(() => String, { nullable: true, description: 'Environment type of the space' })
+  environment?: string | null;
 }
 
 @ObjectType('PaginatedSpaceResultDto')

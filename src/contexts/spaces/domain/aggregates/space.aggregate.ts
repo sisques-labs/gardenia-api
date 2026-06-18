@@ -2,6 +2,7 @@ import { BaseAggregate } from '@sisques-labs/nestjs-kit';
 
 import { SpaceMembership } from '../entities/space-membership.entity';
 import { MembershipRoleEnum } from '../enums/membership-role.enum';
+import { SpaceEnvironmentEnum } from '../enums/space-environment.enum';
 import { MemberAddedEvent } from '../events/member-added/member-added.event';
 import { MemberRemovedEvent } from '../events/member-removed/member-removed.event';
 import { SpaceCreatedEvent } from '../events/space-created/space-created.event';
@@ -18,6 +19,9 @@ export class SpaceAggregate extends BaseAggregate {
   private readonly _name: SpaceNameValueObject;
   private readonly _ownerId: SpaceIdValueObject;
   private _memberships: SpaceMembership[];
+  private _latitude: number | null;
+  private _longitude: number | null;
+  private _environment: SpaceEnvironmentEnum | null;
 
   constructor(props: ISpace) {
     super(props.createdAt, props.updatedAt);
@@ -25,6 +29,9 @@ export class SpaceAggregate extends BaseAggregate {
     this._name = props.name;
     this._ownerId = props.ownerId;
     this._memberships = [];
+    this._latitude = props.latitude ?? null;
+    this._longitude = props.longitude ?? null;
+    this._environment = props.environment ?? null;
   }
 
   public create(): void {
@@ -107,6 +114,16 @@ export class SpaceAggregate extends BaseAggregate {
     );
   }
 
+  setGeolocation(
+    latitude: number | null,
+    longitude: number | null,
+    environment: SpaceEnvironmentEnum | null,
+  ): void {
+    this._latitude = latitude;
+    this._longitude = longitude;
+    this._environment = environment;
+  }
+
   toPrimitives(): ISpacePrimitives {
     return {
       id: this._id.value,
@@ -114,6 +131,9 @@ export class SpaceAggregate extends BaseAggregate {
       ownerId: this._ownerId.value,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
+      latitude: this._latitude,
+      longitude: this._longitude,
+      environment: this._environment,
     };
   }
 
@@ -131,5 +151,17 @@ export class SpaceAggregate extends BaseAggregate {
 
   get memberships(): SpaceMembership[] {
     return [...this._memberships];
+  }
+
+  get latitude(): number | null {
+    return this._latitude;
+  }
+
+  get longitude(): number | null {
+    return this._longitude;
+  }
+
+  get environment(): SpaceEnvironmentEnum | null {
+    return this._environment;
   }
 }
