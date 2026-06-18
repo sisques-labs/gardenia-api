@@ -23,6 +23,9 @@ describe('SpaceFindByIdQueryHandler', () => {
       ownerId: OWNER_ID,
       createdAt: NOW,
       updatedAt: NOW,
+      latitude: null,
+      longitude: null,
+      environment: null,
     });
 
     assertSpaceViewModelExistsService = {

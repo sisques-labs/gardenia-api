@@ -12,12 +12,16 @@ import { AddMemberCommandHandler } from './application/commands/add-member/add-m
 import { CreateSpaceInvitationCommandHandler } from './application/commands/create-space-invitation/create-space-invitation.handler';
 import { CreateSpaceCommandHandler } from './application/commands/create-space/create-space.handler';
 import { RemoveMemberCommandHandler } from './application/commands/remove-member/remove-member.handler';
+import { UpdateSpaceCommandHandler } from './application/commands/update-space/update-space.handler';
 import { SPACE_QR_PORT } from './application/ports/space-qr.port';
+import { SPACE_WEATHER_PORT } from './application/ports/space-weather.port';
+import { GetSpaceWeatherQueryHandler } from './application/queries/get-space-weather/get-space-weather.handler';
 import { MembershipFindByUserAndSpaceQueryHandler } from './application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.handler';
 import { SpaceFindByIdQueryHandler } from './application/queries/space-find-by-id/space-find-by-id.handler';
 import { SpacesFindByUserQueryHandler } from './application/queries/spaces-find-by-user/spaces-find-by-user.handler';
 import { AssertSpaceInvitationViewModelExistsByCodeService } from './application/services/read/assert-space-invitation-view-model-exists-by-code/assert-space-invitation-view-model-exists-by-code.service';
 import { AssertSpaceViewModelExistsService } from './application/services/read/assert-space-view-model-exists/assert-space-view-model-exists.service';
+import { AssertSpaceHasGeolocationService } from './application/services/read/assert-space-has-geolocation/assert-space-has-geolocation.service';
 import { AssertSpaceExistsService } from './application/services/write/assert-space-exists/assert-space-exists.service';
 import { AssertSpaceInvitationNotExpiredService } from './application/services/write/assert-space-invitation-not-expired/assert-space-invitation-not-expired.service';
 import { AssertUserIsSpaceMemberService } from './application/services/write/assert-user-is-space-member/assert-user-is-space-member.service';
@@ -36,6 +40,7 @@ import { SPACE_READ_REPOSITORY } from './domain/repositories/read/space-read.rep
 import { SPACE_INVITATION_WRITE_REPOSITORY } from './domain/repositories/write/space-invitation-write.repository';
 import { SPACE_WRITE_REPOSITORY } from './domain/repositories/write/space-write.repository';
 import { SpaceQrAdapter } from './infrastructure/adapters/space-qr.adapter';
+import { SpaceWeatherAdapter } from './infrastructure/adapters/space-weather.adapter';
 import { SpaceInvitationEntity } from './infrastructure/persistence/typeorm/entities/space-invitation.entity';
 import { SpaceMembershipEntity } from './infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { SpaceEntity } from './infrastructure/persistence/typeorm/entities/space.entity';
@@ -53,6 +58,7 @@ import { SpaceInvitationGraphQLMapper } from './transport/graphql/mappers/space-
 import { SpaceGraphQLMapper } from './transport/graphql/mappers/space/space.mapper';
 import { SpaceMutationsResolver } from './transport/graphql/resolvers/space/space-mutations.resolver';
 import { SpaceQueriesResolver } from './transport/graphql/resolvers/space/space-queries.resolver';
+import { SpaceResolvedFieldsResolver } from './transport/graphql/resolvers/space/space-resolved-fields.resolver';
 import { InvitationsController } from './transport/rest/controllers/invitations.controller';
 import { SpacesController } from './transport/rest/controllers/spaces.controller';
 import { SpaceInvitationRestMapper } from './transport/rest/mappers/space-invitation/space-invitation.mapper';
@@ -64,12 +70,14 @@ const COMMAND_HANDLERS = [
   AcceptSpaceInvitationCommandHandler,
   AddMemberCommandHandler,
   RemoveMemberCommandHandler,
+  UpdateSpaceCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
   SpaceFindByIdQueryHandler,
   SpacesFindByUserQueryHandler,
   MembershipFindByUserAndSpaceQueryHandler,
+  GetSpaceWeatherQueryHandler,
 ];
 
 const APPLICATION_SERVICES = [
@@ -77,6 +85,7 @@ const APPLICATION_SERVICES = [
   AssertSpaceInvitationNotExpiredService,
   AssertSpaceInvitationViewModelExistsByCodeService,
   AssertSpaceViewModelExistsService,
+  AssertSpaceHasGeolocationService,
   AssertUserIsSpaceMemberService,
   AssertUserIsSpaceOwnerService,
   AssertUserNotSpaceMemberService,
@@ -94,6 +103,7 @@ const DOMAIN_BUILDERS = [
 
 const INFRASTRUCTURE_ADAPTERS = [
   { provide: SPACE_QR_PORT, useClass: SpaceQrAdapter },
+  { provide: SPACE_WEATHER_PORT, useClass: SpaceWeatherAdapter },
 ];
 
 const INFRASTRUCTURE_REPOSITORIES = [
@@ -128,6 +138,7 @@ const INFRASTRUCTURE_ENTITIES = [
 const GRAPHQL_PROVIDERS = [
   SpaceQueriesResolver,
   SpaceMutationsResolver,
+  SpaceResolvedFieldsResolver,
   SpaceGraphQLMapper,
   SpaceInvitationGraphQLMapper,
 ];
