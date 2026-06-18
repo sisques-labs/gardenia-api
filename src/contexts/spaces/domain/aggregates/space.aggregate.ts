@@ -2,16 +2,19 @@ import { BaseAggregate } from '@sisques-labs/nestjs-kit';
 
 import { SpaceMembership } from '../entities/space-membership.entity';
 import { MembershipRoleEnum } from '../enums/membership-role.enum';
-import { SpaceEnvironmentEnum } from '../enums/space-environment.enum';
 import { MemberAddedEvent } from '../events/member-added/member-added.event';
 import { MemberRemovedEvent } from '../events/member-removed/member-removed.event';
 import { SpaceCreatedEvent } from '../events/space-created/space-created.event';
+import { SpaceGeolocationChangedEvent } from '../events/space-geolocation-changed/space-geolocation-changed.event';
 import { DuplicateMembershipException } from '../exceptions/duplicate-membership.exception';
 import { LastOwnerRemovalException } from '../exceptions/last-owner-removal.exception';
 import { NotASpaceMemberException } from '../exceptions/not-a-space-member.exception';
 import { ISpace } from '../interfaces/space.interface';
 import { ISpacePrimitives } from '../primitives/space.primitives';
+import { SpaceEnvironmentValueObject } from '../value-objects/space-environment/space-environment.value-object';
 import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
+import { SpaceLatitudeValueObject } from '../value-objects/space-latitude/space-latitude.value-object';
+import { SpaceLongitudeValueObject } from '../value-objects/space-longitude/space-longitude.value-object';
 import { SpaceNameValueObject } from '../value-objects/space-name/space-name.value-object';
 
 export class SpaceAggregate extends BaseAggregate {
@@ -19,9 +22,9 @@ export class SpaceAggregate extends BaseAggregate {
   private readonly _name: SpaceNameValueObject;
   private readonly _ownerId: SpaceIdValueObject;
   private _memberships: SpaceMembership[];
-  private _latitude: number | null;
-  private _longitude: number | null;
-  private _environment: SpaceEnvironmentEnum | null;
+  private _latitude: SpaceLatitudeValueObject | null;
+  private _longitude: SpaceLongitudeValueObject | null;
+  private _environment: SpaceEnvironmentValueObject | null;
 
   constructor(props: ISpace) {
     super(props.createdAt, props.updatedAt);
@@ -114,14 +117,27 @@ export class SpaceAggregate extends BaseAggregate {
     );
   }
 
-  setGeolocation(
-    latitude: number | null,
-    longitude: number | null,
-    environment: SpaceEnvironmentEnum | null,
+  changeGeolocation(
+    latitude: SpaceLatitudeValueObject | null,
+    longitude: SpaceLongitudeValueObject | null,
+    environment: SpaceEnvironmentValueObject | null,
   ): void {
     this._latitude = latitude;
     this._longitude = longitude;
     this._environment = environment;
+
+    this.apply(
+      new SpaceGeolocationChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: SpaceAggregate.name,
+          entityId: this._id.value,
+          entityType: SpaceAggregate.name,
+          eventType: SpaceGeolocationChangedEvent.name,
+        },
+        this.toPrimitives(),
+      ),
+    );
   }
 
   toPrimitives(): ISpacePrimitives {
@@ -131,9 +147,9 @@ export class SpaceAggregate extends BaseAggregate {
       ownerId: this._ownerId.value,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
-      latitude: this._latitude,
-      longitude: this._longitude,
-      environment: this._environment,
+      latitude: this._latitude?.value ?? null,
+      longitude: this._longitude?.value ?? null,
+      environment: this._environment?.value ?? null,
     };
   }
 
@@ -154,14 +170,14 @@ export class SpaceAggregate extends BaseAggregate {
   }
 
   get latitude(): number | null {
-    return this._latitude;
+    return this._latitude?.value ?? null;
   }
 
   get longitude(): number | null {
-    return this._longitude;
+    return this._longitude?.value ?? null;
   }
 
-  get environment(): SpaceEnvironmentEnum | null {
-    return this._environment;
+  get environment(): string | null {
+    return this._environment?.value ?? null;
   }
 }

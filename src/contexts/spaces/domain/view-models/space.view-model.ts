@@ -1,6 +1,5 @@
 import { BaseViewModel } from '@sisques-labs/nestjs-kit';
 
-import { SpaceEnvironmentEnum } from '../enums/space-environment.enum';
 import { ISpacePrimitives } from '../primitives/space.primitives';
 
 export class SpaceViewModel extends BaseViewModel {
@@ -8,7 +7,7 @@ export class SpaceViewModel extends BaseViewModel {
   public readonly ownerId: string;
   public readonly latitude: number | null;
   public readonly longitude: number | null;
-  public readonly environment: SpaceEnvironmentEnum | null;
+  public readonly environment: string | null;
 
   constructor(props: ISpacePrimitives) {
     super(props.id, props.createdAt, props.updatedAt);
