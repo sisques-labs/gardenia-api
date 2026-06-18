@@ -1,7 +1,15 @@
-export class SpaceLatitudeValueObject {
-  constructor(public readonly value: number) {
-    if (value < -90 || value > 90) {
-      throw new Error(`Invalid latitude: ${value}`);
+import { NumberValueObject } from '@sisques-labs/nestjs-kit';
+
+import { SpaceInvalidLatitudeException } from '../../exceptions/space-invalid-latitude.exception';
+
+export class SpaceLatitudeValueObject extends NumberValueObject {
+  static readonly MIN = -90;
+  static readonly MAX = 90;
+
+  constructor(value: number) {
+    if (value < SpaceLatitudeValueObject.MIN || value > SpaceLatitudeValueObject.MAX) {
+      throw new SpaceInvalidLatitudeException(value);
     }
+    super(value);
   }
 }

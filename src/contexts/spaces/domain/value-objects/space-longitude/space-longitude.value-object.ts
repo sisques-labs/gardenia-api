@@ -1,7 +1,15 @@
-export class SpaceLongitudeValueObject {
-  constructor(public readonly value: number) {
-    if (value < -180 || value > 180) {
-      throw new Error(`Invalid longitude: ${value}`);
+import { NumberValueObject } from '@sisques-labs/nestjs-kit';
+
+import { SpaceInvalidLongitudeException } from '../../exceptions/space-invalid-longitude.exception';
+
+export class SpaceLongitudeValueObject extends NumberValueObject {
+  static readonly MIN = -180;
+  static readonly MAX = 180;
+
+  constructor(value: number) {
+    if (value < SpaceLongitudeValueObject.MIN || value > SpaceLongitudeValueObject.MAX) {
+      throw new SpaceInvalidLongitudeException(value);
     }
+    super(value);
   }
 }

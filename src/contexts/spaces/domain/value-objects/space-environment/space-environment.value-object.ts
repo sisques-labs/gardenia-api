@@ -1,9 +1,13 @@
-import { SpaceEnvironmentEnum } from '@contexts/spaces/domain/enums/space-environment.enum';
+import { EnumValueObject } from '@sisques-labs/nestjs-kit';
 
-export class SpaceEnvironmentValueObject {
-  constructor(public readonly value: SpaceEnvironmentEnum) {
+import { SpaceEnvironmentEnum } from '../../enums/space-environment.enum';
+import { SpaceInvalidEnvironmentException } from '../../exceptions/space-invalid-environment.exception';
+
+export class SpaceEnvironmentValueObject extends EnumValueObject<SpaceEnvironmentEnum> {
+  constructor(value: SpaceEnvironmentEnum) {
     if (!Object.values(SpaceEnvironmentEnum).includes(value)) {
-      throw new Error(`Invalid environment: ${value}`);
+      throw new SpaceInvalidEnvironmentException(value);
     }
+    super(value, Object.values(SpaceEnvironmentEnum));
   }
 }
