@@ -5,7 +5,10 @@ import { MembershipRoleEnum } from '../enums/membership-role.enum';
 import { MemberAddedEvent } from '../events/member-added/member-added.event';
 import { MemberRemovedEvent } from '../events/member-removed/member-removed.event';
 import { SpaceCreatedEvent } from '../events/space-created/space-created.event';
-import { SpaceGeolocationChangedEvent } from '../events/space-geolocation-changed/space-geolocation-changed.event';
+import { SpaceEnvironmentChangedEvent } from '../events/field-changed/space-environment-changed/space-environment-changed.event';
+import { SpaceLatitudeChangedEvent } from '../events/field-changed/space-latitude-changed/space-latitude-changed.event';
+import { SpaceLongitudeChangedEvent } from '../events/field-changed/space-longitude-changed/space-longitude-changed.event';
+import { SpaceUpdatedEvent } from '../events/space-updated/space-updated.event';
 import { DuplicateMembershipException } from '../exceptions/duplicate-membership.exception';
 import { LastOwnerRemovalException } from '../exceptions/last-owner-removal.exception';
 import { NotASpaceMemberException } from '../exceptions/not-a-space-member.exception';
@@ -19,7 +22,7 @@ import { SpaceNameValueObject } from '../value-objects/space-name/space-name.val
 
 export class SpaceAggregate extends BaseAggregate {
   private readonly _id: SpaceIdValueObject;
-  private readonly _name: SpaceNameValueObject;
+  private _name: SpaceNameValueObject;
   private readonly _ownerId: SpaceIdValueObject;
   private _memberships: SpaceMembership[];
   private _latitude: SpaceLatitudeValueObject | null;
@@ -46,6 +49,29 @@ export class SpaceAggregate extends BaseAggregate {
           entityId: this._id.value,
           entityType: SpaceAggregate.name,
           eventType: SpaceCreatedEvent.name,
+        },
+        this.toPrimitives(),
+      ),
+    );
+  }
+
+  public update(props: {
+    latitude?: SpaceLatitudeValueObject | null;
+    longitude?: SpaceLongitudeValueObject | null;
+    environment?: SpaceEnvironmentValueObject | null;
+  }): void {
+    if (props.latitude !== undefined) this.changeLatitude(props.latitude);
+    if (props.longitude !== undefined) this.changeLongitude(props.longitude);
+    if (props.environment !== undefined) this.changeEnvironment(props.environment);
+
+    this.apply(
+      new SpaceUpdatedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: SpaceAggregate.name,
+          entityId: this._id.value,
+          entityType: SpaceAggregate.name,
+          eventType: SpaceUpdatedEvent.name,
         },
         this.toPrimitives(),
       ),
@@ -117,25 +143,71 @@ export class SpaceAggregate extends BaseAggregate {
     );
   }
 
-  changeGeolocation(
-    latitude: SpaceLatitudeValueObject | null,
-    longitude: SpaceLongitudeValueObject | null,
-    environment: SpaceEnvironmentValueObject | null,
-  ): void {
-    this._latitude = latitude;
-    this._longitude = longitude;
-    this._environment = environment;
+  private changeLatitude(newLatitude: SpaceLatitudeValueObject | null): void {
+    const oldValue = this._latitude?.value ?? null;
+    const newValue = newLatitude?.value ?? null;
+
+    if (oldValue === newValue) return;
+
+    this._latitude = newLatitude;
+    this.touch();
 
     this.apply(
-      new SpaceGeolocationChangedEvent(
+      new SpaceLatitudeChangedEvent(
         {
           aggregateRootId: this._id.value,
           aggregateRootType: SpaceAggregate.name,
           entityId: this._id.value,
           entityType: SpaceAggregate.name,
-          eventType: SpaceGeolocationChangedEvent.name,
+          eventType: SpaceLatitudeChangedEvent.name,
         },
-        this.toPrimitives(),
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changeLongitude(newLongitude: SpaceLongitudeValueObject | null): void {
+    const oldValue = this._longitude?.value ?? null;
+    const newValue = newLongitude?.value ?? null;
+
+    if (oldValue === newValue) return;
+
+    this._longitude = newLongitude;
+    this.touch();
+
+    this.apply(
+      new SpaceLongitudeChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: SpaceAggregate.name,
+          entityId: this._id.value,
+          entityType: SpaceAggregate.name,
+          eventType: SpaceLongitudeChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changeEnvironment(newEnvironment: SpaceEnvironmentValueObject | null): void {
+    const oldValue = this._environment?.value ?? null;
+    const newValue = newEnvironment?.value ?? null;
+
+    if (oldValue === newValue) return;
+
+    this._environment = newEnvironment;
+    this.touch();
+
+    this.apply(
+      new SpaceEnvironmentChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: SpaceAggregate.name,
+          entityId: this._id.value,
+          entityType: SpaceAggregate.name,
+          eventType: SpaceEnvironmentChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
       ),
     );
   }
