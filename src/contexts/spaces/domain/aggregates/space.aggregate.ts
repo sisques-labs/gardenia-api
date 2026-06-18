@@ -8,6 +8,7 @@ import { SpaceCreatedEvent } from '../events/space-created/space-created.event';
 import { SpaceEnvironmentChangedEvent } from '../events/field-changed/space-environment-changed/space-environment-changed.event';
 import { SpaceLatitudeChangedEvent } from '../events/field-changed/space-latitude-changed/space-latitude-changed.event';
 import { SpaceLongitudeChangedEvent } from '../events/field-changed/space-longitude-changed/space-longitude-changed.event';
+import { SpaceNameChangedEvent } from '../events/field-changed/space-name-changed/space-name-changed.event';
 import { SpaceUpdatedEvent } from '../events/space-updated/space-updated.event';
 import { DuplicateMembershipException } from '../exceptions/duplicate-membership.exception';
 import { LastOwnerRemovalException } from '../exceptions/last-owner-removal.exception';
@@ -56,10 +57,12 @@ export class SpaceAggregate extends BaseAggregate {
   }
 
   public update(props: {
+    name?: SpaceNameValueObject;
     latitude?: SpaceLatitudeValueObject | null;
     longitude?: SpaceLongitudeValueObject | null;
     environment?: SpaceEnvironmentValueObject | null;
   }): void {
+    if (props.name !== undefined) this.changeName(props.name);
     if (props.latitude !== undefined) this.changeLatitude(props.latitude);
     if (props.longitude !== undefined) this.changeLongitude(props.longitude);
     if (props.environment !== undefined) this.changeEnvironment(props.environment);
@@ -139,6 +142,29 @@ export class SpaceAggregate extends BaseAggregate {
           spaceId: this._id.value,
           userId,
         },
+      ),
+    );
+  }
+
+  private changeName(newName: SpaceNameValueObject): void {
+    const oldValue = this._name.value;
+    const newValue = newName.value;
+
+    if (oldValue === newValue) return;
+
+    this._name = newName;
+    this.touch();
+
+    this.apply(
+      new SpaceNameChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: SpaceAggregate.name,
+          entityId: this._id.value,
+          entityType: SpaceAggregate.name,
+          eventType: SpaceNameChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
       ),
     );
   }

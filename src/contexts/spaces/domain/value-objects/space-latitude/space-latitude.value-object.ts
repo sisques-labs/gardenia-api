@@ -7,9 +7,13 @@ export class SpaceLatitudeValueObject extends NumberValueObject {
   static readonly MAX = 90;
 
   constructor(value: number) {
-    if (value < SpaceLatitudeValueObject.MIN || value > SpaceLatitudeValueObject.MAX) {
-      throw new SpaceInvalidLatitudeException(value);
-    }
     super(value);
+    this.validate();
+  }
+
+  private validate(): void {
+    if (this.value < SpaceLatitudeValueObject.MIN || this.value > SpaceLatitudeValueObject.MAX) {
+      throw new SpaceInvalidLatitudeException(this.value);
+    }
   }
 }

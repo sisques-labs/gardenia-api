@@ -7,9 +7,13 @@ export class SpaceLongitudeValueObject extends NumberValueObject {
   static readonly MAX = 180;
 
   constructor(value: number) {
-    if (value < SpaceLongitudeValueObject.MIN || value > SpaceLongitudeValueObject.MAX) {
-      throw new SpaceInvalidLongitudeException(value);
-    }
     super(value);
+    this.validate();
+  }
+
+  private validate(): void {
+    if (this.value < SpaceLongitudeValueObject.MIN || this.value > SpaceLongitudeValueObject.MAX) {
+      throw new SpaceInvalidLongitudeException(this.value);
+    }
   }
 }
