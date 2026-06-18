@@ -16,7 +16,7 @@ import { AddMemberCommand } from '@contexts/spaces/application/commands/add-memb
 import { CreateSpaceInvitationCommand } from '@contexts/spaces/application/commands/create-space-invitation/create-space-invitation.command';
 import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
 import { RemoveMemberCommand } from '@contexts/spaces/application/commands/remove-member/remove-member.command';
-import { UpdateSpaceGeolocationCommand } from '@contexts/spaces/application/commands/update-space-geolocation/update-space-geolocation.command';
+import { UpdateSpaceCommand } from '@contexts/spaces/application/commands/update-space/update-space.command';
 import { ResolveInvitationSpaceContextService } from '@contexts/spaces/application/services/write/resolve-invitation-space-context/resolve-invitation-space-context.service';
 import { SpaceInvitationViewModel } from '@contexts/spaces/domain/view-models/space-invitation.view-model';
 import { IdentityOnly } from '@shared/decorators/identity-only.decorator';
@@ -26,7 +26,7 @@ import { SpaceAddMemberRequestDto } from '../../dtos/requests/space/space-add-me
 import { SpaceCreateInvitationRequestDto } from '../../dtos/requests/space/space-create-invitation.request.dto';
 import { SpaceCreateRequestDto } from '../../dtos/requests/space/space-create.request.dto';
 import { SpaceRemoveMemberRequestDto } from '../../dtos/requests/space/space-remove-member.request.dto';
-import { SpaceUpdateGeolocationRequestDto } from '../../dtos/requests/space/space-update-geolocation.request.dto';
+import { SpaceUpdateRequestDto } from '../../dtos/requests/space/space-update.request.dto';
 import { SpaceInvitationGraphQLMapper } from '../../mappers/space-invitation/space-invitation.mapper';
 import { SpaceInvitationResponseDto } from '../../objects/space-invitation.object';
 
@@ -163,17 +163,17 @@ export class SpaceMutationsResolver {
     });
   }
 
-  @Mutation(() => MutationResponseDto, { name: 'spaceUpdateGeolocation' })
-  async spaceUpdateGeolocation(
+  @Mutation(() => MutationResponseDto)
+  async spaceUpdate(
     @CurrentUser() user: CurrentUserPayload,
-    @Args('input') input: SpaceUpdateGeolocationRequestDto,
+    @Args('input') input: SpaceUpdateRequestDto,
   ): Promise<MutationResponseDto> {
     this.logger.log(
-      `Updating geolocation for space ${input.spaceId} by user: ${user.userId}`,
+      `Updating space ${input.spaceId} by user: ${user.userId}`,
     );
 
     await this.commandBus.execute(
-      new UpdateSpaceGeolocationCommand({
+      new UpdateSpaceCommand({
         spaceId: input.spaceId,
         latitude: input.latitude ?? null,
         longitude: input.longitude ?? null,
@@ -184,7 +184,7 @@ export class SpaceMutationsResolver {
 
     return this.mutationResponseGraphQLMapper.toResponseDto({
       success: true,
-      message: 'Space geolocation updated',
+      message: 'Space updated successfully',
       id: input.spaceId,
     });
   }
