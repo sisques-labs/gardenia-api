@@ -1,10 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { IWeatherPort } from '@contexts/weather/application/ports/weather.port';
-import {
-  DailyForecast,
-  WeatherForecast,
-} from '@contexts/weather/domain/interfaces/weather-forecast.interface';
+import { IDailyForecast } from '@contexts/weather/domain/interfaces/daily-forecast.interface';
+import { IWeatherForecast } from '@contexts/weather/domain/interfaces/weather-forecast.interface';
 
 interface OpenMeteoResponse {
   latitude: number;
@@ -20,7 +18,7 @@ interface OpenMeteoResponse {
 }
 
 interface CacheEntry {
-  data: WeatherForecast;
+  data: IWeatherForecast;
   expiresAt: number;
 }
 
@@ -31,7 +29,7 @@ export class OpenMeteoAdapter implements IWeatherPort {
   private readonly logger = new Logger(OpenMeteoAdapter.name);
   private readonly cache = new Map<string, CacheEntry>();
 
-  async getForecast(latitude: number, longitude: number): Promise<WeatherForecast> {
+  async getForecast(latitude: number, longitude: number): Promise<IWeatherForecast> {
     const key = `${latitude},${longitude}`;
     const cached = this.cache.get(key);
 
@@ -60,7 +58,7 @@ export class OpenMeteoAdapter implements IWeatherPort {
 
     const raw = (await response.json()) as OpenMeteoResponse;
 
-    const daily: DailyForecast[] = raw.daily.time.map((date, i) => ({
+    const daily: IDailyForecast[] = raw.daily.time.map((date, i) => ({
       date,
       temperatureMin: raw.daily.temperature_2m_min[i],
       temperatureMax: raw.daily.temperature_2m_max[i],
@@ -68,7 +66,7 @@ export class OpenMeteoAdapter implements IWeatherPort {
       weatherCode: raw.daily.weathercode[i],
     }));
 
-    const forecast: WeatherForecast = {
+    const forecast: IWeatherForecast = {
       latitude: raw.latitude,
       longitude: raw.longitude,
       timezone: raw.timezone,

@@ -6,7 +6,7 @@ import { SpaceViewModel } from '@contexts/spaces/domain/view-models/space.view-m
 
 @Injectable()
 export class AssertSpaceHasGeolocationService implements IBaseService {
-  execute(space: SpaceViewModel): void {
+  async execute(space: SpaceViewModel): Promise<void> {
     if (space.latitude == null || space.longitude == null) {
       throw new SpaceHasNoGeolocationException(space.id);
     }

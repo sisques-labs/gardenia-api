@@ -21,6 +21,9 @@ describe('SpaceGraphQLMapper', () => {
         ownerId: OWNER_ID,
         createdAt: now,
         updatedAt: now,
+        latitude: null,
+        longitude: null,
+        environment: null,
       });
 
       const dto = mapper.toResponseDtoFromViewModel(vm);
@@ -40,6 +43,9 @@ describe('SpaceGraphQLMapper', () => {
         ownerId: OWNER_ID,
         createdAt: now,
         updatedAt,
+        latitude: null,
+        longitude: null,
+        environment: null,
       });
 
       const dto = mapper.toResponseDtoFromViewModel(vm);
@@ -56,6 +62,9 @@ describe('SpaceGraphQLMapper', () => {
         ownerId: OWNER_ID,
         createdAt: now,
         updatedAt: now,
+        latitude: null,
+        longitude: null,
+        environment: null,
       });
       const paginated = new PaginatedResult([vm], 1, 1, 10);
 

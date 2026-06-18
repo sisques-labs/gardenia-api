@@ -11,7 +11,7 @@ export class SpaceLongitudeValueObject extends NumberValueObject {
     this.validate();
   }
 
-  private validate(): void {
+  protected validate(): void {
     if (this.value < SpaceLongitudeValueObject.MIN || this.value > SpaceLongitudeValueObject.MAX) {
       throw new SpaceInvalidLongitudeException(this.value);
     }
