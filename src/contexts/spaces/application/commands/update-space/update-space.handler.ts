@@ -23,12 +23,13 @@ export class UpdateSpaceCommandHandler
 
   async execute(command: UpdateSpaceCommand): Promise<void> {
     this.logger.log(
-      `Updating space ${command.spaceId.value} by user ${command.requestingUserId}`,
+      `Updating space ${command.spaceId.value} by user ${command.requestingUserId.value}`,
     );
 
     const space = await this.assertSpaceExistsService.execute(command.spaceId);
 
     space.update({
+      name: command.name,
       latitude: command.latitude,
       longitude: command.longitude,
       environment: command.environment,
