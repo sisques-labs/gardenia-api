@@ -1,6 +1,7 @@
 import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
+import { IPlantingSpotPrimitives } from '@contexts/planting-spots/domain/primitives/planting-spot.primitives';
 import { PlantingSpotCapacityValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-capacity/planting-spot-capacity.value-object';
 import { PlantingSpotColumnValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-column/planting-spot-column.value-object';
 import { PlantingSpotDescriptionValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-description/planting-spot-description.value-object';
@@ -10,21 +11,18 @@ import { PlantingSpotNameValueObject } from '@contexts/planting-spots/domain/val
 import { PlantingSpotRowValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-row/planting-spot-row.value-object';
 import { PlantingSpotSoilTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-soil-type/planting-spot-soil-type.value-object';
 import { PlantingSpotTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-type/planting-spot-type.value-object';
-import { IPlantingSpotDimensionsInput } from './create-planting-spot.command';
 
-export interface UpdatePlantingSpotCommandInput {
-  id: string;
-  spaceId: string;
+export type UpdatePlantingSpotCommandInput = Pick<
+  IPlantingSpotPrimitives,
+  'id' | 'spaceId'
+> & {
   requestingUserId: string;
-  name?: string;
-  type?: string;
-  description?: string | null;
-  capacity?: number | null;
-  row?: number | null;
-  column?: number | null;
-  dimensions?: IPlantingSpotDimensionsInput | null;
-  soilType?: string | null;
-}
+} & Partial<
+    Omit<
+      IPlantingSpotPrimitives,
+      'id' | 'userId' | 'spaceId' | 'createdAt' | 'updatedAt'
+    >
+  >;
 
 export class UpdatePlantingSpotCommand {
   public readonly id: PlantingSpotIdValueObject;
@@ -69,16 +67,23 @@ export class UpdatePlantingSpotCommand {
           ? new PlantingSpotColumnValueObject(input.column)
           : null
         : undefined;
-    this.dimensions =
-      input.dimensions !== undefined
-        ? input.dimensions != null
-          ? new PlantingSpotDimensionsValueObject({
-              width: input.dimensions.width ?? null,
-              height: input.dimensions.height ?? null,
-              length: input.dimensions.length ?? null,
-            })
-          : null
-        : undefined;
+
+    const hasDimensionsChange =
+      input.dimensionsWidth !== undefined ||
+      input.dimensionsHeight !== undefined ||
+      input.dimensionsLength !== undefined;
+    this.dimensions = hasDimensionsChange
+      ? input.dimensionsWidth != null ||
+        input.dimensionsHeight != null ||
+        input.dimensionsLength != null
+        ? new PlantingSpotDimensionsValueObject({
+            width: input.dimensionsWidth ?? null,
+            height: input.dimensionsHeight ?? null,
+            length: input.dimensionsLength ?? null,
+          })
+        : null
+      : undefined;
+
     this.soilType =
       input.soilType !== undefined
         ? input.soilType != null
