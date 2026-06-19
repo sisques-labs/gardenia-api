@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 
@@ -27,4 +34,38 @@ export class CreatePlantingSpotDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiPropertyOptional({
+    example: 8,
+    description: 'Maximum number of plants (soft limit)',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  capacity?: number;
+
+  @ApiPropertyOptional({ example: 1, description: 'Row position in grid' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  row?: number;
+
+  @ApiPropertyOptional({ example: 2, description: 'Column position in grid' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  column?: number;
+
+  @ApiPropertyOptional({
+    example: '2.4 × 1.2 m',
+    description: 'Physical dimensions',
+  })
+  @IsOptional()
+  @IsString()
+  dimensions?: string;
+
+  @ApiPropertyOptional({ example: 'Loamy', description: 'Type of soil' })
+  @IsOptional()
+  @IsString()
+  soilType?: string;
 }

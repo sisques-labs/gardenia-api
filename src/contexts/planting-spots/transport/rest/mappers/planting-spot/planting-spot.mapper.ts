@@ -12,6 +12,11 @@ export class PlantingSpotRestMapper {
     dto.name = vm.name;
     dto.type = vm.type;
     dto.description = vm.description;
+    dto.capacity = vm.capacity;
+    dto.row = vm.row;
+    dto.column = vm.column;
+    dto.dimensions = vm.dimensions;
+    dto.soilType = vm.soilType;
     dto.userId = vm.userId;
     dto.spaceId = vm.spaceId;
     dto.createdAt = vm.createdAt;

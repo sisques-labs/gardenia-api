@@ -37,7 +37,10 @@ export class PlantingSpotQueriesResolver {
     );
 
     const result = await this.queryBus.execute(
-      new PlantingSpotFindByCriteriaQuery({ criteria }),
+      new PlantingSpotFindByCriteriaQuery({
+        criteria,
+        resolve: input?.resolve,
+      }),
     );
 
     return this.plantingSpotGraphQLMapper.toPaginatedResponseDto(result);
@@ -50,7 +53,7 @@ export class PlantingSpotQueriesResolver {
     this.logger.log(`Finding planting spot by id: ${input.id}`);
 
     const result = await this.queryBus.execute(
-      new PlantingSpotFindByIdQuery({ id: input.id }),
+      new PlantingSpotFindByIdQuery({ id: input.id, resolve: input.resolve }),
     );
 
     return result

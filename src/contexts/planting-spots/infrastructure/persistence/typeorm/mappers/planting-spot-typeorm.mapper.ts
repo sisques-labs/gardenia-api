@@ -15,6 +15,11 @@ export class PlantingSpotTypeOrmMapper {
       .withName(entity.name)
       .withType(entity.type)
       .withDescription(entity.description)
+      .withCapacity(entity.capacity)
+      .withRow(entity.row)
+      .withColumn(entity.column)
+      .withDimensions(entity.dimensions)
+      .withSoilType(entity.soilType)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
       .withCreatedAt(entity.createdAt)
@@ -32,6 +37,11 @@ export class PlantingSpotTypeOrmMapper {
     entity.name = primitives.name;
     entity.type = primitives.type;
     entity.description = primitives.description;
+    entity.capacity = primitives.capacity;
+    entity.row = primitives.row;
+    entity.column = primitives.column;
+    entity.dimensions = primitives.dimensions;
+    entity.soilType = primitives.soilType;
     entity.userId = primitives.userId;
     entity.spaceId = primitives.spaceId;
     entity.createdAt = primitives.createdAt;
@@ -46,6 +56,11 @@ export class PlantingSpotTypeOrmMapper {
       .withName(entity.name)
       .withType(entity.type)
       .withDescription(entity.description)
+      .withCapacity(entity.capacity)
+      .withRow(entity.row)
+      .withColumn(entity.column)
+      .withDimensions(entity.dimensions)
+      .withSoilType(entity.soilType)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
       .withCreatedAt(entity.createdAt)

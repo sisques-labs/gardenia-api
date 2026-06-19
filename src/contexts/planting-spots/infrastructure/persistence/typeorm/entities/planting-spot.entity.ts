@@ -21,6 +21,21 @@ export class PlantingSpotTypeOrmEntity {
   @Column({ type: 'varchar', length: 1000, nullable: true })
   description!: string | null;
 
+  @Column({ type: 'int', nullable: true })
+  capacity!: number | null;
+
+  @Column({ name: 'spot_row', type: 'int', nullable: true })
+  row!: number | null;
+
+  @Column({ name: 'spot_column', type: 'int', nullable: true })
+  column!: number | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  dimensions!: string | null;
+
+  @Column({ name: 'soil_type', type: 'varchar', length: 100, nullable: true })
+  soilType!: string | null;
+
   @Index('IDX_planting_spots_user_id')
   @Column({ name: 'user_id', type: 'uuid', nullable: false })
   userId!: string;
