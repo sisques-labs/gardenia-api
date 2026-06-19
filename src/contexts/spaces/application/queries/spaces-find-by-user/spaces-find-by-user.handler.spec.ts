@@ -54,6 +54,9 @@ describe('SpacesFindByUserQueryHandler', () => {
         ownerId: USER_ID,
         createdAt: NOW,
         updatedAt: NOW,
+        latitude: null,
+        longitude: null,
+        environment: null,
       });
       const memberSpace = new SpaceViewModel({
         id: '550e8400-e29b-41d4-a716-446655440011',
@@ -61,6 +64,9 @@ describe('SpacesFindByUserQueryHandler', () => {
         ownerId: ANOTHER_USER_ID,
         createdAt: NOW,
         updatedAt: NOW,
+        latitude: null,
+        longitude: null,
+        environment: null,
       });
 
       spaceReadRepository.findByMember.mockResolvedValue({

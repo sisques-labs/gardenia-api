@@ -1,5 +1,11 @@
+import { Logger } from '@nestjs/common';
+import { QueryBus } from '@nestjs/cqrs';
+import { Args, Query, Resolver } from '@nestjs/graphql';
+import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
+
 import { PlantingSpotFindByCriteriaQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.query';
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
+import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
 import { PlantingSpotFindByCriteriaRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-find-by-criteria.request.dto';
 import { PlantingSpotFindByIdRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-find-by-id.request.dto';
 import {
@@ -7,12 +13,8 @@ import {
   PlantingSpotResponseDto,
 } from '@contexts/planting-spots/transport/graphql/dtos/responses/planting-spot.response.dto';
 import { PlantingSpotGraphQLMapper } from '@contexts/planting-spots/transport/graphql/mappers/planting-spot/planting-spot.mapper';
-import { Logger } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
-import { Args, Query, Resolver } from '@nestjs/graphql';
-import { Criteria } from '@sisques-labs/nestjs-kit';
 
-@Resolver()
+@Resolver(() => PlantingSpotResponseDto)
 export class PlantingSpotQueriesResolver {
   private readonly logger = new Logger(PlantingSpotQueriesResolver.name);
 
@@ -36,9 +38,10 @@ export class PlantingSpotQueriesResolver {
       input?.pagination,
     );
 
-    const result = await this.queryBus.execute(
-      new PlantingSpotFindByCriteriaQuery({ criteria }),
-    );
+    const result = await this.queryBus.execute<
+      PlantingSpotFindByCriteriaQuery,
+      PaginatedResult<PlantingSpotViewModel>
+    >(new PlantingSpotFindByCriteriaQuery({ criteria }));
 
     return this.plantingSpotGraphQLMapper.toPaginatedResponseDto(result);
   }
@@ -49,12 +52,13 @@ export class PlantingSpotQueriesResolver {
   ): Promise<PlantingSpotResponseDto | null> {
     this.logger.log(`Finding planting spot by id: ${input.id}`);
 
-    const result = await this.queryBus.execute(
-      new PlantingSpotFindByIdQuery({ id: input.id }),
-    );
+    const vm = await this.queryBus.execute<
+      PlantingSpotFindByIdQuery,
+      PlantingSpotViewModel
+    >(new PlantingSpotFindByIdQuery({ id: input.id }));
 
-    return result
-      ? this.plantingSpotGraphQLMapper.toResponseDtoFromViewModel(result)
-      : null;
+    if (!vm) return null;
+
+    return this.plantingSpotGraphQLMapper.toResponseDtoFromViewModel(vm);
   }
 }

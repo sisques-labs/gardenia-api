@@ -42,6 +42,11 @@ export class UpdatePlantingSpotCommandHandler
       name: command.name,
       type: command.type,
       description: command.description,
+      capacity: command.capacity,
+      row: command.row,
+      column: command.column,
+      dimensions: command.dimensions,
+      soilType: command.soilType,
     });
 
     await this.plantingSpotWriteRepository.save(spot);

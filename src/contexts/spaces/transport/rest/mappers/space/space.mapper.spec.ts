@@ -9,6 +9,9 @@ const buildMockSpaceViewModel = (): SpaceViewModel =>
     ownerId: '660e8400-e29b-41d4-a716-446655440001',
     createdAt: new Date('2024-01-01T00:00:00.000Z'),
     updatedAt: new Date('2024-06-01T00:00:00.000Z'),
+    latitude: null,
+    longitude: null,
+    environment: null,
   });
 
 describe('SpaceRestMapper', () => {

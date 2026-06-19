@@ -34,6 +34,9 @@ const buildSpaceViewModel = (id = SPACE_ID): SpaceViewModel =>
     ownerId: USER_ID,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
+    latitude: null,
+    longitude: null,
+    environment: null,
   });
 
 const buildSpaceResponseDto = (id = SPACE_ID): SpaceRestResponseDto => {

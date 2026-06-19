@@ -2,6 +2,10 @@
 
 Project-specific skills injected into code agents working on this repo.
 
+## Code Conventions
+
+Project-wide code conventions (tech stack, architecture, testing, style, and apply-time rules) live in [openspec/config.yaml](openspec/config.yaml). Consult that file for the authoritative list of coding standards before implementing or reviewing changes.
+
 ## Registered Skills
 
 | Skill | Trigger | Description |
