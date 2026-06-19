@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Criteria, FilterOperator, PaginatedResult } from '@sisques-labs/nestjs-kit';
 
