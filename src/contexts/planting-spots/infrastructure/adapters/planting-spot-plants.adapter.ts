@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
-import { Criteria, FilterOperator, PaginatedResult } from '@sisques-labs/nestjs-kit';
+import {
+  Criteria,
+  FilterOperator,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 
 import { IPlantingSpotPlantsPort } from '@contexts/planting-spots/application/ports/planting-spot-plants.port';
 import { PlantingSpotPlantBuilder } from '@contexts/planting-spots/domain/builders/planting-spot-plant.builder';
@@ -27,7 +31,7 @@ export class PlantingSpotPlantsAdapter implements IPlantingSpotPlantsPort {
         },
       ],
       undefined,
-      { page: 1, limit: 500 },
+      { page: 1, perPage: 500 },
     );
 
     const result = await this.queryBus.execute<
