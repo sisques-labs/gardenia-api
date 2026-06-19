@@ -6,9 +6,12 @@ import {
   IsString,
   Min,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
+import { PlantingSpotDimensionsDto } from './create-planting-spot.dto';
 
 export class UpdatePlantingSpotDto {
   @ApiPropertyOptional({
@@ -72,14 +75,15 @@ export class UpdatePlantingSpotDto {
   column?: number | null;
 
   @ApiPropertyOptional({
-    example: '2.4 × 1.2 m',
+    type: PlantingSpotDimensionsDto,
     description: 'Updated dimensions; null to clear',
     nullable: true,
   })
   @IsOptional()
   @ValidateIf((_, value) => value !== null)
-  @IsString()
-  dimensions?: string | null;
+  @ValidateNested()
+  @Type(() => PlantingSpotDimensionsDto)
+  dimensions?: PlantingSpotDimensionsDto | null;
 
   @ApiPropertyOptional({
     example: 'Loamy',

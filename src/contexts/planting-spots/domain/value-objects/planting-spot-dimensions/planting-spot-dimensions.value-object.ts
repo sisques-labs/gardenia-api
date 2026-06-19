@@ -1,12 +1,17 @@
-import { StringValueObject } from '@sisques-labs/nestjs-kit';
+export interface IPlantingSpotDimensionsProps {
+  width?: number | null;
+  height?: number | null;
+  length?: number | null;
+}
 
-export class PlantingSpotDimensionsValueObject extends StringValueObject {
-  static readonly MAX_LENGTH = 100;
+export class PlantingSpotDimensionsValueObject {
+  public readonly width: number | null;
+  public readonly height: number | null;
+  public readonly length: number | null;
 
-  constructor(value: string) {
-    super(value, {
-      maxLength: PlantingSpotDimensionsValueObject.MAX_LENGTH,
-      allowEmpty: true,
-    });
+  constructor(props: IPlantingSpotDimensionsProps = {}) {
+    this.width = props.width ?? null;
+    this.height = props.height ?? null;
+    this.length = props.length ?? null;
   }
 }

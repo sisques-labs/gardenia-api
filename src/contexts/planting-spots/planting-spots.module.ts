@@ -6,7 +6,7 @@ import { CreatePlantingSpotCommandHandler } from '@contexts/planting-spots/appli
 import { DeletePlantingSpotCommandHandler } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.handler';
 import { UpdatePlantingSpotCommandHandler } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.handler';
 import { PLANTING_SPOT_IN_USE_PORT } from '@contexts/planting-spots/application/ports/planting-spot-in-use.port';
-import { PLANTING_SPOT_RESOLVE_PLANTS_PORT } from '@contexts/planting-spots/application/ports/planting-spot-resolve-plants.port';
+import { PLANTING_SPOT_PLANTS_PORT } from '@contexts/planting-spots/application/ports/planting-spot-plants.port';
 import { PlantingSpotFindByCriteriaQueryHandler } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.handler';
 import { PlantingSpotFindByIdQueryHandler } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.handler';
 import { AssertPlantingSpotViewModelExistsService } from '@contexts/planting-spots/application/services/read/assert-planting-spot-view-model-exists/assert-planting-spot-view-model-exists.service';
@@ -16,7 +16,7 @@ import { PlantingSpotBuilder } from '@contexts/planting-spots/domain/builders/pl
 import { PLANTING_SPOT_READ_REPOSITORY } from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
 import { PLANTING_SPOT_WRITE_REPOSITORY } from '@contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
 import { PlantingSpotInUseAdapter } from '@contexts/planting-spots/infrastructure/adapters/planting-spot-in-use.adapter';
-import { PlantingSpotResolvePlantsAdapter } from '@contexts/planting-spots/infrastructure/adapters/planting-spot-resolve-plants.adapter';
+import { PlantingSpotPlantsAdapter } from '@contexts/planting-spots/infrastructure/adapters/planting-spot-plants.adapter';
 import { PlantingSpotTypeOrmEntity } from '@contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { PlantingSpotTypeOrmMapper } from '@contexts/planting-spots/infrastructure/persistence/typeorm/mappers/planting-spot-typeorm.mapper';
 import { PlantingSpotTypeOrmReadRepository } from '@contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-read.repository';
@@ -66,8 +66,8 @@ const INFRASTRUCTURE_ADAPTERS = [
     useClass: PlantingSpotInUseAdapter,
   },
   {
-    provide: PLANTING_SPOT_RESOLVE_PLANTS_PORT,
-    useClass: PlantingSpotResolvePlantsAdapter,
+    provide: PLANTING_SPOT_PLANTS_PORT,
+    useClass: PlantingSpotPlantsAdapter,
   },
 ];
 

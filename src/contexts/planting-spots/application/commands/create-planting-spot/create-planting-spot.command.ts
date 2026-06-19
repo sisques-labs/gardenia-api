@@ -1,7 +1,6 @@
 import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
-import { IPlantingSpotPrimitives } from '@contexts/planting-spots/domain/primitives/planting-spot.primitives';
 import { PlantingSpotCapacityValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-capacity/planting-spot-capacity.value-object';
 import { PlantingSpotColumnValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-column/planting-spot-column.value-object';
 import { PlantingSpotDescriptionValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-description/planting-spot-description.value-object';
@@ -11,16 +10,24 @@ import { PlantingSpotRowValueObject } from '@contexts/planting-spots/domain/valu
 import { PlantingSpotSoilTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-soil-type/planting-spot-soil-type.value-object';
 import { PlantingSpotTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-type/planting-spot-type.value-object';
 
-export type CreatePlantingSpotCommandInput = Omit<
-  IPlantingSpotPrimitives,
-  'id' | 'createdAt' | 'updatedAt' | 'description' | 'capacity' | 'row' | 'column' | 'dimensions' | 'soilType'
-> &
-  Partial<
-    Pick<
-      IPlantingSpotPrimitives,
-      'description' | 'capacity' | 'row' | 'column' | 'dimensions' | 'soilType'
-    >
-  >;
+export interface IPlantingSpotDimensionsInput {
+  width?: number | null;
+  height?: number | null;
+  length?: number | null;
+}
+
+export interface CreatePlantingSpotCommandInput {
+  name: string;
+  type: string;
+  description?: string | null;
+  capacity?: number | null;
+  row?: number | null;
+  column?: number | null;
+  dimensions?: IPlantingSpotDimensionsInput | null;
+  soilType?: string | null;
+  userId: string;
+  spaceId: string;
+}
 
 export class CreatePlantingSpotCommand {
   public readonly name: PlantingSpotNameValueObject;
@@ -55,7 +62,11 @@ export class CreatePlantingSpotCommand {
         : null;
     this.dimensions =
       input.dimensions != null
-        ? new PlantingSpotDimensionsValueObject(input.dimensions)
+        ? new PlantingSpotDimensionsValueObject({
+            width: input.dimensions.width ?? null,
+            height: input.dimensions.height ?? null,
+            length: input.dimensions.length ?? null,
+          })
         : null;
     this.soilType =
       input.soilType != null

@@ -30,7 +30,9 @@ export class PlantingSpotBuilder extends BaseBuilder<
   private _capacity: number | null = null;
   private _row: number | null = null;
   private _column: number | null = null;
-  private _dimensions: string | null = null;
+  private _dimensionsWidth: number | null = null;
+  private _dimensionsHeight: number | null = null;
+  private _dimensionsLength: number | null = null;
   private _soilType: string | null = null;
   private _userId!: string;
   private _spaceId!: string;
@@ -65,8 +67,18 @@ export class PlantingSpotBuilder extends BaseBuilder<
     return this;
   }
 
-  withDimensions(dimensions: string | null): this {
-    this._dimensions = dimensions;
+  withDimensionsWidth(width: number | null): this {
+    this._dimensionsWidth = width;
+    return this;
+  }
+
+  withDimensionsHeight(height: number | null): this {
+    this._dimensionsHeight = height;
+    return this;
+  }
+
+  withDimensionsLength(length: number | null): this {
+    this._dimensionsLength = length;
     return this;
   }
 
@@ -85,6 +97,21 @@ export class PlantingSpotBuilder extends BaseBuilder<
     return this;
   }
 
+  private buildDimensions(): PlantingSpotDimensionsValueObject | null {
+    if (
+      this._dimensionsWidth == null &&
+      this._dimensionsHeight == null &&
+      this._dimensionsLength == null
+    ) {
+      return null;
+    }
+    return new PlantingSpotDimensionsValueObject({
+      width: this._dimensionsWidth,
+      height: this._dimensionsHeight,
+      length: this._dimensionsLength,
+    });
+  }
+
   public override build(): PlantingSpotAggregate {
     this.validate();
     return new PlantingSpotAggregate({
@@ -99,18 +126,12 @@ export class PlantingSpotBuilder extends BaseBuilder<
         this._capacity != null
           ? new PlantingSpotCapacityValueObject(this._capacity)
           : null,
-      row:
-        this._row != null
-          ? new PlantingSpotRowValueObject(this._row)
-          : null,
+      row: this._row != null ? new PlantingSpotRowValueObject(this._row) : null,
       column:
         this._column != null
           ? new PlantingSpotColumnValueObject(this._column)
           : null,
-      dimensions:
-        this._dimensions != null
-          ? new PlantingSpotDimensionsValueObject(this._dimensions)
-          : null,
+      dimensions: this.buildDimensions(),
       soilType:
         this._soilType != null
           ? new PlantingSpotSoilTypeValueObject(this._soilType)
@@ -132,7 +153,9 @@ export class PlantingSpotBuilder extends BaseBuilder<
       capacity: this._capacity,
       row: this._row,
       column: this._column,
-      dimensions: this._dimensions,
+      dimensionsWidth: this._dimensionsWidth,
+      dimensionsHeight: this._dimensionsHeight,
+      dimensionsLength: this._dimensionsLength,
       soilType: this._soilType,
       userId: this._userId,
       spaceId: this._spaceId,

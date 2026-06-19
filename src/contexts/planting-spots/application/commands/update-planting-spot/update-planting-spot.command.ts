@@ -1,7 +1,6 @@
 import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
-import { IPlantingSpotPrimitives } from '@contexts/planting-spots/domain/primitives/planting-spot.primitives';
 import { PlantingSpotCapacityValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-capacity/planting-spot-capacity.value-object';
 import { PlantingSpotColumnValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-column/planting-spot-column.value-object';
 import { PlantingSpotDescriptionValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-description/planting-spot-description.value-object';
@@ -11,49 +10,38 @@ import { PlantingSpotNameValueObject } from '@contexts/planting-spots/domain/val
 import { PlantingSpotRowValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-row/planting-spot-row.value-object';
 import { PlantingSpotSoilTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-soil-type/planting-spot-soil-type.value-object';
 import { PlantingSpotTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-type/planting-spot-type.value-object';
+import { IPlantingSpotDimensionsInput } from './create-planting-spot.command';
 
-export type UpdatePlantingSpotCommandInput = Pick<
-  IPlantingSpotPrimitives,
-  'spaceId' | 'id'
-> & {
+export interface UpdatePlantingSpotCommandInput {
+  id: string;
+  spaceId: string;
   requestingUserId: string;
-} & Partial<
-    Omit<
-      IPlantingSpotPrimitives,
-      'id' | 'spaceId' | 'userId' | 'createdAt' | 'updatedAt'
-    >
-  >;
+  name?: string;
+  type?: string;
+  description?: string | null;
+  capacity?: number | null;
+  row?: number | null;
+  column?: number | null;
+  dimensions?: IPlantingSpotDimensionsInput | null;
+  soilType?: string | null;
+}
 
 export class UpdatePlantingSpotCommand {
   public readonly id: PlantingSpotIdValueObject;
   public readonly name: PlantingSpotNameValueObject | undefined;
   public readonly type: PlantingSpotTypeValueObject | undefined;
-  public readonly description:
-    | PlantingSpotDescriptionValueObject
-    | null
-    | undefined;
-  public readonly capacity:
-    | PlantingSpotCapacityValueObject
-    | null
-    | undefined;
+  public readonly description: PlantingSpotDescriptionValueObject | null | undefined;
+  public readonly capacity: PlantingSpotCapacityValueObject | null | undefined;
   public readonly row: PlantingSpotRowValueObject | null | undefined;
   public readonly column: PlantingSpotColumnValueObject | null | undefined;
-  public readonly dimensions:
-    | PlantingSpotDimensionsValueObject
-    | null
-    | undefined;
-  public readonly soilType:
-    | PlantingSpotSoilTypeValueObject
-    | null
-    | undefined;
+  public readonly dimensions: PlantingSpotDimensionsValueObject | null | undefined;
+  public readonly soilType: PlantingSpotSoilTypeValueObject | null | undefined;
   public readonly requestingUserId: UuidValueObject;
   public readonly spaceId: UuidValueObject;
 
   constructor(input: UpdatePlantingSpotCommandInput) {
     this.id = new PlantingSpotIdValueObject(input.id);
-    this.name = input.name
-      ? new PlantingSpotNameValueObject(input.name)
-      : undefined;
+    this.name = input.name ? new PlantingSpotNameValueObject(input.name) : undefined;
     this.type = input.type
       ? new PlantingSpotTypeValueObject(input.type as PlantingSpotTypeEnum)
       : undefined;
@@ -84,7 +72,11 @@ export class UpdatePlantingSpotCommand {
     this.dimensions =
       input.dimensions !== undefined
         ? input.dimensions != null
-          ? new PlantingSpotDimensionsValueObject(input.dimensions)
+          ? new PlantingSpotDimensionsValueObject({
+              width: input.dimensions.width ?? null,
+              height: input.dimensions.height ?? null,
+              length: input.dimensions.length ?? null,
+            })
           : null
         : undefined;
     this.soilType =

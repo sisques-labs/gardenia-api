@@ -1,11 +1,16 @@
 import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
-import { PlantingSpotNameChangedEvent } from '../events/field-changed/name-changed/name-changed.event';
-import { PlantingSpotTypeChangedEvent } from '../events/field-changed/type-changed/type-changed.event';
+import { PlantingSpotCapacityChangedEvent } from '../events/field-changed/capacity-changed/capacity-changed.event';
+import { PlantingSpotColumnChangedEvent } from '../events/field-changed/column-changed/column-changed.event';
 import { PlantingSpotDescriptionChangedEvent } from '../events/field-changed/description-changed/description-changed.event';
+import { PlantingSpotDimensionsChangedEvent } from '../events/field-changed/dimensions-changed/dimensions-changed.event';
+import { PlantingSpotNameChangedEvent } from '../events/field-changed/name-changed/name-changed.event';
+import { PlantingSpotRowChangedEvent } from '../events/field-changed/row-changed/row-changed.event';
+import { PlantingSpotSoilTypeChangedEvent } from '../events/field-changed/soil-type-changed/soil-type-changed.event';
+import { PlantingSpotTypeChangedEvent } from '../events/field-changed/type-changed/type-changed.event';
 import { PlantingSpotCreatedEvent } from '../events/planting-spot-created/planting-spot-created.event';
-import { PlantingSpotUpdatedEvent } from '../events/planting-spot-updated/planting-spot-updated.event';
 import { PlantingSpotDeletedEvent } from '../events/planting-spot-deleted/planting-spot-deleted.event';
+import { PlantingSpotUpdatedEvent } from '../events/planting-spot-updated/planting-spot-updated.event';
 import { IPlantingSpot } from '../interfaces/planting-spot.interface';
 import { IPlantingSpotPrimitives } from '../primitives/planting-spot.primitives';
 import { PlantingSpotCapacityValueObject } from '../value-objects/planting-spot-capacity/planting-spot-capacity.value-object';
@@ -71,57 +76,14 @@ export class PlantingSpotAggregate extends BaseAggregate {
     dimensions?: PlantingSpotDimensionsValueObject | null;
     soilType?: PlantingSpotSoilTypeValueObject | null;
   }): void {
-    if (props.name !== undefined) {
-      this.changeName(props.name);
-    }
-
-    if (props.type !== undefined) {
-      this.changeType(props.type);
-    }
-
-    if (props.description !== undefined) {
-      this.changeDescription(props.description);
-    }
-
-    if (
-      props.capacity !== undefined &&
-      props.capacity?.value !== this._capacity?.value
-    ) {
-      this._capacity = props.capacity;
-      this.touch();
-    }
-
-    if (
-      props.row !== undefined &&
-      props.row?.value !== this._row?.value
-    ) {
-      this._row = props.row;
-      this.touch();
-    }
-
-    if (
-      props.column !== undefined &&
-      props.column?.value !== this._column?.value
-    ) {
-      this._column = props.column;
-      this.touch();
-    }
-
-    if (
-      props.dimensions !== undefined &&
-      props.dimensions?.value !== this._dimensions?.value
-    ) {
-      this._dimensions = props.dimensions;
-      this.touch();
-    }
-
-    if (
-      props.soilType !== undefined &&
-      props.soilType?.value !== this._soilType?.value
-    ) {
-      this._soilType = props.soilType;
-      this.touch();
-    }
+    if (props.name !== undefined) this.changeName(props.name);
+    if (props.type !== undefined) this.changeType(props.type);
+    if (props.description !== undefined) this.changeDescription(props.description);
+    if (props.capacity !== undefined) this.changeCapacity(props.capacity);
+    if (props.row !== undefined) this.changeRow(props.row);
+    if (props.column !== undefined) this.changeColumn(props.column);
+    if (props.dimensions !== undefined) this.changeDimensions(props.dimensions);
+    if (props.soilType !== undefined) this.changeSoilType(props.soilType);
 
     this.apply(
       new PlantingSpotUpdatedEvent(
@@ -155,12 +117,9 @@ export class PlantingSpotAggregate extends BaseAggregate {
   private changeName(newName: PlantingSpotNameValueObject): void {
     const oldValue = this._name.value;
     const newValue = newName.value;
-
     if (oldValue === newValue) return;
-
     this._name = newName;
     this.touch();
-
     this.apply(
       new PlantingSpotNameChangedEvent(
         {
@@ -178,12 +137,9 @@ export class PlantingSpotAggregate extends BaseAggregate {
   private changeType(newType: PlantingSpotTypeValueObject): void {
     const oldValue = this._type.value;
     const newValue = newType.value;
-
     if (oldValue === newValue) return;
-
     this._type = newType;
     this.touch();
-
     this.apply(
       new PlantingSpotTypeChangedEvent(
         {
@@ -203,12 +159,9 @@ export class PlantingSpotAggregate extends BaseAggregate {
   ): void {
     const oldValue = this._description?.value ?? null;
     const newValue = newDescription?.value ?? null;
-
     if (oldValue === newValue) return;
-
     this._description = newDescription;
     this.touch();
-
     this.apply(
       new PlantingSpotDescriptionChangedEvent(
         {
@@ -217,6 +170,114 @@ export class PlantingSpotAggregate extends BaseAggregate {
           entityId: this._id.value,
           entityType: PlantingSpotAggregate.name,
           eventType: PlantingSpotDescriptionChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changeCapacity(newCapacity: PlantingSpotCapacityValueObject | null): void {
+    const oldValue = this._capacity?.value ?? null;
+    const newValue = newCapacity?.value ?? null;
+    if (oldValue === newValue) return;
+    this._capacity = newCapacity;
+    this.touch();
+    this.apply(
+      new PlantingSpotCapacityChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: PlantingSpotAggregate.name,
+          entityId: this._id.value,
+          entityType: PlantingSpotAggregate.name,
+          eventType: PlantingSpotCapacityChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changeRow(newRow: PlantingSpotRowValueObject | null): void {
+    const oldValue = this._row?.value ?? null;
+    const newValue = newRow?.value ?? null;
+    if (oldValue === newValue) return;
+    this._row = newRow;
+    this.touch();
+    this.apply(
+      new PlantingSpotRowChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: PlantingSpotAggregate.name,
+          entityId: this._id.value,
+          entityType: PlantingSpotAggregate.name,
+          eventType: PlantingSpotRowChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changeColumn(newColumn: PlantingSpotColumnValueObject | null): void {
+    const oldValue = this._column?.value ?? null;
+    const newValue = newColumn?.value ?? null;
+    if (oldValue === newValue) return;
+    this._column = newColumn;
+    this.touch();
+    this.apply(
+      new PlantingSpotColumnChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: PlantingSpotAggregate.name,
+          entityId: this._id.value,
+          entityType: PlantingSpotAggregate.name,
+          eventType: PlantingSpotColumnChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changeDimensions(newDimensions: PlantingSpotDimensionsValueObject | null): void {
+    const oldValue = this._dimensions
+      ? { width: this._dimensions.width, height: this._dimensions.height, length: this._dimensions.length }
+      : null;
+    const newValue = newDimensions
+      ? { width: newDimensions.width, height: newDimensions.height, length: newDimensions.length }
+      : null;
+    const changed =
+      oldValue?.width !== newValue?.width ||
+      oldValue?.height !== newValue?.height ||
+      oldValue?.length !== newValue?.length;
+    if (!changed) return;
+    this._dimensions = newDimensions;
+    this.touch();
+    this.apply(
+      new PlantingSpotDimensionsChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: PlantingSpotAggregate.name,
+          entityId: this._id.value,
+          entityType: PlantingSpotAggregate.name,
+          eventType: PlantingSpotDimensionsChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changeSoilType(newSoilType: PlantingSpotSoilTypeValueObject | null): void {
+    const oldValue = this._soilType?.value ?? null;
+    const newValue = newSoilType?.value ?? null;
+    if (oldValue === newValue) return;
+    this._soilType = newSoilType;
+    this.touch();
+    this.apply(
+      new PlantingSpotSoilTypeChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: PlantingSpotAggregate.name,
+          entityId: this._id.value,
+          entityType: PlantingSpotAggregate.name,
+          eventType: PlantingSpotSoilTypeChangedEvent.name,
         },
         { id: this._id.value, oldValue, newValue },
       ),
@@ -232,7 +293,9 @@ export class PlantingSpotAggregate extends BaseAggregate {
       capacity: this._capacity?.value ?? null,
       row: this._row?.value ?? null,
       column: this._column?.value ?? null,
-      dimensions: this._dimensions?.value ?? null,
+      dimensionsWidth: this._dimensions?.width ?? null,
+      dimensionsHeight: this._dimensions?.height ?? null,
+      dimensionsLength: this._dimensions?.length ?? null,
       soilType: this._soilType?.value ?? null,
       userId: this._userId.value,
       spaceId: this._spaceId.value,
@@ -241,47 +304,15 @@ export class PlantingSpotAggregate extends BaseAggregate {
     };
   }
 
-  get id(): PlantingSpotIdValueObject {
-    return this._id;
-  }
-
-  get name(): PlantingSpotNameValueObject {
-    return this._name;
-  }
-
-  get type(): PlantingSpotTypeValueObject {
-    return this._type;
-  }
-
-  get description(): PlantingSpotDescriptionValueObject | null {
-    return this._description;
-  }
-
-  get capacity(): PlantingSpotCapacityValueObject | null {
-    return this._capacity;
-  }
-
-  get row(): PlantingSpotRowValueObject | null {
-    return this._row;
-  }
-
-  get column(): PlantingSpotColumnValueObject | null {
-    return this._column;
-  }
-
-  get dimensions(): PlantingSpotDimensionsValueObject | null {
-    return this._dimensions;
-  }
-
-  get soilType(): PlantingSpotSoilTypeValueObject | null {
-    return this._soilType;
-  }
-
-  get userId(): UuidValueObject {
-    return this._userId;
-  }
-
-  get spaceId(): UuidValueObject {
-    return this._spaceId;
-  }
+  get id(): PlantingSpotIdValueObject { return this._id; }
+  get name(): PlantingSpotNameValueObject { return this._name; }
+  get type(): PlantingSpotTypeValueObject { return this._type; }
+  get description(): PlantingSpotDescriptionValueObject | null { return this._description; }
+  get capacity(): PlantingSpotCapacityValueObject | null { return this._capacity; }
+  get row(): PlantingSpotRowValueObject | null { return this._row; }
+  get column(): PlantingSpotColumnValueObject | null { return this._column; }
+  get dimensions(): PlantingSpotDimensionsValueObject | null { return this._dimensions; }
+  get soilType(): PlantingSpotSoilTypeValueObject | null { return this._soilType; }
+  get userId(): UuidValueObject { return this._userId; }
+  get spaceId(): UuidValueObject { return this._spaceId; }
 }

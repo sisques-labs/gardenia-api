@@ -18,7 +18,9 @@ export class PlantingSpotTypeOrmMapper {
       .withCapacity(entity.capacity)
       .withRow(entity.row)
       .withColumn(entity.column)
-      .withDimensions(entity.dimensions)
+      .withDimensionsWidth(entity.dimensionsWidth != null ? Number(entity.dimensionsWidth) : null)
+      .withDimensionsHeight(entity.dimensionsHeight != null ? Number(entity.dimensionsHeight) : null)
+      .withDimensionsLength(entity.dimensionsLength != null ? Number(entity.dimensionsLength) : null)
       .withSoilType(entity.soilType)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
@@ -40,7 +42,9 @@ export class PlantingSpotTypeOrmMapper {
     entity.capacity = primitives.capacity;
     entity.row = primitives.row;
     entity.column = primitives.column;
-    entity.dimensions = primitives.dimensions;
+    entity.dimensionsWidth = primitives.dimensionsWidth;
+    entity.dimensionsHeight = primitives.dimensionsHeight;
+    entity.dimensionsLength = primitives.dimensionsLength;
     entity.soilType = primitives.soilType;
     entity.userId = primitives.userId;
     entity.spaceId = primitives.spaceId;
@@ -59,7 +63,9 @@ export class PlantingSpotTypeOrmMapper {
       .withCapacity(entity.capacity)
       .withRow(entity.row)
       .withColumn(entity.column)
-      .withDimensions(entity.dimensions)
+      .withDimensionsWidth(entity.dimensionsWidth != null ? Number(entity.dimensionsWidth) : null)
+      .withDimensionsHeight(entity.dimensionsHeight != null ? Number(entity.dimensionsHeight) : null)
+      .withDimensionsLength(entity.dimensionsLength != null ? Number(entity.dimensionsLength) : null)
       .withSoilType(entity.soilType)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)

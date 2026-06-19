@@ -11,7 +11,9 @@ export class AddPlantingSpotCapacityAndFields1780000000017
         ADD COLUMN "capacity" integer NULL,
         ADD COLUMN "spot_row" integer NULL,
         ADD COLUMN "spot_column" integer NULL,
-        ADD COLUMN "dimensions" character varying(100) NULL,
+        ADD COLUMN "dimensions_width" decimal(10,2) NULL,
+        ADD COLUMN "dimensions_height" decimal(10,2) NULL,
+        ADD COLUMN "dimensions_length" decimal(10,2) NULL,
         ADD COLUMN "soil_type" character varying(100) NULL
     `);
   }
@@ -22,7 +24,9 @@ export class AddPlantingSpotCapacityAndFields1780000000017
         DROP COLUMN IF EXISTS "capacity",
         DROP COLUMN IF EXISTS "spot_row",
         DROP COLUMN IF EXISTS "spot_column",
-        DROP COLUMN IF EXISTS "dimensions",
+        DROP COLUMN IF EXISTS "dimensions_width",
+        DROP COLUMN IF EXISTS "dimensions_height",
+        DROP COLUMN IF EXISTS "dimensions_length",
         DROP COLUMN IF EXISTS "soil_type"
     `);
   }

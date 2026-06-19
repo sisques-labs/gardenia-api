@@ -1,14 +1,35 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
 import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
+
+@InputType('PlantingSpotDimensionsInput')
+export class PlantingSpotDimensionsInput {
+  @Field(() => Float, { nullable: true, description: 'Width in metres' })
+  @IsOptional()
+  @IsNumber()
+  width?: number | null;
+
+  @Field(() => Float, { nullable: true, description: 'Height in metres' })
+  @IsOptional()
+  @IsNumber()
+  height?: number | null;
+
+  @Field(() => Float, { nullable: true, description: 'Length in metres' })
+  @IsOptional()
+  @IsNumber()
+  length?: number | null;
+}
 
 @InputType('PlantingSpotCreateRequestDto')
 export class PlantingSpotCreateRequestDto {
@@ -58,18 +79,16 @@ export class PlantingSpotCreateRequestDto {
   @Min(1)
   column?: number | null;
 
-  @Field(() => String, {
+  @Field(() => PlantingSpotDimensionsInput, {
     nullable: true,
-    description: 'Physical dimensions (e.g. "2.4 × 1.2 m")',
+    description: 'Physical dimensions (width, height, length in metres)',
   })
   @IsOptional()
-  @IsString()
-  dimensions?: string | null;
+  @ValidateNested()
+  @Type(() => PlantingSpotDimensionsInput)
+  dimensions?: PlantingSpotDimensionsInput | null;
 
-  @Field(() => String, {
-    nullable: true,
-    description: 'Type of soil',
-  })
+  @Field(() => String, { nullable: true, description: 'Type of soil' })
   @IsOptional()
   @IsString()
   soilType?: string | null;

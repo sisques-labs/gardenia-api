@@ -7,7 +7,9 @@ export type IPlantingSpotPrimitives = BasePrimitives & {
   capacity: number | null;
   row: number | null;
   column: number | null;
-  dimensions: string | null;
+  dimensionsWidth: number | null;
+  dimensionsHeight: number | null;
+  dimensionsLength: number | null;
   soilType: string | null;
   userId: string;
   spaceId: string;

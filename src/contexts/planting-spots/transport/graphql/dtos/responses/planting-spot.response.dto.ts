@@ -1,5 +1,5 @@
 import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 
@@ -11,16 +11,10 @@ export class PlantInSpotResponseDto {
   @Field(() => String, { description: 'Name of the plant' })
   name!: string;
 
-  @Field(() => ID, {
-    nullable: true,
-    description: 'UUID of the linked plant species',
-  })
+  @Field(() => ID, { nullable: true, description: 'UUID of the linked plant species' })
   plantSpeciesId?: string | null;
 
-  @Field(() => String, {
-    nullable: true,
-    description: 'Image URL of the plant',
-  })
+  @Field(() => String, { nullable: true, description: 'Image URL of the plant' })
   imageUrl?: string | null;
 
   @Field(() => String, { description: 'UUID of the plant owner' })
@@ -36,6 +30,18 @@ export class PlantInSpotResponseDto {
   updatedAt!: Date;
 }
 
+@ObjectType('PlantingSpotDimensionsResponseDto')
+export class PlantingSpotDimensionsResponseDto {
+  @Field(() => Float, { nullable: true, description: 'Width in metres' })
+  width?: number | null;
+
+  @Field(() => Float, { nullable: true, description: 'Height in metres' })
+  height?: number | null;
+
+  @Field(() => Float, { nullable: true, description: 'Length in metres' })
+  length?: number | null;
+}
+
 @ObjectType('PlantingSpotResponseDto')
 export class PlantingSpotResponseDto {
   @Field(() => ID, { description: 'UUID of the planting spot' })
@@ -44,53 +50,34 @@ export class PlantingSpotResponseDto {
   @Field(() => String, { description: 'Name of the planting spot' })
   name!: string;
 
-  @Field(() => PlantingSpotTypeEnum, {
-    description: 'Type of the planting spot',
-  })
+  @Field(() => PlantingSpotTypeEnum, { description: 'Type of the planting spot' })
   type!: PlantingSpotTypeEnum;
 
-  @Field(() => String, {
-    nullable: true,
-    description: 'Optional description of the planting spot',
-  })
+  @Field(() => String, { nullable: true, description: 'Optional description' })
   description?: string | null;
 
-  @Field(() => Int, {
-    nullable: true,
-    description: 'Maximum number of plants this spot can hold (soft limit)',
-  })
+  @Field(() => Int, { nullable: true, description: 'Maximum plants (soft limit)' })
   capacity?: number | null;
 
-  @Field(() => Int, {
-    nullable: true,
-    description: 'Row position of this spot in the space grid',
-  })
+  @Field(() => Int, { nullable: true, description: 'Row position in the space grid' })
   row?: number | null;
 
-  @Field(() => Int, {
-    nullable: true,
-    description: 'Column position of this spot in the space grid',
-  })
+  @Field(() => Int, { nullable: true, description: 'Column position in the space grid' })
   column?: number | null;
 
-  @Field(() => String, {
+  @Field(() => PlantingSpotDimensionsResponseDto, {
     nullable: true,
-    description: 'Physical dimensions of the spot (e.g. "2.4 × 1.2 m")',
+    description: 'Physical dimensions (width, height, length in metres)',
   })
-  dimensions?: string | null;
+  dimensions?: PlantingSpotDimensionsResponseDto | null;
 
-  @Field(() => String, {
-    nullable: true,
-    description: 'Type of soil in this spot',
-  })
+  @Field(() => String, { nullable: true, description: 'Type of soil' })
   soilType?: string | null;
 
   @Field(() => String, { description: 'UUID of the owner user' })
   userId!: string;
 
-  @Field(() => String, {
-    description: 'UUID of the space this spot belongs to',
-  })
+  @Field(() => String, { description: 'UUID of the space this spot belongs to' })
   spaceId!: string;
 
   @Field(() => [PlantInSpotResponseDto], {

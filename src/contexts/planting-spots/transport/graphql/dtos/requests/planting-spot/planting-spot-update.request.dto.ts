@@ -4,12 +4,14 @@ import {
   IsInt,
   IsNotEmpty,
   IsOptional,
-  IsString,
   IsUUID,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
+import { PlantingSpotDimensionsInput } from './planting-spot-create.request.dto';
 
 @InputType('PlantingSpotUpdateRequestDto')
 export class PlantingSpotUpdateRequestDto {
@@ -23,7 +25,6 @@ export class PlantingSpotUpdateRequestDto {
     description: 'Updated name of the planting spot',
   })
   @IsOptional()
-  @IsString()
   name?: string;
 
   @Field(() => PlantingSpotTypeEnum, {
@@ -39,7 +40,6 @@ export class PlantingSpotUpdateRequestDto {
     description: 'Updated description; null to clear',
   })
   @IsOptional()
-  @IsString()
   description?: string | null;
 
   @Field(() => Int, {
@@ -69,19 +69,19 @@ export class PlantingSpotUpdateRequestDto {
   @Min(1)
   column?: number | null;
 
-  @Field(() => String, {
+  @Field(() => PlantingSpotDimensionsInput, {
     nullable: true,
     description: 'Updated dimensions; null to clear',
   })
   @IsOptional()
-  @IsString()
-  dimensions?: string | null;
+  @ValidateNested()
+  @Type(() => PlantingSpotDimensionsInput)
+  dimensions?: PlantingSpotDimensionsInput | null;
 
   @Field(() => String, {
     nullable: true,
     description: 'Updated soil type; null to clear',
   })
   @IsOptional()
-  @IsString()
   soilType?: string | null;
 }

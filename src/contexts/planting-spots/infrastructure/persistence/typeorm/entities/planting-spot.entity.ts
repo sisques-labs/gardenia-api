@@ -30,8 +30,14 @@ export class PlantingSpotTypeOrmEntity {
   @Column({ name: 'spot_column', type: 'int', nullable: true })
   column!: number | null;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  dimensions!: string | null;
+  @Column({ name: 'dimensions_width', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  dimensionsWidth!: number | null;
+
+  @Column({ name: 'dimensions_height', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  dimensionsHeight!: number | null;
+
+  @Column({ name: 'dimensions_length', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  dimensionsLength!: number | null;
 
   @Column({ name: 'soil_type', type: 'varchar', length: 100, nullable: true })
   soilType!: string | null;

@@ -1,5 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class PlantingSpotDimensionsResponseDto {
+  @ApiPropertyOptional({ example: 2.4, description: 'Width in metres' })
+  width?: number | null;
+
+  @ApiPropertyOptional({ example: 0.3, description: 'Height in metres' })
+  height?: number | null;
+
+  @ApiPropertyOptional({ example: 1.2, description: 'Length in metres' })
+  length?: number | null;
+}
+
 export class PlantingSpotRestResponseDto {
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440000',
@@ -48,11 +59,11 @@ export class PlantingSpotRestResponseDto {
   column?: number | null;
 
   @ApiPropertyOptional({
-    example: '2.4 × 1.2 m',
+    type: PlantingSpotDimensionsResponseDto,
     description: 'Physical dimensions of the spot',
     nullable: true,
   })
-  dimensions?: string | null;
+  dimensions?: PlantingSpotDimensionsResponseDto | null;
 
   @ApiPropertyOptional({
     example: 'Loamy',

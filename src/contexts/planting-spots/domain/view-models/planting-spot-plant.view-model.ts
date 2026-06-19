@@ -1,13 +1,4 @@
-export interface IPlantingSpotPlantPrimitives {
-  id: string;
-  name: string;
-  plantSpeciesId: string | null;
-  imageUrl: string | null;
-  userId: string;
-  spaceId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { IPlantingSpotPlantPrimitives } from '../primitives/planting-spot-plant.primitives';
 
 export class PlantingSpotPlantViewModel {
   public readonly id: string;

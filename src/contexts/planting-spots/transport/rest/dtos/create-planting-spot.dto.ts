@@ -3,12 +3,32 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
+
+export class PlantingSpotDimensionsDto {
+  @ApiPropertyOptional({ example: 2.4, description: 'Width in metres' })
+  @IsOptional()
+  @IsNumber()
+  width?: number | null;
+
+  @ApiPropertyOptional({ example: 0.3, description: 'Height in metres' })
+  @IsOptional()
+  @IsNumber()
+  height?: number | null;
+
+  @ApiPropertyOptional({ example: 1.2, description: 'Length in metres' })
+  @IsOptional()
+  @IsNumber()
+  length?: number | null;
+}
 
 export class CreatePlantingSpotDto {
   @ApiProperty({
@@ -57,12 +77,13 @@ export class CreatePlantingSpotDto {
   column?: number;
 
   @ApiPropertyOptional({
-    example: '2.4 × 1.2 m',
-    description: 'Physical dimensions',
+    type: PlantingSpotDimensionsDto,
+    description: 'Physical dimensions (width, height, length in metres)',
   })
   @IsOptional()
-  @IsString()
-  dimensions?: string;
+  @ValidateNested()
+  @Type(() => PlantingSpotDimensionsDto)
+  dimensions?: PlantingSpotDimensionsDto | null;
 
   @ApiPropertyOptional({ example: 'Loamy', description: 'Type of soil' })
   @IsOptional()
