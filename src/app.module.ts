@@ -10,6 +10,7 @@ import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
 import { UsersModule } from '@contexts/users/users.module';
+import { WeatherModule } from '@contexts/weather/weather.module';
 import { appConfig } from '@core/config/app.config';
 import { authConfig } from '@core/config/auth.config';
 import { validateEnv } from '@core/config/env.validation';
@@ -60,6 +61,7 @@ import { SupportModule } from './support/support.module';
     }),
     ObservabilityModule,
     HealthModule,
+    WeatherModule,
     SpacesModule,
     AuthModule,
     UsersModule,

@@ -25,6 +25,9 @@ describe('SpaceQueriesResolver', () => {
     ownerId: OWNER_ID,
     createdAt: now,
     updatedAt: now,
+    latitude: null,
+    longitude: null,
+    environment: null,
   });
 
   const mockUser = { userId: USER_ID, email: 'user@test.com', sub: USER_ID };

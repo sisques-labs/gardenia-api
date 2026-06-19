@@ -21,6 +21,9 @@ export class SpaceGraphQLMapper {
       ownerId: vm.ownerId,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
+      latitude: vm.latitude,
+      longitude: vm.longitude,
+      environment: vm.environment,
     };
   }
 

@@ -22,4 +22,13 @@ export class SpaceEntity {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt!: Date;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  latitude!: number | null;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  longitude!: number | null;
+
+  @Column({ name: 'environment', type: 'varchar', length: 10, nullable: true })
+  environment!: string | null;
 }

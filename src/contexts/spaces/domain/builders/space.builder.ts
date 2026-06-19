@@ -6,7 +6,11 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 import { SpaceAggregate } from '../aggregates/space.aggregate';
+import { SpaceEnvironmentEnum } from '../enums/space-environment.enum';
+import { SpaceEnvironmentValueObject } from '../value-objects/space-environment/space-environment.value-object';
 import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
+import { SpaceLatitudeValueObject } from '../value-objects/space-latitude/space-latitude.value-object';
+import { SpaceLongitudeValueObject } from '../value-objects/space-longitude/space-longitude.value-object';
 import { SpaceNameValueObject } from '../value-objects/space-name/space-name.value-object';
 import { SpaceViewModel } from '../view-models/space.view-model';
 
@@ -14,6 +18,9 @@ import { SpaceViewModel } from '../view-models/space.view-model';
 export class SpaceBuilder extends BaseBuilder<SpaceAggregate, SpaceViewModel> {
   private _name!: string;
   private _ownerId!: string;
+  private _latitude: number | null = null;
+  private _longitude: number | null = null;
+  private _environment: SpaceEnvironmentEnum | null = null;
 
   withName(name: string): this {
     this._name = name;
@@ -25,6 +32,21 @@ export class SpaceBuilder extends BaseBuilder<SpaceAggregate, SpaceViewModel> {
     return this;
   }
 
+  withLatitude(latitude: number | null): this {
+    this._latitude = latitude;
+    return this;
+  }
+
+  withLongitude(longitude: number | null): this {
+    this._longitude = longitude;
+    return this;
+  }
+
+  withEnvironment(environment: SpaceEnvironmentEnum | null): this {
+    this._environment = environment;
+    return this;
+  }
+
   public override build(): SpaceAggregate {
     this.validate();
     return new SpaceAggregate({
@@ -33,6 +55,9 @@ export class SpaceBuilder extends BaseBuilder<SpaceAggregate, SpaceViewModel> {
       ownerId: new SpaceIdValueObject(this._ownerId),
       createdAt: new DateValueObject(this._createdAt),
       updatedAt: new DateValueObject(this._updatedAt),
+      latitude: this._latitude != null ? new SpaceLatitudeValueObject(this._latitude) : null,
+      longitude: this._longitude != null ? new SpaceLongitudeValueObject(this._longitude) : null,
+      environment: this._environment != null ? new SpaceEnvironmentValueObject(this._environment) : null,
     });
   }
 
@@ -44,6 +69,9 @@ export class SpaceBuilder extends BaseBuilder<SpaceAggregate, SpaceViewModel> {
       ownerId: this._ownerId,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
+      latitude: this._latitude,
+      longitude: this._longitude,
+      environment: this._environment as string | null,
     });
   }
 
