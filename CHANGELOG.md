@@ -1,6 +1,58 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.20.0-alpha.2] - 2026-06-19
+
+### Documentation
+- **agents:** Add code conventions section to AGENTS.md for project-wide standards (1b4e1ce)
+## [0.20.0-alpha.1] - 2026-06-19
+
+### Bug Fixes
+- **lint:** Remove unused Inject import from planting-spot-plants adapter (65ff57b)
+
+### Features
+- **planting-spots:** Add capacity, grid position, resolved plants, and extra fields (97f9e54)
+
+### Refactor
+- **planting-spots:** Address PR #255 review comments (6d2dc3e)
+- **planting-spots:** Use Pick/Omit on primitives for command inputs (ad71890)
+- **planting-spots:** Address PR #255 round 3 review comments (413eb92)
+- **planting-spots:** Flatten dimensions fields in GQL response DTO (89a3d3d)
+- **planting-spots:** Update pagination parameter naming in PlantingSpotPlantsAdapter (02ffab9)
+
+### Testing
+- **planting-spots:** Add optional field defaults to test fixtures (d683675)
+## [0.20.0-alpha.0] - 2026-06-18
+
+### Bug Fixes
+- **spaces:** Add lat/lon/env value objects, domain event, and update aggregate/primitives/interface (a00a66b)
+- **spaces:** Use input pattern in query, assert services, generic update command, replace geolocation command (12f0f83)
+- **weather:** Add GetWeatherForecastQuery handler, port pattern for space weather adapter (f4db849)
+- **spaces:** Field resolver for weather, generic spaceUpdate mutation, SpacesModule refactor, migration CHECK constraints (9f9efd8)
+- **spaces:** Delete UpdateSpaceGeolocationCommand (replaced by UpdateSpaceCommand) (7d419ec)
+- **spaces:** Delete UpdateSpaceGeolocationCommandHandler (replaced by UpdateSpaceCommandHandler) (b5478b6)
+- Extend BaseCommandHandler + publishEvents in UpdateSpaceCommandHandler; use Partial<Pick<ISpace>> for update() props (76893cf)
+- Resolve TypeScript compile errors and update test fixtures (5ea7543)
+- Rename WeatherForecast to IWeatherForecast in remaining files and await async assert (0acfaa6)
+- Add missing latitude/longitude/environment to remaining spec fixtures (9279d24)
+- Correct migration timestamp for AddGeolocationToSpaces (d2e91f5)
+- Remove old migration with wrong timestamp (918ed8c)
+
+### Chore
+- Delete old space-update-geolocation request DTO (replaced by generic space-update) (b24c738)
+
+### Features
+- **openspec:** Add space-geolocation-weather change spec (ecd5351)
+- **weather:** Add weather context with Open-Meteo adapter (efd7dd4)
+- **spaces:** Add geolocation fields and spaceWeather query (5a6caae)
+- **spaces:** Add domain validation exceptions and fix value object validation (e193b15)
+- **spaces:** Add domain events and refactor aggregate to update() + private change* pattern (82acd66)
+- **spaces:** Move VO construction into UpdateSpaceCommand and simplify handler (0f9e465)
+- **weather:** Add domain VOs, split forecast interface, update query/handler, refactor module (344e43c)
+
+### Refactor
+- Add validate() to lat/lon VOs, add SpaceNameChangedEvent, add name to aggregate update() (6191aad)
+- UpdateSpaceCommand with name VO + UuidValueObject for requestingUserId, handler and DTO aligned (3584d90)
 ## [0.19.0-alpha.0] - 2026-06-17
 
 ### Features
