@@ -13,6 +13,7 @@ import { AssertPlantingSpotViewModelExistsService } from '@contexts/planting-spo
 import { AssertPlantingSpotExistsService } from '@contexts/planting-spots/application/services/write/assert-planting-spot-exists/assert-planting-spot-exists.service';
 import { AssertPlantingSpotNotInUseService } from '@contexts/planting-spots/application/services/write/assert-planting-spot-not-in-use/assert-planting-spot-not-in-use.service';
 import { PlantingSpotBuilder } from '@contexts/planting-spots/domain/builders/planting-spot.builder';
+import { PlantingSpotPlantBuilder } from '@contexts/planting-spots/domain/builders/planting-spot-plant.builder';
 import { PLANTING_SPOT_READ_REPOSITORY } from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
 import { PLANTING_SPOT_WRITE_REPOSITORY } from '@contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
 import { PlantingSpotInUseAdapter } from '@contexts/planting-spots/infrastructure/adapters/planting-spot-in-use.adapter';
@@ -25,6 +26,7 @@ import '@contexts/planting-spots/transport/graphql/enums/planting-spot-registere
 import { PlantingSpotGraphQLMapper } from '@contexts/planting-spots/transport/graphql/mappers/planting-spot/planting-spot.mapper';
 import { PlantingSpotMutationsResolver } from '@contexts/planting-spots/transport/graphql/resolvers/planting-spot/mutations/planting-spot-mutations.resolver';
 import { PlantingSpotQueriesResolver } from '@contexts/planting-spots/transport/graphql/resolvers/planting-spot/queries/planting-spot-queries.resolver';
+import { PlantingSpotResolvedPlantsResolver } from '@contexts/planting-spots/transport/graphql/resolvers/planting-spot/planting-spot-resolved-plants.resolver';
 import { PlantingSpotsController } from '@contexts/planting-spots/transport/rest/controllers/planting-spots.controller';
 import { PlantingSpotRestMapper } from '@contexts/planting-spots/transport/rest/mappers/planting-spot/planting-spot.mapper';
 
@@ -39,7 +41,7 @@ const QUERY_HANDLERS = [
   PlantingSpotFindByCriteriaQueryHandler,
 ];
 
-const DOMAIN_BUILDERS = [PlantingSpotBuilder];
+const DOMAIN_BUILDERS = [PlantingSpotBuilder, PlantingSpotPlantBuilder];
 
 const APPLICATION_SERVICES = [
   AssertPlantingSpotExistsService,
@@ -77,6 +79,7 @@ const REST_PROVIDERS = [PlantingSpotRestMapper];
 const GRAPHQL_PROVIDERS = [
   PlantingSpotQueriesResolver,
   PlantingSpotMutationsResolver,
+  PlantingSpotResolvedPlantsResolver,
   PlantingSpotGraphQLMapper,
 ];
 

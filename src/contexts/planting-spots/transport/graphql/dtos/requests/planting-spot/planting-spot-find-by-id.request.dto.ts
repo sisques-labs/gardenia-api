@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsBoolean, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 
 @InputType('PlantingSpotFindByIdRequestDto')
 export class PlantingSpotFindByIdRequestDto {
@@ -7,12 +7,4 @@ export class PlantingSpotFindByIdRequestDto {
   @IsUUID()
   @IsNotEmpty()
   id!: string;
-
-  @Field(() => Boolean, {
-    nullable: true,
-    description: 'When true, resolves and returns the plants assigned to this spot',
-  })
-  @IsOptional()
-  @IsBoolean()
-  resolve?: boolean;
 }
