@@ -30,18 +30,6 @@ export class PlantInSpotResponseDto {
   updatedAt!: Date;
 }
 
-@ObjectType('PlantingSpotDimensionsResponseDto')
-export class PlantingSpotDimensionsResponseDto {
-  @Field(() => Float, { nullable: true, description: 'Width in metres' })
-  width?: number | null;
-
-  @Field(() => Float, { nullable: true, description: 'Height in metres' })
-  height?: number | null;
-
-  @Field(() => Float, { nullable: true, description: 'Length in metres' })
-  length?: number | null;
-}
-
 @ObjectType('PlantingSpotResponseDto')
 export class PlantingSpotResponseDto {
   @Field(() => ID, { description: 'UUID of the planting spot' })
@@ -65,11 +53,14 @@ export class PlantingSpotResponseDto {
   @Field(() => Int, { nullable: true, description: 'Column position in the space grid' })
   column?: number | null;
 
-  @Field(() => PlantingSpotDimensionsResponseDto, {
-    nullable: true,
-    description: 'Physical dimensions (width, height, length in metres)',
-  })
-  dimensions?: PlantingSpotDimensionsResponseDto | null;
+  @Field(() => Float, { nullable: true, description: 'Width in metres' })
+  dimensionsWidth?: number | null;
+
+  @Field(() => Float, { nullable: true, description: 'Height in metres' })
+  dimensionsHeight?: number | null;
+
+  @Field(() => Float, { nullable: true, description: 'Length in metres' })
+  dimensionsLength?: number | null;
 
   @Field(() => String, { nullable: true, description: 'Type of soil' })
   soilType?: string | null;
@@ -81,7 +72,7 @@ export class PlantingSpotResponseDto {
   spaceId!: string;
 
   @Field(() => [PlantInSpotResponseDto], {
-    description: 'Plants currently assigned to this spot (populated when resolve=true)',
+    description: 'Plants currently assigned to this spot',
   })
   resolvedPlants!: PlantInSpotResponseDto[];
 

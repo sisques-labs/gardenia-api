@@ -17,11 +17,6 @@ export class PlantingSpotGraphQLMapper {
   toResponseDtoFromViewModel(vm: PlantingSpotViewModel): PlantingSpotResponseDto {
     this.logger.log(`Mapping planting spot view model to response dto: ${vm.id}`);
 
-    const hasDimensions =
-      vm.dimensionsWidth != null ||
-      vm.dimensionsHeight != null ||
-      vm.dimensionsLength != null;
-
     return {
       id: vm.id,
       name: vm.name,
@@ -30,9 +25,9 @@ export class PlantingSpotGraphQLMapper {
       capacity: vm.capacity,
       row: vm.row,
       column: vm.column,
-      dimensions: hasDimensions
-        ? { width: vm.dimensionsWidth, height: vm.dimensionsHeight, length: vm.dimensionsLength }
-        : null,
+      dimensionsWidth: vm.dimensionsWidth,
+      dimensionsHeight: vm.dimensionsHeight,
+      dimensionsLength: vm.dimensionsLength,
       soilType: vm.soilType,
       userId: vm.userId,
       spaceId: vm.spaceId,
