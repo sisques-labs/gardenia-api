@@ -59,7 +59,8 @@ Chain strategy: pending
 - [x] 6.3 Modify `plants/transport/graphql/dtos/requests/plant/plant-find-by-criteria.request.dto.ts` to extend `createFindByCriteriaInput({ name: 'Plant', ... })`. Satisfies: *Plants Criteria Input Is Enum-Typed*.
 - [x] 6.4 Add `plant-criteria-fields.enum.spec.ts` drift guard; verify schema build types `PlantFilterInput.field`/`PlantSortInput.field` to the enums. Satisfies: *Plants Criteria Field Enums*, *Plants Criteria Input Is Enum-Typed*.
 
-## Phase 7: Remaining Rollout (not implemented here)
+## Phase 7: Remaining Rollout
 
-- [ ] 7.1 Replicate the three-step recipe (two enums + register + one-line DTO) for `harvests`, `care-log`, `spaces`, `auth`, `planting-spots`. Out of scope for this change.
+- [x] 7.1 Replicate the three-step recipe (two enums + register + one-line DTO) plus a drift spec for `harvests`, `plant-species`, `planting-spots`, `care-log`. Satisfies: per-context *Criteria Field Enums* / *Criteria Input Is Enum-Typed*.
+- [ ] 7.2 `spaces` and `auth` use `Criteria` internally but expose no GraphQL find-by-criteria input — nothing to type. Out of scope.
 
