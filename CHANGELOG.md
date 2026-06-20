@@ -1,6 +1,20 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.20.1-alpha.0] - 2026-06-20
+
+### Build
+- **eslint:** Enforce bounded-context boundaries (#258) (0f252ea)
+
+### Documentation
+- **openspec:** Propose harden-context-boundaries change (#258) (88591bf)
+- **auth,spaces:** Document cross-context ports; update change tasks (#258) (9e44e32)
+
+### Refactor
+- **spaces:** Own weather forecast type at the port boundary (#258) (33881e6)
+- **plants:** Route QR writes through plant-qr port (#258) (7b732e8)
+- **auth:** Provision users/spaces through ports (#258) (d0ad681)
+- **plants,spaces:** One type per file for port input/forecast types (#258) (d67bb92)
 ## [0.20.0-alpha.2] - 2026-06-19
 
 ### Documentation

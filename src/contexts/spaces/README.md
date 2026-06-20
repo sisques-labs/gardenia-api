@@ -308,6 +308,20 @@ Resolvers dispatch commands/queries via `CommandBus` / `QueryBus` only — never
 
 Dispatches `CreateQrCommand` to the QR bounded context. Keeps Spaces decoupled from QR infrastructure.
 
+### `ISpaceWeatherPort` → `SpaceWeatherAdapter`
+
+Fetches a forecast from the Weather bounded context. The port returns a
+**spaces-local** `ISpaceWeatherForecast` (`application/ports/space-weather-forecast.interface.ts`),
+not Weather's `IWeatherForecast` — `SpaceWeatherAdapter` is the only place that
+imports `@contexts/weather`, and it maps Weather's view onto the local type.
+This keeps the port contract and `get-space-weather` handler free of any
+cross-context type dependency.
+
+> Boundary rule: cross-context imports are allowed **only** from
+> `infrastructure/adapters/` (enforced by the `boundaries/element-types` ESLint
+> rule). Domain, application and transport layers must depend on ports, never on
+> another context directly.
+
 ---
 
 ## Configuration

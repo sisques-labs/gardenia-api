@@ -251,6 +251,27 @@ After promoting, the user must log out and log back in (or call `logoutAll`) to 
 
 ---
 
+## Cross-context ports
+
+The registration and OAuth-login flows provision a user and a default space; the
+delete-account flow deprovisions the user. These cross-context calls go through
+**ports** (`application/ports/`) implemented by **adapters**
+(`infrastructure/adapters/`) that dispatch the foreign commands via `CommandBus`.
+The handlers never import `@contexts/users` or `@contexts/spaces` directly.
+
+| Port | Adapter | Dispatches | Used by |
+|------|---------|-----------|---------|
+| `IUserProvisioningPort` (`createUser` / `deleteUser`) | `UserProvisioningAdapter` | `CreateUserCommand` / `DeleteUserCommand` (users) | register-account, login-with-oauth, delete-account |
+| `ISpaceProvisioningPort` (`createDefaultSpace`) | `SpaceProvisioningAdapter` | `CreateSpaceCommand` (spaces) | register-account, login-with-oauth |
+
+> Boundary rule: cross-context imports are allowed **only** from
+> `infrastructure/adapters/` (enforced by the `boundaries/element-types` ESLint
+> rule). Note the inverse exemption — auth's own transversal infrastructure
+> (`JwtAuthGuard`, `AppRoleGuard`, `@CurrentUser`, the `AppRole` enum) is the
+> allowlisted surface other contexts may import directly.
+
+---
+
 ## Running tests
 
 ```bash

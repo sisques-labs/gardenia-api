@@ -1,13 +1,11 @@
 import { Inject, Logger } from '@nestjs/common';
-import {
-  CommandBus,
-  CommandHandler,
-  EventBus,
-  ICommandHandler,
-} from '@nestjs/cqrs';
-import { DeleteQrCommand } from '@contexts/qr/application/commands/delete-qr/delete-qr.command';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
+import {
+  IPlantQrPort,
+  PLANT_QR_PORT,
+} from '@contexts/plants/application/ports/plant-qr.port';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
 import {
@@ -29,7 +27,8 @@ export class DeletePlantCommandHandler
     @Inject(PLANT_WRITE_REPOSITORY)
     private readonly plantWriteRepository: IPlantWriteRepository,
     private readonly assertPlantExistsService: AssertPlantExistsService,
-    private readonly commandBus: CommandBus,
+    @Inject(PLANT_QR_PORT)
+    private readonly plantQrPort: IPlantQrPort,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -48,9 +47,7 @@ export class DeletePlantCommandHandler
     plant.delete();
 
     if (plant.qrId) {
-      await this.commandBus.execute(
-        new DeleteQrCommand({ qrId: plant.qrId.value }),
-      );
+      await this.plantQrPort.delete(plant.qrId.value);
     }
 
     await this.plantWriteRepository.delete(plant.id.value);

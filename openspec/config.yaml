@@ -60,6 +60,8 @@ rules:
     - Primitives type extends BasePrimitives; ViewModel extends BaseViewModel
     - Event data interfaces live in domain/events/interfaces/
     - ISpace/IUser etc. interfaces in domain/interfaces/ use value objects (not primitives)
+    - One type per file. Each interface/type alias lives in its OWN file named after it (e.g. ISpaceDailyForecast in space-daily-forecast.interface.ts, CreatePlantQrInput in create-plant-qr.input.ts). Do NOT co-locate multiple interfaces in one file, and do NOT declare port-input/forecast/shape types inline inside the port file — extract them. The only exception is {Name}CommandInput/{Name}QueryInput, which stay inline in their {Name}.command.ts/{Name}.query.ts.
+    - Cross-context boundary: a bounded context may only import its own @contexts/{self}/. Reaching another context's domain/application is allowed EXCLUSIVELY from infrastructure/adapters/ (a port implementation). Define a port interface in application/ports/ and an adapter in infrastructure/adapters/ that translates via Command/QueryBus; the domain/application/transport layers depend on the port, never on the other context. Enforced by the boundaries/element-types ESLint rule. Exempt allowlist (importable directly anywhere): auth jwt-auth + app-role guards, current-user decorator, app-role enum.
   verify:
     test_command: "pnpm test"
     integration_command: "pnpm test:integration"

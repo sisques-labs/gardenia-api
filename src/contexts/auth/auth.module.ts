@@ -21,6 +21,10 @@ import { AuthSessionTypeOrmMapper } from '@contexts/auth/infrastructure/persiste
 import { OAuthIdentityTypeOrmMapper } from '@contexts/auth/infrastructure/persistence/typeorm/mappers/oauth-identity-typeorm.mapper';
 import { AuthSessionTypeOrmWriteRepository } from '@contexts/auth/infrastructure/persistence/typeorm/repositories/auth-session-typeorm-write.repository';
 import { OAuthIdentityTypeOrmWriteRepository } from '@contexts/auth/infrastructure/persistence/typeorm/repositories/oauth-identity-typeorm-write.repository';
+import { SPACE_PROVISIONING_PORT } from '@contexts/auth/application/ports/space-provisioning.port';
+import { USER_PROVISIONING_PORT } from '@contexts/auth/application/ports/user-provisioning.port';
+import { SpaceProvisioningAdapter } from '@contexts/auth/infrastructure/adapters/space-provisioning.adapter';
+import { UserProvisioningAdapter } from '@contexts/auth/infrastructure/adapters/user-provisioning.adapter';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -127,6 +131,11 @@ const INFRASTRUCTURE_ENTITIES = [
   OAuthIdentityTypeOrmEntity,
 ];
 
+const INFRASTRUCTURE_ADAPTERS = [
+  { provide: USER_PROVISIONING_PORT, useClass: UserProvisioningAdapter },
+  { provide: SPACE_PROVISIONING_PORT, useClass: SpaceProvisioningAdapter },
+];
+
 const STRATEGIES = [
   LocalStrategy,
   JwtStrategy,
@@ -194,6 +203,7 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController, OAuthController];
     ...INFRASTRUCTURE_MAPPERS,
     ...TRANSPORT_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
+    ...INFRASTRUCTURE_ADAPTERS,
     ...STRATEGIES,
     ...GUARDS,
     ...OAUTH_INFRASTRUCTURE,

@@ -45,7 +45,11 @@ describe('EnrichPlantWithQrService', () => {
   let plantBuilder: PlantBuilder;
 
   beforeEach(() => {
-    qrPort = { findByQrId: jest.fn() };
+    qrPort = {
+      findByQrId: jest.fn(),
+      createForPlant: jest.fn(),
+      delete: jest.fn(),
+    };
     plantBuilder = new PlantBuilder();
     service = new EnrichPlantWithQrService(plantBuilder, qrPort);
   });
