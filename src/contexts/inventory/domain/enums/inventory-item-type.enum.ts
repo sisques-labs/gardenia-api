@@ -1,0 +1,7 @@
+export enum InventoryItemTypeEnum {
+  SEEDS = 'SEEDS',
+  FERTILIZER = 'FERTILIZER',
+  SUBSTRATE = 'SUBSTRATE',
+  PHYTOSANITARY = 'PHYTOSANITARY',
+  OTHER = 'OTHER',
+}

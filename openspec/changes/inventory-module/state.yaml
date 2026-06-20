@@ -1,0 +1,22 @@
+change: inventory-module
+status: apply
+created: 2026-06-20
+artifact_store: hybrid
+context: inventory
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: done
+  verify: partial
+  archive: pending
+next_recommended:
+  - sdd-verify
+notes: |
+  Unit tests (37) green, full nest build green, eslint green, tsc --noEmit clean
+  for src and for the inventory e2e/integration test files. Integration and E2E
+  suites were authored but NOT executed in this environment (no Docker/Postgres
+  available); run `pnpm test:integration --testPathPattern=inventory` and
+  `pnpm test:e2e --testPathPattern=inventory` where a database is available.

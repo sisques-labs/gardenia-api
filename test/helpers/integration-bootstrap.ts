@@ -10,6 +10,7 @@ import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistenc
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
 import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
+import { InventoryItemTypeOrmEntity } from '../../src/contexts/inventory/infrastructure/persistence/typeorm/entities/inventory-item.entity';
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
 import { SpaceInvitationEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-invitation.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
@@ -45,6 +46,7 @@ const TEST_ENTITIES = [
   OAuthIdentityTypeOrmEntity,
   HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
+  InventoryItemTypeOrmEntity,
 ];
 
 export interface IntegrationModuleOptions {
