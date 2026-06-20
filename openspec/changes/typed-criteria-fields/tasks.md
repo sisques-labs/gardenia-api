@@ -52,6 +52,14 @@ Chain strategy: pending
 - [x] 5.2 `pnpm test` green (927/927). `pnpm test:e2e` NOT run here (no Postgres/Docker); e2e cases added and type-clean, to run in CI.
 - [x] 5.3 Update `src/contexts/users/README.md` if it documents the `usersFindByCriteria` input contract. Satisfies: apply rule (public API/query contract change).
 
-## Phase 6: Rollout Note (not implemented here)
+## Phase 6: Rollout — Plants
 
-- [ ] 6.1 Document in the PR the three-step recipe (two enums + register + one-line DTO) for replicating to `plants`, `harvests`, `care-log`, `spaces`, `auth`, `planting-spots`. Out of scope for this change.
+- [x] 6.1 Create `src/contexts/plants/domain/enums/plant-filter-field.enum.ts` (`PlantFilterFieldEnum`) and `plant-sort-field.enum.ts` (`PlantSortFieldEnum`) with values equal to `PlantViewModel` field names. Satisfies: *Plants Criteria Field Enums*.
+- [x] 6.2 Replace the scaffold `plants/transport/graphql/enums/plant/plant-registered-enums.graphql.ts` with real `registerEnumType` calls for both enums. Satisfies: *Plants Criteria Input Is Enum-Typed*.
+- [x] 6.3 Modify `plants/transport/graphql/dtos/requests/plant/plant-find-by-criteria.request.dto.ts` to extend `createFindByCriteriaInput({ name: 'Plant', ... })`. Satisfies: *Plants Criteria Input Is Enum-Typed*.
+- [x] 6.4 Add `plant-criteria-fields.enum.spec.ts` drift guard; verify schema build types `PlantFilterInput.field`/`PlantSortInput.field` to the enums. Satisfies: *Plants Criteria Field Enums*, *Plants Criteria Input Is Enum-Typed*.
+
+## Phase 7: Remaining Rollout (not implemented here)
+
+- [ ] 7.1 Replicate the three-step recipe (two enums + register + one-line DTO) for `harvests`, `care-log`, `spaces`, `auth`, `planting-spots`. Out of scope for this change.
+

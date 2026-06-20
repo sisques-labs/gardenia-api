@@ -27,13 +27,14 @@ while each bounded context stays the sole owner of its own field set.
 - GraphQL registration of the new enums in each context's existing
   `*-registered-enums.graphql.ts`.
 - Pilot wiring end-to-end in the `users` context (request DTO + enums + e2e).
+- Rollout to the `plants` context (request DTO + enums + drift spec).
 
 ### Out of Scope
 - Validating a filter's **value** against its field type (e.g. forcing `status` to be a
   `UserStatusEnum`). Only the `field` is constrained in this change.
 - Changing the kit (`@sisques-labs/nestjs-kit`), `Criteria`, repositories, queries, or
   handlers — enum values are strings, so runtime behavior is unchanged.
-- Rolling the pattern out to the remaining contexts (`plants`, `harvests`, `care-log`,
+- Rolling the pattern out to the remaining contexts (`harvests`, `care-log`,
   `spaces`, `auth`, `planting-spots`); that follows once the pilot is validated.
 
 ## Capabilities
