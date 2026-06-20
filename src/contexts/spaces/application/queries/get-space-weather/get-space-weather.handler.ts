@@ -1,17 +1,21 @@
 import { Inject, Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { SPACE_WEATHER_PORT, ISpaceWeatherPort } from '@contexts/spaces/application/ports/space-weather.port';
-import { IWeatherForecast } from '@contexts/weather/domain/interfaces/weather-forecast.interface';
+import { ISpaceWeatherForecast } from '@contexts/spaces/application/ports/space-weather-forecast.interface';
+import {
+  SPACE_WEATHER_PORT,
+  ISpaceWeatherPort,
+} from '@contexts/spaces/application/ports/space-weather.port';
 import { AssertSpaceViewModelExistsService } from '@contexts/spaces/application/services/read/assert-space-view-model-exists/assert-space-view-model-exists.service';
 import { AssertSpaceHasGeolocationService } from '@contexts/spaces/application/services/read/assert-space-has-geolocation/assert-space-has-geolocation.service';
 
 import { GetSpaceWeatherQuery } from './get-space-weather.query';
 
 @QueryHandler(GetSpaceWeatherQuery)
-export class GetSpaceWeatherQueryHandler
-  implements IQueryHandler<GetSpaceWeatherQuery, IWeatherForecast>
-{
+export class GetSpaceWeatherQueryHandler implements IQueryHandler<
+  GetSpaceWeatherQuery,
+  ISpaceWeatherForecast
+> {
   private readonly logger = new Logger(GetSpaceWeatherQueryHandler.name);
 
   constructor(
@@ -21,10 +25,12 @@ export class GetSpaceWeatherQueryHandler
     private readonly spaceWeatherPort: ISpaceWeatherPort,
   ) {}
 
-  async execute(query: GetSpaceWeatherQuery): Promise<IWeatherForecast> {
+  async execute(query: GetSpaceWeatherQuery): Promise<ISpaceWeatherForecast> {
     this.logger.log(`Getting weather for space: ${query.spaceId.value}`);
 
-    const vm = await this.assertSpaceViewModelExistsService.execute(query.spaceId);
+    const vm = await this.assertSpaceViewModelExistsService.execute(
+      query.spaceId,
+    );
 
     await this.assertSpaceHasGeolocationService.execute(vm);
 
