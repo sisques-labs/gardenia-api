@@ -1,26 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
 
 import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
 import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
 import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
 import { CreatePlantCommand } from '@contexts/plants/application/commands/create-plant/create-plant.command';
-
-const inputSchema = {
-  name: z.string().min(1).describe('Display name of the plant'),
-  plantSpeciesId: z
-    .string()
-    .uuid()
-    .optional()
-    .describe('Optional id of the linked plant species'),
-  imageUrl: z
-    .string()
-    .url()
-    .optional()
-    .describe('Optional image URL for the plant'),
-};
+import { plantCreateSchema } from '../schemas/plant-create.schema';
 
 @McpTool()
 @Injectable()
@@ -31,7 +17,7 @@ export class PlantCreateTool implements IMcpTool {
   readonly title = 'Create plant';
   readonly description =
     'Creates a new plant in the current space owned by the authenticated user.';
-  readonly inputSchema = inputSchema;
+  readonly inputSchema = plantCreateSchema;
 
   constructor(private readonly commandBus: CommandBus) {}
 

@@ -2,22 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { Criteria } from '@sisques-labs/nestjs-kit';
-import { z } from 'zod';
 
 import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
 import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
 import { PlantFindByCriteriaQuery } from '@contexts/plants/application/queries/plant-find-by-criteria/plant-find-by-criteria.query';
-
-const inputSchema = {
-  page: z.number().int().positive().optional().describe('1-based page number'),
-  perPage: z
-    .number()
-    .int()
-    .positive()
-    .max(100)
-    .optional()
-    .describe('Number of items per page (max 100)'),
-};
+import { plantFindByCriteriaSchema } from '../schemas/plant-find-by-criteria.schema';
 
 @McpTool()
 @Injectable()
@@ -28,7 +17,7 @@ export class PlantFindByCriteriaTool implements IMcpTool {
   readonly title = 'List plants';
   readonly description =
     'Returns a paginated list of plants in the current space.';
-  readonly inputSchema = inputSchema;
+  readonly inputSchema = plantFindByCriteriaSchema;
 
   constructor(private readonly queryBus: QueryBus) {}
 

@@ -51,7 +51,18 @@ for tenancy.
 
 ## Adding tools to a bounded context
 
-1. Create `src/contexts/{context}/transport/mcp/tools/{name}.tool.ts`:
+1. Define the input schema in its own file under
+   `src/contexts/{context}/transport/mcp/schemas/{name}.schema.ts`:
+
+   ```ts
+   import { z } from 'zod';
+
+   export const fooCreateSchema = {
+     name: z.string().min(1).describe('Display name of the foo'),
+   };
+   ```
+
+2. Create `src/contexts/{context}/transport/mcp/tools/{name}.tool.ts`:
 
    ```ts
    @McpTool()
@@ -62,7 +73,7 @@ for tenancy.
      readonly name = 'foo_create';
      readonly title = 'Create foo';
      readonly description = 'Creates a foo in the current space.';
-     readonly inputSchema = { name: z.string().min(1) };
+     readonly inputSchema = fooCreateSchema;
 
      constructor(private readonly commandBus: CommandBus) {}
 
@@ -80,12 +91,14 @@ for tenancy.
    }
    ```
 
-2. Register the tool classes in the module via an `MCP_TOOLS` array and spread it
+3. Register the tool classes in the module via an `MCP_TOOLS` array and spread it
    into `providers` (the `@McpTool()` metadata makes them discoverable globally —
    no need to export them).
 
 ### Conventions
 
+- **Schemas** — each tool's Zod `inputSchema` lives in its own file under
+  `transport/mcp/schemas/`, never inline in the tool.
 - **Bus only** — tools dispatch Commands/Queries, never inject services/repos.
 - **Naming** — `snake_case` tool names, prefixed by the entity (`plant_create`).
 - **Auth** — read the acting user from the injected `IMcpToolContext.userId`;

@@ -1,15 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
 
 import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
 import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
 import { PlantFindByIdQuery } from '@contexts/plants/application/queries/plant-find-by-id/plant-find-by-id.query';
-
-const inputSchema = {
-  id: z.string().uuid().describe('The unique identifier of the plant'),
-};
+import { plantFindByIdSchema } from '../schemas/plant-find-by-id.schema';
 
 @McpTool()
 @Injectable()
@@ -20,7 +16,7 @@ export class PlantFindByIdTool implements IMcpTool {
   readonly title = 'Find plant by id';
   readonly description =
     'Returns a single plant by its id within the current space, or null if it does not exist.';
-  readonly inputSchema = inputSchema;
+  readonly inputSchema = plantFindByIdSchema;
 
   constructor(private readonly queryBus: QueryBus) {}
 

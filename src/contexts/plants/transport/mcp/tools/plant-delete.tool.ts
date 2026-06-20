@@ -1,16 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
 
 import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
 import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
 import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
 import { DeletePlantCommand } from '@contexts/plants/application/commands/delete-plant/delete-plant.command';
-
-const inputSchema = {
-  id: z.string().uuid().describe('The id of the plant to delete'),
-};
+import { plantDeleteSchema } from '../schemas/plant-delete.schema';
 
 @McpTool()
 @Injectable()
@@ -20,7 +16,7 @@ export class PlantDeleteTool implements IMcpTool {
   readonly name = 'plant_delete';
   readonly title = 'Delete plant';
   readonly description = 'Deletes a plant from the current space.';
-  readonly inputSchema = inputSchema;
+  readonly inputSchema = plantDeleteSchema;
 
   constructor(private readonly commandBus: CommandBus) {}
 

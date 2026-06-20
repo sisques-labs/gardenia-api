@@ -1,29 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
 
 import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
 import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
 import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
 import { UpdatePlantCommand } from '@contexts/plants/application/commands/update-plant/update-plant.command';
-
-const inputSchema = {
-  id: z.string().uuid().describe('The id of the plant to update'),
-  name: z.string().min(1).optional().describe('New display name'),
-  plantSpeciesId: z
-    .string()
-    .uuid()
-    .nullable()
-    .optional()
-    .describe('New linked species id, or null to unlink'),
-  imageUrl: z
-    .string()
-    .url()
-    .nullable()
-    .optional()
-    .describe('New image URL, or null to remove'),
-};
+import { plantUpdateSchema } from '../schemas/plant-update.schema';
 
 @McpTool()
 @Injectable()
@@ -34,7 +17,7 @@ export class PlantUpdateTool implements IMcpTool {
   readonly title = 'Update plant';
   readonly description =
     'Updates an existing plant in the current space. Only provided fields are changed.';
-  readonly inputSchema = inputSchema;
+  readonly inputSchema = plantUpdateSchema;
 
   constructor(private readonly commandBus: CommandBus) {}
 
