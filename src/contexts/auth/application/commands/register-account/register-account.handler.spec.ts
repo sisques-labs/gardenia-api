@@ -1,15 +1,18 @@
 import { RegisterAccountCommandHandler } from './register-account.handler';
 import { RegisterAccountCommand } from './register-account.command';
+import { ISpaceProvisioningPort } from '@contexts/auth/application/ports/space-provisioning.port';
+import { IUserProvisioningPort } from '@contexts/auth/application/ports/user-provisioning.port';
 import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
 import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { EventBus } from '@nestjs/cqrs';
 
 const NEW_SPACE_ID = '770e8400-e29b-41d4-a716-446655440002';
 
 describe('RegisterAccountCommandHandler', () => {
   let handler: RegisterAccountCommandHandler;
   let accountWriteRepository: jest.Mocked<IAccountWriteRepository>;
-  let commandBus: jest.Mocked<CommandBus>;
+  let spaceProvisioningPort: jest.Mocked<ISpaceProvisioningPort>;
+  let userProvisioningPort: jest.Mocked<IUserProvisioningPort>;
   let eventBus: jest.Mocked<EventBus>;
   let spaceContext: jest.Mocked<SpaceContext>;
 
@@ -24,9 +27,14 @@ describe('RegisterAccountCommandHandler', () => {
       findByCriteria: jest.fn(),
     } as unknown as jest.Mocked<IAccountWriteRepository>;
 
-    commandBus = {
-      execute: jest.fn(),
-    } as unknown as jest.Mocked<CommandBus>;
+    spaceProvisioningPort = {
+      createDefaultSpace: jest.fn(),
+    } as jest.Mocked<ISpaceProvisioningPort>;
+
+    userProvisioningPort = {
+      createUser: jest.fn(),
+      deleteUser: jest.fn(),
+    } as jest.Mocked<IUserProvisioningPort>;
 
     eventBus = {
       publish: jest.fn(),
@@ -43,21 +51,20 @@ describe('RegisterAccountCommandHandler', () => {
 
     handler = new RegisterAccountCommandHandler(
       accountWriteRepository,
-      commandBus,
+      spaceProvisioningPort,
+      userProvisioningPort,
       spaceContext,
       eventBus,
     );
   });
 
-  const setupSuccessCommandBus = () => {
-    // Order: CreateSpaceCommand (→ spaceId), then CreateUserCommand (→ void)
-    commandBus.execute
-      .mockResolvedValueOnce(NEW_SPACE_ID)
-      .mockResolvedValueOnce(undefined);
+  const setupSuccessProvisioning = () => {
+    spaceProvisioningPort.createDefaultSpace.mockResolvedValue(NEW_SPACE_ID);
+    userProvisioningPort.createUser.mockResolvedValue(undefined);
   };
 
-  it('should dispatch CreateSpaceCommand then CreateUserCommand', async () => {
-    setupSuccessCommandBus();
+  it('should provision the default space then the user', async () => {
+    setupSuccessProvisioning();
     accountWriteRepository.save.mockResolvedValue(undefined as any);
 
     await handler.execute(
@@ -67,11 +74,16 @@ describe('RegisterAccountCommandHandler', () => {
       }),
     );
 
-    expect(commandBus.execute).toHaveBeenCalledTimes(2);
+    expect(spaceProvisioningPort.createDefaultSpace).toHaveBeenCalledTimes(1);
+    expect(spaceProvisioningPort.createDefaultSpace).toHaveBeenCalledWith({
+      ownerId: expect.any(String),
+      name: `new@example.com's Space`,
+    });
+    expect(userProvisioningPort.createUser).toHaveBeenCalledTimes(1);
   });
 
   it('should call SpaceContext.run with the new spaceId', async () => {
-    setupSuccessCommandBus();
+    setupSuccessProvisioning();
     accountWriteRepository.save.mockResolvedValue(undefined as any);
 
     await handler.execute(
@@ -88,7 +100,7 @@ describe('RegisterAccountCommandHandler', () => {
   });
 
   it('should return the spaceId in the handler result', async () => {
-    setupSuccessCommandBus();
+    setupSuccessProvisioning();
     accountWriteRepository.save.mockResolvedValue(undefined as any);
 
     const result = await handler.execute(
@@ -101,8 +113,8 @@ describe('RegisterAccountCommandHandler', () => {
     expect(result).toEqual(expect.objectContaining({ spaceId: NEW_SPACE_ID }));
   });
 
-  it('should not save account if CreateSpaceCommand fails', async () => {
-    commandBus.execute.mockRejectedValueOnce(
+  it('should not save account if space provisioning fails', async () => {
+    spaceProvisioningPort.createDefaultSpace.mockRejectedValue(
       new Error('Space creation failed'),
     );
 
@@ -117,10 +129,11 @@ describe('RegisterAccountCommandHandler', () => {
     expect(accountWriteRepository.save).not.toHaveBeenCalled();
   });
 
-  it('should not save account if CreateUserCommand fails', async () => {
-    commandBus.execute
-      .mockResolvedValueOnce(NEW_SPACE_ID)
-      .mockRejectedValueOnce(new Error('User creation failed'));
+  it('should not save account if user provisioning fails', async () => {
+    spaceProvisioningPort.createDefaultSpace.mockResolvedValue(NEW_SPACE_ID);
+    userProvisioningPort.createUser.mockRejectedValue(
+      new Error('User creation failed'),
+    );
 
     await expect(
       handler.execute(
@@ -134,7 +147,7 @@ describe('RegisterAccountCommandHandler', () => {
   });
 
   it('should save account and publish events when registration succeeds', async () => {
-    setupSuccessCommandBus();
+    setupSuccessProvisioning();
     accountWriteRepository.save.mockResolvedValue(undefined as any);
 
     await handler.execute(
