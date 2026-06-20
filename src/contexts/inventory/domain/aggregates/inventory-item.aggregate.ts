@@ -70,16 +70,14 @@ export class InventoryItemAggregate extends BaseAggregate {
     );
   }
 
-  public update(props: {
-    itemType?: InventoryItemTypeValueObject;
-    name?: InventoryItemNameValueObject;
-    brand?: InventoryItemBrandValueObject | null;
-    notes?: InventoryItemNotesValueObject | null;
-    unit?: InventoryUnitValueObject;
-    lowStockThreshold?: InventoryLowStockThresholdValueObject | null;
-    acquiredAt?: InventoryAcquiredAtValueObject | null;
-    expiresAt?: InventoryExpiresAtValueObject | null;
-  }): void {
+  public update(
+    props: Partial<
+      Omit<
+        IInventoryItem,
+        'id' | 'quantity' | 'userId' | 'spaceId' | 'createdAt' | 'updatedAt'
+      >
+    >,
+  ): void {
     if (props.itemType !== undefined) this.changeItemType(props.itemType);
     if (props.name !== undefined) this.changeName(props.name);
     if (props.brand !== undefined) this.changeBrand(props.brand);

@@ -9,7 +9,7 @@ import { InventoryItemTypeOrmEntity } from '../entities/inventory-item.entity';
 export class InventoryItemTypeOrmMapper {
   constructor(private readonly builder: InventoryItemBuilder) {}
 
-  private hydrate(entity: InventoryItemTypeOrmEntity): InventoryItemBuilder {
+  public toDomain(entity: InventoryItemTypeOrmEntity): InventoryItemAggregate {
     return this.builder
       .withId(entity.id)
       .withItemType(entity.itemType)
@@ -28,17 +28,33 @@ export class InventoryItemTypeOrmMapper {
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
       .withCreatedAt(entity.createdAt)
-      .withUpdatedAt(entity.updatedAt);
-  }
-
-  public toDomain(entity: InventoryItemTypeOrmEntity): InventoryItemAggregate {
-    return this.hydrate(entity).build();
+      .withUpdatedAt(entity.updatedAt)
+      .build();
   }
 
   public toViewModel(
     entity: InventoryItemTypeOrmEntity,
   ): InventoryItemViewModel {
-    return this.hydrate(entity).buildViewModel();
+    return this.builder
+      .withId(entity.id)
+      .withItemType(entity.itemType)
+      .withName(entity.name)
+      .withBrand(entity.brand)
+      .withNotes(entity.notes)
+      .withQuantity(parseFloat(entity.quantity))
+      .withUnit(entity.unit)
+      .withLowStockThreshold(
+        entity.lowStockThreshold != null
+          ? parseFloat(entity.lowStockThreshold)
+          : null,
+      )
+      .withAcquiredAt(entity.acquiredAt)
+      .withExpiresAt(entity.expiresAt)
+      .withUserId(entity.userId)
+      .withSpaceId(entity.spaceId)
+      .withCreatedAt(entity.createdAt)
+      .withUpdatedAt(entity.updatedAt)
+      .buildViewModel();
   }
 
   public toPersistence(

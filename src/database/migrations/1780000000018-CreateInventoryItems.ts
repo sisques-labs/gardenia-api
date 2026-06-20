@@ -27,12 +27,33 @@ export class CreateInventoryItems1780000000018 implements MigrationInterface {
       CREATE INDEX "IDX_inventory_items_space_id" ON "inventory_items" ("space_id")
     `);
     await queryRunner.query(`
+      CREATE INDEX "IDX_inventory_items_user_id" ON "inventory_items" ("user_id")
+    `);
+    await queryRunner.query(`
       CREATE INDEX "IDX_inventory_items_expires_at" ON "inventory_items" ("expires_at")
+    `);
+
+    await queryRunner.query(`
+      ALTER TABLE "inventory_items"
+      ADD CONSTRAINT "FK_inventory_items_space_id"
+      FOREIGN KEY ("space_id") REFERENCES "spaces" ("id") ON DELETE CASCADE
+    `);
+    await queryRunner.query(`
+      ALTER TABLE "inventory_items"
+      ADD CONSTRAINT "FK_inventory_items_user_id"
+      FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+      ALTER TABLE "inventory_items" DROP CONSTRAINT IF EXISTS "FK_inventory_items_user_id"
+    `);
+    await queryRunner.query(`
+      ALTER TABLE "inventory_items" DROP CONSTRAINT IF EXISTS "FK_inventory_items_space_id"
+    `);
     await queryRunner.query(`DROP INDEX "IDX_inventory_items_expires_at"`);
+    await queryRunner.query(`DROP INDEX "IDX_inventory_items_user_id"`);
     await queryRunner.query(`DROP INDEX "IDX_inventory_items_space_id"`);
     await queryRunner.query(`DROP TABLE "inventory_items"`);
   }

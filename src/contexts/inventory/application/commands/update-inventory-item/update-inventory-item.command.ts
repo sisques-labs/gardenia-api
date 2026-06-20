@@ -1,5 +1,6 @@
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
+import { IInventoryItemPrimitives } from '@contexts/inventory/domain/primitives/inventory-item.primitives';
 import { InventoryAcquiredAtValueObject } from '@contexts/inventory/domain/value-objects/inventory-acquired-at/inventory-acquired-at.value-object';
 import { InventoryExpiresAtValueObject } from '@contexts/inventory/domain/value-objects/inventory-expires-at/inventory-expires-at.value-object';
 import { InventoryItemBrandValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-brand/inventory-item-brand.value-object';
@@ -10,17 +11,16 @@ import { InventoryItemTypeValueObject } from '@contexts/inventory/domain/value-o
 import { InventoryLowStockThresholdValueObject } from '@contexts/inventory/domain/value-objects/inventory-low-stock-threshold/inventory-low-stock-threshold.value-object';
 import { InventoryUnitValueObject } from '@contexts/inventory/domain/value-objects/inventory-unit/inventory-unit.value-object';
 
-export type UpdateInventoryItemCommandInput = {
-  id: string;
-  itemType?: string;
-  name?: string;
-  brand?: string | null;
-  notes?: string | null;
-  unit?: string;
-  lowStockThreshold?: number | null;
-  acquiredAt?: Date | null;
-  expiresAt?: Date | null;
-};
+export type UpdateInventoryItemCommandInput = Pick<
+  IInventoryItemPrimitives,
+  'id'
+> &
+  Partial<
+    Omit<
+      IInventoryItemPrimitives,
+      'id' | 'quantity' | 'userId' | 'spaceId' | 'createdAt' | 'updatedAt'
+    >
+  >;
 
 export class UpdateInventoryItemCommand {
   public readonly id: InventoryItemIdValueObject;

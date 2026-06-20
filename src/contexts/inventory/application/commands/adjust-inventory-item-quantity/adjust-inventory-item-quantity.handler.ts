@@ -37,13 +37,13 @@ export class AdjustInventoryItemQuantityCommandHandler
       command.id,
     );
 
-    item.adjustQuantity(command.delta, command.reason.value);
+    item.adjustQuantity(command.delta.value, command.reason.value);
 
     await this.inventoryItemWriteRepository.save(item);
     await this.publishEvents(item);
 
     this.logger.log(
-      `Inventory item quantity adjusted: ${command.id.value} delta: ${command.delta}`,
+      `Inventory item quantity adjusted: ${command.id.value} delta: ${command.delta.value}`,
     );
   }
 }
