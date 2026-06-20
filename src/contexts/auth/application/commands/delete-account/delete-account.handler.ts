@@ -1,5 +1,8 @@
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
-import { DeleteUserCommand } from '@contexts/users/application/commands/delete-user/delete-user.command';
+import {
+  IUserProvisioningPort,
+  USER_PROVISIONING_PORT,
+} from '@contexts/auth/application/ports/user-provisioning.port';
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
 import {
@@ -11,12 +14,7 @@ import {
   IAuthSessionWriteRepository,
 } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 import { Inject } from '@nestjs/common';
-import {
-  CommandBus,
-  CommandHandler,
-  EventBus,
-  ICommandHandler,
-} from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
 @CommandHandler(DeleteAccountCommand)
@@ -29,7 +27,8 @@ export class DeleteAccountCommandHandler
     private readonly accountWriteRepository: IAccountWriteRepository,
     @Inject(AUTH_SESSION_WRITE_REPOSITORY)
     private readonly authSessionRepo: IAuthSessionWriteRepository,
-    private readonly commandBus: CommandBus,
+    @Inject(USER_PROVISIONING_PORT)
+    private readonly userProvisioningPort: IUserProvisioningPort,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -47,10 +46,8 @@ export class DeleteAccountCommandHandler
     account.delete();
 
     await this.accountWriteRepository.delete(account.id.value);
-    // RISK: if DeleteUserCommand fails here, account row is gone but user row remains (same class as register flow — no compensation)
-    await this.commandBus.execute(
-      new DeleteUserCommand({ id: account.userId.value }),
-    );
+    // RISK: if user deprovisioning fails here, account row is gone but user row remains (same class as register flow — no compensation)
+    await this.userProvisioningPort.deleteUser(account.userId.value);
     await this.publishEvents(account);
   }
 }

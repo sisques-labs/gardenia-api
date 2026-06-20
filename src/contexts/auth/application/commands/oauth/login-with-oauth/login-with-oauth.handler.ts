@@ -14,15 +14,16 @@ import {
   IOAuthIdentityWriteRepository,
   OAUTH_IDENTITY_WRITE_REPOSITORY,
 } from '@contexts/auth/domain/repositories/write/oauth-identity-write.repository';
-import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
-import { CreateUserCommand } from '@contexts/users/application/commands/create-user/create-user.command';
-import { Inject } from '@nestjs/common';
 import {
-  CommandBus,
-  CommandHandler,
-  EventBus,
-  ICommandHandler,
-} from '@nestjs/cqrs';
+  ISpaceProvisioningPort,
+  SPACE_PROVISIONING_PORT,
+} from '@contexts/auth/application/ports/space-provisioning.port';
+import {
+  IUserProvisioningPort,
+  USER_PROVISIONING_PORT,
+} from '@contexts/auth/application/ports/user-provisioning.port';
+import { Inject } from '@nestjs/common';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { SpaceContext } from '@shared/space-context/space-context.service';
@@ -53,7 +54,10 @@ export class LoginWithOAuthCommandHandler
     private readonly hashRefreshTokenService: HashRefreshTokenService,
     private readonly authSessionBuilder: AuthSessionBuilder,
     private readonly oauthIdentityBuilder: OAuthIdentityBuilder,
-    private readonly commandBus: CommandBus,
+    @Inject(SPACE_PROVISIONING_PORT)
+    private readonly spaceProvisioningPort: ISpaceProvisioningPort,
+    @Inject(USER_PROVISIONING_PORT)
+    private readonly userProvisioningPort: IUserProvisioningPort,
     private readonly spaceContext: SpaceContext,
     private readonly configService: ConfigService,
   ) {
@@ -120,18 +124,13 @@ export class LoginWithOAuthCommandHandler
         userId = UuidValueObject.generate().value;
         resolvedEmail = emailValue;
 
-        const spaceId = await this.commandBus.execute<
-          CreateSpaceCommand,
-          string
-        >(
-          new CreateSpaceCommand({
-            ownerId: userId,
-            name: `${resolvedEmail}'s Space`,
-          }),
-        );
+        const spaceId = await this.spaceProvisioningPort.createDefaultSpace({
+          ownerId: userId,
+          name: `${resolvedEmail}'s Space`,
+        });
 
         await this.spaceContext.run(spaceId, async () => {
-          await this.commandBus.execute(new CreateUserCommand(userId));
+          await this.userProvisioningPort.createUser(userId);
         });
       }
 
