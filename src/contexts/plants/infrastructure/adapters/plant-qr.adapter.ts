@@ -1,7 +1,5 @@
-import {
-  CreatePlantQrInput,
-  IPlantQrPort,
-} from '@contexts/plants/application/ports/plant-qr.port';
+import { CreatePlantQrInput } from '@contexts/plants/application/ports/create-plant-qr.input';
+import { IPlantQrPort } from '@contexts/plants/application/ports/plant-qr.port';
 import { PlantQrBuilder } from '@contexts/plants/domain/builders/plant-qr.builder';
 import { PlantQrViewModel } from '@contexts/plants/domain/view-models/plant-qr.view-model';
 import { CreateQrCommand } from '@contexts/qr/application/commands/create-qr/create-qr.command';
