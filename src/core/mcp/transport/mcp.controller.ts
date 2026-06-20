@@ -53,6 +53,9 @@ export class McpController {
     });
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
+      // Reply with a single JSON-RPC response instead of an SSE stream — the
+      // tools are request/response only, so clients get plain application/json.
+      enableJsonResponse: true,
     });
 
     res.on('close', () => {
