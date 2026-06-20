@@ -1,8 +1,8 @@
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { EventBus } from '@nestjs/cqrs';
 
 import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands/delete-account/delete-account.handler';
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';
-import { DeleteUserCommand } from '@contexts/users/application/commands/delete-user/delete-user.command';
+import { IUserProvisioningPort } from '@contexts/auth/application/ports/user-provisioning.port';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
 import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
@@ -28,7 +28,7 @@ describe('DeleteAccountCommandHandler', () => {
   let handler: DeleteAccountCommandHandler;
   let accountWriteRepository: jest.Mocked<IAccountWriteRepository>;
   let authSessionRepo: jest.Mocked<IAuthSessionWriteRepository>;
-  let commandBus: jest.Mocked<CommandBus>;
+  let userProvisioningPort: jest.Mocked<IUserProvisioningPort>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -52,9 +52,10 @@ describe('DeleteAccountCommandHandler', () => {
       revokeAllByUserId: jest.fn().mockResolvedValue(0),
     } as unknown as jest.Mocked<IAuthSessionWriteRepository>;
 
-    commandBus = {
-      execute: jest.fn(),
-    } as unknown as jest.Mocked<CommandBus>;
+    userProvisioningPort = {
+      createUser: jest.fn(),
+      deleteUser: jest.fn(),
+    } as jest.Mocked<IUserProvisioningPort>;
 
     eventBus = {
       publish: jest.fn(),
@@ -64,41 +65,26 @@ describe('DeleteAccountCommandHandler', () => {
     handler = new DeleteAccountCommandHandler(
       accountWriteRepository,
       authSessionRepo,
-      commandBus,
+      userProvisioningPort,
       eventBus,
     );
   });
 
   describe('execute()', () => {
-    it('should delete the account, dispatch DeleteUserCommand, and publish events when account is found', async () => {
+    it('should delete the account, deprovision the user, and publish events when account is found', async () => {
       const account = buildAccount();
       const deleteSpy = jest.spyOn(account, 'delete');
       accountWriteRepository.findByUserId.mockResolvedValue(account);
       accountWriteRepository.delete.mockResolvedValue(undefined);
-      commandBus.execute.mockResolvedValue(undefined);
+      userProvisioningPort.deleteUser.mockResolvedValue(undefined);
 
       await handler.execute(new DeleteAccountCommand(USER_ID));
 
       expect(accountWriteRepository.findByUserId).toHaveBeenCalledWith(USER_ID);
       expect(deleteSpy).toHaveBeenCalledTimes(1);
       expect(accountWriteRepository.delete).toHaveBeenCalledWith(ACCOUNT_ID);
-      expect(commandBus.execute).toHaveBeenCalledWith(
-        expect.any(DeleteUserCommand),
-      );
+      expect(userProvisioningPort.deleteUser).toHaveBeenCalledWith(USER_ID);
       expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
-    });
-
-    it('should pass correct userId to DeleteUserCommand', async () => {
-      const account = buildAccount();
-      accountWriteRepository.findByUserId.mockResolvedValue(account);
-      accountWriteRepository.delete.mockResolvedValue(undefined);
-      commandBus.execute.mockResolvedValue(undefined);
-
-      await handler.execute(new DeleteAccountCommand(USER_ID));
-
-      const dispatchedCommand = commandBus.execute.mock
-        .calls[0][0] as DeleteUserCommand;
-      expect(dispatchedCommand.id.value).toBe(USER_ID);
     });
 
     it('should throw AccountNotFoundException when account is not found', async () => {
@@ -109,7 +95,7 @@ describe('DeleteAccountCommandHandler', () => {
       ).rejects.toThrow(AccountNotFoundException);
 
       expect(accountWriteRepository.delete).not.toHaveBeenCalled();
-      expect(commandBus.execute).not.toHaveBeenCalled();
+      expect(userProvisioningPort.deleteUser).not.toHaveBeenCalled();
       expect(eventBus.publishAll).not.toHaveBeenCalled();
     });
   });

@@ -1,6 +1,7 @@
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { IPlantQrPort } from '@contexts/plants/application/ports/plant-qr.port';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
@@ -39,7 +40,7 @@ describe('DeletePlantCommandHandler', () => {
   let writeRepository: jest.Mocked<IPlantWriteRepository>;
   let assertPlantExistsService: jest.Mocked<AssertPlantExistsService>;
   let eventBus: jest.Mocked<EventBus>;
-  let commandBus: jest.Mocked<CommandBus>;
+  let plantQrPort: jest.Mocked<IPlantQrPort>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -60,14 +61,16 @@ describe('DeletePlantCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
-    commandBus = {
-      execute: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<CommandBus>;
+    plantQrPort = {
+      findByQrId: jest.fn(),
+      createForPlant: jest.fn(),
+      delete: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<IPlantQrPort>;
 
     handler = new DeletePlantCommandHandler(
       writeRepository,
       assertPlantExistsService,
-      commandBus,
+      plantQrPort,
       eventBus,
     );
   });
@@ -84,7 +87,8 @@ describe('DeletePlantCommandHandler', () => {
 
       await handler.execute(command);
 
-      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(plantQrPort.delete).toHaveBeenCalledTimes(1);
+      expect(plantQrPort.delete).toHaveBeenCalledWith(QR_ID);
       expect(writeRepository.delete).toHaveBeenCalledWith(PLANT_ID);
       expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
@@ -100,7 +104,7 @@ describe('DeletePlantCommandHandler', () => {
 
       await handler.execute(command);
 
-      expect(commandBus.execute).not.toHaveBeenCalled();
+      expect(plantQrPort.delete).not.toHaveBeenCalled();
       expect(writeRepository.delete).toHaveBeenCalledWith(PLANT_ID);
     });
   });

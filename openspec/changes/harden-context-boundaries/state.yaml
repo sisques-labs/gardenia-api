@@ -1,0 +1,17 @@
+change: harden-context-boundaries
+status: design
+created: 2026-06-20
+artifact_store: hybrid
+context: cross-cutting
+issue: 258
+phases:
+  explore: done
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending
+next_recommended:
+  - sdd-apply

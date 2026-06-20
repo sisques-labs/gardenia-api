@@ -1,8 +1,10 @@
 import { PlantQrBuilder } from '@contexts/plants/domain/builders/plant-qr.builder';
+import { CreateQrCommand } from '@contexts/qr/application/commands/create-qr/create-qr.command';
+import { DeleteQrCommand } from '@contexts/qr/application/commands/delete-qr/delete-qr.command';
 import { QrFindByIdQuery } from '@contexts/qr/application/queries/qr-find-by-id/qr-find-by-id.query';
 import { QrFindPngByIdQuery } from '@contexts/qr/application/queries/qr-find-png-by-id/qr-find-png-by-id.query';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
-import { QueryBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { PlantQrAdapter } from './plant-qr.adapter';
 
 const QR_ID = 'd4e5f6a7-b8c9-4890-abcd-234567890123';
@@ -27,10 +29,43 @@ function makeQrViewModel(): QrViewModel {
 describe('PlantQrAdapter', () => {
   let adapter: PlantQrAdapter;
   let queryBus: jest.Mocked<QueryBus>;
+  let commandBus: jest.Mocked<CommandBus>;
 
   beforeEach(() => {
     queryBus = { execute: jest.fn() } as unknown as jest.Mocked<QueryBus>;
-    adapter = new PlantQrAdapter(queryBus, new PlantQrBuilder());
+    commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
+    adapter = new PlantQrAdapter(queryBus, commandBus, new PlantQrBuilder());
+  });
+
+  describe('createForPlant', () => {
+    it('dispatches CreateQrCommand and returns the new qr id', async () => {
+      commandBus.execute.mockResolvedValueOnce(QR_ID);
+
+      const result = await adapter.createForPlant({
+        targetUrl: TARGET_URL,
+        spaceId: SPACE_ID,
+      });
+
+      expect(result).toBe(QR_ID);
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      const command = commandBus.execute.mock.calls[0][0] as CreateQrCommand;
+      expect(command).toBeInstanceOf(CreateQrCommand);
+      expect(command.targetUrl.value).toBe(TARGET_URL);
+      expect(command.spaceId.value).toBe(SPACE_ID);
+    });
+  });
+
+  describe('delete', () => {
+    it('dispatches DeleteQrCommand with the qr id', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+
+      await adapter.delete(QR_ID);
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      const command = commandBus.execute.mock.calls[0][0] as DeleteQrCommand;
+      expect(command).toBeInstanceOf(DeleteQrCommand);
+      expect(command.qrId.value).toBe(QR_ID);
+    });
   });
 
   it('dispatches both queries and returns PlantQrData with base64 image', async () => {

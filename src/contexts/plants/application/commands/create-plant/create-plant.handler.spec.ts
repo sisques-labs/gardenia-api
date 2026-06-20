@@ -1,5 +1,6 @@
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { EventBus } from '@nestjs/cqrs';
 
+import { IPlantQrPort } from '@contexts/plants/application/ports/plant-qr.port';
 import { PlantBuilder } from '@contexts/plants/domain/builders/plant.builder';
 import { IPlantWriteRepository } from '@contexts/plants/domain/repositories/write/plant-write.repository';
 import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
@@ -17,7 +18,7 @@ describe('CreatePlantCommandHandler', () => {
   let eventBus: jest.Mocked<EventBus>;
   let plantBuilder: PlantBuilder;
   let spaceContext: jest.Mocked<SpaceContext>;
-  let commandBus: jest.Mocked<CommandBus>;
+  let plantQrPort: jest.Mocked<IPlantQrPort>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -43,12 +44,13 @@ describe('CreatePlantCommandHandler', () => {
       clear: jest.fn(),
     } as unknown as jest.Mocked<SpaceContext>;
 
-    commandBus = {
-      execute: jest
+    plantQrPort = {
+      findByQrId: jest.fn(),
+      createForPlant: jest
         .fn()
-        .mockResolvedValueOnce('660e8400-e29b-41d4-a716-446655440099')
-        .mockResolvedValueOnce(undefined),
-    } as unknown as jest.Mocked<CommandBus>;
+        .mockResolvedValue('660e8400-e29b-41d4-a716-446655440099'),
+      delete: jest.fn(),
+    } as jest.Mocked<IPlantQrPort>;
 
     const plantQrTargetUrlBuilder = {
       execute: jest
@@ -66,7 +68,7 @@ describe('CreatePlantCommandHandler', () => {
       writeRepository,
       plantBuilder,
       spaceContext,
-      commandBus,
+      plantQrPort,
       plantQrTargetUrlBuilder as never,
       assertPlantLinkedSpeciesExistsService as never,
       eventBus,
@@ -107,6 +109,18 @@ describe('CreatePlantCommandHandler', () => {
       await handler.execute(command);
 
       expect(spaceContext.require).toHaveBeenCalled();
+    });
+
+    it('should create the QR through the plant-qr port', async () => {
+      const command = new CreatePlantCommand({ name: 'Rose', userId: USER_ID });
+
+      await handler.execute(command);
+
+      expect(plantQrPort.createForPlant).toHaveBeenCalledTimes(1);
+      expect(plantQrPort.createForPlant).toHaveBeenCalledWith({
+        targetUrl: `http://localhost:3000/plants/mock?spaceId=${SPACE_ID}`,
+        spaceId: SPACE_ID,
+      });
     });
 
     it('should create plant with plantSpeciesId and imageUrl when provided', async () => {

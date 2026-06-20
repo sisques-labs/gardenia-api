@@ -10,7 +10,9 @@ import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/writ
 import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 import { IOAuthIdentityWriteRepository } from '@contexts/auth/domain/repositories/write/oauth-identity-write.repository';
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
-import { EventBus, CommandBus } from '@nestjs/cqrs';
+import { ISpaceProvisioningPort } from '@contexts/auth/application/ports/space-provisioning.port';
+import { IUserProvisioningPort } from '@contexts/auth/application/ports/user-provisioning.port';
+import { EventBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { LoginWithOAuthCommandHandler } from './login-with-oauth.handler';
@@ -78,7 +80,8 @@ describe('LoginWithOAuthCommandHandler', () => {
   let oauthRepo: jest.Mocked<IOAuthIdentityWriteRepository>;
   let accountRepo: jest.Mocked<IAccountWriteRepository>;
   let sessionRepo: jest.Mocked<IAuthSessionWriteRepository>;
-  let commandBus: jest.Mocked<CommandBus>;
+  let spaceProvisioningPort: jest.Mocked<ISpaceProvisioningPort>;
+  let userProvisioningPort: jest.Mocked<IUserProvisioningPort>;
   let spaceContext: jest.Mocked<SpaceContext>;
 
   beforeEach(() => {
@@ -86,9 +89,14 @@ describe('LoginWithOAuthCommandHandler', () => {
     accountRepo = makeAccountRepo();
     sessionRepo = makeSessionRepo();
 
-    commandBus = {
-      execute: jest.fn().mockResolvedValue('space-id-123'),
-    } as unknown as jest.Mocked<CommandBus>;
+    spaceProvisioningPort = {
+      createDefaultSpace: jest.fn().mockResolvedValue('space-id-123'),
+    } as jest.Mocked<ISpaceProvisioningPort>;
+
+    userProvisioningPort = {
+      createUser: jest.fn().mockResolvedValue(undefined),
+      deleteUser: jest.fn(),
+    } as jest.Mocked<IUserProvisioningPort>;
 
     spaceContext = {
       run: jest
@@ -137,7 +145,8 @@ describe('LoginWithOAuthCommandHandler', () => {
       hashRefreshTokenService,
       authSessionBuilder,
       oauthIdentityBuilder,
-      commandBus,
+      spaceProvisioningPort,
+      userProvisioningPort,
       spaceContext,
       configService,
     );
@@ -154,7 +163,8 @@ describe('LoginWithOAuthCommandHandler', () => {
     expect(result.refreshToken).toBe('plain-refresh-token');
     expect(sessionRepo.save).toHaveBeenCalledTimes(1);
     // Should NOT create a new user
-    expect(commandBus.execute).not.toHaveBeenCalled();
+    expect(spaceProvisioningPort.createDefaultSpace).not.toHaveBeenCalled();
+    expect(userProvisioningPort.createUser).not.toHaveBeenCalled();
   });
 
   it('should auto-link email and issue session for existing account with verified email', async () => {
@@ -176,7 +186,8 @@ describe('LoginWithOAuthCommandHandler', () => {
     const savedIdentity = oauthRepo.save.mock.calls[0][0];
     expect(savedIdentity.userId.value).toBe(existingUserId);
     // Should NOT provision a new user
-    expect(commandBus.execute).not.toHaveBeenCalled();
+    expect(spaceProvisioningPort.createDefaultSpace).not.toHaveBeenCalled();
+    expect(userProvisioningPort.createUser).not.toHaveBeenCalled();
   });
 
   it('should provision a new user and issue session for brand new OAuth user', async () => {
@@ -188,8 +199,9 @@ describe('LoginWithOAuthCommandHandler', () => {
     );
 
     expect(result.accessToken).toBe('mock-access-token');
-    // CreateSpaceCommand + CreateUserCommand should be called
-    expect(commandBus.execute).toHaveBeenCalledTimes(2);
+    // Space + user provisioning should be called once each
+    expect(spaceProvisioningPort.createDefaultSpace).toHaveBeenCalledTimes(1);
+    expect(userProvisioningPort.createUser).toHaveBeenCalledTimes(1);
     expect(oauthRepo.save).toHaveBeenCalledTimes(1);
     expect(sessionRepo.save).toHaveBeenCalledTimes(1);
   });
