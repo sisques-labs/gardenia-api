@@ -1,4 +1,8 @@
 import { CreatePlantCommand } from '@contexts/plants/application/commands/create-plant/create-plant.command';
+import {
+  IPlantQrPort,
+  PLANT_QR_PORT,
+} from '@contexts/plants/application/ports/plant-qr.port';
 import { PlantQrTargetUrlBuilderService } from '@contexts/plants/application/services/read/plant-qr-target-url-builder/plant-qr-target-url-builder.service';
 import { AssertPlantLinkedSpeciesExistsService } from '@contexts/plants/application/services/write/assert-plant-linked-species-exists/assert-plant-linked-species-exists.service';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
@@ -7,14 +11,8 @@ import {
   IPlantWriteRepository,
   PLANT_WRITE_REPOSITORY,
 } from '@contexts/plants/domain/repositories/write/plant-write.repository';
-import { CreateQrCommand } from '@contexts/qr/application/commands/create-qr/create-qr.command';
 import { Inject, Logger } from '@nestjs/common';
-import {
-  CommandBus,
-  CommandHandler,
-  EventBus,
-  ICommandHandler,
-} from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
@@ -30,7 +28,8 @@ export class CreatePlantCommandHandler
     private readonly plantWriteRepository: IPlantWriteRepository,
     private readonly plantBuilder: PlantBuilder,
     private readonly spaceContext: SpaceContext,
-    private readonly commandBus: CommandBus,
+    @Inject(PLANT_QR_PORT)
+    private readonly plantQrPort: IPlantQrPort,
     private readonly plantQrTargetUrlBuilder: PlantQrTargetUrlBuilderService,
     private readonly assertPlantLinkedSpeciesExistsService: AssertPlantLinkedSpeciesExistsService,
     eventBus: EventBus,
@@ -53,9 +52,7 @@ export class CreatePlantCommandHandler
       plantId,
       spaceId,
     });
-    const qrId = await this.commandBus.execute<CreateQrCommand, string>(
-      new CreateQrCommand({ targetUrl, spaceId }),
-    );
+    const qrId = await this.plantQrPort.createForPlant({ targetUrl, spaceId });
 
     const plant = this.plantBuilder
       .withId(plantId)

@@ -44,6 +44,8 @@ describe('PlantQrResolvedFieldResolver', () => {
   beforeEach(() => {
     plantQrPort = {
       findByQrId: jest.fn(),
+      createForPlant: jest.fn(),
+      delete: jest.fn(),
     } as jest.Mocked<IPlantQrPort>;
     plantGraphQLMapper = new PlantGraphQLMapper();
     resolver = new PlantQrResolvedFieldResolver(
