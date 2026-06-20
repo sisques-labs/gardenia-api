@@ -115,8 +115,25 @@ Three `paths` aliases in `tsconfig.json` map the `*.js` specifiers to the SDK's
 type declarations **for `tsc` only** — the emitted `require(...)` strings are
 untouched and resolved by Node at runtime via the `exports` map.
 
-## Reference implementation
+## Wired contexts
 
-See `src/contexts/plants/transport/mcp/` for the first context wired end to end
-(`plant_find_by_id`, `plant_find_by_criteria`, `plant_create`, `plant_update`,
-`plant_delete`).
+Every bounded context exposes its queries and commands as tools under
+`transport/mcp/` (see `src/contexts/plants/transport/mcp/` as the reference):
+
+| Context | Tools |
+|---------|-------|
+| plants | find by id/criteria, create, update, delete |
+| care-log | create, update, delete, find by criteria, find last by type |
+| harvests | create, update, delete, find by id/criteria |
+| inventory | create, update, adjust quantity, delete, find by id/criteria |
+| plant-species | create, update, delete, enrich, import, find by id/criteria |
+| planting-spots | create, update, delete, find by id/criteria |
+| qr | create, regenerate, delete, find by id |
+| spaces | create, update, add/remove member, create/accept invitation, find by id, list mine, weather |
+| users | update (self), find by id/criteria |
+| weather | get forecast |
+
+**Not exposed:** the `auth` context. Its commands are credential/session flows
+(login, register, OAuth, refresh-token, logout, change/delete-account) that are
+unsafe or meaningless as AI tools, and its queries read account/PII data.
+Exposing it would need an explicit, separate decision.

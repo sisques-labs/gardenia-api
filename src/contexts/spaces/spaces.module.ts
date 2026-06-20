@@ -54,6 +54,15 @@ import { SpaceTypeOrmReadRepository } from './infrastructure/persistence/typeorm
 import { SpaceTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/space-typeorm-write.repository';
 import { SpaceGuard } from './transport/guards/space.guard';
 import { SpaceInterceptor } from './transport/interceptors/space.interceptor';
+import { SpaceAcceptInvitationTool } from './transport/mcp/tools/space-accept-invitation.tool';
+import { SpaceAddMemberTool } from './transport/mcp/tools/space-add-member.tool';
+import { SpaceCreateInvitationTool } from './transport/mcp/tools/space-create-invitation.tool';
+import { SpaceCreateTool } from './transport/mcp/tools/space-create.tool';
+import { SpaceFindByIdTool } from './transport/mcp/tools/space-find-by-id.tool';
+import { SpaceGetWeatherTool } from './transport/mcp/tools/space-get-weather.tool';
+import { SpaceRemoveMemberTool } from './transport/mcp/tools/space-remove-member.tool';
+import { SpaceUpdateTool } from './transport/mcp/tools/space-update.tool';
+import { SpacesFindByUserTool } from './transport/mcp/tools/spaces-find-by-user.tool';
 import { SpaceInvitationGraphQLMapper } from './transport/graphql/mappers/space-invitation/space-invitation.mapper';
 import { SpaceGraphQLMapper } from './transport/graphql/mappers/space/space.mapper';
 import { SpaceMutationsResolver } from './transport/graphql/resolvers/space/space-mutations.resolver';
@@ -150,6 +159,18 @@ const TRANSPORT_PROVIDERS = [
   SpaceInvitationRestMapper,
 ];
 
+const MCP_TOOLS = [
+  SpaceCreateTool,
+  SpaceUpdateTool,
+  SpaceAddMemberTool,
+  SpaceRemoveMemberTool,
+  SpaceCreateInvitationTool,
+  SpaceAcceptInvitationTool,
+  SpaceFindByIdTool,
+  SpacesFindByUserTool,
+  SpaceGetWeatherTool,
+];
+
 const REST_CONTROLLERS = [SpacesController, InvitationsController];
 
 @Module({
@@ -169,6 +190,7 @@ const REST_CONTROLLERS = [SpacesController, InvitationsController];
     ...INFRASTRUCTURE_REPOSITORIES,
     ...GRAPHQL_PROVIDERS,
     ...TRANSPORT_PROVIDERS,
+    ...MCP_TOOLS,
   ],
   exports: [],
 })

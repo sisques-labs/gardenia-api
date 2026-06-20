@@ -16,6 +16,11 @@ import { HarvestTypeOrmEntity } from '@contexts/harvests/infrastructure/persiste
 import { HarvestTypeOrmMapper } from '@contexts/harvests/infrastructure/persistence/typeorm/mappers/harvest-typeorm.mapper';
 import { HarvestTypeOrmReadRepository } from '@contexts/harvests/infrastructure/persistence/typeorm/repositories/harvest-typeorm-read.repository';
 import { HarvestTypeOrmWriteRepository } from '@contexts/harvests/infrastructure/persistence/typeorm/repositories/harvest-typeorm-write.repository';
+import { HarvestCreateTool } from '@contexts/harvests/transport/mcp/tools/harvest-create.tool';
+import { HarvestDeleteTool } from '@contexts/harvests/transport/mcp/tools/harvest-delete.tool';
+import { HarvestFindByCriteriaTool } from '@contexts/harvests/transport/mcp/tools/harvest-find-by-criteria.tool';
+import { HarvestFindByIdTool } from '@contexts/harvests/transport/mcp/tools/harvest-find-by-id.tool';
+import { HarvestUpdateTool } from '@contexts/harvests/transport/mcp/tools/harvest-update.tool';
 import '@contexts/harvests/transport/graphql/enums/harvest-registered-enums.graphql';
 import { HarvestGraphQLMapper } from '@contexts/harvests/transport/graphql/mappers/harvest/harvest.mapper';
 import { HarvestMutationsResolver } from '@contexts/harvests/transport/graphql/resolvers/harvest/mutations/harvest-mutations.resolver';
@@ -65,6 +70,14 @@ const GRAPHQL_PROVIDERS = [
   HarvestGraphQLMapper,
 ];
 
+const MCP_TOOLS = [
+  HarvestCreateTool,
+  HarvestUpdateTool,
+  HarvestDeleteTool,
+  HarvestFindByIdTool,
+  HarvestFindByCriteriaTool,
+];
+
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
   controllers: [...REST_CONTROLLERS],
@@ -77,6 +90,7 @@ const GRAPHQL_PROVIDERS = [
     ...INFRASTRUCTURE_REPOSITORIES,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
+    ...MCP_TOOLS,
   ],
   exports: [],
 })
