@@ -1,0 +1,16 @@
+change: inventory-module
+status: design
+created: 2026-06-20
+artifact_store: hybrid
+context: inventory
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending
+next_recommended:
+  - sdd-apply
