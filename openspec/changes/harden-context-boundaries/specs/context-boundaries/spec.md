@@ -15,8 +15,10 @@ A file in context `A` MUST NOT import from `@contexts/B/domain/**`,
 1. Files located in `src/contexts/A/infrastructure/adapters/**` — adapters ARE
    the seam and MAY import another context's `application` (commands/queries)
    and `domain` (view-models/interfaces) to translate them.
-2. The auth transversal allowlist (cross-cutting authentication infrastructure):
+2. The auth transversal allowlist (cross-cutting authentication/authorization
+   infrastructure applied at transport entry points):
    - `@contexts/auth/infrastructure/guards/jwt-auth*`
+   - `@contexts/auth/infrastructure/guards/app-role*`
    - `@contexts/auth/infrastructure/decorators/current-user*`
    - `@contexts/auth/domain/enums/app-role*`
 
