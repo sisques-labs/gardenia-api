@@ -40,6 +40,11 @@ import { PlantCareLogResolvedFieldsResolver } from './transport/graphql/resolver
 import { PlantQrResolvedFieldResolver } from './transport/graphql/resolvers/plant/plant-qr-resolved-field.resolver';
 import { PlantResolvedFieldsResolver } from './transport/graphql/resolvers/plant/plant-resolved-fields.resolver';
 import { PlantSpeciesResolvedFieldResolver } from './transport/graphql/resolvers/plant/plant-species-resolved-field.resolver';
+import { PlantCreateTool } from './transport/mcp/tools/plant-create.tool';
+import { PlantDeleteTool } from './transport/mcp/tools/plant-delete.tool';
+import { PlantFindByCriteriaTool } from './transport/mcp/tools/plant-find-by-criteria.tool';
+import { PlantFindByIdTool } from './transport/mcp/tools/plant-find-by-id.tool';
+import { PlantUpdateTool } from './transport/mcp/tools/plant-update.tool';
 import { PlantsController } from './transport/rest/controllers/plants.controller';
 import { PlantRestMapper } from './transport/rest/mappers/plant/plant.mapper';
 
@@ -97,6 +102,14 @@ const GRAPHQL_PROVIDERS = [
   PlantGraphQLMapper,
 ];
 
+const MCP_TOOLS = [
+  PlantFindByIdTool,
+  PlantFindByCriteriaTool,
+  PlantCreateTool,
+  PlantUpdateTool,
+  PlantDeleteTool,
+];
+
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature([PlantTypeOrmEntity])],
   controllers: [...REST_CONTROLLERS],
@@ -110,6 +123,7 @@ const GRAPHQL_PROVIDERS = [
     ...INFRASTRUCTURE_ADAPTERS,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
+    ...MCP_TOOLS,
   ],
   exports: [],
 })
