@@ -5,6 +5,7 @@ import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persis
 import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
 import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
 import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
+import { InventoryItemTypeOrmEntity } from '../../src/contexts/inventory/infrastructure/persistence/typeorm/entities/inventory-item.entity';
 import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
@@ -33,6 +34,7 @@ import { AlterPlantSpeciesEnrich1780000000014 } from '../../src/database/migrati
 import { AddTenantRelationshipIndexesAndFks1780000000015 } from '../../src/database/migrations/1780000000015-AddTenantRelationshipIndexesAndFks';
 import { CreateHarvests1780000000015 } from '../../src/database/migrations/1780000000015-CreateHarvests';
 import { CreateCareLog1780000000016 } from '../../src/database/migrations/1780000000016-CreateCareLog';
+import { CreateInventoryItems1780000000018 } from '../../src/database/migrations/1780000000018-CreateInventoryItems';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -48,6 +50,7 @@ const TEST_ENTITIES = [
   OAuthIdentityTypeOrmEntity,
   HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
+  InventoryItemTypeOrmEntity,
 ];
 
 const TEST_MIGRATIONS = [
@@ -71,6 +74,7 @@ const TEST_MIGRATIONS = [
   AddTenantRelationshipIndexesAndFks1780000000015,
   CreateHarvests1780000000015,
   CreateCareLog1780000000016,
+  CreateInventoryItems1780000000018,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {
