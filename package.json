@@ -1,6 +1,6 @@
 {
   "name": "sisques-labs/gardenia-api",
-  "version": "0.21.0-beta.0",
+  "version": "0.21.0",
   "description": "Garden & plant manager API",
   "author": "Sisques Labs",
   "repository": {
@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@apollo/server": "^4.13.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@nestjs/apollo": "^12.2.2",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^10.0.0",

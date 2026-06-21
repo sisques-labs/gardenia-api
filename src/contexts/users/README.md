@@ -168,3 +168,13 @@ The users context has no environment variables of its own. It relies on the data
 - `@nestjs/cqrs` — `CommandBus`, `QueryBus`, `CqrsModule`
 - `@nestjs/typeorm` — `TypeOrmModule.forFeature([UserTypeOrmEntity])`
 - `@nestjs/graphql` — `@Resolver()`, `@Query()`, `@Mutation()`, `@Args()`
+
+## MCP Tools
+
+Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; `user_update` targets the authenticated user.
+
+| Tool | Action |
+|------|--------|
+| `user_update` | Update the authenticated user profile |
+| `user_find_by_id` | Get a user by id |
+| `user_find_by_criteria` | Paginated list of users |

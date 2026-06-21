@@ -252,3 +252,15 @@ Migration: `src/database/migrations/1780000000016-CreateCareLog.ts`
 5. **Cross-context adapter dispatches via QueryBus** — `CareLogAdapter` in the `plants` context never imports from `care-log/infrastructure`. It only imports the query class and dispatches via `QueryBus`. Errors are silently caught and returned as `null` to avoid breaking plant queries if the care-log table is unavailable.
 
 6. **`findByCriteria` is not implemented** — both repositories satisfy the `IBaseReadRepository` / `IBaseWriteRepository` interface contracts by throwing `Error('Method not implemented.')` for `findByCriteria`. Care-log queries use custom methods instead.
+
+## MCP Tools
+
+Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the acting user and active space come from the authenticated MCP request context.
+
+| Tool | Action |
+|------|--------|
+| `care_log_create` | Record a care activity for a plant |
+| `care_log_update` | Update a care log entry |
+| `care_log_delete` | Delete a care log entry |
+| `care_log_find_by_criteria` | Paginated list of entries |
+| `care_log_find_last_by_type` | Most recent entry of a type for a plant |
