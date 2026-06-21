@@ -41,6 +41,13 @@ export class PlantEntityMapper {
           : UNKNOWN_STATE,
         device,
       }),
+      // HA → Gardenia: pressing this records a watering care-log entry.
+      this.sensors.button(topics, spaceId, {
+        objectId: `plant_${plant.plantId}_water`,
+        name: 'Water',
+        commandSegments: ['plant', plant.plantId, 'water'],
+        device,
+      }),
     ];
   }
 }

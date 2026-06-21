@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { MqttConfig } from '@core/config/mqtt.config';
 import { MqttService } from '@core/mqtt/services/mqtt.service';
+import { IInventoryStatePort } from '@contexts/home-assistant/application/ports/inventory-state.port';
 import { IPlantStatePort } from '@contexts/home-assistant/application/ports/plant-state.port';
 import { ISpaceSummaryPort } from '@contexts/home-assistant/application/ports/space-summary.port';
 import { IWeatherStatePort } from '@contexts/home-assistant/application/ports/weather-state.port';
@@ -35,6 +36,7 @@ function buildService(
   port: jest.Mocked<IPlantStatePort>,
   summaryPort: jest.Mocked<ISpaceSummaryPort>,
   weatherPort: jest.Mocked<IWeatherStatePort>,
+  inventoryPort: jest.Mocked<IInventoryStatePort>,
   mqtt: { publish: jest.Mock },
 ): HaReconcileService {
   const configService = {
@@ -50,6 +52,7 @@ function buildService(
     port,
     summaryPort,
     weatherPort,
+    inventoryPort,
   );
 }
 
@@ -57,6 +60,7 @@ describe('HaReconcileService', () => {
   let port: jest.Mocked<IPlantStatePort>;
   let summaryPort: jest.Mocked<ISpaceSummaryPort>;
   let weatherPort: jest.Mocked<IWeatherStatePort>;
+  let inventoryPort: jest.Mocked<IInventoryStatePort>;
   let mqtt: { publish: jest.Mock };
 
   beforeEach(() => {
@@ -67,6 +71,9 @@ describe('HaReconcileService', () => {
     weatherPort = {
       getWeather: jest.fn().mockResolvedValue(null),
     } as jest.Mocked<IWeatherStatePort>;
+    inventoryPort = {
+      listInventory: jest.fn().mockResolvedValue([]),
+    } as jest.Mocked<IInventoryStatePort>;
     mqtt = { publish: jest.fn().mockResolvedValue(undefined) };
   });
 
@@ -91,6 +98,7 @@ describe('HaReconcileService', () => {
       port,
       summaryPort,
       weatherPort,
+      inventoryPort,
       mqtt,
     );
 
@@ -133,6 +141,7 @@ describe('HaReconcileService', () => {
       port,
       summaryPort,
       weatherPort,
+      inventoryPort,
       mqtt,
     );
 
@@ -150,6 +159,7 @@ describe('HaReconcileService', () => {
       port,
       summaryPort,
       weatherPort,
+      inventoryPort,
       mqtt,
     );
     service.onModuleInit();

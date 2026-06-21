@@ -42,6 +42,22 @@ Two HA device kinds are published per space:
   `last_watered` timestamp sensor. Adding per-plant sensors (health, next-care)
   follows the same shape.
 
+## HA → Gardenia (writes)
+
+`HaCommandRouter` subscribes to `<base>/<space>/<entity>/<id>/<action>/set` and
+dispatches the matching Gardenia command **inside the space's ALS frame**,
+attributing user-bound writes to the **space owner** (HA has no per-action
+user). Commands for a non-bridged space, or malformed topics/payloads, are
+ignored.
+
+| HA entity | Command topic | Gardenia command |
+|-----------|---------------|------------------|
+| Plant **Water** button | `<base>/<space>/plant/<id>/water/set` | `CreateCareLogEntryCommand` (WATERING) |
+| Inventory **Adjust** number (Δ) | `<base>/<space>/inventory/<id>/adjust/set` | `AdjustInventoryItemQuantityCommand` |
+
+Harvest writes need structured input (crop/quantity/unit) that does not fit a
+button/number, so they remain a follow-up.
+
 ## Topic layout
 
 | Topic | Purpose |
@@ -50,7 +66,10 @@ Two HA device kinds are published per space:
 | `<base>/<spaceId>/summary/<metric>/state` | Hub aggregate sensors (counts, last harvest) |
 | `<base>/<spaceId>/weather/<metric>/state` | Hub weather sensors (today's forecast) |
 | `<base>/<spaceId>/plant/<id>/last_watered/state` | Per-plant sensor state |
-| `<discoveryPrefix>/sensor/gardenia_<spaceId>/<object>/config` | Retained HA discovery config |
+| `<base>/<spaceId>/plant/<id>/water/set` | Plant water button command |
+| `<base>/<spaceId>/inventory/<id>/quantity/state` | Inventory item quantity sensor |
+| `<base>/<spaceId>/inventory/<id>/adjust/set` | Inventory adjust (delta) command |
+| `<discoveryPrefix>/<component>/gardenia_<spaceId>/<object>/config` | Retained HA discovery config |
 
 `<base>` = `MQTT_BASE_TOPIC` (default `gardenia`), `<discoveryPrefix>` =
 `HA_DISCOVERY_PREFIX` (default `homeassistant`). Every state/command topic is
@@ -80,8 +99,8 @@ With either unset the reconcile loop never starts and nothing is published.
 
 ## Status
 
-- **Phase 2 (this):** HA reads plant state (discovery + retained `last_watered`).
-- **Phase 3 (planned):** command topics → CommandBus (mark watered, harvest, …).
-- **Phase 4 (planned):** ingest physical sensor readings from HA.
+- **Phase 2 (done):** HA reads — plant, hub summary, weather and inventory entities.
+- **Phase 3 (done):** HA writes — water button → care-log; inventory adjust number.
+- **Phase 4 (planned):** ingest physical sensor readings from HA (`sensor-readings`).
 
 See `openspec/changes/home-assistant-integration/` for the full plan.

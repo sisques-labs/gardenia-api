@@ -21,8 +21,13 @@ import {
   IWeatherStatePort,
   WEATHER_STATE_PORT,
 } from '@contexts/home-assistant/application/ports/weather-state.port';
+import {
+  IInventoryStatePort,
+  INVENTORY_STATE_PORT,
+} from '@contexts/home-assistant/application/ports/inventory-state.port';
 import { HaDiscoveryMessage } from '@contexts/home-assistant/domain/interfaces/ha-discovery-message.interface';
 import { HaTopicFactory } from '@contexts/home-assistant/domain/services/ha-topic.factory';
+import { InventoryEntityMapper } from '@contexts/home-assistant/domain/services/inventory-entity.mapper';
 import { PlantEntityMapper } from '@contexts/home-assistant/domain/services/plant-entity.mapper';
 import { SpaceSummaryMapper } from '@contexts/home-assistant/domain/services/space-summary.mapper';
 import { WeatherEntityMapper } from '@contexts/home-assistant/domain/services/weather-entity.mapper';
@@ -44,6 +49,7 @@ export class HaReconcileService implements OnModuleInit, OnModuleDestroy {
   private readonly plantMapper = new PlantEntityMapper();
   private readonly summaryMapper = new SpaceSummaryMapper();
   private readonly weatherMapper = new WeatherEntityMapper();
+  private readonly inventoryMapper = new InventoryEntityMapper();
   private timer?: NodeJS.Timeout;
 
   constructor(
@@ -56,6 +62,8 @@ export class HaReconcileService implements OnModuleInit, OnModuleDestroy {
     private readonly spaceSummaryPort: ISpaceSummaryPort,
     @Inject(WEATHER_STATE_PORT)
     private readonly weatherStatePort: IWeatherStatePort,
+    @Inject(INVENTORY_STATE_PORT)
+    private readonly inventoryStatePort: IInventoryStatePort,
   ) {
     this.config = configService.getOrThrow<MqttConfig>('mqtt');
     this.topics = new HaTopicFactory(
@@ -117,17 +125,27 @@ export class HaReconcileService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
+    const inventory = await this.inventoryStatePort.listInventory(spaceId);
+    for (const item of inventory) {
+      messages.push(
+        ...this.inventoryMapper.toMessages(this.topics, spaceId, item),
+      );
+    }
+
     for (const message of messages) {
       await this.mqtt.publish(message.configTopic, message.config, {
         retain: true,
       });
-      await this.mqtt.publish(message.stateTopic, message.state, {
-        retain: true,
-      });
+      // Command-only entities (buttons) carry no state.
+      if (message.stateTopic && message.state !== undefined) {
+        await this.mqtt.publish(message.stateTopic, message.state, {
+          retain: true,
+        });
+      }
     }
 
     this.logger.log(
-      `Reconciled space ${spaceId}: ${plants.length} plant(s), ${messages.length} entities`,
+      `Reconciled space ${spaceId}: ${plants.length} plant(s), ${inventory.length} item(s), ${messages.length} entities`,
     );
   }
 }

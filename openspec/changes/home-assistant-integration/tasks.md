@@ -56,10 +56,10 @@ Chained PRs recommended: Yes
 
 ## Phase 3: HA writes Gardenia — command topics
 
-- [ ] 3.1 **[M]** `application/ports/*` + `infrastructure/adapters/*` — write ports: record watering (→ `CreateCareLogEntryCommand`), harvest (→ `CreateHarvestCommand`), adjust inventory (→ `AdjustInventoryQuantityCommand`). Adapters dispatch via `CommandBus` only. Req: R-HA-8.
-- [ ] 3.2 **[M]** `transport/mqtt/ha-command.router.ts` — subscribe to `{base}/{spaceId}/+/+/set`, parse topic→entity+action, validate payload, run inside the space ALS frame, dispatch the command. Log at entry. Reject unknown/foreign-space topics. Req: R-HA-8, R-HA-6.
-- [ ] 3.3 **[M]** Extend discovery output (Phase 2 mappers) to emit `button`/`number` entities with `command_topic` for the writable actions. Req: R-HA-8.
-- [ ] 3.4 **[M]** Tests: router unit (topic+payload → correct command, mocked bus; foreign space rejected), E2E publish-to-set records the action in the right space. Spec: S-HA-8.x.
+- [x] 3.1 **[M]** `application/ports/ha-write.port.ts` + `infrastructure/adapters/ha-write.adapter.ts` — `recordWatering` (→ `CreateCareLogEntryCommand`) and `adjustInventory` (→ `AdjustInventoryItemQuantityCommand`); dispatch via `CommandBus`, attribute user-bound writes to the space owner (resolved via `SpaceFindByIdQuery`). Harvest write deferred (needs structured input). Req: R-HA-8.
+- [x] 3.2 **[M]** `transport/mqtt/ha-command.router.ts` — subscribes to `{base}/+/+/+/+/set`, parses topic→space/entity/id/action, runs inside the space ALS frame, dispatches via the write port. Logs at entry; rejects non-bridged spaces and malformed/non-numeric payloads. Req: R-HA-8, R-HA-6.
+- [x] 3.3 **[M]** Discovery extended: per-plant `Water` **button** and per-inventory-item `Adjust` **number** (delta) with `command_topic`, via the shared `HaSensorBuilder`. Req: R-HA-8.
+- [~] 3.4 **[M]** Tests: router unit (topic+payload → correct command; foreign space + bad payload rejected) + inventory mapper unit. Publish-to-`set` over a broker E2E still TODO. Spec: S-HA-8.x.
 
 ## Phase 4: Physical sensors → Gardenia — sensor-readings
 
