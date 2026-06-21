@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gardenia": {
+      "url": "http://localhost:3000/api/mcp",
+      "headers": {
+        "Authorization": "Bearer <jwt>",
+        "X-Space-ID": "<space-id>"
+      }
+    }
+  }
+}

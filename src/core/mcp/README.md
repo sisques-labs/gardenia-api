@@ -137,3 +137,13 @@ Every bounded context exposes its queries and commands as tools under
 (login, register, OAuth, refresh-token, logout, change/delete-account) that are
 unsafe or meaningless as AI tools, and its queries read account/PII data.
 Exposing it would need an explicit, separate decision.
+
+## Cursor IDE setup
+
+1. Start the API locally (`pnpm start:dev`).
+2. Copy `.cursor/mcp.json.example` to `.cursor/mcp.json`.
+3. Replace `<jwt>` with a valid access token (e.g. from `POST /api/auth/login`).
+4. Replace `<space-id>` with the space you want the agent to act in.
+
+Cursor loads project MCP servers from `.cursor/mcp.json` (gitignored — never
+commit real tokens). Restart Cursor or reload MCP servers after editing the file.
