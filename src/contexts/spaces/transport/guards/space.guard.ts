@@ -41,10 +41,16 @@ export class SpaceGuard implements CanActivate {
       throw new UnauthorizedException('Authentication required');
     }
 
+    // An upstream authenticator (e.g. a space-scoped API token) may already
+    // have resolved the space onto the request; honour it before the header.
     const headers = req['headers'] as
       | Record<string, string | string[] | undefined>
       | undefined;
-    const spaceId = headers?.['x-space-id'] as string | undefined;
+    const presetSpaceId = req['spaceId'] as string | undefined;
+    const spaceId =
+      presetSpaceId && presetSpaceId.trim() !== ''
+        ? presetSpaceId
+        : (headers?.['x-space-id'] as string | undefined);
     if (!spaceId || spaceId.trim() === '') {
       throw new BadRequestException('X-Space-ID header is required');
     }

@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 export const TRUNCATE_TABLES = [
   'accounts',
   'auth_sessions',
+  'api_tokens',
   'users',
   'spaces',
   'space_memberships',
@@ -15,6 +16,7 @@ export const TRUNCATE_TABLES = [
   'plants',
   'qrs',
   'planting_spots',
+  'sensor_readings',
 ] as const;
 
 /**

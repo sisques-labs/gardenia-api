@@ -37,7 +37,9 @@ function buildEntry(overrides?: {
     .withPlantId(overrides?.plantId ?? randomUUID())
     .withUserId(overrides?.userId ?? randomUUID())
     .withSpaceId(PLACEHOLDER_SPACE_ID)
-    .withActivityType(overrides?.activityType ?? CareLogActivityTypeEnum.WATERING)
+    .withActivityType(
+      overrides?.activityType ?? CareLogActivityTypeEnum.WATERING,
+    )
     .withPerformedAt(overrides?.performedAt ?? NOW)
     .withNotes(overrides?.notes !== undefined ? overrides.notes : null)
     .withQuantity(overrides?.quantity !== undefined ? overrides.quantity : null)
@@ -97,7 +99,9 @@ describe('CareLogEntryTypeOrmWriteRepository (integration)', () => {
       await ctx.spaceContext.run(spaceAId, async () => {
         const found = await writeRepo.findById(entryId);
         expect(found).not.toBeNull();
-        expect(found!.toPrimitives().activityType).toBe(CareLogActivityTypeEnum.FERTILIZING);
+        expect(found!.toPrimitives().activityType).toBe(
+          CareLogActivityTypeEnum.FERTILIZING,
+        );
         expect(found!.toPrimitives().notes).toBe('Some notes');
         expect(Number(found!.toPrimitives().quantity)).toBe(250);
         expect(found!.toPrimitives().unit).toBe(CareLogUnitEnum.ML);
@@ -167,7 +171,10 @@ describe('CareLogEntryTypeOrmWriteRepository (integration)', () => {
       });
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const last = await readRepo.findLastByType(plantId, CareLogActivityTypeEnum.WATERING);
+        const last = await readRepo.findLastByType(
+          plantId,
+          CareLogActivityTypeEnum.WATERING,
+        );
         expect(last).not.toBeNull();
         expect(last!.id).toBe(newerEntryId);
       });

@@ -96,6 +96,15 @@ pnpm test:e2e
 pnpm test:cov
 ```
 
+## Home Assistant integration
+
+Gardenia bridges to [Home Assistant](https://www.home-assistant.io/) over MQTT
+(plants, tasks, harvests, inventory and weather as native HA entities, plus
+HA → Gardenia commands and physical sensor ingest) and exposes a voice/Assist
+path via MCP. It is **off by default** (`MQTT_ENABLED=false`).
+
+See the full operator guide: **[docs/home-assistant.md](docs/home-assistant.md)**.
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.

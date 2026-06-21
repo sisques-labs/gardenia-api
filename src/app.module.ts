@@ -2,11 +2,13 @@ import { AuthModule } from '@contexts/auth/auth.module';
 import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
 import { CareLogModule } from '@contexts/care-log/care-log.module';
 import { HarvestsModule } from '@contexts/harvests/harvests.module';
+import { HomeAssistantModule } from '@contexts/home-assistant/home-assistant.module';
 import { InventoryModule } from '@contexts/inventory/inventory.module';
 import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
 import { PlantingSpotsModule } from '@contexts/planting-spots/planting-spots.module';
 import { PlantsModule } from '@contexts/plants/plants.module';
 import { QrModule } from '@contexts/qr/qr.module';
+import { SensorReadingsModule } from '@contexts/sensor-readings/sensor-readings.module';
 import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
@@ -17,8 +19,10 @@ import { authConfig } from '@core/config/auth.config';
 import { validateEnv } from '@core/config/env.validation';
 import { postgresConfig } from '@core/config/postgres.config';
 import { sentryConfig } from '@core/config/sentry.config';
+import { mqttConfig } from '@core/config/mqtt.config';
 import { HealthModule } from '@core/health/health.module';
 import { McpModule } from '@core/mcp/mcp.module';
+import { MqttModule } from '@core/mqtt/mqtt.module';
 import { ObservabilityModule } from '@core/observability/observability.module';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -40,7 +44,7 @@ import { SupportModule } from './support/support.module';
     ConfigModule.forRoot({
       isGlobal: true,
       validate: validateEnv,
-      load: [postgresConfig, authConfig, appConfig, sentryConfig],
+      load: [postgresConfig, authConfig, appConfig, sentryConfig, mqttConfig],
       cache: true,
     }),
     TypeOrmModule.forRootAsync({
@@ -64,6 +68,7 @@ import { SupportModule } from './support/support.module';
     ObservabilityModule,
     HealthModule,
     McpModule,
+    MqttModule,
     WeatherModule,
     SpacesModule,
     AuthModule,
@@ -75,6 +80,8 @@ import { SupportModule } from './support/support.module';
     CareLogModule,
     HarvestsModule,
     InventoryModule,
+    SensorReadingsModule,
+    HomeAssistantModule,
   ],
   providers: [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through

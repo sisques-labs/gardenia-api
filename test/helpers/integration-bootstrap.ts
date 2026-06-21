@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
+import { ApiTokenEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/api-token.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
 import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
@@ -18,6 +19,7 @@ import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persi
 import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
+import { SensorReadingTypeOrmEntity } from '../../src/contexts/sensor-readings/infrastructure/persistence/typeorm/entities/sensor-reading.entity';
 import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
 import { appConfig } from '../../src/core/config/app.config';
@@ -34,6 +36,7 @@ const DB_PASSWORD = process.env.DATABASE_PASSWORD ?? 'gardenia';
 
 const TEST_ENTITIES = [
   AccountEntity,
+  ApiTokenEntity,
   AuthSessionEntity,
   UserTypeOrmEntity,
   SpaceEntity,
@@ -47,6 +50,7 @@ const TEST_ENTITIES = [
   HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
   InventoryItemTypeOrmEntity,
+  SensorReadingTypeOrmEntity,
 ];
 
 export interface IntegrationModuleOptions {

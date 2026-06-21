@@ -1,6 +1,7 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
+import { ApiTokenEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/api-token.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
 import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
@@ -10,6 +11,7 @@ import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infr
 import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
+import { SensorReadingTypeOrmEntity } from '../../src/contexts/sensor-readings/infrastructure/persistence/typeorm/entities/sensor-reading.entity';
 import { SpaceInvitationEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-invitation.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
@@ -35,9 +37,12 @@ import { AddTenantRelationshipIndexesAndFks1780000000015 } from '../../src/datab
 import { CreateHarvests1780000000015 } from '../../src/database/migrations/1780000000015-CreateHarvests';
 import { CreateCareLog1780000000016 } from '../../src/database/migrations/1780000000016-CreateCareLog';
 import { CreateInventoryItems1780000000018 } from '../../src/database/migrations/1780000000018-CreateInventoryItems';
+import { CreateApiTokens1780000000019 } from '../../src/database/migrations/1780000000019-CreateApiTokens';
+import { CreateSensorReadings1780000000020 } from '../../src/database/migrations/1780000000020-CreateSensorReadings';
 
 const TEST_ENTITIES = [
   AccountEntity,
+  ApiTokenEntity,
   AuthSessionEntity,
   UserTypeOrmEntity,
   SpaceEntity,
@@ -51,6 +56,7 @@ const TEST_ENTITIES = [
   HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
   InventoryItemTypeOrmEntity,
+  SensorReadingTypeOrmEntity,
 ];
 
 const TEST_MIGRATIONS = [
@@ -75,6 +81,8 @@ const TEST_MIGRATIONS = [
   CreateHarvests1780000000015,
   CreateCareLog1780000000016,
   CreateInventoryItems1780000000018,
+  CreateApiTokens1780000000019,
+  CreateSensorReadings1780000000020,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

@@ -6,4 +6,10 @@ export class HealthResponseDto {
 
   @ApiProperty()
   timestamp!: string;
+
+  @ApiProperty({
+    description: 'MQTT transport state',
+    enum: ['disabled', 'up', 'down'],
+  })
+  mqtt!: 'disabled' | 'up' | 'down';
 }

@@ -1,0 +1,77 @@
+# Tasks: Home Assistant Integration — home-assistant-integration
+
+## Review Workload Forecast
+
+| Field | Value |
+|-------|-------|
+| Estimated changed lines | ~1500–2000 across 4 phases |
+| 400-line budget risk | High (umbrella) |
+| Chained PRs recommended | Yes |
+| Suggested split | One PR per phase (1 → 2 → 3 → 4) |
+| Delivery strategy | chained-pr |
+| Chain strategy | phase-gated |
+
+Decision needed before apply: No (Phase 1 is shippable on its own)
+Chained PRs recommended: Yes
+400-line budget risk: High
+
+### Suggested Work Units
+
+| Unit | Goal | Likely PR | Notes |
+|------|------|-----------|-------|
+| 1 | `core/mqtt` transport + health + long-lived API tokens (voice) | PR 1 | Shippable alone; unblocks Assist |
+| 2 | `home-assistant` bridge: discovery + retained state (HA reads) | PR 2 | Depends on Unit 1 |
+| 3 | Command topics → CommandBus (HA writes) | PR 3 | Depends on Unit 2 |
+| 4 | `sensor-readings` ingest + surface-back | PR 4 | Heaviest; new persisted domain |
+
+---
+
+## Phase 1: Foundation — core/mqtt + voice auth
+
+### 1A. core/mqtt transport
+- [x] 1.1 **[M]** Add `mqtt` client dependency; create `src/core/config/mqtt.config.ts` env schema (`MQTT_ENABLED`, `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `MQTT_BASE_TOPIC`, `HA_DISCOVERY_PREFIX`, `HA_RECONCILE_INTERVAL`). Req: R-MQTT-1.
+- [x] 1.2 **[L]** Create `src/core/mqtt/services/mqtt.service.ts` — managed connection (lazy connect when enabled), `publish(topic, payload, {retain})`, `subscribe(filter, handler)`, JSON (de)serialize, auto-reconnect, LWT availability topic. No-op when disabled. Req: R-MQTT-1, R-MQTT-2, R-MQTT-3.
+- [x] 1.3 **[S]** Create `src/core/mqtt/mqtt.module.ts` (global) wiring config + service; import once in `AppModule`. Req: R-MQTT-1.
+- [x] 1.4 **[S]** MQTT health: `/health` now reports `mqtt: disabled | up | down` via the global `MqttService`. Req: R-MQTT-4.
+- [x] 1.5 **[S]** Create `src/core/mqtt/README.md` mirroring `core/mcp/README.md`.
+- [x] 1.6 **[M]** Unit test `MqttService` (mocked client) + topic-matcher unit. Spec: S-MQTT-1..3.
+
+### 1B. Long-lived space-scoped API tokens (voice plane)
+- [x] 1.7 **[M]** Domain: `api-token-id/-hash/-label` VOs + `api-token.aggregate.ts` (SHA-256 hashed secret, `spaceId`, `label`, `lastUsedAt`, `revokedAt`); builder; primitives; view-model; interface. Req: R-TOK-1, R-TOK-2.
+- [x] 1.8 **[M]** Persistence: `api-token.entity.ts`, mapper, write repository, and migration creating `api_tokens` (unique `tokenHash`). Req: R-TOK-2.
+- [x] 1.9 **[M]** Application: `issue-api-token` command (returns plaintext once), `revoke-api-token` command, `api-token-authenticate` query (hash lookup, ignores revoked), `api-token-find-by-user` query. Req: R-TOK-1, R-TOK-3, R-TOK-4.
+- [x] 1.10 **[M]** Infrastructure: `OptionalJwtAuthGuard` resolves `Authorization: Bearer ght_…` to `{ userId, spaceId }` (sets `req.user` + `req.spaceId`); `SpaceGuard` honours the preset space. Token never logged. Req: R-TOK-4, R-TOK-5.
+- [x] 1.11 **[S]** Transport: REST `POST/GET/DELETE /api/auth/api-tokens` guarded by JWT. Updated `auth/README.md`. (GraphQL management deferred — REST suffices for HA.) Req: R-TOK-3.
+- [x] 1.12 **[M]** Tests: aggregate + authenticate/issue handler unit (12 specs); repo integration round-trip (5 specs, real Postgres); `POST /api/mcp` E2E with an API token — auth without X-Space-ID, tool run, malformed/revoked → 401 (5 specs). Spec: S-TOK-x.
+
+## Phase 2: HA reads Gardenia — discovery + retained state
+
+- [x] 2.1 **[S]** Create `home-assistant` context + `home-assistant.module.ts`, import in `AppModule`. Req: R-HA-1.
+- [x] 2.2 **[M]** `domain/services/ha-topic.factory.ts` — builds `{base}/{spaceId}/...` state/command/availability topics and `{discoveryPrefix}/.../config`; validates non-empty space. (Pure class, not a kit VO, to keep domain framework-free.) Req: R-HA-2, R-HA-6.
+- [x] 2.3 **[M]** Ports + adapters via `QueryBus` only (no cross-context domain import): `IPlantStatePort` (plants + last-watering), `ISpaceSummaryPort` (plants/harvests/inventory counts + low-stock + last harvest), `IWeatherStatePort` (space forecast, null when no geolocation). Req: R-HA-3, R-HA-7.
+- [x] 2.4 **[L]** Mappers (shared `HaSensorBuilder`): per-plant `last_watered`; hub `plants_total`/`harvests_total`/`last_harvest`/`inventory_items_total`/`inventory_low_stock`; weather `temperature_max/min` + `precipitation`. Stable `unique_id`/`object_id`, device grouping. (Per-plant health/next-care still follow same shape.) Req: R-HA-3, R-HA-4.
+- [x] 2.5 **[M]** `infrastructure/services/ha-reconcile.service.ts` — bootstrap + `HA_RECONCILE_INTERVAL` loop; per bridged space publishes availability `online` + discovery (retain) + state (retain), inside the space ALS frame. Req: R-HA-4, R-HA-5.
+- [x] 2.6 **[S]** Config: `HA_BRIDGED_SPACES` selects bridged spaces; operator setup documented in `home-assistant/README.md`. Req: R-HA-1.
+- [~] 2.7 **[M]** Tests: topic-factory + plant-mapper + reconcile unit (10 specs, mocked MqttService asserts topics). Read-path integration + real-broker E2E (discovery/state publish) done. Spec: S-HA-x.
+
+## Phase 3: HA writes Gardenia — command topics
+
+- [x] 3.1 **[M]** `application/ports/ha-write.port.ts` + `infrastructure/adapters/ha-write.adapter.ts` — `recordWatering` (→ `CreateCareLogEntryCommand`) and `adjustInventory` (→ `AdjustInventoryItemQuantityCommand`); dispatch via `CommandBus`, attribute user-bound writes to the space owner (resolved via `SpaceFindByIdQuery`). Harvest write deferred (needs structured input). Req: R-HA-8.
+- [x] 3.2 **[M]** `transport/mqtt/ha-command.router.ts` — subscribes to `{base}/+/+/+/+/set`, parses topic→space/entity/id/action, runs inside the space ALS frame, dispatches via the write port. Logs at entry; rejects non-bridged spaces and malformed/non-numeric payloads. Req: R-HA-8, R-HA-6.
+- [x] 3.3 **[M]** Discovery extended: per-plant `Water` **button** and per-inventory-item `Adjust` **number** (delta) with `command_topic`, via the shared `HaSensorBuilder`. Req: R-HA-8.
+- [~] 3.4 **[M]** Tests: router unit (topic+payload → correct command; foreign space + bad payload rejected) + inventory mapper unit. Broker E2E covers publish-to-`set` (real MQTT, embedded aedes). Spec: S-HA-8.x.
+
+## Phase 4: Physical sensors → Gardenia — sensor-readings
+
+- [x] 4.1 **[L]** New `sensor-readings` context: immutable `SensorReadingAggregate` (plantId, spaceId, metric, value, unit, measuredAt, source) with VOs, builder, primitives, view model, read/write repository interfaces. Req: R-SR-1.
+- [x] 4.2 **[M]** Persistence: entity, mapper, tenant-scoped write repo, `DISTINCT ON` read repo, migration creating `sensor_readings` (FK → spaces, index `(space_id, plant_id, metric, measured_at)`). Req: R-SR-2.
+- [x] 4.3 **[M]** Application: `RecordSensorReadingCommand` + handler; `FindLatestReadingsByPlantQuery` (latest per metric). MCP tools `sensor_reading_record` / `sensor_reading_find_latest`. Req: R-SR-1, R-SR-3.
+- [x] 4.4 **[M]** Bridge ingest: `ha-sensor-ingest.router.ts` subscribes to `{base}/{space}/plant/{id}/{metric}/reading`, maps topic→plant+metric, dispatches via `ISensorIngestPort` inside the space frame. Mapping = Gardenia-owned ingest topic namespace. Req: R-SR-3, R-HA-9.
+- [x] 4.5 **[M]** Surface-back: `PlantStateAdapter` fetches latest readings; the plant mapper emits a per-metric sensor. Req: R-SR-4, R-HA-3.
+- [~] 4.6 **[M]** Tests: aggregate VO + record-handler unit; ingest-router unit (topic→reading, foreign space / non-numeric rejected); repo integration (latest-per-metric + tenant isolation); reconcile read-path integration. Real-broker E2E (publish reading → persisted; reconcile → state published) done. Spec: S-SR-x, S-HA-9.
+
+## Cross-cutting (all phases)
+- [ ] X.1 Keep `MQTT_ENABLED=false` default; verify app behavior unchanged when disabled.
+- [ ] X.2 ESLint boundaries pass: no bridge import of another context's domain/application.
+- [ ] X.3 Update READMEs for every context touched (`auth`, `home-assistant`, `sensor-readings`, `core/mqtt`).
+- [ ] X.4 `pnpm test`, `pnpm test:integration`, `pnpm test:e2e`, `pnpm build`, `pnpm lint`, `tsc --noEmit` green per phase.
