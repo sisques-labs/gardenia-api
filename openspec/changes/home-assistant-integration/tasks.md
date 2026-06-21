@@ -48,8 +48,8 @@ Chained PRs recommended: Yes
 
 - [x] 2.1 **[S]** Create `home-assistant` context + `home-assistant.module.ts`, import in `AppModule`. Req: R-HA-1.
 - [x] 2.2 **[M]** `domain/services/ha-topic.factory.ts` — builds `{base}/{spaceId}/...` state/command/availability topics and `{discoveryPrefix}/.../config`; validates non-empty space. (Pure class, not a kit VO, to keep domain framework-free.) Req: R-HA-2, R-HA-6.
-- [~] 2.3 **[M]** `application/ports/plant-state.port.ts` + `infrastructure/adapters/plant-state.adapter.ts` — plant + last-watering read via `QueryBus` (no cross-context domain import). Harvests/inventory/weather ports follow the same shape (TODO). Req: R-HA-3, R-HA-7.
-- [~] 2.4 **[L]** `domain/services/plant-entity.mapper.ts` — plant → HA `last_watered` timestamp sensor (discovery + state), stable `unique_id`/`object_id`, device grouping. Health/next-care/harvests/inventory/weather sensors follow (TODO). Req: R-HA-3, R-HA-4.
+- [x] 2.3 **[M]** Ports + adapters via `QueryBus` only (no cross-context domain import): `IPlantStatePort` (plants + last-watering), `ISpaceSummaryPort` (plants/harvests/inventory counts + low-stock + last harvest), `IWeatherStatePort` (space forecast, null when no geolocation). Req: R-HA-3, R-HA-7.
+- [x] 2.4 **[L]** Mappers (shared `HaSensorBuilder`): per-plant `last_watered`; hub `plants_total`/`harvests_total`/`last_harvest`/`inventory_items_total`/`inventory_low_stock`; weather `temperature_max/min` + `precipitation`. Stable `unique_id`/`object_id`, device grouping. (Per-plant health/next-care still follow same shape.) Req: R-HA-3, R-HA-4.
 - [x] 2.5 **[M]** `infrastructure/services/ha-reconcile.service.ts` — bootstrap + `HA_RECONCILE_INTERVAL` loop; per bridged space publishes availability `online` + discovery (retain) + state (retain), inside the space ALS frame. Req: R-HA-4, R-HA-5.
 - [x] 2.6 **[S]** Config: `HA_BRIDGED_SPACES` selects bridged spaces; operator setup documented in `home-assistant/README.md`. Req: R-HA-1.
 - [~] 2.7 **[M]** Tests: topic-factory + plant-mapper + reconcile unit (10 specs, mocked MqttService asserts topics). Broker integration + seeded-space E2E still TODO. Spec: S-HA-x.

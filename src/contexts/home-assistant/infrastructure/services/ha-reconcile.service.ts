@@ -13,8 +13,19 @@ import {
   IPlantStatePort,
   PLANT_STATE_PORT,
 } from '@contexts/home-assistant/application/ports/plant-state.port';
+import {
+  ISpaceSummaryPort,
+  SPACE_SUMMARY_PORT,
+} from '@contexts/home-assistant/application/ports/space-summary.port';
+import {
+  IWeatherStatePort,
+  WEATHER_STATE_PORT,
+} from '@contexts/home-assistant/application/ports/weather-state.port';
+import { HaDiscoveryMessage } from '@contexts/home-assistant/domain/interfaces/ha-discovery-message.interface';
 import { HaTopicFactory } from '@contexts/home-assistant/domain/services/ha-topic.factory';
 import { PlantEntityMapper } from '@contexts/home-assistant/domain/services/plant-entity.mapper';
+import { SpaceSummaryMapper } from '@contexts/home-assistant/domain/services/space-summary.mapper';
+import { WeatherEntityMapper } from '@contexts/home-assistant/domain/services/weather-entity.mapper';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 
 /**
@@ -31,6 +42,8 @@ export class HaReconcileService implements OnModuleInit, OnModuleDestroy {
   private readonly config: MqttConfig;
   private readonly topics: HaTopicFactory;
   private readonly plantMapper = new PlantEntityMapper();
+  private readonly summaryMapper = new SpaceSummaryMapper();
+  private readonly weatherMapper = new WeatherEntityMapper();
   private timer?: NodeJS.Timeout;
 
   constructor(
@@ -39,6 +52,10 @@ export class HaReconcileService implements OnModuleInit, OnModuleDestroy {
     private readonly spaceContext: SpaceContext,
     @Inject(PLANT_STATE_PORT)
     private readonly plantStatePort: IPlantStatePort,
+    @Inject(SPACE_SUMMARY_PORT)
+    private readonly spaceSummaryPort: ISpaceSummaryPort,
+    @Inject(WEATHER_STATE_PORT)
+    private readonly weatherStatePort: IWeatherStatePort,
   ) {
     this.config = configService.getOrThrow<MqttConfig>('mqtt');
     this.topics = new HaTopicFactory(
@@ -79,24 +96,38 @@ export class HaReconcileService implements OnModuleInit, OnModuleDestroy {
       retain: true,
     });
 
+    const messages: HaDiscoveryMessage[] = [];
+
+    const summary = await this.spaceSummaryPort.getSummary(spaceId);
+    messages.push(
+      ...this.summaryMapper.toMessages(this.topics, spaceId, summary),
+    );
+
+    const weather = await this.weatherStatePort.getWeather(spaceId);
+    if (weather) {
+      messages.push(
+        ...this.weatherMapper.toMessages(this.topics, spaceId, weather),
+      );
+    }
+
     const plants = await this.plantStatePort.listPlantStates(spaceId);
     for (const plant of plants) {
-      for (const message of this.plantMapper.toMessages(
-        this.topics,
-        spaceId,
-        plant,
-      )) {
-        await this.mqtt.publish(message.configTopic, message.config, {
-          retain: true,
-        });
-        await this.mqtt.publish(message.stateTopic, message.state, {
-          retain: true,
-        });
-      }
+      messages.push(
+        ...this.plantMapper.toMessages(this.topics, spaceId, plant),
+      );
+    }
+
+    for (const message of messages) {
+      await this.mqtt.publish(message.configTopic, message.config, {
+        retain: true,
+      });
+      await this.mqtt.publish(message.stateTopic, message.state, {
+        retain: true,
+      });
     }
 
     this.logger.log(
-      `Reconciled ${plants.length} plant(s) for space ${spaceId}`,
+      `Reconciled space ${spaceId}: ${plants.length} plant(s), ${messages.length} entities`,
     );
   }
 }

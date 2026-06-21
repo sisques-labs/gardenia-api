@@ -2,7 +2,11 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 
 import { PLANT_STATE_PORT } from '@contexts/home-assistant/application/ports/plant-state.port';
+import { SPACE_SUMMARY_PORT } from '@contexts/home-assistant/application/ports/space-summary.port';
+import { WEATHER_STATE_PORT } from '@contexts/home-assistant/application/ports/weather-state.port';
 import { PlantStateAdapter } from '@contexts/home-assistant/infrastructure/adapters/plant-state.adapter';
+import { SpaceSummaryAdapter } from '@contexts/home-assistant/infrastructure/adapters/space-summary.adapter';
+import { WeatherStateAdapter } from '@contexts/home-assistant/infrastructure/adapters/weather-state.adapter';
 import { HaReconcileService } from '@contexts/home-assistant/infrastructure/services/ha-reconcile.service';
 
 /**
@@ -16,6 +20,8 @@ import { HaReconcileService } from '@contexts/home-assistant/infrastructure/serv
  */
 const INFRASTRUCTURE_ADAPTERS = [
   { provide: PLANT_STATE_PORT, useClass: PlantStateAdapter },
+  { provide: SPACE_SUMMARY_PORT, useClass: SpaceSummaryAdapter },
+  { provide: WEATHER_STATE_PORT, useClass: WeatherStateAdapter },
 ];
 
 const INFRASTRUCTURE_SERVICES = [HaReconcileService];

@@ -32,16 +32,24 @@ bootstrap / every HA_RECONCILE_INTERVAL
                                                        MQTT broker ←→ Home Assistant
 ```
 
-Each plant becomes an HA **device** with a `last_watered` timestamp sensor.
-Additional sensors and contexts (health, harvests, inventory, weather) follow
-the same mapper/port shape.
+Two HA device kinds are published per space:
+
+- A **space hub** device (`gardenia_<spaceId>`) carrying aggregate + weather
+  sensors: `plants_total`, `harvests_total`, `last_harvest`,
+  `inventory_items_total`, `inventory_low_stock`, and (when the space has
+  geolocation) `weather_temperature_max/min` and `weather_precipitation`.
+- One **plant** device per plant (grouped under the hub via `via_device`) with a
+  `last_watered` timestamp sensor. Adding per-plant sensors (health, next-care)
+  follows the same shape.
 
 ## Topic layout
 
 | Topic | Purpose |
 |-------|---------|
 | `<base>/<spaceId>/bridge/availability` | Per-space availability (`online`/LWT `offline`) |
-| `<base>/<spaceId>/plant/<id>/last_watered/state` | Retained sensor state |
+| `<base>/<spaceId>/summary/<metric>/state` | Hub aggregate sensors (counts, last harvest) |
+| `<base>/<spaceId>/weather/<metric>/state` | Hub weather sensors (today's forecast) |
+| `<base>/<spaceId>/plant/<id>/last_watered/state` | Per-plant sensor state |
 | `<discoveryPrefix>/sensor/gardenia_<spaceId>/<object>/config` | Retained HA discovery config |
 
 `<base>` = `MQTT_BASE_TOPIC` (default `gardenia`), `<discoveryPrefix>` =
@@ -53,9 +61,12 @@ namespaced by space, so the bridge can never cross spaces.
 | File | Responsibility |
 |------|----------------|
 | `domain/services/ha-topic.factory.ts` | Builds all topics (tenant isolation) |
+| `domain/services/ha-sensor.builder.ts` | Shared single-sensor discovery+state builder |
 | `domain/services/plant-entity.mapper.ts` | Plant state → HA discovery + state |
-| `application/ports/plant-state.port.ts` | `IPlantStatePort` read contract |
-| `infrastructure/adapters/plant-state.adapter.ts` | Implements the port via QueryBus |
+| `domain/services/space-summary.mapper.ts` | Aggregate counts → hub sensors |
+| `domain/services/weather-entity.mapper.ts` | Today's forecast → hub weather sensors |
+| `application/ports/*.port.ts` | `IPlantStatePort` / `ISpaceSummaryPort` / `IWeatherStatePort` |
+| `infrastructure/adapters/*.adapter.ts` | Implement the ports via QueryBus |
 | `infrastructure/services/ha-reconcile.service.ts` | Bootstrap + interval snapshot |
 
 ## Activation
