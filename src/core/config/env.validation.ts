@@ -54,6 +54,13 @@ const baseEnvSchema = z.object({
     .min(0)
     .max(1)
     .optional(),
+  MQTT_ENABLED: z.string().optional(),
+  MQTT_URL: z.string().optional(),
+  MQTT_USERNAME: z.string().optional(),
+  MQTT_PASSWORD: z.string().optional(),
+  MQTT_BASE_TOPIC: z.string().optional(),
+  HA_DISCOVERY_PREFIX: z.string().optional(),
+  HA_RECONCILE_INTERVAL: z.coerce.number().positive().optional(),
 });
 
 export function validateProductionSecrets(env: {

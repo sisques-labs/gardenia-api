@@ -17,8 +17,10 @@ import { authConfig } from '@core/config/auth.config';
 import { validateEnv } from '@core/config/env.validation';
 import { postgresConfig } from '@core/config/postgres.config';
 import { sentryConfig } from '@core/config/sentry.config';
+import { mqttConfig } from '@core/config/mqtt.config';
 import { HealthModule } from '@core/health/health.module';
 import { McpModule } from '@core/mcp/mcp.module';
+import { MqttModule } from '@core/mqtt/mqtt.module';
 import { ObservabilityModule } from '@core/observability/observability.module';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -40,7 +42,7 @@ import { SupportModule } from './support/support.module';
     ConfigModule.forRoot({
       isGlobal: true,
       validate: validateEnv,
-      load: [postgresConfig, authConfig, appConfig, sentryConfig],
+      load: [postgresConfig, authConfig, appConfig, sentryConfig, mqttConfig],
       cache: true,
     }),
     TypeOrmModule.forRootAsync({
@@ -64,6 +66,7 @@ import { SupportModule } from './support/support.module';
     ObservabilityModule,
     HealthModule,
     McpModule,
+    MqttModule,
     WeatherModule,
     SpacesModule,
     AuthModule,
