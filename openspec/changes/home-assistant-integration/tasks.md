@@ -42,7 +42,7 @@ Chained PRs recommended: Yes
 - [x] 1.9 **[M]** Application: `issue-api-token` command (returns plaintext once), `revoke-api-token` command, `api-token-authenticate` query (hash lookup, ignores revoked), `api-token-find-by-user` query. Req: R-TOK-1, R-TOK-3, R-TOK-4.
 - [x] 1.10 **[M]** Infrastructure: `OptionalJwtAuthGuard` resolves `Authorization: Bearer ght_…` to `{ userId, spaceId }` (sets `req.user` + `req.spaceId`); `SpaceGuard` honours the preset space. Token never logged. Req: R-TOK-4, R-TOK-5.
 - [x] 1.11 **[S]** Transport: REST `POST/GET/DELETE /api/auth/api-tokens` guarded by JWT. Updated `auth/README.md`. (GraphQL management deferred — REST suffices for HA.) Req: R-TOK-3.
-- [~] 1.12 **[M]** Tests: aggregate + authenticate-handler + issue-handler unit done (12 specs). Repo integration + `POST /api/mcp` E2E with an API token still TODO. Spec: S-TOK-x.
+- [x] 1.12 **[M]** Tests: aggregate + authenticate/issue handler unit (12 specs); repo integration round-trip (5 specs, real Postgres); `POST /api/mcp` E2E with an API token — auth without X-Space-ID, tool run, malformed/revoked → 401 (5 specs). Spec: S-TOK-x.
 
 ## Phase 2: HA reads Gardenia — discovery + retained state
 

@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
+import { ApiTokenEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/api-token.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
 import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
@@ -34,6 +35,7 @@ const DB_PASSWORD = process.env.DATABASE_PASSWORD ?? 'gardenia';
 
 const TEST_ENTITIES = [
   AccountEntity,
+  ApiTokenEntity,
   AuthSessionEntity,
   UserTypeOrmEntity,
   SpaceEntity,
