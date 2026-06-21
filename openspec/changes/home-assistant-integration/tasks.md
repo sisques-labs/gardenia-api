@@ -29,20 +29,20 @@ Chained PRs recommended: Yes
 ## Phase 1: Foundation — core/mqtt + voice auth
 
 ### 1A. core/mqtt transport
-- [ ] 1.1 **[M]** Add `mqtt` client dependency; create `src/core/mqtt/config/mqtt.config.ts` env schema (`MQTT_ENABLED`, `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `MQTT_BASE_TOPIC`, `HA_DISCOVERY_PREFIX`, `HA_RECONCILE_INTERVAL`). Req: R-MQTT-1.
-- [ ] 1.2 **[L]** Create `src/core/mqtt/services/mqtt.service.ts` — managed connection (lazy connect when enabled), `publish(topic, payload, {retain})`, `subscribe(filter, handler)`, JSON (de)serialize, auto-reconnect with backoff, LWT availability topic. No-op when disabled. Req: R-MQTT-1, R-MQTT-2, R-MQTT-3.
-- [ ] 1.3 **[S]** Create `src/core/mqtt/mqtt.module.ts` (global) wiring config + service; import once in `AppModule`. Req: R-MQTT-1.
-- [ ] 1.4 **[S]** Create `src/core/mqtt/health/mqtt.health-indicator.ts` and register it in `core/health`. Reports `up`/`down`/`disabled`. Req: R-MQTT-4.
-- [ ] 1.5 **[S]** Create `src/core/mqtt/README.md` mirroring `core/mcp/README.md`.
-- [ ] 1.6 **[M]** Unit test `MqttService` with a mocked `mqtt` client (publish/subscribe/reconnect/disabled no-op). Spec: S-MQTT-1..3.
+- [x] 1.1 **[M]** Add `mqtt` client dependency; create `src/core/config/mqtt.config.ts` env schema (`MQTT_ENABLED`, `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `MQTT_BASE_TOPIC`, `HA_DISCOVERY_PREFIX`, `HA_RECONCILE_INTERVAL`). Req: R-MQTT-1.
+- [x] 1.2 **[L]** Create `src/core/mqtt/services/mqtt.service.ts` — managed connection (lazy connect when enabled), `publish(topic, payload, {retain})`, `subscribe(filter, handler)`, JSON (de)serialize, auto-reconnect, LWT availability topic. No-op when disabled. Req: R-MQTT-1, R-MQTT-2, R-MQTT-3.
+- [x] 1.3 **[S]** Create `src/core/mqtt/mqtt.module.ts` (global) wiring config + service; import once in `AppModule`. Req: R-MQTT-1.
+- [x] 1.4 **[S]** MQTT health: `/health` now reports `mqtt: disabled | up | down` via the global `MqttService`. Req: R-MQTT-4.
+- [x] 1.5 **[S]** Create `src/core/mqtt/README.md` mirroring `core/mcp/README.md`.
+- [x] 1.6 **[M]** Unit test `MqttService` (mocked client) + topic-matcher unit. Spec: S-MQTT-1..3.
 
 ### 1B. Long-lived space-scoped API tokens (voice plane)
-- [ ] 1.7 **[M]** Domain: `auth/domain/value-objects/api-token/api-token.vo.ts` + `auth/domain/aggregates/api-token.aggregate.ts` (hashed secret, `spaceId`, `label`, `lastUsedAt`, `revokedAt`); builder; primitives. Req: R-TOK-1, R-TOK-2.
-- [ ] 1.8 **[M]** Persistence: `api-token.entity.ts`, mapper, repository (read+write), and migration creating `api_tokens` (unique `token_hash`). Req: R-TOK-2.
-- [ ] 1.9 **[M]** Application: `issue-api-token` command (returns plaintext once), `revoke-api-token` command, `find-api-token-by-secret` query (hash lookup, ignores revoked). Req: R-TOK-1, R-TOK-3, R-TOK-4.
-- [ ] 1.10 **[M]** Infrastructure: extend `jwt.strategy.ts` (or add an auth strategy) so `Authorization: Bearer <api_token>` resolves to `{ userId, spaceId }` and populates the same request user/space the JWT path does. Never log the token. Req: R-TOK-4, R-TOK-5.
-- [ ] 1.11 **[S]** Transport: expose `issue`/`revoke`/`list` for the current user (GraphQL + REST), guarded by JWT (not by API token). Update `auth/README.md`. Req: R-TOK-3.
-- [ ] 1.12 **[M]** Tests: VO/aggregate unit (hashing, revoke), strategy unit (valid/revoked/garbage → 401), integration repo round-trip, E2E `POST /api/mcp` with an API token runs a tool. Spec: S-TOK-x.
+- [x] 1.7 **[M]** Domain: `api-token-id/-hash/-label` VOs + `api-token.aggregate.ts` (SHA-256 hashed secret, `spaceId`, `label`, `lastUsedAt`, `revokedAt`); builder; primitives; view-model; interface. Req: R-TOK-1, R-TOK-2.
+- [x] 1.8 **[M]** Persistence: `api-token.entity.ts`, mapper, write repository, and migration creating `api_tokens` (unique `tokenHash`). Req: R-TOK-2.
+- [x] 1.9 **[M]** Application: `issue-api-token` command (returns plaintext once), `revoke-api-token` command, `api-token-authenticate` query (hash lookup, ignores revoked), `api-token-find-by-user` query. Req: R-TOK-1, R-TOK-3, R-TOK-4.
+- [x] 1.10 **[M]** Infrastructure: `OptionalJwtAuthGuard` resolves `Authorization: Bearer ght_…` to `{ userId, spaceId }` (sets `req.user` + `req.spaceId`); `SpaceGuard` honours the preset space. Token never logged. Req: R-TOK-4, R-TOK-5.
+- [x] 1.11 **[S]** Transport: REST `POST/GET/DELETE /api/auth/api-tokens` guarded by JWT. Updated `auth/README.md`. (GraphQL management deferred — REST suffices for HA.) Req: R-TOK-3.
+- [~] 1.12 **[M]** Tests: aggregate + authenticate-handler + issue-handler unit done (12 specs). Repo integration + `POST /api/mcp` E2E with an API token still TODO. Spec: S-TOK-x.
 
 ## Phase 2: HA reads Gardenia — discovery + retained state
 

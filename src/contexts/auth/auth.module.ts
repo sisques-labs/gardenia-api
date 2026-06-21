@@ -1,5 +1,16 @@
 import { ChangePasswordCommandHandler } from '@contexts/auth/application/commands/change-password/change-password.handler';
 import { DeleteAccountCommandHandler } from '@contexts/auth/application/commands/delete-account/delete-account.handler';
+import { IssueApiTokenCommandHandler } from '@contexts/auth/application/commands/issue-api-token/issue-api-token.handler';
+import { RevokeApiTokenCommandHandler } from '@contexts/auth/application/commands/revoke-api-token/revoke-api-token.handler';
+import { ApiTokenAuthenticateQueryHandler } from '@contexts/auth/application/queries/api-token-authenticate/api-token-authenticate.handler';
+import { ApiTokenFindByUserQueryHandler } from '@contexts/auth/application/queries/api-token-find-by-user/api-token-find-by-user.handler';
+import { GenerateApiTokenService } from '@contexts/auth/application/services/write/generate-api-token/generate-api-token.service';
+import { ApiTokenBuilder } from '@contexts/auth/domain/builders/api-token.builder';
+import { API_TOKEN_WRITE_REPOSITORY } from '@contexts/auth/domain/repositories/write/api-token-write.repository';
+import { ApiTokenEntity } from '@contexts/auth/infrastructure/persistence/typeorm/entities/api-token.entity';
+import { ApiTokenTypeOrmMapper } from '@contexts/auth/infrastructure/persistence/typeorm/mappers/api-token-typeorm.mapper';
+import { ApiTokenTypeOrmWriteRepository } from '@contexts/auth/infrastructure/persistence/typeorm/repositories/api-token-typeorm-write.repository';
+import { ApiTokenController } from '@contexts/auth/transport/rest/controllers/api-token.controller';
 import { LoginAccountCommandHandler } from '@contexts/auth/application/commands/login-account/login-account.handler';
 import { LogoutAllCommandHandler } from '@contexts/auth/application/commands/logout-all/logout-all.handler';
 import { LogoutCommandHandler } from '@contexts/auth/application/commands/logout/logout.handler';
@@ -74,11 +85,15 @@ const COMMAND_HANDLERS = [
   LogoutAllCommandHandler,
   LinkOAuthIdentityCommandHandler,
   LoginWithOAuthCommandHandler,
+  IssueApiTokenCommandHandler,
+  RevokeApiTokenCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
   AccountFindByIdQueryHandler,
   AccountFindByCriteriaQueryHandler,
+  ApiTokenAuthenticateQueryHandler,
+  ApiTokenFindByUserQueryHandler,
 ];
 
 const APPLICATION_SERVICES = [
@@ -90,6 +105,7 @@ const APPLICATION_SERVICES = [
   ValidateAccountCredentialsService,
   GenerateRefreshTokenService,
   HashRefreshTokenService,
+  GenerateApiTokenService,
   RefreshCookieService,
   OAuthStateService,
   EncryptionService,
@@ -99,12 +115,14 @@ const DOMAIN_BUILDERS = [
   AccountBuilder,
   AuthSessionBuilder,
   OAuthIdentityBuilder,
+  ApiTokenBuilder,
 ];
 
 const INFRASTRUCTURE_MAPPERS = [
   AccountTypeOrmMapper,
   AuthSessionTypeOrmMapper,
   OAuthIdentityTypeOrmMapper,
+  ApiTokenTypeOrmMapper,
 ];
 
 const TRANSPORT_MAPPERS = [AccountRestMapper, AccountGraphQLMapper];
@@ -123,12 +141,17 @@ const INFRASTRUCTURE_REPOSITORIES = [
     provide: OAUTH_IDENTITY_WRITE_REPOSITORY,
     useClass: OAuthIdentityTypeOrmWriteRepository,
   },
+  {
+    provide: API_TOKEN_WRITE_REPOSITORY,
+    useClass: ApiTokenTypeOrmWriteRepository,
+  },
 ];
 
 const INFRASTRUCTURE_ENTITIES = [
   AccountEntity,
   AuthSessionEntity,
   OAuthIdentityTypeOrmEntity,
+  ApiTokenEntity,
 ];
 
 const INFRASTRUCTURE_ADAPTERS = [
@@ -174,7 +197,11 @@ const TRANSPORT_GRAPHQL_RESOLVERS = [
   AuthMutationsResolver,
 ];
 
-const TRANSPORT_REST_CONTROLLERS = [AuthController, OAuthController];
+const TRANSPORT_REST_CONTROLLERS = [
+  AuthController,
+  OAuthController,
+  ApiTokenController,
+];
 
 @Module({
   imports: [

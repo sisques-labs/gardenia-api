@@ -49,6 +49,15 @@ Methods:
 
 Links a third-party provider identity (`provider` + `providerUserId`) to a `userId`. Created on first OAuth login; reused on subsequent logins.
 
+### `ApiTokenAggregate`
+
+A long-lived, **space-scoped** API token for non-interactive clients (e.g. Home Assistant's MCP client) that cannot run a JWT refresh flow. Fields: `id`, `userId`, `spaceId`, `label`, `tokenHash` (SHA-256 of the raw token), `lastUsedAt`, `revokedAt`.
+
+- Plaintext is shown **once** at issuance (prefixed `ght_`) and never recoverable; only the hash is stored.
+- `revoke()` — idempotent, sets `revokedAt`.
+- `markUsed(at)` — records last authentication time.
+- Presented as `Authorization: Bearer ght_…`; the guard resolves it to the owning user **and** the token's space, so no `X-Space-ID` header is needed.
+
 ---
 
 ## Architecture layers
@@ -195,6 +204,9 @@ After promoting, the user must log out and log back in (or call `logoutAll`) to 
 | `GET` | `/api/auth/github/callback` | — | GitHub OAuth callback. |
 | `GET` | `/api/auth/apple` | — | Redirect to Apple OAuth. |
 | `GET` | `/api/auth/apple/callback` | — | Apple OAuth callback. |
+| `POST` | `/api/auth/api-tokens` | JWT + space | Issue a space-scoped API token. Returns `{ id, token }` (plaintext once). |
+| `GET` | `/api/auth/api-tokens` | JWT | List the current user's API tokens (no secrets). |
+| `DELETE` | `/api/auth/api-tokens/:id` | JWT | Revoke an API token. |
 
 ### GraphQL operations
 
@@ -224,6 +236,10 @@ After promoting, the user must log out and log back in (or call `logoutAll`) to 
 | `LinkOAuthIdentityCommand` | Links a new OAuth provider to an existing account |
 | `AccountFindByIdQuery` | Returns account view model by id |
 | `AccountFindByCriteriaQuery` | Paginated account list |
+| `IssueApiTokenCommand` | Issues a space-scoped API token; returns plaintext once |
+| `RevokeApiTokenCommand` | Revokes one of the caller's API tokens |
+| `ApiTokenAuthenticateQuery` | Resolves a raw `ght_…` token to `{ userId, spaceId }` (auth path) |
+| `ApiTokenFindByUserQuery` | Lists a user's API tokens (view models, no secret) |
 
 ### Domain events
 
