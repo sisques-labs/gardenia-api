@@ -280,3 +280,15 @@ Migration: `src/database/migrations/1780000000015-CreateHarvests.ts`
 3. **`SpaceContext` is global** — never add it to `HarvestsModule.providers`. Import from `@shared/space-context/space-context.service` and rely on the `SharedModule` registration.
 4. **`SpaceGuard` is global** — registered via `APP_GUARD` in `AppModule`. No need for `@UseGuards(SpaceGuard)` on harvest controllers or resolvers.
 5. **`harvestedAt` is indexed** — the `IDX_harvests_harvested_at` index supports efficient date-range filtering. If adding new frequent filter fields, add matching indexes in a new migration.
+
+## MCP Tools
+
+Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the acting user and active space come from the authenticated MCP request context.
+
+| Tool | Action |
+|------|--------|
+| `harvest_create` | Record a harvest |
+| `harvest_update` | Update a harvest |
+| `harvest_delete` | Delete a harvest |
+| `harvest_find_by_id` | Get a harvest by id |
+| `harvest_find_by_criteria` | Paginated list of harvests |
