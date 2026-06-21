@@ -9,8 +9,8 @@ import { qrRegenerateSchema } from '../schemas/qr-regenerate.schema';
 
 @McpTool()
 @Injectable()
-export class QrRegenerateTool implements IMcpTool {
-  private readonly logger = new Logger(QrRegenerateTool.name);
+export class QrRegenerateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(QrRegenerateMcpTool.name);
 
   readonly name = 'qr_regenerate';
   readonly title = 'Regenerate QR code';

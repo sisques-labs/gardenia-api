@@ -9,8 +9,8 @@ import { spaceGetWeatherSchema } from '../schemas/space-get-weather.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceGetWeatherTool implements IMcpTool {
-  private readonly logger = new Logger(SpaceGetWeatherTool.name);
+export class SpaceGetWeatherMcpTool implements IMcpTool {
+  private readonly logger = new Logger(SpaceGetWeatherMcpTool.name);
 
   readonly name = 'space_get_weather';
   readonly title = 'Get space weather';

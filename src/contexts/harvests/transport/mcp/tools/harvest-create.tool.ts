@@ -11,8 +11,8 @@ import { harvestCreateSchema } from '../schemas/harvest-create.schema';
 
 @McpTool()
 @Injectable()
-export class HarvestCreateTool implements IMcpTool {
-  private readonly logger = new Logger(HarvestCreateTool.name);
+export class HarvestCreateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(HarvestCreateMcpTool.name);
 
   readonly name = 'harvest_create';
   readonly title = 'Create harvest';

@@ -11,8 +11,8 @@ import { plantingSpotUpdateSchema } from '../schemas/planting-spot-update.schema
 
 @McpTool()
 @Injectable()
-export class PlantingSpotUpdateTool implements IMcpTool {
-  private readonly logger = new Logger(PlantingSpotUpdateTool.name);
+export class PlantingSpotUpdateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(PlantingSpotUpdateMcpTool.name);
 
   readonly name = 'planting_spot_update';
   readonly title = 'Update planting spot';

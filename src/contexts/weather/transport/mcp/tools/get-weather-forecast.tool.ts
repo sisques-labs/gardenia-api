@@ -9,8 +9,8 @@ import { getWeatherForecastSchema } from '../schemas/get-weather-forecast.schema
 
 @McpTool()
 @Injectable()
-export class GetWeatherForecastTool implements IMcpTool {
-  private readonly logger = new Logger(GetWeatherForecastTool.name);
+export class GetWeatherForecastMcpTool implements IMcpTool {
+  private readonly logger = new Logger(GetWeatherForecastMcpTool.name);
 
   readonly name = 'weather_get_forecast';
   readonly title = 'Get weather forecast';

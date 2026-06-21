@@ -10,8 +10,8 @@ import { plantingSpotFindByCriteriaSchema } from '../schemas/planting-spot-find-
 
 @McpTool()
 @Injectable()
-export class PlantingSpotFindByCriteriaTool implements IMcpTool {
-  private readonly logger = new Logger(PlantingSpotFindByCriteriaTool.name);
+export class PlantingSpotFindByCriteriaMcpTool implements IMcpTool {
+  private readonly logger = new Logger(PlantingSpotFindByCriteriaMcpTool.name);
 
   readonly name = 'planting_spot_find_by_criteria';
   readonly title = 'List planting spots';

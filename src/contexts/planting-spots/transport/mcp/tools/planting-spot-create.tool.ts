@@ -11,8 +11,8 @@ import { plantingSpotCreateSchema } from '../schemas/planting-spot-create.schema
 
 @McpTool()
 @Injectable()
-export class PlantingSpotCreateTool implements IMcpTool {
-  private readonly logger = new Logger(PlantingSpotCreateTool.name);
+export class PlantingSpotCreateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(PlantingSpotCreateMcpTool.name);
 
   readonly name = 'planting_spot_create';
   readonly title = 'Create planting spot';

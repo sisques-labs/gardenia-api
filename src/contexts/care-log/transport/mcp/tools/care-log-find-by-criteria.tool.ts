@@ -10,8 +10,8 @@ import { careLogFindByCriteriaSchema } from '../schemas/care-log-find-by-criteri
 
 @McpTool()
 @Injectable()
-export class CareLogFindByCriteriaTool implements IMcpTool {
-  private readonly logger = new Logger(CareLogFindByCriteriaTool.name);
+export class CareLogFindByCriteriaMcpTool implements IMcpTool {
+  private readonly logger = new Logger(CareLogFindByCriteriaMcpTool.name);
 
   readonly name = 'care_log_find_by_criteria';
   readonly title = 'List care log entries';

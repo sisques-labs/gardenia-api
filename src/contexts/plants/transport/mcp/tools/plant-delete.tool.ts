@@ -10,8 +10,8 @@ import { plantDeleteSchema } from '../schemas/plant-delete.schema';
 
 @McpTool()
 @Injectable()
-export class PlantDeleteTool implements IMcpTool {
-  private readonly logger = new Logger(PlantDeleteTool.name);
+export class PlantDeleteMcpTool implements IMcpTool {
+  private readonly logger = new Logger(PlantDeleteMcpTool.name);
 
   readonly name = 'plant_delete';
   readonly title = 'Delete plant';

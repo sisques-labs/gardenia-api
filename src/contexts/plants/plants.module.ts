@@ -40,11 +40,11 @@ import { PlantCareLogResolvedFieldsResolver } from './transport/graphql/resolver
 import { PlantQrResolvedFieldResolver } from './transport/graphql/resolvers/plant/plant-qr-resolved-field.resolver';
 import { PlantResolvedFieldsResolver } from './transport/graphql/resolvers/plant/plant-resolved-fields.resolver';
 import { PlantSpeciesResolvedFieldResolver } from './transport/graphql/resolvers/plant/plant-species-resolved-field.resolver';
-import { PlantCreateTool } from './transport/mcp/tools/plant-create.tool';
-import { PlantDeleteTool } from './transport/mcp/tools/plant-delete.tool';
-import { PlantFindByCriteriaTool } from './transport/mcp/tools/plant-find-by-criteria.tool';
-import { PlantFindByIdTool } from './transport/mcp/tools/plant-find-by-id.tool';
-import { PlantUpdateTool } from './transport/mcp/tools/plant-update.tool';
+import { PlantCreateMcpTool } from './transport/mcp/tools/plant-create.tool';
+import { PlantDeleteMcpTool } from './transport/mcp/tools/plant-delete.tool';
+import { PlantFindByCriteriaMcpTool } from './transport/mcp/tools/plant-find-by-criteria.tool';
+import { PlantFindByIdMcpTool } from './transport/mcp/tools/plant-find-by-id.tool';
+import { PlantUpdateMcpTool } from './transport/mcp/tools/plant-update.tool';
 import { PlantsController } from './transport/rest/controllers/plants.controller';
 import { PlantRestMapper } from './transport/rest/mappers/plant/plant.mapper';
 
@@ -103,11 +103,11 @@ const GRAPHQL_PROVIDERS = [
 ];
 
 const MCP_TOOLS = [
-  PlantFindByIdTool,
-  PlantFindByCriteriaTool,
-  PlantCreateTool,
-  PlantUpdateTool,
-  PlantDeleteTool,
+  PlantFindByIdMcpTool,
+  PlantFindByCriteriaMcpTool,
+  PlantCreateMcpTool,
+  PlantUpdateMcpTool,
+  PlantDeleteMcpTool,
 ];
 
 @Module({

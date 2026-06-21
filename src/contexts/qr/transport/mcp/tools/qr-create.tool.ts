@@ -10,8 +10,8 @@ import { qrCreateSchema } from '../schemas/qr-create.schema';
 
 @McpTool()
 @Injectable()
-export class QrCreateTool implements IMcpTool {
-  private readonly logger = new Logger(QrCreateTool.name);
+export class QrCreateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(QrCreateMcpTool.name);
 
   readonly name = 'qr_create';
   readonly title = 'Create QR code';

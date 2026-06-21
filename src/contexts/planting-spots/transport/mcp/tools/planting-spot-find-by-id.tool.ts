@@ -9,8 +9,8 @@ import { plantingSpotFindByIdSchema } from '../schemas/planting-spot-find-by-id.
 
 @McpTool()
 @Injectable()
-export class PlantingSpotFindByIdTool implements IMcpTool {
-  private readonly logger = new Logger(PlantingSpotFindByIdTool.name);
+export class PlantingSpotFindByIdMcpTool implements IMcpTool {
+  private readonly logger = new Logger(PlantingSpotFindByIdMcpTool.name);
 
   readonly name = 'planting_spot_find_by_id';
   readonly title = 'Find planting spot by id';

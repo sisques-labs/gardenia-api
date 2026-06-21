@@ -10,8 +10,8 @@ import { plantUpdateSchema } from '../schemas/plant-update.schema';
 
 @McpTool()
 @Injectable()
-export class PlantUpdateTool implements IMcpTool {
-  private readonly logger = new Logger(PlantUpdateTool.name);
+export class PlantUpdateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(PlantUpdateMcpTool.name);
 
   readonly name = 'plant_update';
   readonly title = 'Update plant';

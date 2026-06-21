@@ -10,8 +10,8 @@ import { spaceAcceptInvitationSchema } from '../schemas/space-accept-invitation.
 
 @McpTool()
 @Injectable()
-export class SpaceAcceptInvitationTool implements IMcpTool {
-  private readonly logger = new Logger(SpaceAcceptInvitationTool.name);
+export class SpaceAcceptInvitationMcpTool implements IMcpTool {
+  private readonly logger = new Logger(SpaceAcceptInvitationMcpTool.name);
 
   readonly name = 'space_accept_invitation';
   readonly title = 'Accept space invitation';

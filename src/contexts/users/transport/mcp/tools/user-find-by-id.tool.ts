@@ -9,8 +9,8 @@ import { userFindByIdSchema } from '../schemas/user-find-by-id.schema';
 
 @McpTool()
 @Injectable()
-export class UserFindByIdTool implements IMcpTool {
-  private readonly logger = new Logger(UserFindByIdTool.name);
+export class UserFindByIdMcpTool implements IMcpTool {
+  private readonly logger = new Logger(UserFindByIdMcpTool.name);
 
   readonly name = 'user_find_by_id';
   readonly title = 'Find user by id';

@@ -11,8 +11,8 @@ import { spaceUpdateSchema } from '../schemas/space-update.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceUpdateTool implements IMcpTool {
-  private readonly logger = new Logger(SpaceUpdateTool.name);
+export class SpaceUpdateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(SpaceUpdateMcpTool.name);
 
   readonly name = 'space_update';
   readonly title = 'Update space';

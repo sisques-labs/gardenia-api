@@ -10,8 +10,8 @@ import { userFindByCriteriaSchema } from '../schemas/user-find-by-criteria.schem
 
 @McpTool()
 @Injectable()
-export class UserFindByCriteriaTool implements IMcpTool {
-  private readonly logger = new Logger(UserFindByCriteriaTool.name);
+export class UserFindByCriteriaMcpTool implements IMcpTool {
+  private readonly logger = new Logger(UserFindByCriteriaMcpTool.name);
 
   readonly name = 'user_find_by_criteria';
   readonly title = 'List users';

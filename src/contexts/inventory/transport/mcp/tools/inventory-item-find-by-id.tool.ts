@@ -9,8 +9,8 @@ import { inventoryItemFindByIdSchema } from '../schemas/inventory-item-find-by-i
 
 @McpTool()
 @Injectable()
-export class InventoryItemFindByIdTool implements IMcpTool {
-  private readonly logger = new Logger(InventoryItemFindByIdTool.name);
+export class InventoryItemFindByIdMcpTool implements IMcpTool {
+  private readonly logger = new Logger(InventoryItemFindByIdMcpTool.name);
 
   readonly name = 'inventory_item_find_by_id';
   readonly title = 'Find inventory item by id';

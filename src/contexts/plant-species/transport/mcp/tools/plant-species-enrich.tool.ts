@@ -9,8 +9,8 @@ import { plantSpeciesEnrichSchema } from '../schemas/plant-species-enrich.schema
 
 @McpTool()
 @Injectable()
-export class PlantSpeciesEnrichTool implements IMcpTool {
-  private readonly logger = new Logger(PlantSpeciesEnrichTool.name);
+export class PlantSpeciesEnrichMcpTool implements IMcpTool {
+  private readonly logger = new Logger(PlantSpeciesEnrichMcpTool.name);
 
   readonly name = 'plant_species_enrich';
   readonly title = 'Enrich plant species';

@@ -2,7 +2,7 @@ import { CommandBus } from '@nestjs/cqrs';
 
 import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
 import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
-import { SpaceCreateTool } from './space-create.tool';
+import { SpaceCreateMcpTool } from './space-create.tool';
 
 const CONTEXT: IMcpToolContext = {
   userId: '33333333-3333-4333-8333-333333333333',
@@ -10,13 +10,13 @@ const CONTEXT: IMcpToolContext = {
   spaceId: '44444444-4444-4444-8444-444444444444',
 };
 
-describe('SpaceCreateTool', () => {
-  let tool: SpaceCreateTool;
+describe('SpaceCreateMcpTool', () => {
+  let tool: SpaceCreateMcpTool;
   let commandBus: jest.Mocked<CommandBus>;
 
   beforeEach(() => {
     commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
-    tool = new SpaceCreateTool(commandBus);
+    tool = new SpaceCreateMcpTool(commandBus);
   });
 
   it('dispatches CreateSpaceCommand with ownerId from the context', async () => {

@@ -10,8 +10,8 @@ import { inventoryItemFindByCriteriaSchema } from '../schemas/inventory-item-fin
 
 @McpTool()
 @Injectable()
-export class InventoryItemFindByCriteriaTool implements IMcpTool {
-  private readonly logger = new Logger(InventoryItemFindByCriteriaTool.name);
+export class InventoryItemFindByCriteriaMcpTool implements IMcpTool {
+  private readonly logger = new Logger(InventoryItemFindByCriteriaMcpTool.name);
 
   readonly name = 'inventory_item_find_by_criteria';
   readonly title = 'List inventory items';

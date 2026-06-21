@@ -22,11 +22,11 @@ import { PlantingSpotTypeOrmEntity } from '@contexts/planting-spots/infrastructu
 import { PlantingSpotTypeOrmMapper } from '@contexts/planting-spots/infrastructure/persistence/typeorm/mappers/planting-spot-typeorm.mapper';
 import { PlantingSpotTypeOrmReadRepository } from '@contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-read.repository';
 import { PlantingSpotTypeOrmWriteRepository } from '@contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-write.repository';
-import { PlantingSpotCreateTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-create.tool';
-import { PlantingSpotDeleteTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-delete.tool';
-import { PlantingSpotFindByCriteriaTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-find-by-criteria.tool';
-import { PlantingSpotFindByIdTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-find-by-id.tool';
-import { PlantingSpotUpdateTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-update.tool';
+import { PlantingSpotCreateMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-create.tool';
+import { PlantingSpotDeleteMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-delete.tool';
+import { PlantingSpotFindByCriteriaMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-find-by-criteria.tool';
+import { PlantingSpotFindByIdMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-find-by-id.tool';
+import { PlantingSpotUpdateMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-update.tool';
 import '@contexts/planting-spots/transport/graphql/enums/planting-spot-registered-enums.graphql';
 import { PlantingSpotGraphQLMapper } from '@contexts/planting-spots/transport/graphql/mappers/planting-spot/planting-spot.mapper';
 import { PlantingSpotMutationsResolver } from '@contexts/planting-spots/transport/graphql/resolvers/planting-spot/mutations/planting-spot-mutations.resolver';
@@ -89,11 +89,11 @@ const GRAPHQL_PROVIDERS = [
 ];
 
 const MCP_TOOLS = [
-  PlantingSpotCreateTool,
-  PlantingSpotUpdateTool,
-  PlantingSpotDeleteTool,
-  PlantingSpotFindByIdTool,
-  PlantingSpotFindByCriteriaTool,
+  PlantingSpotCreateMcpTool,
+  PlantingSpotUpdateMcpTool,
+  PlantingSpotDeleteMcpTool,
+  PlantingSpotFindByIdMcpTool,
+  PlantingSpotFindByCriteriaMcpTool,
 ];
 
 @Module({

@@ -16,10 +16,10 @@ import { QrTypeOrmMapper } from '@contexts/qr/infrastructure/persistence/typeorm
 import { QrTypeOrmReadRepository } from '@contexts/qr/infrastructure/persistence/typeorm/repositories/qr-typeorm-read.repository';
 import { QrTypeOrmWriteRepository } from '@contexts/qr/infrastructure/persistence/typeorm/repositories/qr-typeorm-write.repository';
 import { QrPngGeneratorService } from '@contexts/qr/infrastructure/services/qr-png-generator.service';
-import { QrCreateTool } from '@contexts/qr/transport/mcp/tools/qr-create.tool';
-import { QrDeleteTool } from '@contexts/qr/transport/mcp/tools/qr-delete.tool';
-import { QrFindByIdTool } from '@contexts/qr/transport/mcp/tools/qr-find-by-id.tool';
-import { QrRegenerateTool } from '@contexts/qr/transport/mcp/tools/qr-regenerate.tool';
+import { QrCreateMcpTool } from '@contexts/qr/transport/mcp/tools/qr-create.tool';
+import { QrDeleteMcpTool } from '@contexts/qr/transport/mcp/tools/qr-delete.tool';
+import { QrFindByIdMcpTool } from '@contexts/qr/transport/mcp/tools/qr-find-by-id.tool';
+import { QrRegenerateMcpTool } from '@contexts/qr/transport/mcp/tools/qr-regenerate.tool';
 import '@contexts/qr/transport/graphql/enums/qr/qr-registered-enums.graphql';
 import { QrGraphQLMapper } from '@contexts/qr/transport/graphql/mappers/qr/qr.mapper';
 import { QrMutationsResolver } from '@contexts/qr/transport/graphql/resolvers/qr/qr-mutations.resolver';
@@ -67,7 +67,7 @@ const GRAPHQL_PROVIDERS = [
   QrGraphQLMapper,
 ];
 
-const MCP_TOOLS = [QrCreateTool, QrRegenerateTool, QrDeleteTool, QrFindByIdTool];
+const MCP_TOOLS = [QrCreateMcpTool, QrRegenerateMcpTool, QrDeleteMcpTool, QrFindByIdMcpTool];
 
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature([QrTypeOrmEntity])],

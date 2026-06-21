@@ -10,8 +10,8 @@ import { plantFindByCriteriaSchema } from '../schemas/plant-find-by-criteria.sch
 
 @McpTool()
 @Injectable()
-export class PlantFindByCriteriaTool implements IMcpTool {
-  private readonly logger = new Logger(PlantFindByCriteriaTool.name);
+export class PlantFindByCriteriaMcpTool implements IMcpTool {
+  private readonly logger = new Logger(PlantFindByCriteriaMcpTool.name);
 
   readonly name = 'plant_find_by_criteria';
   readonly title = 'List plants';

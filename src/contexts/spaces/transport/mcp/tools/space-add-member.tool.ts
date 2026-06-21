@@ -11,8 +11,8 @@ import { spaceAddMemberSchema } from '../schemas/space-add-member.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceAddMemberTool implements IMcpTool {
-  private readonly logger = new Logger(SpaceAddMemberTool.name);
+export class SpaceAddMemberMcpTool implements IMcpTool {
+  private readonly logger = new Logger(SpaceAddMemberMcpTool.name);
 
   readonly name = 'space_add_member';
   readonly title = 'Add member to space';

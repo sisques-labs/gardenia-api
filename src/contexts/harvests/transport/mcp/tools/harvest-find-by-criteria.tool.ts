@@ -10,8 +10,8 @@ import { harvestFindByCriteriaSchema } from '../schemas/harvest-find-by-criteria
 
 @McpTool()
 @Injectable()
-export class HarvestFindByCriteriaTool implements IMcpTool {
-  private readonly logger = new Logger(HarvestFindByCriteriaTool.name);
+export class HarvestFindByCriteriaMcpTool implements IMcpTool {
+  private readonly logger = new Logger(HarvestFindByCriteriaMcpTool.name);
 
   readonly name = 'harvest_find_by_criteria';
   readonly title = 'List harvests';

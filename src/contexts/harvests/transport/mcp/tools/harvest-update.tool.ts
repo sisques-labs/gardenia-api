@@ -10,8 +10,8 @@ import { harvestUpdateSchema } from '../schemas/harvest-update.schema';
 
 @McpTool()
 @Injectable()
-export class HarvestUpdateTool implements IMcpTool {
-  private readonly logger = new Logger(HarvestUpdateTool.name);
+export class HarvestUpdateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(HarvestUpdateMcpTool.name);
 
   readonly name = 'harvest_update';
   readonly title = 'Update harvest';

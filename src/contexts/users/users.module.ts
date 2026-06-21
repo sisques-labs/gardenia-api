@@ -17,9 +17,9 @@ import { UserTypeOrmEntity } from './infrastructure/persistence/typeorm/entities
 import { UserTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/user-typeorm.mapper';
 import { UserTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-read.repository';
 import { UserTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/user-typeorm-write.repository';
-import { UserFindByCriteriaTool } from './transport/mcp/tools/user-find-by-criteria.tool';
-import { UserFindByIdTool } from './transport/mcp/tools/user-find-by-id.tool';
-import { UserUpdateTool } from './transport/mcp/tools/user-update.tool';
+import { UserFindByCriteriaMcpTool } from './transport/mcp/tools/user-find-by-criteria.tool';
+import { UserFindByIdMcpTool } from './transport/mcp/tools/user-find-by-id.tool';
+import { UserUpdateMcpTool } from './transport/mcp/tools/user-update.tool';
 import './transport/graphql/enums/user/user-registered-enums.graphql';
 import { UserGraphQLMapper } from './transport/graphql/mappers/user/user.mapper';
 import { UserMutationsResolver } from './transport/graphql/resolvers/user/user-mutations.resolver';
@@ -60,7 +60,7 @@ const TRANSPORT_GRAPHQL_RESOLVERS = [
 
 const INFRASTRUCTURE_ENTITIES = [UserTypeOrmEntity];
 
-const MCP_TOOLS = [UserUpdateTool, UserFindByIdTool, UserFindByCriteriaTool];
+const MCP_TOOLS = [UserUpdateMcpTool, UserFindByIdMcpTool, UserFindByCriteriaMcpTool];
 
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],

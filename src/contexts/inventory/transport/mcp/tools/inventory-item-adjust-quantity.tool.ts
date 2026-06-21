@@ -9,8 +9,8 @@ import { inventoryItemAdjustQuantitySchema } from '../schemas/inventory-item-adj
 
 @McpTool()
 @Injectable()
-export class InventoryItemAdjustQuantityTool implements IMcpTool {
-  private readonly logger = new Logger(InventoryItemAdjustQuantityTool.name);
+export class InventoryItemAdjustQuantityMcpTool implements IMcpTool {
+  private readonly logger = new Logger(InventoryItemAdjustQuantityMcpTool.name);
 
   readonly name = 'inventory_item_adjust_quantity';
   readonly title = 'Adjust inventory item quantity';

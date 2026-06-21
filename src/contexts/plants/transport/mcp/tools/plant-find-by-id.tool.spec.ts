@@ -1,17 +1,17 @@
 import { QueryBus } from '@nestjs/cqrs';
 
 import { PlantFindByIdQuery } from '@contexts/plants/application/queries/plant-find-by-id/plant-find-by-id.query';
-import { PlantFindByIdTool } from './plant-find-by-id.tool';
+import { PlantFindByIdMcpTool } from './plant-find-by-id.tool';
 
 const PLANT_ID = '11111111-1111-4111-8111-111111111111';
 
-describe('PlantFindByIdTool', () => {
-  let tool: PlantFindByIdTool;
+describe('PlantFindByIdMcpTool', () => {
+  let tool: PlantFindByIdMcpTool;
   let queryBus: jest.Mocked<QueryBus>;
 
   beforeEach(() => {
     queryBus = { execute: jest.fn() } as unknown as jest.Mocked<QueryBus>;
-    tool = new PlantFindByIdTool(queryBus);
+    tool = new PlantFindByIdMcpTool(queryBus);
   });
 
   it('exposes its metadata', () => {

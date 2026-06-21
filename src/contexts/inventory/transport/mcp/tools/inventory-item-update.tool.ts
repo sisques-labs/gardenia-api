@@ -20,8 +20,8 @@ function toOptionalDate(
 
 @McpTool()
 @Injectable()
-export class InventoryItemUpdateTool implements IMcpTool {
-  private readonly logger = new Logger(InventoryItemUpdateTool.name);
+export class InventoryItemUpdateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(InventoryItemUpdateMcpTool.name);
 
   readonly name = 'inventory_item_update';
   readonly title = 'Update inventory item';

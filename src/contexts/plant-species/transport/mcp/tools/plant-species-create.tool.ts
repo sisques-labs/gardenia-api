@@ -9,8 +9,8 @@ import { plantSpeciesCreateSchema } from '../schemas/plant-species-create.schema
 
 @McpTool()
 @Injectable()
-export class PlantSpeciesCreateTool implements IMcpTool {
-  private readonly logger = new Logger(PlantSpeciesCreateTool.name);
+export class PlantSpeciesCreateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(PlantSpeciesCreateMcpTool.name);
 
   readonly name = 'plant_species_create';
   readonly title = 'Create plant species';

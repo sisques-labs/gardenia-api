@@ -3,7 +3,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreateHarvestCommand } from '@contexts/harvests/application/commands/create-harvest/create-harvest.command';
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
 import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
-import { HarvestCreateTool } from './harvest-create.tool';
+import { HarvestCreateMcpTool } from './harvest-create.tool';
 
 const CONTEXT: IMcpToolContext = {
   userId: '33333333-3333-4333-8333-333333333333',
@@ -11,13 +11,13 @@ const CONTEXT: IMcpToolContext = {
   spaceId: '44444444-4444-4444-8444-444444444444',
 };
 
-describe('HarvestCreateTool', () => {
-  let tool: HarvestCreateTool;
+describe('HarvestCreateMcpTool', () => {
+  let tool: HarvestCreateMcpTool;
   let commandBus: jest.Mocked<CommandBus>;
 
   beforeEach(() => {
     commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
-    tool = new HarvestCreateTool(commandBus);
+    tool = new HarvestCreateMcpTool(commandBus);
   });
 
   it('dispatches CreateHarvestCommand with userId and spaceId from the context', async () => {

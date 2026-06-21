@@ -9,8 +9,8 @@ import { harvestDeleteSchema } from '../schemas/harvest-delete.schema';
 
 @McpTool()
 @Injectable()
-export class HarvestDeleteTool implements IMcpTool {
-  private readonly logger = new Logger(HarvestDeleteTool.name);
+export class HarvestDeleteMcpTool implements IMcpTool {
+  private readonly logger = new Logger(HarvestDeleteMcpTool.name);
 
   readonly name = 'harvest_delete';
   readonly title = 'Delete harvest';

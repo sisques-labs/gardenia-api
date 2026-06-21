@@ -20,11 +20,11 @@ import './transport/graphql/enums/care-log-registered-enums.graphql';
 import { CareLogGraphQLMapper } from './transport/graphql/mappers/care-log/care-log.mapper';
 import { CareLogMutationsResolver } from './transport/graphql/resolvers/care-log-mutations.resolver';
 import { CareLogQueriesResolver } from './transport/graphql/resolvers/care-log-queries.resolver';
-import { CareLogCreateTool } from './transport/mcp/tools/care-log-create.tool';
-import { CareLogDeleteTool } from './transport/mcp/tools/care-log-delete.tool';
-import { CareLogFindByCriteriaTool } from './transport/mcp/tools/care-log-find-by-criteria.tool';
-import { CareLogFindLastByTypeTool } from './transport/mcp/tools/care-log-find-last-by-type.tool';
-import { CareLogUpdateTool } from './transport/mcp/tools/care-log-update.tool';
+import { CareLogCreateMcpTool } from './transport/mcp/tools/care-log-create.tool';
+import { CareLogDeleteMcpTool } from './transport/mcp/tools/care-log-delete.tool';
+import { CareLogFindByCriteriaMcpTool } from './transport/mcp/tools/care-log-find-by-criteria.tool';
+import { CareLogFindLastByTypeMcpTool } from './transport/mcp/tools/care-log-find-last-by-type.tool';
+import { CareLogUpdateMcpTool } from './transport/mcp/tools/care-log-update.tool';
 import { CareLogController } from './transport/rest/controllers/care-log.controller';
 import { CareLogRestMapper } from './transport/rest/mappers/care-log/care-log.mapper';
 
@@ -68,11 +68,11 @@ const GRAPHQL_PROVIDERS = [
 ];
 
 const MCP_TOOLS = [
-  CareLogCreateTool,
-  CareLogUpdateTool,
-  CareLogDeleteTool,
-  CareLogFindByCriteriaTool,
-  CareLogFindLastByTypeTool,
+  CareLogCreateMcpTool,
+  CareLogUpdateMcpTool,
+  CareLogDeleteMcpTool,
+  CareLogFindByCriteriaMcpTool,
+  CareLogFindLastByTypeMcpTool,
 ];
 
 @Module({

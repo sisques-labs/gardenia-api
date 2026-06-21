@@ -9,8 +9,8 @@ import { inventoryItemDeleteSchema } from '../schemas/inventory-item-delete.sche
 
 @McpTool()
 @Injectable()
-export class InventoryItemDeleteTool implements IMcpTool {
-  private readonly logger = new Logger(InventoryItemDeleteTool.name);
+export class InventoryItemDeleteMcpTool implements IMcpTool {
+  private readonly logger = new Logger(InventoryItemDeleteMcpTool.name);
 
   readonly name = 'inventory_item_delete';
   readonly title = 'Delete inventory item';

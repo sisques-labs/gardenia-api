@@ -10,8 +10,8 @@ import { userUpdateSchema } from '../schemas/user-update.schema';
 
 @McpTool()
 @Injectable()
-export class UserUpdateTool implements IMcpTool {
-  private readonly logger = new Logger(UserUpdateTool.name);
+export class UserUpdateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(UserUpdateMcpTool.name);
 
   readonly name = 'user_update';
   readonly title = 'Update my profile';

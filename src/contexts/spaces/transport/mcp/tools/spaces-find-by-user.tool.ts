@@ -9,8 +9,8 @@ import { SpacesFindByUserQuery } from '@contexts/spaces/application/queries/spac
 
 @McpTool()
 @Injectable()
-export class SpacesFindByUserTool implements IMcpTool {
-  private readonly logger = new Logger(SpacesFindByUserTool.name);
+export class SpacesFindByUserMcpTool implements IMcpTool {
+  private readonly logger = new Logger(SpacesFindByUserMcpTool.name);
 
   readonly name = 'spaces_find_by_user';
   readonly title = 'List my spaces';

@@ -10,8 +10,8 @@ import { spaceCreateSchema } from '../schemas/space-create.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceCreateTool implements IMcpTool {
-  private readonly logger = new Logger(SpaceCreateTool.name);
+export class SpaceCreateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(SpaceCreateMcpTool.name);
 
   readonly name = 'space_create';
   readonly title = 'Create space';

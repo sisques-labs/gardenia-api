@@ -67,8 +67,8 @@ for tenancy.
    ```ts
    @McpTool()
    @Injectable()
-   export class FooCreateTool implements IMcpTool {
-     private readonly logger = new Logger(FooCreateTool.name);
+   export class FooCreateMcpTool implements IMcpTool {
+     private readonly logger = new Logger(FooCreateMcpTool.name);
 
      readonly name = 'foo_create';
      readonly title = 'Create foo';

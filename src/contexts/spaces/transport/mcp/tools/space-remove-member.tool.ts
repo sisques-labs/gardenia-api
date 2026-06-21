@@ -10,8 +10,8 @@ import { spaceRemoveMemberSchema } from '../schemas/space-remove-member.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceRemoveMemberTool implements IMcpTool {
-  private readonly logger = new Logger(SpaceRemoveMemberTool.name);
+export class SpaceRemoveMemberMcpTool implements IMcpTool {
+  private readonly logger = new Logger(SpaceRemoveMemberMcpTool.name);
 
   readonly name = 'space_remove_member';
   readonly title = 'Remove member from space';

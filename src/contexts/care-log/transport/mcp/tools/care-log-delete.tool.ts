@@ -10,8 +10,8 @@ import { careLogDeleteSchema } from '../schemas/care-log-delete.schema';
 
 @McpTool()
 @Injectable()
-export class CareLogDeleteTool implements IMcpTool {
-  private readonly logger = new Logger(CareLogDeleteTool.name);
+export class CareLogDeleteMcpTool implements IMcpTool {
+  private readonly logger = new Logger(CareLogDeleteMcpTool.name);
 
   readonly name = 'care_log_delete';
   readonly title = 'Delete care log entry';

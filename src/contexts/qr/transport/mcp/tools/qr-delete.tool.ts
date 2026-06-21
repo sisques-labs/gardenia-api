@@ -9,8 +9,8 @@ import { qrDeleteSchema } from '../schemas/qr-delete.schema';
 
 @McpTool()
 @Injectable()
-export class QrDeleteTool implements IMcpTool {
-  private readonly logger = new Logger(QrDeleteTool.name);
+export class QrDeleteMcpTool implements IMcpTool {
+  private readonly logger = new Logger(QrDeleteMcpTool.name);
 
   readonly name = 'qr_delete';
   readonly title = 'Delete QR code';

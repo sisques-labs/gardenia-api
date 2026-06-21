@@ -9,8 +9,8 @@ import { harvestFindByIdSchema } from '../schemas/harvest-find-by-id.schema';
 
 @McpTool()
 @Injectable()
-export class HarvestFindByIdTool implements IMcpTool {
-  private readonly logger = new Logger(HarvestFindByIdTool.name);
+export class HarvestFindByIdMcpTool implements IMcpTool {
+  private readonly logger = new Logger(HarvestFindByIdMcpTool.name);
 
   readonly name = 'harvest_find_by_id';
   readonly title = 'Find harvest by id';

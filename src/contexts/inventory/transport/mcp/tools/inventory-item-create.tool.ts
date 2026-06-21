@@ -12,8 +12,8 @@ import { inventoryItemCreateSchema } from '../schemas/inventory-item-create.sche
 
 @McpTool()
 @Injectable()
-export class InventoryItemCreateTool implements IMcpTool {
-  private readonly logger = new Logger(InventoryItemCreateTool.name);
+export class InventoryItemCreateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(InventoryItemCreateMcpTool.name);
 
   readonly name = 'inventory_item_create';
   readonly title = 'Create inventory item';

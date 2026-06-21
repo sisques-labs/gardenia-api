@@ -11,8 +11,8 @@ import { spaceCreateInvitationSchema } from '../schemas/space-create-invitation.
 
 @McpTool()
 @Injectable()
-export class SpaceCreateInvitationTool implements IMcpTool {
-  private readonly logger = new Logger(SpaceCreateInvitationTool.name);
+export class SpaceCreateInvitationMcpTool implements IMcpTool {
+  private readonly logger = new Logger(SpaceCreateInvitationMcpTool.name);
 
   readonly name = 'space_create_invitation';
   readonly title = 'Create space invitation';

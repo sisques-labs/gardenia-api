@@ -12,8 +12,8 @@ import { careLogCreateSchema } from '../schemas/care-log-create.schema';
 
 @McpTool()
 @Injectable()
-export class CareLogCreateTool implements IMcpTool {
-  private readonly logger = new Logger(CareLogCreateTool.name);
+export class CareLogCreateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(CareLogCreateMcpTool.name);
 
   readonly name = 'care_log_create';
   readonly title = 'Create care log entry';

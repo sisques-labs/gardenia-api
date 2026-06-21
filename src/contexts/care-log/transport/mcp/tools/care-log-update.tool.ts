@@ -12,8 +12,8 @@ import { careLogUpdateSchema } from '../schemas/care-log-update.schema';
 
 @McpTool()
 @Injectable()
-export class CareLogUpdateTool implements IMcpTool {
-  private readonly logger = new Logger(CareLogUpdateTool.name);
+export class CareLogUpdateMcpTool implements IMcpTool {
+  private readonly logger = new Logger(CareLogUpdateMcpTool.name);
 
   readonly name = 'care_log_update';
   readonly title = 'Update care log entry';

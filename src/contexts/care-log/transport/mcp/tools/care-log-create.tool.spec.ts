@@ -3,7 +3,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreateCareLogEntryCommand } from '@contexts/care-log/application/commands/create-care-log-entry/create-care-log-entry.command';
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
 import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
-import { CareLogCreateTool } from './care-log-create.tool';
+import { CareLogCreateMcpTool } from './care-log-create.tool';
 
 const PLANT_ID = '11111111-1111-4111-8111-111111111111';
 const CONTEXT: IMcpToolContext = {
@@ -12,13 +12,13 @@ const CONTEXT: IMcpToolContext = {
   spaceId: '44444444-4444-4444-8444-444444444444',
 };
 
-describe('CareLogCreateTool', () => {
-  let tool: CareLogCreateTool;
+describe('CareLogCreateMcpTool', () => {
+  let tool: CareLogCreateMcpTool;
   let commandBus: jest.Mocked<CommandBus>;
 
   beforeEach(() => {
     commandBus = { execute: jest.fn() } as unknown as jest.Mocked<CommandBus>;
-    tool = new CareLogCreateTool(commandBus);
+    tool = new CareLogCreateMcpTool(commandBus);
   });
 
   it('dispatches the command with userId and spaceId from the context', async () => {

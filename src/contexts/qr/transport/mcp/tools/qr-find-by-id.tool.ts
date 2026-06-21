@@ -9,8 +9,8 @@ import { qrFindByIdSchema } from '../schemas/qr-find-by-id.schema';
 
 @McpTool()
 @Injectable()
-export class QrFindByIdTool implements IMcpTool {
-  private readonly logger = new Logger(QrFindByIdTool.name);
+export class QrFindByIdMcpTool implements IMcpTool {
+  private readonly logger = new Logger(QrFindByIdMcpTool.name);
 
   readonly name = 'qr_find_by_id';
   readonly title = 'Find QR code by id';

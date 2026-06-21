@@ -9,8 +9,8 @@ import { spaceFindByIdSchema } from '../schemas/space-find-by-id.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceFindByIdTool implements IMcpTool {
-  private readonly logger = new Logger(SpaceFindByIdTool.name);
+export class SpaceFindByIdMcpTool implements IMcpTool {
+  private readonly logger = new Logger(SpaceFindByIdMcpTool.name);
 
   readonly name = 'space_find_by_id';
   readonly title = 'Find space by id';

@@ -10,8 +10,8 @@ import { careLogFindLastByTypeSchema } from '../schemas/care-log-find-last-by-ty
 
 @McpTool()
 @Injectable()
-export class CareLogFindLastByTypeTool implements IMcpTool {
-  private readonly logger = new Logger(CareLogFindLastByTypeTool.name);
+export class CareLogFindLastByTypeMcpTool implements IMcpTool {
+  private readonly logger = new Logger(CareLogFindLastByTypeMcpTool.name);
 
   readonly name = 'care_log_find_last_by_type';
   readonly title = 'Find last care log entry by type';

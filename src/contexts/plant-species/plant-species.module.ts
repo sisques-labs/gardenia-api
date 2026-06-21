@@ -27,13 +27,13 @@ import { PlantSpeciesTypeOrmEntity } from './infrastructure/persistence/typeorm/
 import { PlantSpeciesTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/plant-species-typeorm.mapper';
 import { PlantSpeciesTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/plant-species-typeorm-read.repository';
 import { PlantSpeciesTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/plant-species-typeorm-write.repository';
-import { PlantSpeciesCreateTool } from './transport/mcp/tools/plant-species-create.tool';
-import { PlantSpeciesDeleteTool } from './transport/mcp/tools/plant-species-delete.tool';
-import { PlantSpeciesEnrichTool } from './transport/mcp/tools/plant-species-enrich.tool';
-import { PlantSpeciesFindByCriteriaTool } from './transport/mcp/tools/plant-species-find-by-criteria.tool';
-import { PlantSpeciesFindByIdTool } from './transport/mcp/tools/plant-species-find-by-id.tool';
-import { PlantSpeciesImportTool } from './transport/mcp/tools/plant-species-import.tool';
-import { PlantSpeciesUpdateTool } from './transport/mcp/tools/plant-species-update.tool';
+import { PlantSpeciesCreateMcpTool } from './transport/mcp/tools/plant-species-create.tool';
+import { PlantSpeciesDeleteMcpTool } from './transport/mcp/tools/plant-species-delete.tool';
+import { PlantSpeciesEnrichMcpTool } from './transport/mcp/tools/plant-species-enrich.tool';
+import { PlantSpeciesFindByCriteriaMcpTool } from './transport/mcp/tools/plant-species-find-by-criteria.tool';
+import { PlantSpeciesFindByIdMcpTool } from './transport/mcp/tools/plant-species-find-by-id.tool';
+import { PlantSpeciesImportMcpTool } from './transport/mcp/tools/plant-species-import.tool';
+import { PlantSpeciesUpdateMcpTool } from './transport/mcp/tools/plant-species-update.tool';
 import { PlantSpeciesGraphQLMapper } from './transport/graphql/mappers/plant-species.mapper';
 import { PlantSpeciesMutationsResolver } from './transport/graphql/resolvers/plant-species-mutations.resolver';
 import { PlantSpeciesQueriesResolver } from './transport/graphql/resolvers/plant-species-queries.resolver';
@@ -96,13 +96,13 @@ const GRAPHQL_PROVIDERS = [
 ];
 
 const MCP_TOOLS = [
-  PlantSpeciesCreateTool,
-  PlantSpeciesUpdateTool,
-  PlantSpeciesDeleteTool,
-  PlantSpeciesEnrichTool,
-  PlantSpeciesImportTool,
-  PlantSpeciesFindByIdTool,
-  PlantSpeciesFindByCriteriaTool,
+  PlantSpeciesCreateMcpTool,
+  PlantSpeciesUpdateMcpTool,
+  PlantSpeciesDeleteMcpTool,
+  PlantSpeciesEnrichMcpTool,
+  PlantSpeciesImportMcpTool,
+  PlantSpeciesFindByIdMcpTool,
+  PlantSpeciesFindByCriteriaMcpTool,
 ];
 
 @Module({
