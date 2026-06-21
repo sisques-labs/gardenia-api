@@ -162,7 +162,7 @@ describe('HaReconcileService', () => {
       inventoryPort,
       mqtt,
     );
-    service.onModuleInit();
+    service.onApplicationBootstrap();
     expect(port.listPlantStates).not.toHaveBeenCalled();
   });
 });

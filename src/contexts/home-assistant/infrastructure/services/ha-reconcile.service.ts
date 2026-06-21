@@ -2,8 +2,8 @@ import {
   Inject,
   Injectable,
   Logger,
+  OnApplicationBootstrap,
   OnModuleDestroy,
-  OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -42,7 +42,9 @@ import { SpaceContext } from '@shared/space-context/space-context.service';
  * scope correctly with no extra wiring (same mechanism as the request path).
  */
 @Injectable()
-export class HaReconcileService implements OnModuleInit, OnModuleDestroy {
+export class HaReconcileService
+  implements OnApplicationBootstrap, OnModuleDestroy
+{
   private readonly logger = new Logger(HaReconcileService.name);
   private readonly config: MqttConfig;
   private readonly topics: HaTopicFactory;
@@ -72,7 +74,9 @@ export class HaReconcileService implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  onModuleInit(): void {
+  // Runs after onModuleInit hooks so the CQRS handlers the read adapters
+  // dispatch to are registered before the first reconcile.
+  onApplicationBootstrap(): void {
     if (!this.config.enabled || this.config.bridgedSpaceIds.length === 0) {
       this.logger.log(
         'Home Assistant bridge inactive (MQTT disabled or no bridged spaces)',

@@ -52,14 +52,14 @@ Chained PRs recommended: Yes
 - [x] 2.4 **[L]** Mappers (shared `HaSensorBuilder`): per-plant `last_watered`; hub `plants_total`/`harvests_total`/`last_harvest`/`inventory_items_total`/`inventory_low_stock`; weather `temperature_max/min` + `precipitation`. Stable `unique_id`/`object_id`, device grouping. (Per-plant health/next-care still follow same shape.) Req: R-HA-3, R-HA-4.
 - [x] 2.5 **[M]** `infrastructure/services/ha-reconcile.service.ts` — bootstrap + `HA_RECONCILE_INTERVAL` loop; per bridged space publishes availability `online` + discovery (retain) + state (retain), inside the space ALS frame. Req: R-HA-4, R-HA-5.
 - [x] 2.6 **[S]** Config: `HA_BRIDGED_SPACES` selects bridged spaces; operator setup documented in `home-assistant/README.md`. Req: R-HA-1.
-- [~] 2.7 **[M]** Tests: topic-factory + plant-mapper + reconcile unit (10 specs, mocked MqttService asserts topics). Broker integration + seeded-space E2E still TODO. Spec: S-HA-x.
+- [~] 2.7 **[M]** Tests: topic-factory + plant-mapper + reconcile unit (10 specs, mocked MqttService asserts topics). Read-path integration + real-broker E2E (discovery/state publish) done. Spec: S-HA-x.
 
 ## Phase 3: HA writes Gardenia — command topics
 
 - [x] 3.1 **[M]** `application/ports/ha-write.port.ts` + `infrastructure/adapters/ha-write.adapter.ts` — `recordWatering` (→ `CreateCareLogEntryCommand`) and `adjustInventory` (→ `AdjustInventoryItemQuantityCommand`); dispatch via `CommandBus`, attribute user-bound writes to the space owner (resolved via `SpaceFindByIdQuery`). Harvest write deferred (needs structured input). Req: R-HA-8.
 - [x] 3.2 **[M]** `transport/mqtt/ha-command.router.ts` — subscribes to `{base}/+/+/+/+/set`, parses topic→space/entity/id/action, runs inside the space ALS frame, dispatches via the write port. Logs at entry; rejects non-bridged spaces and malformed/non-numeric payloads. Req: R-HA-8, R-HA-6.
 - [x] 3.3 **[M]** Discovery extended: per-plant `Water` **button** and per-inventory-item `Adjust` **number** (delta) with `command_topic`, via the shared `HaSensorBuilder`. Req: R-HA-8.
-- [~] 3.4 **[M]** Tests: router unit (topic+payload → correct command; foreign space + bad payload rejected) + inventory mapper unit. Publish-to-`set` over a broker E2E still TODO. Spec: S-HA-8.x.
+- [~] 3.4 **[M]** Tests: router unit (topic+payload → correct command; foreign space + bad payload rejected) + inventory mapper unit. Broker E2E covers publish-to-`set` (real MQTT, embedded aedes). Spec: S-HA-8.x.
 
 ## Phase 4: Physical sensors → Gardenia — sensor-readings
 
@@ -68,7 +68,7 @@ Chained PRs recommended: Yes
 - [x] 4.3 **[M]** Application: `RecordSensorReadingCommand` + handler; `FindLatestReadingsByPlantQuery` (latest per metric). MCP tools `sensor_reading_record` / `sensor_reading_find_latest`. Req: R-SR-1, R-SR-3.
 - [x] 4.4 **[M]** Bridge ingest: `ha-sensor-ingest.router.ts` subscribes to `{base}/{space}/plant/{id}/{metric}/reading`, maps topic→plant+metric, dispatches via `ISensorIngestPort` inside the space frame. Mapping = Gardenia-owned ingest topic namespace. Req: R-SR-3, R-HA-9.
 - [x] 4.5 **[M]** Surface-back: `PlantStateAdapter` fetches latest readings; the plant mapper emits a per-metric sensor. Req: R-SR-4, R-HA-3.
-- [~] 4.6 **[M]** Tests: aggregate VO + record-handler unit; ingest-router unit (topic→reading, foreign space / non-numeric rejected); repo integration (latest-per-metric + tenant isolation); reconcile read-path integration. Publish-reading-over-broker E2E still TODO. Spec: S-SR-x, S-HA-9.
+- [~] 4.6 **[M]** Tests: aggregate VO + record-handler unit; ingest-router unit (topic→reading, foreign space / non-numeric rejected); repo integration (latest-per-metric + tenant isolation); reconcile read-path integration. Real-broker E2E (publish reading → persisted; reconcile → state published) done. Spec: S-SR-x, S-HA-9.
 
 ## Cross-cutting (all phases)
 - [ ] X.1 Keep `MQTT_ENABLED=false` default; verify app behavior unchanged when disabled.
