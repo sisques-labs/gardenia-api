@@ -18,6 +18,7 @@ import { validateEnv } from '@core/config/env.validation';
 import { postgresConfig } from '@core/config/postgres.config';
 import { sentryConfig } from '@core/config/sentry.config';
 import { HealthModule } from '@core/health/health.module';
+import { McpModule } from '@core/mcp/mcp.module';
 import { ObservabilityModule } from '@core/observability/observability.module';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -62,6 +63,7 @@ import { SupportModule } from './support/support.module';
     }),
     ObservabilityModule,
     HealthModule,
+    McpModule,
     WeatherModule,
     SpacesModule,
     AuthModule,

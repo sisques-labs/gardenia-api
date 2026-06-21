@@ -185,3 +185,14 @@ All repository queries are scoped to the active space via `SpaceContext` (tenant
 - **No update endpoint** — the target URL cannot be changed after creation. To change where a QR points, delete and recreate.
 - **Cross-module dispatch** — `PlantQrAdapter` dispatches QR queries through the global `QueryBus`. This works because `CqrsModule` is global in NestJS. No direct `QrModule` import is needed in `PlantsModule`.
 - **`qrId` lives in the plant row** — the `plants` table has a `qr_id` FK column. Deleting a plant also deletes its linked QR via a database trigger (`delete_qr_when_plant_deleted`).
+
+## MCP Tools
+
+Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the active space comes from the authenticated MCP request context.
+
+| Tool | Action |
+|------|--------|
+| `qr_create` | Create a QR code |
+| `qr_regenerate` | Regenerate a QR code |
+| `qr_delete` | Delete a QR code |
+| `qr_find_by_id` | Get a QR code by id |

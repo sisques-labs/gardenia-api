@@ -17,6 +17,12 @@ import { InventoryItemTypeOrmEntity } from '@contexts/inventory/infrastructure/p
 import { InventoryItemTypeOrmMapper } from '@contexts/inventory/infrastructure/persistence/typeorm/mappers/inventory-item-typeorm.mapper';
 import { InventoryItemTypeOrmReadRepository } from '@contexts/inventory/infrastructure/persistence/typeorm/repositories/inventory-item-typeorm-read.repository';
 import { InventoryItemTypeOrmWriteRepository } from '@contexts/inventory/infrastructure/persistence/typeorm/repositories/inventory-item-typeorm-write.repository';
+import { InventoryItemAdjustQuantityMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-adjust-quantity.tool';
+import { InventoryItemCreateMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-create.tool';
+import { InventoryItemDeleteMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-delete.tool';
+import { InventoryItemFindByCriteriaMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-find-by-criteria.tool';
+import { InventoryItemFindByIdMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-find-by-id.tool';
+import { InventoryItemUpdateMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-update.tool';
 import '@contexts/inventory/transport/graphql/enums/inventory-registered-enums.graphql';
 import { InventoryItemGraphQLMapper } from '@contexts/inventory/transport/graphql/mappers/inventory-item.mapper';
 import { InventoryItemMutationsResolver } from '@contexts/inventory/transport/graphql/resolvers/inventory-item-mutations.resolver';
@@ -67,6 +73,15 @@ const GRAPHQL_PROVIDERS = [
   InventoryItemGraphQLMapper,
 ];
 
+const MCP_TOOLS = [
+  InventoryItemCreateMcpTool,
+  InventoryItemUpdateMcpTool,
+  InventoryItemAdjustQuantityMcpTool,
+  InventoryItemDeleteMcpTool,
+  InventoryItemFindByIdMcpTool,
+  InventoryItemFindByCriteriaMcpTool,
+];
+
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
   controllers: [...REST_CONTROLLERS],
@@ -79,6 +94,7 @@ const GRAPHQL_PROVIDERS = [
     ...INFRASTRUCTURE_REPOSITORIES,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
+    ...MCP_TOOLS,
   ],
   exports: [],
 })

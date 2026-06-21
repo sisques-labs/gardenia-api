@@ -221,3 +221,16 @@ active `spaceId` from `SpaceContext` ALS.
 3. **`lowStock` is a cross-column filter** — handled as a special `low_stock` filter field in `InventoryItemTypeOrmReadRepository.findByCriteria` (`quantity <= low_stock_threshold`), not a plain column filter.
 4. **`adjustQuantity` clamps at 0** — consumption larger than stock leaves the quantity at `0`, never negative.
 5. **`SpaceContext` / `SpaceGuard` are global** — never add them to `InventoryModule.providers`.
+
+## MCP Tools
+
+Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the acting user and active space come from the authenticated MCP request context.
+
+| Tool | Action |
+|------|--------|
+| `inventory_item_create` | Create an inventory item |
+| `inventory_item_update` | Update an inventory item |
+| `inventory_item_adjust_quantity` | Apply a signed quantity delta |
+| `inventory_item_delete` | Delete an inventory item |
+| `inventory_item_find_by_id` | Get an item by id |
+| `inventory_item_find_by_criteria` | Paginated list of items |

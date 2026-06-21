@@ -54,6 +54,15 @@ import { SpaceTypeOrmReadRepository } from './infrastructure/persistence/typeorm
 import { SpaceTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/space-typeorm-write.repository';
 import { SpaceGuard } from './transport/guards/space.guard';
 import { SpaceInterceptor } from './transport/interceptors/space.interceptor';
+import { SpaceAcceptInvitationMcpTool } from './transport/mcp/tools/space-accept-invitation.tool';
+import { SpaceAddMemberMcpTool } from './transport/mcp/tools/space-add-member.tool';
+import { SpaceCreateInvitationMcpTool } from './transport/mcp/tools/space-create-invitation.tool';
+import { SpaceCreateMcpTool } from './transport/mcp/tools/space-create.tool';
+import { SpaceFindByIdMcpTool } from './transport/mcp/tools/space-find-by-id.tool';
+import { SpaceGetWeatherMcpTool } from './transport/mcp/tools/space-get-weather.tool';
+import { SpaceRemoveMemberMcpTool } from './transport/mcp/tools/space-remove-member.tool';
+import { SpaceUpdateMcpTool } from './transport/mcp/tools/space-update.tool';
+import { SpacesFindByUserMcpTool } from './transport/mcp/tools/spaces-find-by-user.tool';
 import { SpaceInvitationGraphQLMapper } from './transport/graphql/mappers/space-invitation/space-invitation.mapper';
 import { SpaceGraphQLMapper } from './transport/graphql/mappers/space/space.mapper';
 import { SpaceMutationsResolver } from './transport/graphql/resolvers/space/space-mutations.resolver';
@@ -150,6 +159,18 @@ const TRANSPORT_PROVIDERS = [
   SpaceInvitationRestMapper,
 ];
 
+const MCP_TOOLS = [
+  SpaceCreateMcpTool,
+  SpaceUpdateMcpTool,
+  SpaceAddMemberMcpTool,
+  SpaceRemoveMemberMcpTool,
+  SpaceCreateInvitationMcpTool,
+  SpaceAcceptInvitationMcpTool,
+  SpaceFindByIdMcpTool,
+  SpacesFindByUserMcpTool,
+  SpaceGetWeatherMcpTool,
+];
+
 const REST_CONTROLLERS = [SpacesController, InvitationsController];
 
 @Module({
@@ -169,6 +190,7 @@ const REST_CONTROLLERS = [SpacesController, InvitationsController];
     ...INFRASTRUCTURE_REPOSITORIES,
     ...GRAPHQL_PROVIDERS,
     ...TRANSPORT_PROVIDERS,
+    ...MCP_TOOLS,
   ],
   exports: [],
 })

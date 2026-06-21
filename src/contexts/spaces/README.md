@@ -408,3 +408,19 @@ E2E invitation tests use REST. GraphQL accept/create mirror the same command han
 4. **Invitation accept is frontend-driven** — the API does not serve `/invite`; it only exposes accept mutations/endpoints. The frontend must implement `/invite?code=…`.
 5. **Owner-only operations** — creating invitations, adding members, and removing members all assert the requester is the space owner via `AssertUserIsSpaceOwnerService`.
 6. **Codes are reusable until expiry** — accepting an invitation does not invalidate the code; multiple users could join with the same link before `expiresAt` (if that is ever undesirable, add a use-count or revoke-on-accept rule in the domain).
+
+## MCP Tools
+
+Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the acting user comes from the authenticated MCP request context.
+
+| Tool | Action |
+|------|--------|
+| `space_create` | Create a space |
+| `space_update` | Update a space |
+| `space_add_member` | Add a member to a space |
+| `space_remove_member` | Remove a member from a space |
+| `space_create_invitation` | Create an invitation |
+| `space_accept_invitation` | Accept an invitation |
+| `space_find_by_id` | Get a space by id |
+| `spaces_find_by_user` | List the spaces the user belongs to |
+| `space_get_weather` | Weather forecast for a space |
