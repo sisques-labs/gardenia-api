@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.22.1-alpha.0] - 2026-06-21
+
+### Chore
+- **mcp:** Add Cursor MCP client config template (7ab4994)
 ## [0.22.0-alpha.0] - 2026-06-21
 
 ### Documentation
