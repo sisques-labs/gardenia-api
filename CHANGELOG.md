@@ -1,6 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.21.0-alpha.0] - 2026-06-20
+
+### Documentation
+- **inventory:** Add OpenSpec change for consumable supplies inventory (d1706ad)
+
+### Features
+- **inventory:** Consumable supplies inventory bounded context (c220b2d)
+
+### Refactor
+- **inventory:** Address PR review feedback (f13cadd)
+
+### Testing
+- **inventory:** Register inventory entity and migration in integration test harness (d0a66cb)
 ## [0.20.1-alpha.0] - 2026-06-20
 
 ### Build
