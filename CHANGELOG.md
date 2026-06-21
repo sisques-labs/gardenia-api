@@ -1,6 +1,21 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.22.0-alpha.0] - 2026-06-21
+
+### Documentation
+- **openspec:** Add MCP tools convention to code conventions (68c71b7)
+
+### Features
+- **mcp:** Add Model Context Protocol transport with plants pilot (de474fa)
+- **mcp:** Expose MCP tools for all remaining bounded contexts (b545e70)
+
+### Refactor
+- **mcp:** Extract plants tool input schemas into mcp/schemas (cbb9043)
+- **mcp:** Rename tool classes with McpTool suffix (d6fea0c)
+
+### Testing
+- **mcp:** Add e2e coverage and document MCP tools per context (1a6f7bf)
 ## [0.21.0-alpha.0] - 2026-06-20
 
 ### Documentation
