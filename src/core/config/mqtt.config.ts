@@ -22,6 +22,8 @@ export interface MqttConfig {
   discoveryPrefix: string;
   /** How often (ms) the bridge re-publishes a full state snapshot. */
   reconcileIntervalMs: number;
+  /** Space ids the bridge publishes to Home Assistant (`HA_BRIDGED_SPACES`). */
+  bridgedSpaceIds: string[];
 }
 
 const DEFAULT_BASE_TOPIC = 'gardenia';
@@ -58,5 +60,14 @@ export const mqttConfig = registerAs('mqtt', (): MqttConfig => {
       process.env.HA_RECONCILE_INTERVAL,
       DEFAULT_RECONCILE_INTERVAL_MS,
     ),
+    bridgedSpaceIds: parseSpaceIds(process.env.HA_BRIDGED_SPACES),
   };
 });
+
+function parseSpaceIds(value: string | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+}

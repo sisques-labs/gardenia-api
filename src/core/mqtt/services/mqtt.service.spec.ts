@@ -51,6 +51,7 @@ function buildConfig(overrides: Partial<MqttConfig> = {}): MqttConfig {
     baseTopic: 'gardenia',
     discoveryPrefix: 'homeassistant',
     reconcileIntervalMs: 1000,
+    bridgedSpaceIds: [],
     ...overrides,
   };
 }

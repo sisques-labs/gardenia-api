@@ -2,6 +2,7 @@ import { AuthModule } from '@contexts/auth/auth.module';
 import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
 import { CareLogModule } from '@contexts/care-log/care-log.module';
 import { HarvestsModule } from '@contexts/harvests/harvests.module';
+import { HomeAssistantModule } from '@contexts/home-assistant/home-assistant.module';
 import { InventoryModule } from '@contexts/inventory/inventory.module';
 import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
 import { PlantingSpotsModule } from '@contexts/planting-spots/planting-spots.module';
@@ -78,6 +79,7 @@ import { SupportModule } from './support/support.module';
     CareLogModule,
     HarvestsModule,
     InventoryModule,
+    HomeAssistantModule,
   ],
   providers: [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through

@@ -61,6 +61,7 @@ const baseEnvSchema = z.object({
   MQTT_BASE_TOPIC: z.string().optional(),
   HA_DISCOVERY_PREFIX: z.string().optional(),
   HA_RECONCILE_INTERVAL: z.coerce.number().positive().optional(),
+  HA_BRIDGED_SPACES: z.string().optional(),
 });
 
 export function validateProductionSecrets(env: {

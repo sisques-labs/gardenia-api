@@ -46,13 +46,13 @@ Chained PRs recommended: Yes
 
 ## Phase 2: HA reads Gardenia — discovery + retained state
 
-- [ ] 2.1 **[S]** Create `home-assistant` context skeleton + `home-assistant.module.ts` (empty provider arrays), import in `AppModule`. Req: R-HA-1.
-- [ ] 2.2 **[M]** `domain/value-objects/ha-topic/ha-topic.value-object.ts` — builds `{base}/{spaceId}/...` state/command topics and `homeassistant/.../config` discovery topics; validates non-empty space. Req: R-HA-2, R-HA-6.
-- [ ] 2.3 **[M]** `application/ports/*` + `infrastructure/adapters/*` — read ports for plants, care-log summary, harvests, inventory, weather; adapters dispatch via `QueryBus` only (no cross-context domain import). Req: R-HA-3, R-HA-7.
-- [ ] 2.4 **[L]** `domain/services/*-entity-mapper.ts` — map each view model to its HA discovery config + state payload (plant `last_watered`/`next_care_due`/`health`, space task counts, harvest totals, inventory levels, weather). Stable `unique_id`/`object_id`. Req: R-HA-3, R-HA-4.
-- [ ] 2.5 **[M]** `infrastructure/services/ha-reconcile.service.ts` — on bootstrap and every `HA_RECONCILE_INTERVAL`, for each bridged space publish discovery (retain) + state (retain). Publish bridge availability `online`. Req: R-HA-4, R-HA-5.
-- [ ] 2.6 **[S]** Config: map which space(s) a connection bridges. Document operator setup in `home-assistant/README.md`. Req: R-HA-1.
-- [ ] 2.7 **[M]** Tests: topic VO unit, mapper units (payload shape), reconcile unit (mock MqttService asserts topics), integration over a mock/embedded broker, E2E that discovery+state publish for a seeded space. Spec: S-HA-x.
+- [x] 2.1 **[S]** Create `home-assistant` context + `home-assistant.module.ts`, import in `AppModule`. Req: R-HA-1.
+- [x] 2.2 **[M]** `domain/services/ha-topic.factory.ts` — builds `{base}/{spaceId}/...` state/command/availability topics and `{discoveryPrefix}/.../config`; validates non-empty space. (Pure class, not a kit VO, to keep domain framework-free.) Req: R-HA-2, R-HA-6.
+- [~] 2.3 **[M]** `application/ports/plant-state.port.ts` + `infrastructure/adapters/plant-state.adapter.ts` — plant + last-watering read via `QueryBus` (no cross-context domain import). Harvests/inventory/weather ports follow the same shape (TODO). Req: R-HA-3, R-HA-7.
+- [~] 2.4 **[L]** `domain/services/plant-entity.mapper.ts` — plant → HA `last_watered` timestamp sensor (discovery + state), stable `unique_id`/`object_id`, device grouping. Health/next-care/harvests/inventory/weather sensors follow (TODO). Req: R-HA-3, R-HA-4.
+- [x] 2.5 **[M]** `infrastructure/services/ha-reconcile.service.ts` — bootstrap + `HA_RECONCILE_INTERVAL` loop; per bridged space publishes availability `online` + discovery (retain) + state (retain), inside the space ALS frame. Req: R-HA-4, R-HA-5.
+- [x] 2.6 **[S]** Config: `HA_BRIDGED_SPACES` selects bridged spaces; operator setup documented in `home-assistant/README.md`. Req: R-HA-1.
+- [~] 2.7 **[M]** Tests: topic-factory + plant-mapper + reconcile unit (10 specs, mocked MqttService asserts topics). Broker integration + seeded-space E2E still TODO. Spec: S-HA-x.
 
 ## Phase 3: HA writes Gardenia — command topics
 
