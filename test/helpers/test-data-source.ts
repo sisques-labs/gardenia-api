@@ -11,6 +11,7 @@ import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infr
 import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
+import { SensorReadingTypeOrmEntity } from '../../src/contexts/sensor-readings/infrastructure/persistence/typeorm/entities/sensor-reading.entity';
 import { SpaceInvitationEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-invitation.entity';
 import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
@@ -37,6 +38,7 @@ import { CreateHarvests1780000000015 } from '../../src/database/migrations/17800
 import { CreateCareLog1780000000016 } from '../../src/database/migrations/1780000000016-CreateCareLog';
 import { CreateInventoryItems1780000000018 } from '../../src/database/migrations/1780000000018-CreateInventoryItems';
 import { CreateApiTokens1780000000019 } from '../../src/database/migrations/1780000000019-CreateApiTokens';
+import { CreateSensorReadings1780000000020 } from '../../src/database/migrations/1780000000020-CreateSensorReadings';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -54,6 +56,7 @@ const TEST_ENTITIES = [
   HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
   InventoryItemTypeOrmEntity,
+  SensorReadingTypeOrmEntity,
 ];
 
 const TEST_MIGRATIONS = [
@@ -79,6 +82,7 @@ const TEST_MIGRATIONS = [
   CreateCareLog1780000000016,
   CreateInventoryItems1780000000018,
   CreateApiTokens1780000000019,
+  CreateSensorReadings1780000000020,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

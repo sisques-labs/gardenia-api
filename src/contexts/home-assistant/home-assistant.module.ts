@@ -4,15 +4,18 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { HA_WRITE_PORT } from '@contexts/home-assistant/application/ports/ha-write.port';
 import { INVENTORY_STATE_PORT } from '@contexts/home-assistant/application/ports/inventory-state.port';
 import { PLANT_STATE_PORT } from '@contexts/home-assistant/application/ports/plant-state.port';
+import { SENSOR_INGEST_PORT } from '@contexts/home-assistant/application/ports/sensor-ingest.port';
 import { SPACE_SUMMARY_PORT } from '@contexts/home-assistant/application/ports/space-summary.port';
 import { WEATHER_STATE_PORT } from '@contexts/home-assistant/application/ports/weather-state.port';
 import { HaWriteAdapter } from '@contexts/home-assistant/infrastructure/adapters/ha-write.adapter';
 import { InventoryStateAdapter } from '@contexts/home-assistant/infrastructure/adapters/inventory-state.adapter';
 import { PlantStateAdapter } from '@contexts/home-assistant/infrastructure/adapters/plant-state.adapter';
+import { SensorIngestAdapter } from '@contexts/home-assistant/infrastructure/adapters/sensor-ingest.adapter';
 import { SpaceSummaryAdapter } from '@contexts/home-assistant/infrastructure/adapters/space-summary.adapter';
 import { WeatherStateAdapter } from '@contexts/home-assistant/infrastructure/adapters/weather-state.adapter';
 import { HaReconcileService } from '@contexts/home-assistant/infrastructure/services/ha-reconcile.service';
 import { HaCommandRouter } from '@contexts/home-assistant/transport/mqtt/ha-command.router';
+import { HaSensorIngestRouter } from '@contexts/home-assistant/transport/mqtt/ha-sensor-ingest.router';
 
 /**
  * The Home Assistant bridge: publishes MQTT Discovery + retained state for
@@ -28,11 +31,12 @@ const INFRASTRUCTURE_ADAPTERS = [
   { provide: WEATHER_STATE_PORT, useClass: WeatherStateAdapter },
   { provide: INVENTORY_STATE_PORT, useClass: InventoryStateAdapter },
   { provide: HA_WRITE_PORT, useClass: HaWriteAdapter },
+  { provide: SENSOR_INGEST_PORT, useClass: SensorIngestAdapter },
 ];
 
 const INFRASTRUCTURE_SERVICES = [HaReconcileService];
 
-const TRANSPORT_PROVIDERS = [HaCommandRouter];
+const TRANSPORT_PROVIDERS = [HaCommandRouter, HaSensorIngestRouter];
 
 @Module({
   imports: [CqrsModule],

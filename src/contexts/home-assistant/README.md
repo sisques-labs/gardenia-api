@@ -58,6 +58,15 @@ ignored.
 Harvest writes need structured input (crop/quantity/unit) that does not fit a
 button/number, so they remain a follow-up.
 
+## Physical sensors → Gardenia (ingest)
+
+`HaSensorIngestRouter` subscribes to
+`<base>/<space>/plant/<plantId>/<metric>/reading` and persists each numeric
+value as a `sensor-reading` (via `RecordSensorReadingCommand`), scoped to the
+bridged space. The latest reading per metric is surfaced back as a per-plant
+`<metric>` sensor on the next reconcile (a full read↔write↔read loop with Home
+Assistant). Non-numeric payloads and non-bridged spaces are ignored.
+
 ## Topic layout
 
 | Topic | Purpose |
@@ -69,6 +78,8 @@ button/number, so they remain a follow-up.
 | `<base>/<spaceId>/plant/<id>/water/set` | Plant water button command |
 | `<base>/<spaceId>/inventory/<id>/quantity/state` | Inventory item quantity sensor |
 | `<base>/<spaceId>/inventory/<id>/adjust/set` | Inventory adjust (delta) command |
+| `<base>/<spaceId>/plant/<id>/<metric>/reading` | Physical sensor reading ingest (HA → Gardenia) |
+| `<base>/<spaceId>/plant/<id>/<metric>/state` | Latest reading surfaced back (Gardenia → HA) |
 | `<discoveryPrefix>/<component>/gardenia_<spaceId>/<object>/config` | Retained HA discovery config |
 
 `<base>` = `MQTT_BASE_TOPIC` (default `gardenia`), `<discoveryPrefix>` =
@@ -101,6 +112,6 @@ With either unset the reconcile loop never starts and nothing is published.
 
 - **Phase 2 (done):** HA reads — plant, hub summary, weather and inventory entities.
 - **Phase 3 (done):** HA writes — water button → care-log; inventory adjust number.
-- **Phase 4 (planned):** ingest physical sensor readings from HA (`sensor-readings`).
+- **Phase 4 (done):** ingest physical sensor readings from HA (`sensor-readings`) and surface the latest value back per plant.
 
 See `openspec/changes/home-assistant-integration/` for the full plan.

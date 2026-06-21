@@ -48,6 +48,17 @@ export class PlantEntityMapper {
         commandSegments: ['plant', plant.plantId, 'water'],
         device,
       }),
+      // Physical readings ingested from HA, surfaced back as sensors.
+      ...plant.readings.map((reading) =>
+        this.sensors.build(topics, spaceId, {
+          objectId: `plant_${plant.plantId}_${reading.metric}`,
+          name: reading.metric,
+          unit: reading.unit || undefined,
+          stateSegments: ['plant', plant.plantId, reading.metric],
+          state: String(reading.value),
+          device,
+        }),
+      ),
     ];
   }
 }

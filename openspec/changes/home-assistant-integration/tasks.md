@@ -63,12 +63,12 @@ Chained PRs recommended: Yes
 
 ## Phase 4: Physical sensors → Gardenia — sensor-readings
 
-- [ ] 4.1 **[L]** Create `sensor-readings` context: `SensorReadingAggregate` (plantId, metric, value, unit, measuredAt, source), builder, primitives, value objects, repository interface. Req: R-SR-1.
-- [ ] 4.2 **[M]** Persistence: entity, mapper, TypeORM write repo, migration creating `sensor_readings` with index `(space_id, plant_id, metric, measured_at)`. Req: R-SR-2.
-- [ ] 4.3 **[M]** Application: `record-sensor-reading` command + handler (tenant-scoped); `find-latest-reading` query per `(plant, metric)`. Req: R-SR-1, R-SR-3.
-- [ ] 4.4 **[M]** Bridge ingest: `home-assistant/transport/mqtt/ha-sensor-ingest.router.ts` subscribes to configured HA sensor topics, maps topic→plant, dispatches `RecordSensorReadingCommand` via an adapter. Define the plant↔sensor mapping mechanism. Req: R-SR-3, R-HA-9.
-- [ ] 4.5 **[M]** Surface-back: Phase 2 plant mapper includes latest reading per metric as a plant sensor entity/state. Req: R-SR-4, R-HA-3.
-- [ ] 4.6 **[M]** Tests: aggregate/handler unit, repo integration round-trip + tenant scoping, ingest router unit (topic→reading), E2E publish-reading → persisted → surfaced. Spec: S-SR-x, S-HA-9.
+- [x] 4.1 **[L]** New `sensor-readings` context: immutable `SensorReadingAggregate` (plantId, spaceId, metric, value, unit, measuredAt, source) with VOs, builder, primitives, view model, read/write repository interfaces. Req: R-SR-1.
+- [x] 4.2 **[M]** Persistence: entity, mapper, tenant-scoped write repo, `DISTINCT ON` read repo, migration creating `sensor_readings` (FK → spaces, index `(space_id, plant_id, metric, measured_at)`). Req: R-SR-2.
+- [x] 4.3 **[M]** Application: `RecordSensorReadingCommand` + handler; `FindLatestReadingsByPlantQuery` (latest per metric). MCP tools `sensor_reading_record` / `sensor_reading_find_latest`. Req: R-SR-1, R-SR-3.
+- [x] 4.4 **[M]** Bridge ingest: `ha-sensor-ingest.router.ts` subscribes to `{base}/{space}/plant/{id}/{metric}/reading`, maps topic→plant+metric, dispatches via `ISensorIngestPort` inside the space frame. Mapping = Gardenia-owned ingest topic namespace. Req: R-SR-3, R-HA-9.
+- [x] 4.5 **[M]** Surface-back: `PlantStateAdapter` fetches latest readings; the plant mapper emits a per-metric sensor. Req: R-SR-4, R-HA-3.
+- [~] 4.6 **[M]** Tests: aggregate VO + record-handler unit; ingest-router unit (topic→reading, foreign space / non-numeric rejected); repo integration (latest-per-metric + tenant isolation); reconcile read-path integration. Publish-reading-over-broker E2E still TODO. Spec: S-SR-x, S-HA-9.
 
 ## Cross-cutting (all phases)
 - [ ] X.1 Keep `MQTT_ENABLED=false` default; verify app behavior unchanged when disabled.

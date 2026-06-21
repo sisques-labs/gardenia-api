@@ -29,6 +29,7 @@ import { WeatherStateAdapter } from '@contexts/home-assistant/infrastructure/ada
 import { HaReconcileService } from '@contexts/home-assistant/infrastructure/services/ha-reconcile.service';
 import { InventoryModule } from '@contexts/inventory/inventory.module';
 import { PlantsModule } from '@contexts/plants/plants.module';
+import { SensorReadingsModule } from '@contexts/sensor-readings/sensor-readings.module';
 import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { WeatherModule } from '@contexts/weather/weather.module';
 
@@ -84,6 +85,7 @@ describe('HA bridge reconcile (integration)', () => {
         CareLogModule,
         HarvestsModule,
         InventoryModule,
+        SensorReadingsModule,
         SpacesModule,
         WeatherModule,
       ],

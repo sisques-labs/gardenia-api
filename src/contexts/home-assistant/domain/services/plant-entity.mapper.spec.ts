@@ -10,6 +10,7 @@ describe('PlantEntityMapper', () => {
       plantId: 'p1',
       name: 'Fern',
       lastWateredAt: new Date('2026-06-01T10:00:00.000Z'),
+      readings: [],
     });
 
     expect(message.configTopic).toBe(
@@ -31,6 +32,7 @@ describe('PlantEntityMapper', () => {
       plantId: 'p2',
       name: 'Cactus',
       lastWateredAt: null,
+      readings: [],
     });
     expect(message.state).toBe('None');
   });

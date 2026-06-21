@@ -19,6 +19,7 @@ import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persi
 import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
 import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
+import { SensorReadingTypeOrmEntity } from '../../src/contexts/sensor-readings/infrastructure/persistence/typeorm/entities/sensor-reading.entity';
 import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
 import { appConfig } from '../../src/core/config/app.config';
@@ -49,6 +50,7 @@ const TEST_ENTITIES = [
   HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
   InventoryItemTypeOrmEntity,
+  SensorReadingTypeOrmEntity,
 ];
 
 export interface IntegrationModuleOptions {

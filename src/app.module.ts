@@ -8,6 +8,7 @@ import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module
 import { PlantingSpotsModule } from '@contexts/planting-spots/planting-spots.module';
 import { PlantsModule } from '@contexts/plants/plants.module';
 import { QrModule } from '@contexts/qr/qr.module';
+import { SensorReadingsModule } from '@contexts/sensor-readings/sensor-readings.module';
 import { SpacesModule } from '@contexts/spaces/spaces.module';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
@@ -79,6 +80,7 @@ import { SupportModule } from './support/support.module';
     CareLogModule,
     HarvestsModule,
     InventoryModule,
+    SensorReadingsModule,
     HomeAssistantModule,
   ],
   providers: [

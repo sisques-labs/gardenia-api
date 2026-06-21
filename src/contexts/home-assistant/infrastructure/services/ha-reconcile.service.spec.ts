@@ -79,7 +79,7 @@ describe('HaReconcileService', () => {
 
   it('publishes availability, summary, weather and plant entities', async () => {
     port.listPlantStates.mockResolvedValue([
-      { plantId: 'p1', name: 'Fern', lastWateredAt: null },
+      { plantId: 'p1', name: 'Fern', lastWateredAt: null, readings: [] },
     ]);
     summaryPort.getSummary.mockResolvedValue({
       plantCount: 3,
