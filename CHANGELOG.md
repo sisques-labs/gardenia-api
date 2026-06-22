@@ -1,6 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.22.2-alpha.0] - 2026-06-22
+
+### Testing
+- **domain:** Add unit tests for value objects, builders and aggregates (dcf5941)
+- **application:** Add unit tests for assert services (7b7c475)
+- **application:** Add unit tests for command and query handlers (5ce3166)
+- **infrastructure:** Add unit tests for TypeORM persistence mappers (defcab2)
+- **transport:** Add unit tests for GraphQL and REST mappers (fc7e765)
+- Add unit tests for specialized services and adapters (a94f80e)
+- **transport:** Add unit tests for GraphQL resolvers (1a0a662)
+- **transport:** Add unit tests for REST and MCP controllers (89fb917)
+- **auth:** Add unit tests for guards and local strategy (5adde4f)
 ## [0.22.1-alpha.0] - 2026-06-21
 
 ### Chore
