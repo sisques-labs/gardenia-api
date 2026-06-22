@@ -1,6 +1,16 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.23.0-alpha.0] - 2026-06-22
+
+### Documentation
+- **observability:** Propose Prometheus metrics change (91a1d34)
+
+### Features
+- **metrics:** Add Prometheus metrics endpoint and instrumentation (012c19e)
+
+### Refactor
+- **metrics:** Align module with DDD layer structure (7456b63)
 ## [0.22.2-alpha.0] - 2026-06-22
 
 ### Testing
