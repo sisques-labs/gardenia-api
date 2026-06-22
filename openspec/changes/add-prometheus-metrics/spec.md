@@ -16,7 +16,7 @@ format (`Content-Type: text/plain; version=0.0.4`).
 The endpoint MUST NOT require a JWT token or an `X-Space-ID` header. The `@SkipSpace()` decorator
 MUST be present on the route so both `OptionalJwtAuthGuard` and `SpaceGuard` bypass it.
 
-The capability MUST reside under `src/core/observability/metrics/` — not under `src/contexts/`.
+The capability MUST reside under `src/core/metrics/` — not under `src/contexts/`.
 
 The implementation MUST use a single shared `prom-client` registry via
 `@willsoto/nestjs-prometheus`; it MUST NOT instantiate ad-hoc registries.
@@ -77,8 +77,10 @@ observation in `cqrs_handler_duration_seconds` and an increment of `cqrs_handler
 with `type` (the command/query class name), `kind` (`command` | `query`), and `status`
 (`success` | `error`).
 
-Instrumentation MUST be achieved without editing individual command/query handlers — the framework
-`CommandBus` and `QueryBus` MUST be replaced via dependency injection with metered equivalents.
+Instrumentation MUST be achieved without editing individual command/query handlers. Because
+`@nestjs/cqrs@10` registers handlers onto the single global `CommandBus`/`QueryBus` instances and
+exposes no command/query middleware, the system MUST wrap the `execute` method of those shared
+instances at startup (a DI `useClass` override would create a second, handler-less instance).
 
 The system MUST increment a counter `cqrs_events_published_total`, labelled `event` (the event class
 name), for every domain event published on the `EventBus`.
@@ -107,7 +109,7 @@ name), for every domain event published on the `EventBus`.
 ### Requirement: Handlers Remain Unmodified
 
 Existing command, query, and event handlers across all bounded contexts MUST NOT be edited to add
-metrics. Instrumentation MUST be transparent via the DI-swapped buses and the global HTTP
+metrics. Instrumentation MUST be transparent via the wrapped shared CQRS buses and the global HTTP
 interceptor.
 
 #### Scenario: No handler files change
