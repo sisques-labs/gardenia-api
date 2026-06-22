@@ -32,19 +32,33 @@ is wired into `AppModule`. The route bypasses both global guards via `@SkipSpace
 
 ## 3. File Tree (exact paths)
 
+Follows the project's DDD layering (domain / application / infrastructure / transport):
+
 ```
 src/core/metrics/
 ├── metrics.module.ts
-├── metrics.constants.ts
-├── transport/
-│   ├── metrics.controller.ts          # only if a custom @SkipSpace route is needed (see §6.1)
-│   └── metrics.controller.spec.ts
-├── interceptors/
-│   ├── http-metrics.interceptor.ts
-│   └── http-metrics.interceptor.spec.ts
-└── cqrs/
-    ├── cqrs-metrics.service.ts
-    └── cqrs-metrics.service.spec.ts
+├── domain/
+│   ├── constants/
+│   │   └── metrics.constants.ts        # metric names, label sets, buckets
+│   └── types/
+│       ├── cqrs-kind.type.ts           # 'command' | 'query'
+│       ├── cqrs-status.type.ts         # 'success' | 'error'
+│       └── transport.type.ts           # 'http' | 'graphql'
+├── application/
+│   └── services/
+│       ├── cqrs-metrics.service.ts     # wraps shared CommandBus/QueryBus; subscribes EventBus
+│       └── cqrs-metrics.service.spec.ts
+├── infrastructure/
+│   └── providers/
+│       └── metric.providers.ts         # prom-client histogram/counter providers
+└── transport/
+    ├── interceptors/
+    │   ├── http-metrics.interceptor.ts # REST + GraphQL duration/count
+    │   └── http-metrics.interceptor.spec.ts
+    └── rest/
+        └── controllers/
+            ├── metrics.controller.ts   # public @SkipSpace() GET /api/metrics
+            └── metrics.controller.spec.ts
 ```
 
 Plus:

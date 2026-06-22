@@ -48,11 +48,13 @@ The API has NO runtime metrics. We have error tracking (Sentry) and a liveness p
 | Area | Impact | Description |
 |------|--------|-------------|
 | `package.json` | Modified | Add `@willsoto/nestjs-prometheus` + `prom-client` |
-| `src/core/metrics/metrics.module.ts` | New | `PrometheusModule.register()` + metric providers + interceptor + CQRS service |
-| `src/core/metrics/transport/metrics.controller.ts` | New | Public `@SkipSpace()` `/metrics` route (extends `PrometheusController`) |
-| `src/core/metrics/metrics.constants.ts` | New | Metric names + label arrays + buckets |
-| `src/core/metrics/interceptors/http-metrics.interceptor.ts` | New | HTTP duration + count (REST + GraphQL) |
-| `src/core/metrics/cqrs/cqrs-metrics.service.ts` | New | Wraps shared `CommandBus`/`QueryBus` `execute`; subscribes `EventBus` |
+| `src/core/metrics/metrics.module.ts` | New | Wires the four layers: `PrometheusModule.register()` + providers + interceptor + CQRS service |
+| `src/core/metrics/domain/constants/metrics.constants.ts` | New | Metric names + label arrays + buckets (domain) |
+| `src/core/metrics/domain/types/*.type.ts` | New | `CqrsKind`, `CqrsStatus`, `Transport` (one per file) |
+| `src/core/metrics/infrastructure/providers/metric.providers.ts` | New | prom-client histogram/counter providers |
+| `src/core/metrics/transport/interceptors/http-metrics.interceptor.ts` | New | HTTP duration + count (REST + GraphQL) |
+| `src/core/metrics/transport/rest/controllers/metrics.controller.ts` | New | Public `@SkipSpace()` `/metrics` route (extends `PrometheusController`) |
+| `src/core/metrics/application/services/cqrs-metrics.service.ts` | New | Wraps shared `CommandBus`/`QueryBus` `execute`; subscribes `EventBus` |
 | `src/core/metrics/README.md` | New | Endpoint, metric families, posture, how to add metrics |
 | `src/app.module.ts` | Modified | Import `MetricsModule` |
 | `src/core/metrics/**/*.spec.ts` | New | Unit specs |

@@ -1,7 +1,7 @@
 /**
- * Single source of truth for Prometheus metric names, label sets, and histogram
- * buckets. Shared by the metric providers, the HTTP interceptor, and the metered
- * CQRS buses so names and labels never drift.
+ * Metric names, label sets, and histogram buckets — the shared vocabulary of the
+ * metrics module. Referenced by the infrastructure providers, the transport
+ * interceptor, and the application service so names and labels never drift.
  */
 
 export const HTTP_REQUEST_DURATION = 'http_request_duration_seconds';
@@ -26,7 +26,3 @@ export const EVENT_LABELS = ['event'] as const;
 export const DURATION_BUCKETS = [
   0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10,
 ];
-
-export type CqrsKind = 'command' | 'query';
-export type CqrsStatus = 'success' | 'error';
-export type Transport = 'http' | 'graphql';

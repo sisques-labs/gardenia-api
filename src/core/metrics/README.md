@@ -32,6 +32,23 @@ Labels are deliberately bounded. HTTP `route` uses the **matched route template*
 URLs, path/param values, query strings, or tenant ids. CQRS `type`/`event` use class
 names. Do not add high-cardinality labels (ids, emails, free text).
 
+## Structure (DDD layers)
+
+```
+src/core/metrics/
+├── metrics.module.ts
+├── domain/
+│   ├── constants/metrics.constants.ts     — metric names, label sets, buckets
+│   └── types/                             — CqrsKind, CqrsStatus, Transport (one per file)
+├── application/
+│   └── services/cqrs-metrics.service.ts   — instruments the shared CQRS buses + events
+├── infrastructure/
+│   └── providers/metric.providers.ts      — prom-client histogram/counter providers
+└── transport/
+    ├── interceptors/http-metrics.interceptor.ts  — REST + GraphQL duration/count
+    └── rest/controllers/metrics.controller.ts    — public GET /api/metrics
+```
+
 ## How it works
 
 - **HTTP** — a single global `APP_INTERCEPTOR` (`HttpMetricsInterceptor`) observes

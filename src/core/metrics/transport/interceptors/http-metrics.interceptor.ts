@@ -12,8 +12,8 @@ import { Observable, tap } from 'rxjs';
 import {
   HTTP_REQUEST_DURATION,
   HTTP_REQUESTS_TOTAL,
-  Transport,
-} from '../metrics.constants';
+} from '../../domain/constants/metrics.constants';
+import { Transport } from '../../domain/types/transport.type';
 
 interface HttpRequestLike {
   method?: string;

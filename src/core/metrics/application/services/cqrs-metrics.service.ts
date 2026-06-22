@@ -13,9 +13,9 @@ import {
   CQRS_EVENTS_PUBLISHED_TOTAL,
   CQRS_HANDLER_DURATION,
   CQRS_HANDLER_TOTAL,
-  CqrsKind,
-  CqrsStatus,
-} from '../metrics.constants';
+} from '../../domain/constants/metrics.constants';
+import { CqrsKind } from '../../domain/types/cqrs-kind.type';
+import { CqrsStatus } from '../../domain/types/cqrs-status.type';
 
 /** A payload (command/query) dispatched through a CQRS bus. */
 interface DispatchPayload {
