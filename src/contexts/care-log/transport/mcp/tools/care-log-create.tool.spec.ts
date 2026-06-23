@@ -2,7 +2,7 @@ import { CommandBus } from '@nestjs/cqrs';
 
 import { CreateCareLogEntryCommand } from '@contexts/care-log/application/commands/create-care-log-entry/create-care-log-entry.command';
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
-import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
+import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
 import { CareLogCreateMcpTool } from './care-log-create.tool';
 
 const PLANT_ID = '11111111-1111-4111-8111-111111111111';

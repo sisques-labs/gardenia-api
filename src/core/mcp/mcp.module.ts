@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
 
-import { McpServerFactory } from './services/mcp-server.factory';
-import { McpToolRegistry } from './services/mcp-tool-registry.service';
+import { McpServerFactory } from './application/services/mcp-server.factory';
+import { McpToolRegistry } from './application/services/mcp-tool-registry.service';
 import { McpController } from './transport/mcp.controller';
 
 /**

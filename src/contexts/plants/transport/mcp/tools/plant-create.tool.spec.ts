@@ -1,7 +1,7 @@
 import { CommandBus } from '@nestjs/cqrs';
 
 import { CreatePlantCommand } from '@contexts/plants/application/commands/create-plant/create-plant.command';
-import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
+import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
 import { PlantCreateMcpTool } from './plant-create.tool';
 
 const PLANT_ID = '11111111-1111-4111-8111-111111111111';

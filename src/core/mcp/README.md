@@ -39,15 +39,16 @@ for tenancy.
 
 ## Building blocks
 
-| File | Responsibility |
-|------|----------------|
-| `interfaces/mcp-tool.interface.ts` | `IMcpTool` contract every tool implements |
-| `interfaces/mcp-tool-context.interface.ts` | per-request auth/tenancy context |
-| `decorators/mcp-tool.decorator.ts` | `@McpTool()` — marks a provider for discovery |
-| `services/mcp-tool-registry.service.ts` | discovers tagged tools at bootstrap |
-| `services/mcp-server.factory.ts` | builds a per-request `McpServer` |
-| `transport/mcp.controller.ts` | the `/api/mcp` Streamable HTTP endpoint |
-| `mcp.module.ts` | wires the transport (imported once in `AppModule`) |
+| Layer | File | Responsibility |
+|-------|------|----------------|
+| **domain** | `domain/interfaces/mcp-tool.interface.ts` | `IMcpTool` contract every tool implements |
+| **domain** | `domain/interfaces/mcp-tool-context.interface.ts` | per-request auth/tenancy context |
+| **domain** | `domain/decorators/mcp-tool.decorator.ts` | `@McpTool()` — marks a provider for discovery |
+| **domain** | `domain/constants/mcp-tool.constants.ts` | server identity constants and metadata key |
+| **application** | `application/services/mcp-tool-registry.service.ts` | discovers tagged tools at bootstrap |
+| **application** | `application/services/mcp-server.factory.ts` | builds a per-request `McpServer` |
+| **transport** | `transport/mcp.controller.ts` | the `/api/mcp` Streamable HTTP endpoint |
+| — | `mcp.module.ts` | wires the transport (imported once in `AppModule`) |
 
 ## Adding tools to a bounded context
 

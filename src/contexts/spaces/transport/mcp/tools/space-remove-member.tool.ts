@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
+import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
+import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
+import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
 import { RemoveMemberCommand } from '@contexts/spaces/application/commands/remove-member/remove-member.command';
 import { spaceRemoveMemberSchema } from '../schemas/space-remove-member.schema';
 
