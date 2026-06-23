@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
+import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
+import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
 import { GetWeatherForecastQuery } from '@contexts/weather/application/queries/get-weather-forecast/get-weather-forecast.query';
 import { getWeatherForecastSchema } from '../schemas/get-weather-forecast.schema';
 

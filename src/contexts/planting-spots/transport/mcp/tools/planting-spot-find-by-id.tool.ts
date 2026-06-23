@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
+import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
+import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
 import { plantingSpotFindByIdSchema } from '../schemas/planting-spot-find-by-id.schema';
 

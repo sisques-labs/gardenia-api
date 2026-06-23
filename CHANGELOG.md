@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.23.1-alpha.0] - 2026-06-23
+
+### Refactor
+- **mcp:** Align core/mcp with DDD 4-layer structure (ec6e0b5)
 ## [0.23.0-alpha.0] - 2026-06-22
 
 ### Documentation

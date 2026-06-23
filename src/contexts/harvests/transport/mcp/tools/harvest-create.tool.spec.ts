@@ -2,7 +2,7 @@ import { CommandBus } from '@nestjs/cqrs';
 
 import { CreateHarvestCommand } from '@contexts/harvests/application/commands/create-harvest/create-harvest.command';
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
-import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
+import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
 import { HarvestCreateMcpTool } from './harvest-create.tool';
 
 const CONTEXT: IMcpToolContext = {

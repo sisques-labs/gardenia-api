@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
 
-import { MCP_TOOL_METADATA } from '../mcp-tool.constants';
+import { MCP_TOOL_METADATA } from '../constants/mcp-tool.constants';
 
 /**
  * Marks a provider as an MCP tool.
