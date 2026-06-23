@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
+import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
+import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
 import { UpdateInventoryItemCommand } from '@contexts/inventory/application/commands/update-inventory-item/update-inventory-item.command';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';

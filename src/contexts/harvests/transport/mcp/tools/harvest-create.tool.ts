@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/interfaces/mcp-tool-context.interface';
+import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
+import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
+import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
 import { CreateHarvestCommand } from '@contexts/harvests/application/commands/create-harvest/create-harvest.command';
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
 import { harvestCreateSchema } from '../schemas/harvest-create.schema';

@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
-import { IMcpToolContext } from '../interfaces/mcp-tool-context.interface';
-import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from '../mcp-tool.constants';
+import { IMcpToolContext } from '../../domain/interfaces/mcp-tool-context.interface';
+import {
+  MCP_SERVER_NAME,
+  MCP_SERVER_VERSION,
+} from '../../domain/constants/mcp-tool.constants';
 import { McpToolRegistry } from './mcp-tool-registry.service';
 
 /**

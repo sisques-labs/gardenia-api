@@ -15,7 +15,7 @@ import {
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { SpaceContext } from '@shared/space-context/space-context.service';
-import { McpServerFactory } from '../services/mcp-server.factory';
+import { McpServerFactory } from '../application/services/mcp-server.factory';
 
 /**
  * MCP transport entry point (Streamable HTTP, stateless).

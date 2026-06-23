@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 
-import { IMcpTool } from '../interfaces/mcp-tool.interface';
-import { MCP_TOOL_METADATA } from '../mcp-tool.constants';
+import { IMcpTool } from '../../domain/interfaces/mcp-tool.interface';
+import { MCP_TOOL_METADATA } from '../../domain/constants/mcp-tool.constants';
 
 /**
  * Collects every provider tagged with the {@link McpTool} decorator across all

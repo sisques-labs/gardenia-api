@@ -1,7 +1,7 @@
 import { DiscoveryService, Reflector } from '@nestjs/core';
 
-import { IMcpTool } from '../interfaces/mcp-tool.interface';
-import { MCP_TOOL_METADATA } from '../mcp-tool.constants';
+import { IMcpTool } from '../../domain/interfaces/mcp-tool.interface';
+import { MCP_TOOL_METADATA } from '../../domain/constants/mcp-tool.constants';
 import { McpToolRegistry } from './mcp-tool-registry.service';
 
 class FakeTool implements IMcpTool {

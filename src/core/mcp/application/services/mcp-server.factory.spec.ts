@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
-import { IMcpTool } from '../interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '../interfaces/mcp-tool-context.interface';
+import { IMcpTool } from '../../domain/interfaces/mcp-tool.interface';
+import { IMcpToolContext } from '../../domain/interfaces/mcp-tool-context.interface';
 import { McpServerFactory } from './mcp-server.factory';
 import { McpToolRegistry } from './mcp-tool-registry.service';
 

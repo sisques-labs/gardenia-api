@@ -3,8 +3,8 @@ import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { Criteria } from '@sisques-labs/nestjs-kit';
 
-import { McpTool } from '@core/mcp/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/interfaces/mcp-tool.interface';
+import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
+import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
 import { PlantFindByCriteriaQuery } from '@contexts/plants/application/queries/plant-find-by-criteria/plant-find-by-criteria.query';
 import { plantFindByCriteriaSchema } from '../schemas/plant-find-by-criteria.schema';
 

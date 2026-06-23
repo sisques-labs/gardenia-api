@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { SpaceContext } from '@shared/space-context/space-context.service';
-import { McpServerFactory } from '../services/mcp-server.factory';
+import { McpServerFactory } from '../application/services/mcp-server.factory';
 import { McpController } from './mcp.controller';
 
 const mockTransport = {
