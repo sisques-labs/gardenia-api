@@ -21,6 +21,9 @@ import { Kafka, Producer, RecordMetadata, SASLOptions } from 'kafkajs';
  * Connection is best-effort: a failed `connect()` at boot does not crash the app
  * (kafkajs lazily reconnects on `send`). Publish errors propagate to the forwarder,
  * which logs and swallows them.
+ *
+ * When `KAFKA_ENABLED` is false the producer is never created and every method is a
+ * no-op, so the app boots without a broker (the forwarder also never subscribes).
  */
 @Injectable()
 export class KafkajsEventPublisherAdapter
@@ -28,20 +31,27 @@ export class KafkajsEventPublisherAdapter
 {
   private readonly logger = new Logger(KafkajsEventPublisherAdapter.name);
   private readonly config: IKafkaConfig;
-  private readonly producer: Producer;
+  private readonly producer: Producer | null;
 
   constructor(configService: ConfigService) {
     this.config = configService.getOrThrow<IKafkaConfig>('kafka');
+    this.producer = this.config.enabled ? this.createProducer() : null;
+  }
+
+  private createProducer(): Producer {
     const kafka = new Kafka({
       clientId: this.config.clientId,
       brokers: this.config.brokers,
       ssl: this.config.ssl,
       ...(this.config.sasl ? { sasl: this.config.sasl as SASLOptions } : {}),
     });
-    this.producer = kafka.producer({ allowAutoTopicCreation: true });
+    return kafka.producer({ allowAutoTopicCreation: true });
   }
 
   async onModuleInit(): Promise<void> {
+    if (!this.producer) {
+      return;
+    }
     try {
       await this.producer.connect();
       this.logger.log(
@@ -57,6 +67,9 @@ export class KafkajsEventPublisherAdapter
   }
 
   async onModuleDestroy(): Promise<void> {
+    if (!this.producer) {
+      return;
+    }
     try {
       await this.producer.disconnect();
     } catch (error) {
@@ -69,6 +82,9 @@ export class KafkajsEventPublisherAdapter
   }
 
   async publish(event: IOutboundEvent): Promise<void> {
+    if (!this.producer) {
+      return;
+    }
     const topic = `${this.config.topicPrefix}.${event.module}`;
     const result: RecordMetadata[] = await this.producer.send({
       topic,

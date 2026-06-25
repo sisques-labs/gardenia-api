@@ -117,4 +117,32 @@ describe('KafkajsEventPublisherAdapter', () => {
       data: { id: 'plant-1', name: 'Rose' },
     });
   });
+
+  describe('when Kafka is disabled', () => {
+    let disabledAdapter: KafkajsEventPublisherAdapter;
+
+    beforeEach(() => {
+      (Kafka as unknown as jest.Mock).mockClear();
+      const configService = {
+        getOrThrow: jest
+          .fn()
+          .mockReturnValue({ ...KAFKA_CONFIG, enabled: false }),
+      } as unknown as ConfigService;
+      disabledAdapter = new KafkajsEventPublisherAdapter(configService);
+    });
+
+    it('never creates a Kafka producer', () => {
+      expect(Kafka).not.toHaveBeenCalled();
+    });
+
+    it('is a no-op on init, publish and destroy', async () => {
+      await disabledAdapter.onModuleInit();
+      await disabledAdapter.publish(makeOutboundEvent());
+      await disabledAdapter.onModuleDestroy();
+
+      expect(producer.connect).not.toHaveBeenCalled();
+      expect(producer.send).not.toHaveBeenCalled();
+      expect(producer.disconnect).not.toHaveBeenCalled();
+    });
+  });
 });

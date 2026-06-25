@@ -19,8 +19,8 @@ EventBus (in-process)  ──subscribe──▶  DomainEventForwarderService
                                               │  resolve module + action
                                               ▼
                                        IEventPublisher (port)
-                                       ├─ KafkajsEventPublisherAdapter  (KAFKA_ENABLED=true)
-                                       └─ NoopEventPublisherAdapter     (disabled — default)
+                                       └─ KafkajsEventPublisherAdapter
+                                          (no-op when KAFKA_ENABLED=false)
 ```
 
 Forwarding is **best-effort**: a publish failure is logged and swallowed, never
@@ -55,8 +55,9 @@ aggregates; modules are pluralised/kebab-cased independently). The mapping is th
 
 ## Configuration
 
-Opt-in via `KAFKA_ENABLED` (default `false`) — the app boots without a broker locally
-and in tests; the port resolves to a no-op. See `.env.example` for the full list.
+Opt-in via `KAFKA_ENABLED` (default `false`) — the adapter creates no producer and
+is a no-op when disabled, so the app boots without a broker locally and in tests.
+See `.env.example` for the full list.
 
 | Var | Default | Notes |
 |-----|---------|-------|
@@ -82,8 +83,7 @@ src/core/messaging/
 │   └── services/domain-event-forwarder.service.ts  — subscribes to EventBus, forwards
 └── infrastructure/
     └── kafka/
-        ├── kafkajs-event-publisher.adapter.ts   — kafkajs producer
-        └── noop-event-publisher.adapter.ts      — used when disabled
+        └── kafkajs-event-publisher.adapter.ts   — kafkajs producer (no-op when disabled)
 ```
 
 ## Guarantees
