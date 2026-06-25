@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
-import { FileMimeTypeEnum } from '@contexts/files/domain/enums/file-mime-type.enum';
 import { FileViewModel } from '@contexts/files/domain/view-models/file.view-model';
 import {
   FileResponseDto,
@@ -14,7 +13,7 @@ export class FileGraphQLMapper {
     return {
       id: vm.id,
       filename: vm.filename,
-      mimeType: vm.mimeType as FileMimeTypeEnum,
+      mimeType: vm.mimeType,
       size: vm.size,
       url: vm.url,
       userId: vm.userId,

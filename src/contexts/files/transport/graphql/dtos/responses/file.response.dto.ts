@@ -1,8 +1,6 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
 
-import { FileMimeTypeEnum } from '@contexts/files/domain/enums/file-mime-type.enum';
-
 @ObjectType('FileResponseDto')
 export class FileResponseDto {
   @Field(() => ID, { description: 'UUID of the file' })
@@ -11,8 +9,11 @@ export class FileResponseDto {
   @Field(() => String, { description: 'Original filename' })
   filename!: string;
 
-  @Field(() => FileMimeTypeEnum, { description: 'MIME type' })
-  mimeType!: FileMimeTypeEnum;
+  // Raw MIME string (e.g. "image/png"), kept consistent with the REST response.
+  // The enum is only used on the input side (criteria filter); GraphQL would
+  // serialize an enum output by its member name (IMAGE_PNG), not its value.
+  @Field(() => String, { description: 'MIME type (e.g. image/png)' })
+  mimeType!: string;
 
   @Field(() => Int, { description: 'Size in bytes' })
   size!: number;
