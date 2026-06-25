@@ -69,6 +69,7 @@
     "express": "^5.2.1",
     "graphql": "^16.14.0",
     "graphql-query-complexity": "^1.1.0",
+    "kafkajs": "^2.2.4",
     "nest-winston": "^1.10.2",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
