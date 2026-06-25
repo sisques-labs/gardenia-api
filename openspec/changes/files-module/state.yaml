@@ -1,0 +1,25 @@
+change: files-module
+status: proposal
+created: 2026-06-25
+artifact_store: hybrid
+context: files
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending
+next_recommended:
+  - sdd-apply
+notes: |
+  New standalone tenant-scoped `files` bounded context for image upload/serving
+  with a storage port/adapter seam (FileStoragePort + DatabaseFileStorageAdapter
+  over Postgres bytea). Designed so an S3/MinIO adapter can replace the backend
+  via a useClass swap with no domain/application/transport change. Decisions
+  captured with the user: multipart REST upload, REST byte-serving download,
+  standalone (id + url, no polymorphic owner), space-scoped, image-only MIME
+  allowlist, 10MB default cap, MCP read/delete tools (no upload tool).
+  Not yet implemented — apply phase pending.
