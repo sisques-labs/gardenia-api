@@ -86,6 +86,55 @@ describe('Users (e2e)', () => {
       expect(res.body.data.usersFindByCriteria.items).toBeDefined();
       expect(res.body.data.usersFindByCriteria.items.length).toBeGreaterThan(0);
     });
+
+    it('accepts enum-typed filter and sort fields', async () => {
+      // The schema now types `field` to UserFilterFieldEnum / UserSortFieldEnum.
+      // (Server-side filter application is out of scope; the read repo applies sorts.)
+      const res = await gql(
+        ctx.app,
+        `query Find($input: UserFindByCriteriaRequestDto) {
+          usersFindByCriteria(input: $input) {
+            items { id status username }
+          }
+        }`,
+        {
+          input: {
+            filters: [{ field: 'STATUS', operator: 'EQUALS', value: 'ACTIVE' }],
+            sorts: [{ field: 'CREATED_AT', direction: 'DESC' }],
+          },
+        },
+        token,
+        spaceId,
+      ).expect(200);
+
+      expect(res.body.errors).toBeUndefined();
+      expect(res.body.data.usersFindByCriteria.items).toBeDefined();
+      expect(res.body.data.usersFindByCriteria.items.length).toBeGreaterThan(0);
+    });
+
+    it('rejects an unknown filter field at the schema layer', async () => {
+      const res = await gql(
+        ctx.app,
+        `query Find($input: UserFindByCriteriaRequestDto) {
+          usersFindByCriteria(input: $input) {
+            items { id }
+          }
+        }`,
+        {
+          input: {
+            filters: [
+              { field: 'PASSWORD', operator: 'EQUALS', value: 'whatever' },
+            ],
+          },
+        },
+        token,
+        spaceId,
+      );
+
+      // GraphQL rejects the unknown enum value before reaching the resolver.
+      expect(res.body.errors).toBeDefined();
+      expect(res.body.data).toBeUndefined();
+    });
   });
 
   describe('query userFindById', () => {

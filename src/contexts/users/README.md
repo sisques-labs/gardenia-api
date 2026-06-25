@@ -45,7 +45,7 @@ None. The `UsersController` at `transport/rest/controllers/users.controller.ts` 
 
 | Name | Type | Auth required | Description |
 |------|------|---------------|-------------|
-| `usersFindByCriteria(input?: UserFindByCriteriaRequestDto)` | `Query` | No* | Returns a paginated list of users matching optional filters and sorts |
+| `usersFindByCriteria(input?: UserFindByCriteriaRequestDto)` | `Query` | No* | Returns a paginated list of users matching optional filters and sorts. `filters[].field` is typed to `UserFilterFieldEnum` and `sorts[].field` to `UserSortFieldEnum` — unknown fields are rejected by the schema |
 | `userFindById(input: UserFindByIdRequestDto)` | `Query` | No* | Returns a single user by id, or `null` if not found |
 | `userUpdate(input: UserUpdateRequestDto)` | `Mutation` | No* | Updates user fields (currently: `status`). Returns `MutationResponseDto` |
 | `userDelete(input: UserDeleteRequestDto)` | `Mutation` | No* | Deletes a user by id. Returns `MutationResponseDto` |
@@ -162,6 +162,8 @@ The users context has no environment variables of its own. It relies on the data
 | `MutationResponseDto` | Return type for `userUpdate` and `userDelete` mutations |
 | `Criteria` | `UserFindByCriteriaQueryHandler` — wraps filters, sorts, pagination |
 | `UserStatusEnum` | Used inside `UserAggregate` for status field typing |
+| `UserFilterFieldEnum` | Filterable fields exposed by `usersFindByCriteria`; values are `UserViewModel` field names |
+| `UserSortFieldEnum` | Sortable fields exposed by `usersFindByCriteria`; values are `UserViewModel` field names |
 
 ### External NestJS packages
 
