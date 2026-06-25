@@ -4,6 +4,8 @@ import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistenc
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
 import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
+import { FileContentTypeOrmEntity } from '../../src/contexts/files/infrastructure/persistence/typeorm/entities/file-content.entity';
+import { FileTypeOrmEntity } from '../../src/contexts/files/infrastructure/persistence/typeorm/entities/file.entity';
 import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
 import { InventoryItemTypeOrmEntity } from '../../src/contexts/inventory/infrastructure/persistence/typeorm/entities/inventory-item.entity';
 import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
@@ -35,6 +37,7 @@ import { AddTenantRelationshipIndexesAndFks1780000000015 } from '../../src/datab
 import { CreateHarvests1780000000015 } from '../../src/database/migrations/1780000000015-CreateHarvests';
 import { CreateCareLog1780000000016 } from '../../src/database/migrations/1780000000016-CreateCareLog';
 import { CreateInventoryItems1780000000018 } from '../../src/database/migrations/1780000000018-CreateInventoryItems';
+import { CreateFiles1780000000019 } from '../../src/database/migrations/1780000000019-CreateFiles';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -51,6 +54,8 @@ const TEST_ENTITIES = [
   HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
   InventoryItemTypeOrmEntity,
+  FileTypeOrmEntity,
+  FileContentTypeOrmEntity,
 ];
 
 const TEST_MIGRATIONS = [
@@ -75,6 +80,7 @@ const TEST_MIGRATIONS = [
   CreateHarvests1780000000015,
   CreateCareLog1780000000016,
   CreateInventoryItems1780000000018,
+  CreateFiles1780000000019,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {
