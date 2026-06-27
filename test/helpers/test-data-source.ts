@@ -4,6 +4,7 @@ import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistenc
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
 import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
+import { CareScheduleTypeOrmEntity } from '../../src/contexts/care-schedule/infrastructure/persistence/typeorm/entities/care-schedule.entity';
 import { FileContentTypeOrmEntity } from '../../src/contexts/files/infrastructure/persistence/typeorm/entities/file-content.entity';
 import { FileTypeOrmEntity } from '../../src/contexts/files/infrastructure/persistence/typeorm/entities/file.entity';
 import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
@@ -38,6 +39,7 @@ import { CreateHarvests1780000000015 } from '../../src/database/migrations/17800
 import { CreateCareLog1780000000016 } from '../../src/database/migrations/1780000000016-CreateCareLog';
 import { CreateInventoryItems1780000000018 } from '../../src/database/migrations/1780000000018-CreateInventoryItems';
 import { CreateFiles1780000000019 } from '../../src/database/migrations/1780000000019-CreateFiles';
+import { CreateCareSchedules1780000000020 } from '../../src/database/migrations/1780000000020-CreateCareSchedules';
 
 const TEST_ENTITIES = [
   AccountEntity,
@@ -54,6 +56,7 @@ const TEST_ENTITIES = [
   HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
   InventoryItemTypeOrmEntity,
+  CareScheduleTypeOrmEntity,
   FileTypeOrmEntity,
   FileContentTypeOrmEntity,
 ];
@@ -81,6 +84,7 @@ const TEST_MIGRATIONS = [
   CreateCareLog1780000000016,
   CreateInventoryItems1780000000018,
   CreateFiles1780000000019,
+  CreateCareSchedules1780000000020,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {
