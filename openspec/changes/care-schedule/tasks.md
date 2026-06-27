@@ -30,6 +30,13 @@
 - [x] 4.5 `CareScheduleModule`; register in `app.module.ts` and `base-exception.filter.ts`
 - [x] 4.6 `README.md`
 
+## Phase 4b: Care-log bridge (port + adapter)
+- [x] 4b.1 `ICareLogPort` + `RecordCareLogEntryInput` in `application/ports/`
+- [x] 4b.2 `CareLogAdapter` in `infrastructure/adapters/` dispatching `CreateCareLogEntryCommand`
+- [x] 4b.3 `CompleteCareScheduleCommandHandler` depends on the port; best-effort recording
+- [x] 4b.4 Register `{ provide: CARE_LOG_PORT, useClass: CareLogAdapter }` in the module
+- [x] 4b.5 Adapter unit test; update no-cross-context spec to exclude `infrastructure/adapters/`
+
 ## Phase 5: Tests + verify
 - [x] 5.1 Unit: aggregate, builder, value objects, handlers, mappers, resolvers
 - [x] 5.2 `care-schedule-no-cross-context-import.spec.ts`

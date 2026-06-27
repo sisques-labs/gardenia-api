@@ -43,14 +43,23 @@ explicitly deferred to future changes.
 - TypeORM `care_schedules` table + migration, tenant-scoped repositories.
 - Domain events (created/updated/completed/deleted + per-field `*Changed`).
 
+### In Scope (cross-context bridge)
+- On `CompleteCareSchedule`, mirror the completion into the `care-log` context
+  by creating a care-log entry, via a port (`ICareLogPort` in
+  `application/ports/`) + adapter (`infrastructure/adapters/`) that dispatches
+  `CreateCareLogEntryCommand`. Best-effort: a care-log failure MUST NOT roll
+  back the (authoritative) schedule completion.
+
 ### Out of Scope
 - Notifications / reminders delivery (push, email) — future `notifications` change.
-- Automatic `care-log` entry creation on completion (cross-context port).
 - Weather-aware skipping (e.g. skip watering when rain is forecast).
 - Per-user ownership access control (any space member may manage any schedule).
 
 ## Impacted Bounded Contexts
 - **New:** `care-schedule`.
+- **Consumed (via port/adapter only):** `care-log` — `CreateCareLogEntryCommand`
+  is dispatched from `care-schedule`'s adapter on completion. No `care-log`
+  source is modified.
 - **Modified (wiring only):** `app.module.ts` (register module) and
   `core/filters/base-exception.filter.ts` (register exception resolver).
 

@@ -3,11 +3,14 @@ import { join } from 'path';
 import { execSync } from 'child_process';
 
 describe('care-schedule bounded context — no cross-context imports', () => {
-  it('has no import from another bounded context', () => {
+  it('has no import from another bounded context outside infrastructure/adapters', () => {
     const contextDir = join(__dirname);
 
+    // Per the project convention, reaching another bounded context is allowed
+    // EXCLUSIVELY from infrastructure/adapters/ (a port implementation), so the
+    // adapters directory is excluded from this scan.
     const output = execSync(
-      `find "${contextDir}" -name "*.ts" -not -name "*.spec.ts" -not -name "*.e2e-spec.ts"`,
+      `find "${contextDir}" -name "*.ts" -not -name "*.spec.ts" -not -name "*.e2e-spec.ts" -not -path "*/infrastructure/adapters/*"`,
     )
       .toString()
       .trim();

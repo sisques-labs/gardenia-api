@@ -66,7 +66,7 @@ The aggregate is built exclusively through `CareScheduleBuilder` (extends
 |---------|---------|
 | `CreateCareScheduleCommand` | Create a care schedule for a plant |
 | `UpdateCareScheduleCommand` | Update activity/interval/quantity/unit/notes/active |
-| `CompleteCareScheduleCommand` | Mark complete; advances `nextDueAt` by the interval |
+| `CompleteCareScheduleCommand` | Mark complete; advances `nextDueAt` and mirrors the activity into `care-log` |
 | `DeleteCareScheduleCommand` | Delete a care schedule |
 
 ### Queries
@@ -131,9 +131,26 @@ isolated via `createTenantRepository`. Indexes on `space_id`,
 
 ---
 
+## Cross-context bridge: care-log
+
+Completing a schedule is a performed care activity, so it is mirrored into the
+`care-log` context. This is the context's only outward dependency and lives
+entirely behind a port:
+
+- `ICareLogPort` (`application/ports/care-log.port.ts`)
+- `CareLogAdapter` (`infrastructure/adapters/care-log.adapter.ts`) — dispatches
+  `CreateCareLogEntryCommand` on the Command bus.
+
+`CompleteCareScheduleCommandHandler` depends on the port (`CARE_LOG_PORT`),
+never on `care-log` directly. The bridge is **best-effort**: the schedule
+completion is authoritative and a care-log failure is logged but does not roll
+it back.
+
 ## Layering
 
 Standard DDD + CQRS + Hexagonal: `domain / application / infrastructure /
 transport`. Repository interfaces live in `domain`; the only cross-layer
-dependency direction is inward. No cross-context imports (enforced by
-`care-schedule-no-cross-context-import.spec.ts`).
+dependency direction is inward. The only cross-context dependency is the
+care-log bridge, confined to `infrastructure/adapters/` (enforced by
+`care-schedule-no-cross-context-import.spec.ts`, which excludes the adapters
+directory).

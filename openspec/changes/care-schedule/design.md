@@ -22,8 +22,10 @@ domain
 application
   commands/          create, update, complete, delete
   queries/           find-by-id, find-by-criteria
+  ports/             care-log.port (ICareLogPort) + record-care-log-entry.input
   services/          read/assert-…-view-model-exists, write/assert-…-exists
 infrastructure
+  adapters/          care-log.adapter (→ care-log CreateCareLogEntryCommand)
   persistence/typeorm/ entity, mapper, read repo, write repo
 transport
   exceptions/        resolveCareScheduleExceptionStatus
@@ -90,20 +92,42 @@ Table `care_schedules`:
 Indexes: `space_id`; `(plant_id, space_id)`; `(space_id, active, next_due_at)`
 to serve the "what's due in this space" query efficiently.
 
-## No cross-context coupling
+## Care-log bridge (port + adapter)
 
-`care-schedule` references a plant only by raw `plantId: UuidValueObject`. It
-imports nothing from `@contexts/plants`, `@contexts/plant-species`,
-`@contexts/care-log`, or `@contexts/inventory`. Enforced by a
-`care-schedule-no-cross-context-import.spec.ts` mirroring the inventory test.
+A completed schedule is a performed care activity, so completion mirrors itself
+into the `care-log` context. Following the project's cross-context rule, this is
+the only outward dependency and lives entirely behind a port:
+
+- `ICareLogPort` (`application/ports/care-log.port.ts`) with
+  `recordCareLogEntry(input)`; the input shape is its own file
+  (`record-care-log-entry.input.ts`).
+- `CareLogAdapter` (`infrastructure/adapters/care-log.adapter.ts`) implements the
+  port by dispatching `CreateCareLogEntryCommand` on the Command bus. This is the
+  only file in the context that imports `@contexts/care-log`.
+- `CompleteCareScheduleCommandHandler` depends on the port (injected via
+  `CARE_LOG_PORT`), never on `care-log` directly.
+
+The bridge is **best-effort**: completion (advancing `nextDueAt`, persisting,
+publishing events) is authoritative and happens first; the care-log write is
+attempted afterwards inside a try/catch that logs a warning on failure. There is
+no cross-context transaction — the schedule is the source of truth and the
+care-log entry is a derived convenience. `activityType` and `unit` map across
+unchanged because both contexts share the same enum value sets.
+
+## No cross-context coupling (outside adapters)
+
+Outside `infrastructure/adapters/`, `care-schedule` references a plant only by
+raw `plantId: UuidValueObject` and imports nothing from other contexts. Enforced
+by `care-schedule-no-cross-context-import.spec.ts`, which excludes the adapters
+directory (the sanctioned boundary).
 
 ## Decisions
 
-- **Standalone over integrated.** Creating `care-log` entries on completion, and
-  emitting reminders, are real value but pull in cross-context ports and a
-  notifications substrate. Shipping the schedule first keeps the change reviewable
-  and unblocks those follow-ups (the `CareScheduleCompletedEvent` already carries
-  the data a future consumer needs).
+- **Care-log bridge included, notifications deferred.** Creating `care-log`
+  entries on completion is implemented here via the port/adapter so the two
+  contexts actually work together. Reminder *delivery* (push/email) still pulls
+  in a notifications substrate and stays a follow-up — the
+  `CareScheduleCompletedEvent` already carries the data a future consumer needs.
 - **`complete()` as an explicit action, not an `update`.** Advancing the cadence
   is a domain operation with its own event and invariant (next due is derived,
   not user-set), so it gets a dedicated command/method like `adjustQuantity`.

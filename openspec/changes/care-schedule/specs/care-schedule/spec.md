@@ -156,11 +156,29 @@ recompute `nextDueAt = completedAt + intervalDays` whole days, then emit
 The handler MUST load the schedule via the tenant-scoped repository; if not
 found, throw `CareScheduleNotFoundException` (404).
 
+On completion the handler MUST also mirror the activity into the `care-log`
+context by creating a care-log entry (`plantId`, `activityType`, `quantity`,
+`unit`, `performedAt = completedAt`) through the `ICareLogPort` adapter. This
+bridge MUST be best-effort: a care-log failure MUST NOT roll back the schedule
+completion.
+
 #### Scenario: Completing advances the next due date
 
 - GIVEN a schedule with intervalDays=3 completed at 2026-06-27
 - WHEN `CompleteCareSchedule` is dispatched
 - THEN `lastCompletedAt` becomes 2026-06-27, `nextDueAt` becomes 2026-06-30, and `CareScheduleCompleted` is emitted
+
+#### Scenario: Completing records a care-log entry
+
+- GIVEN a schedule for plant P with activityType WATERING
+- WHEN `CompleteCareSchedule` is dispatched
+- THEN a care-log entry for plant P (WATERING, performedAt = completedAt) is created via the `ICareLogPort`
+
+#### Scenario: Care-log bridge failure does not roll back completion
+
+- GIVEN the care-log entry creation fails
+- WHEN `CompleteCareSchedule` is dispatched
+- THEN the schedule is still completed (nextDueAt advanced) and the failure is logged
 
 #### Scenario: Schedule not found
 
@@ -302,14 +320,17 @@ under Space B.
 
 ---
 
-### Requirement: No Cross-Context Coupling
+### Requirement: Cross-Context Coupling Only Via Adapters
 
-The `care-schedule` bounded context MUST NOT import from `@contexts/plants/`,
-`@contexts/plant-species/`, `@contexts/care-log/`, `@contexts/inventory/`, or any
-other bounded context. A plant is referenced only by raw `plantId`.
+Outside `infrastructure/adapters/`, the `care-schedule` bounded context MUST NOT
+import from any other bounded context; a plant is referenced only by raw
+`plantId`. The single sanctioned dependency is the `care-log` bridge,
+implemented as a port (`application/ports/`) + adapter
+(`infrastructure/adapters/`) that translates via the Command bus. The
+domain/application/transport layers depend on the port, never on `care-log`.
 
-#### Scenario: No forbidden imports
+#### Scenario: No forbidden imports outside adapters
 
-- GIVEN the source tree under `src/contexts/care-schedule/`
+- GIVEN the source tree under `src/contexts/care-schedule/` excluding `infrastructure/adapters/`
 - WHEN scanned for imports
 - THEN no import path matches another bounded context

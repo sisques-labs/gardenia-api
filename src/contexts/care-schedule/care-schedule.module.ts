@@ -8,9 +8,11 @@ import { DeleteCareScheduleCommandHandler } from '@contexts/care-schedule/applic
 import { UpdateCareScheduleCommandHandler } from '@contexts/care-schedule/application/commands/update-care-schedule/update-care-schedule.handler';
 import { CareScheduleFindByCriteriaQueryHandler } from '@contexts/care-schedule/application/queries/care-schedule-find-by-criteria/care-schedule-find-by-criteria.handler';
 import { CareScheduleFindByIdQueryHandler } from '@contexts/care-schedule/application/queries/care-schedule-find-by-id/care-schedule-find-by-id.handler';
+import { CARE_LOG_PORT } from '@contexts/care-schedule/application/ports/care-log.port';
 import { AssertCareScheduleViewModelExistsService } from '@contexts/care-schedule/application/services/read/assert-care-schedule-view-model-exists/assert-care-schedule-view-model-exists.service';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
+import { CareLogAdapter } from '@contexts/care-schedule/infrastructure/adapters/care-log.adapter';
 import { CARE_SCHEDULE_READ_REPOSITORY } from '@contexts/care-schedule/domain/repositories/read/care-schedule-read.repository';
 import { CARE_SCHEDULE_WRITE_REPOSITORY } from '@contexts/care-schedule/domain/repositories/write/care-schedule-write.repository';
 import { CareScheduleTypeOrmEntity } from '@contexts/care-schedule/infrastructure/persistence/typeorm/entities/care-schedule.entity';
@@ -50,6 +52,10 @@ const APPLICATION_SERVICES = [
 ];
 
 const INFRASTRUCTURE_MAPPERS = [CareScheduleTypeOrmMapper];
+
+const INFRASTRUCTURE_ADAPTERS = [
+  { provide: CARE_LOG_PORT, useClass: CareLogAdapter },
+];
 
 const INFRASTRUCTURE_REPOSITORIES = [
   {
@@ -91,6 +97,7 @@ const MCP_TOOLS = [
     ...DOMAIN_BUILDERS,
     ...APPLICATION_SERVICES,
     ...INFRASTRUCTURE_MAPPERS,
+    ...INFRASTRUCTURE_ADAPTERS,
     ...INFRASTRUCTURE_REPOSITORIES,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
