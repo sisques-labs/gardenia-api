@@ -1,6 +1,7 @@
 import { AuthModule } from '@contexts/auth/auth.module';
 import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
 import { CareLogModule } from '@contexts/care-log/care-log.module';
+import { FilesModule } from '@contexts/files/files.module';
 import { HarvestsModule } from '@contexts/harvests/harvests.module';
 import { InventoryModule } from '@contexts/inventory/inventory.module';
 import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
@@ -80,6 +81,7 @@ import { SupportModule } from './support/support.module';
     CareLogModule,
     HarvestsModule,
     InventoryModule,
+    FilesModule,
   ],
   providers: [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through

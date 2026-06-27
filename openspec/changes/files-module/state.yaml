@@ -1,0 +1,30 @@
+change: files-module
+status: apply
+created: 2026-06-25
+artifact_store: hybrid
+context: files
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: done
+  verify: partial
+  archive: pending
+next_recommended:
+  - sdd-verify
+notes: |
+  Implemented the standalone tenant-scoped `files` bounded context with a
+  storage port/adapter seam (FileStoragePort + DatabaseFileStorageAdapter over
+  Postgres bytea, swappable for S3 via useClass). Multipart REST upload, REST
+  byte-serving download, GraphQL read + delete, MCP read/delete tools,
+  image-only MIME allowlist, 10MB default cap.
+
+  Verified in this environment: tsc --noEmit clean, nest build green, eslint
+  clean for the module, full unit suite green (1492 tests, incl. 38 new files
+  unit tests). Integration (test/integration/files) and E2E (test/e2e/files)
+  suites were authored and wired into the test helpers (entities, migration,
+  truncate list) but NOT executed here (no Docker/Postgres available). Run
+  `pnpm test:integration --testPathPattern=files` and
+  `pnpm test:e2e --testPathPattern=files` where a database is available.

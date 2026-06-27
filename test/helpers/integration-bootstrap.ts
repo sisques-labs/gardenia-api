@@ -9,6 +9,8 @@ import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
 import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
 import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
+import { FileContentTypeOrmEntity } from '../../src/contexts/files/infrastructure/persistence/typeorm/entities/file-content.entity';
+import { FileTypeOrmEntity } from '../../src/contexts/files/infrastructure/persistence/typeorm/entities/file.entity';
 import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
 import { InventoryItemTypeOrmEntity } from '../../src/contexts/inventory/infrastructure/persistence/typeorm/entities/inventory-item.entity';
 import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
@@ -47,6 +49,8 @@ const TEST_ENTITIES = [
   HarvestTypeOrmEntity,
   CareLogEntryTypeOrmEntity,
   InventoryItemTypeOrmEntity,
+  FileTypeOrmEntity,
+  FileContentTypeOrmEntity,
 ];
 
 export interface IntegrationModuleOptions {
