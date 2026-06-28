@@ -49,4 +49,11 @@ describe('CareScheduleBuilder', () => {
     const builder = seed(new CareScheduleBuilder()).withIntervalDays(0);
     expect(() => builder.build()).toThrow();
   });
+
+  it('builds a one-time schedule when intervalDays is null', () => {
+    const aggregate = seed(new CareScheduleBuilder())
+      .withIntervalDays(null)
+      .build();
+    expect(aggregate.intervalDays).toBeNull();
+  });
 });

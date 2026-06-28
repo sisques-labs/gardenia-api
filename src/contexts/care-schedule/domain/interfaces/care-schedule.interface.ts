@@ -17,7 +17,7 @@ export interface ICareSchedule {
   id: CareScheduleIdValueObject;
   plantId: UuidValueObject;
   activityType: CareScheduleActivityTypeValueObject;
-  intervalDays: CareScheduleIntervalDaysValueObject;
+  intervalDays: CareScheduleIntervalDaysValueObject | null;
   quantity: CareScheduleQuantityValueObject | null;
   unit: CareScheduleUnitValueObject | null;
   notes: CareScheduleNotesValueObject | null;

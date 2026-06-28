@@ -13,7 +13,11 @@ export const careScheduleCreateSchema = {
     .number()
     .int()
     .positive()
-    .describe('Recurrence interval in days (>= 1)'),
+    .nullable()
+    .optional()
+    .describe(
+      'Recurrence interval in days (>= 1). Omit for a one-time schedule due on nextDueAt.',
+    ),
   quantity: z
     .number()
     .positive()

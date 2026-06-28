@@ -17,14 +17,17 @@ import { CareScheduleIntervalDaysValueObject } from '@contexts/care-schedule/dom
 import { CareScheduleNextDueAtValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-next-due-at/care-schedule-next-due-at.value-object';
 import { CareScheduleAggregate } from './care-schedule.aggregate';
 
-function buildSchedule(intervalDays = 3): CareScheduleAggregate {
+function buildSchedule(intervalDays: number | null = 3): CareScheduleAggregate {
   return new CareScheduleAggregate({
     id: new CareScheduleIdValueObject('550e8400-e29b-41d4-a716-446655440000'),
     plantId: new UuidValueObject('110e8400-e29b-41d4-a716-446655440010'),
     activityType: new CareScheduleActivityTypeValueObject(
       CareScheduleActivityTypeEnum.WATERING,
     ),
-    intervalDays: new CareScheduleIntervalDaysValueObject(intervalDays),
+    intervalDays:
+      intervalDays != null
+        ? new CareScheduleIntervalDaysValueObject(intervalDays)
+        : null,
     quantity: null,
     unit: null,
     notes: null,
@@ -61,7 +64,18 @@ describe('CareScheduleAggregate', () => {
     expect(events.some((e) => e instanceof CareScheduleUpdatedEvent)).toBe(
       true,
     );
-    expect(schedule.intervalDays.value).toBe(7);
+    expect(schedule.intervalDays?.value).toBe(7);
+  });
+
+  it('update() can clear intervalDays (make it one-time) and emits IntervalDaysChanged', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({ intervalDays: null });
+    expect(schedule.intervalDays).toBeNull();
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleIntervalDaysChangedEvent),
+    ).toBe(true);
   });
 
   it('update() does NOT emit a field change event when the value is equal', () => {
@@ -105,6 +119,22 @@ describe('CareScheduleAggregate', () => {
     ).toBe(true);
   });
 
+  it('complete() on a one-time schedule (no interval) deactivates it and keeps nextDueAt', () => {
+    const schedule = buildSchedule(null);
+    const dueAt = schedule.nextDueAt.value;
+    const completedAt = new Date('2026-06-27T09:00:00.000Z');
+    schedule.complete(completedAt);
+
+    expect(schedule.lastCompletedAt?.value).toEqual(completedAt);
+    expect(schedule.nextDueAt.value).toEqual(dueAt);
+    expect(schedule.active.value).toBe(false);
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleCompletedEvent),
+    ).toBe(true);
+  });
+
   it('delete() applies CareScheduleDeletedEvent', () => {
     const schedule = buildSchedule();
     schedule.delete();
@@ -120,5 +150,10 @@ describe('CareScheduleAggregate', () => {
     expect(primitives.intervalDays).toBe(3);
     expect(primitives.active).toBe(true);
     expect(primitives.quantity).toBeNull();
+  });
+
+  it('toPrimitives() serializes a one-time schedule with null intervalDays', () => {
+    const primitives = buildSchedule(null).toPrimitives();
+    expect(primitives.intervalDays).toBeNull();
   });
 });

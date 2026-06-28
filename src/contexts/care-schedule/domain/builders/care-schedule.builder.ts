@@ -27,7 +27,7 @@ export class CareScheduleBuilder extends BaseBuilder<
 > {
   private _plantId!: string;
   private _activityType!: string;
-  private _intervalDays!: number;
+  private _intervalDays: number | null = null;
   private _quantity: number | null = null;
   private _unit: string | null = null;
   private _notes: string | null = null;
@@ -47,7 +47,7 @@ export class CareScheduleBuilder extends BaseBuilder<
     return this;
   }
 
-  withIntervalDays(intervalDays: number): this {
+  withIntervalDays(intervalDays: number | null): this {
     this._intervalDays = intervalDays;
     return this;
   }
@@ -100,7 +100,10 @@ export class CareScheduleBuilder extends BaseBuilder<
       activityType: new CareScheduleActivityTypeValueObject(
         this._activityType as CareScheduleActivityTypeEnum,
       ),
-      intervalDays: new CareScheduleIntervalDaysValueObject(this._intervalDays),
+      intervalDays:
+        this._intervalDays != null
+          ? new CareScheduleIntervalDaysValueObject(this._intervalDays)
+          : null,
       quantity:
         this._quantity != null
           ? new CareScheduleQuantityValueObject(this._quantity)
@@ -150,8 +153,6 @@ export class CareScheduleBuilder extends BaseBuilder<
     super.validate();
     if (!this._plantId) throw new FieldIsRequiredException('plantId');
     if (!this._activityType) throw new FieldIsRequiredException('activityType');
-    if (this._intervalDays === undefined)
-      throw new FieldIsRequiredException('intervalDays');
     if (!this._nextDueAt) throw new FieldIsRequiredException('nextDueAt');
     if (!this._userId) throw new FieldIsRequiredException('userId');
     if (!this._spaceId) throw new FieldIsRequiredException('spaceId');

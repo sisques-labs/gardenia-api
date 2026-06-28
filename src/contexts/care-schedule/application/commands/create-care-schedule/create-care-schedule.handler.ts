@@ -35,7 +35,7 @@ export class CreateCareScheduleCommandHandler
       .withId(careScheduleId)
       .withPlantId(command.plantId.value)
       .withActivityType(command.activityType.value)
-      .withIntervalDays(command.intervalDays.value)
+      .withIntervalDays(command.intervalDays?.value ?? null)
       .withQuantity(command.quantity?.value ?? null)
       .withUnit(command.unit?.value ?? null)
       .withNotes(command.notes?.value ?? null)

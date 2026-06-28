@@ -24,7 +24,10 @@ export type UpdateCareScheduleCommandInput = Pick<
 export class UpdateCareScheduleCommand {
   public readonly id: CareScheduleIdValueObject;
   public readonly activityType: CareScheduleActivityTypeValueObject | undefined;
-  public readonly intervalDays: CareScheduleIntervalDaysValueObject | undefined;
+  public readonly intervalDays:
+    | CareScheduleIntervalDaysValueObject
+    | null
+    | undefined;
   public readonly quantity: CareScheduleQuantityValueObject | null | undefined;
   public readonly unit: CareScheduleUnitValueObject | null | undefined;
   public readonly notes: CareScheduleNotesValueObject | null | undefined;
@@ -39,7 +42,9 @@ export class UpdateCareScheduleCommand {
       : undefined;
     this.intervalDays =
       input.intervalDays !== undefined
-        ? new CareScheduleIntervalDaysValueObject(input.intervalDays)
+        ? input.intervalDays !== null
+          ? new CareScheduleIntervalDaysValueObject(input.intervalDays)
+          : null
         : undefined;
     this.quantity =
       input.quantity !== undefined

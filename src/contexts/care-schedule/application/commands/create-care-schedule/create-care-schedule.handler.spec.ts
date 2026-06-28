@@ -47,6 +47,24 @@ describe('CreateCareScheduleCommandHandler', () => {
     expect(result).toHaveLength(36);
   });
 
+  it('saves a one-time schedule when intervalDays is omitted', async () => {
+    const command = new CreateCareScheduleCommand({
+      plantId: '110e8400-e29b-41d4-a716-446655440010',
+      activityType: CareScheduleActivityTypeEnum.WATERING,
+      nextDueAt: new Date('2026-07-01T00:00:00.000Z'),
+      userId: '660e8400-e29b-41d4-a716-446655440001',
+      spaceId: '770e8400-e29b-41d4-a716-446655440002',
+    });
+
+    expect(command.intervalDays).toBeNull();
+
+    const result = await handler.execute(command);
+
+    const savedAggregate = mockWriteRepo.save.mock.calls[0][0];
+    expect(savedAggregate.intervalDays).toBeNull();
+    expect(typeof result).toBe('string');
+  });
+
   it('throws when intervalDays is below one', () => {
     expect(
       () =>

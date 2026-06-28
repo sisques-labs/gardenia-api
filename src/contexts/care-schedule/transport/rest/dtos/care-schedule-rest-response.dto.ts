@@ -10,8 +10,12 @@ export class CareScheduleRestResponseDto {
   @ApiProperty({ example: 'WATERING', description: 'Activity type' })
   activityType!: string;
 
-  @ApiProperty({ example: 3, description: 'Recurrence interval in days' })
-  intervalDays!: number;
+  @ApiProperty({
+    example: 3,
+    nullable: true,
+    description: 'Recurrence interval in days (null for one-time schedules)',
+  })
+  intervalDays!: number | null;
 
   @ApiProperty({ nullable: true, description: 'Dosage quantity' })
   quantity!: number | null;

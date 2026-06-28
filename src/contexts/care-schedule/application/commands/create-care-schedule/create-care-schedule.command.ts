@@ -12,19 +12,19 @@ import { CareScheduleUnitValueObject } from '@contexts/care-schedule/domain/valu
 
 export type CreateCareScheduleCommandInput = Pick<
   ICareSchedulePrimitives,
-  'plantId' | 'activityType' | 'intervalDays' | 'userId' | 'spaceId'
+  'plantId' | 'activityType' | 'userId' | 'spaceId'
 > &
   Partial<
     Pick<
       ICareSchedulePrimitives,
-      'quantity' | 'unit' | 'notes' | 'nextDueAt' | 'active'
+      'intervalDays' | 'quantity' | 'unit' | 'notes' | 'nextDueAt' | 'active'
     >
   >;
 
 export class CreateCareScheduleCommand {
   public readonly plantId: UuidValueObject;
   public readonly activityType: CareScheduleActivityTypeValueObject;
-  public readonly intervalDays: CareScheduleIntervalDaysValueObject;
+  public readonly intervalDays: CareScheduleIntervalDaysValueObject | null;
   public readonly quantity: CareScheduleQuantityValueObject | null;
   public readonly unit: CareScheduleUnitValueObject | null;
   public readonly notes: CareScheduleNotesValueObject | null;
@@ -38,9 +38,10 @@ export class CreateCareScheduleCommand {
     this.activityType = new CareScheduleActivityTypeValueObject(
       input.activityType as CareScheduleActivityTypeEnum,
     );
-    this.intervalDays = new CareScheduleIntervalDaysValueObject(
-      input.intervalDays,
-    );
+    this.intervalDays =
+      input.intervalDays !== undefined && input.intervalDays !== null
+        ? new CareScheduleIntervalDaysValueObject(input.intervalDays)
+        : null;
     this.quantity =
       input.quantity !== undefined && input.quantity !== null
         ? new CareScheduleQuantityValueObject(input.quantity)

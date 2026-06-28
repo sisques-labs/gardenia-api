@@ -15,13 +15,13 @@ describe('CompleteCareScheduleCommandHandler', () => {
   let mockAssert: jest.Mocked<AssertCareScheduleExistsService>;
   let mockCareLogPort: jest.Mocked<ICareLogPort>;
 
-  function buildSchedule() {
+  function buildSchedule(intervalDays: number | null = 3) {
     const now = new Date('2026-06-27T00:00:00.000Z');
     return new CareScheduleBuilder()
       .withId('550e8400-e29b-41d4-a716-446655440000')
       .withPlantId('110e8400-e29b-41d4-a716-446655440010')
       .withActivityType(CareScheduleActivityTypeEnum.WATERING)
-      .withIntervalDays(3)
+      .withIntervalDays(intervalDays)
       .withNextDueAt(now)
       .withUserId('660e8400-e29b-41d4-a716-446655440001')
       .withSpaceId('770e8400-e29b-41d4-a716-446655440002')
@@ -72,6 +72,27 @@ describe('CompleteCareScheduleCommandHandler', () => {
 
     expect(schedule.nextDueAt.value).toEqual(
       new Date('2026-06-30T00:00:00.000Z'),
+    );
+    expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('deactivates a one-time schedule on completion and keeps nextDueAt', async () => {
+    const schedule = buildSchedule(null);
+    mockAssert.execute.mockResolvedValue(schedule);
+
+    await handler.execute(
+      new CompleteCareScheduleCommand({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        completedAt: new Date('2026-06-27T09:00:00.000Z'),
+      }),
+    );
+
+    expect(schedule.active.value).toBe(false);
+    expect(schedule.nextDueAt.value).toEqual(
+      new Date('2026-06-27T00:00:00.000Z'),
+    );
+    expect(schedule.lastCompletedAt?.value).toEqual(
+      new Date('2026-06-27T09:00:00.000Z'),
     );
     expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
   });

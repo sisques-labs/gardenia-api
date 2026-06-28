@@ -24,8 +24,8 @@ export class CareScheduleTypeOrmEntity {
   })
   activityType!: string;
 
-  @Column({ name: 'interval_days', type: 'integer', nullable: false })
-  intervalDays!: number;
+  @Column({ name: 'interval_days', type: 'integer', nullable: true })
+  intervalDays!: number | null;
 
   @Column({ type: 'decimal', precision: 10, scale: 3, nullable: true })
   quantity!: string | null;

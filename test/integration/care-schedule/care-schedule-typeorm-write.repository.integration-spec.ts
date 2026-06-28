@@ -100,6 +100,39 @@ describe('CareScheduleTypeOrmWriteRepository (integration)', () => {
     });
   });
 
+  it('round-trips a one-time schedule with null interval_days', async () => {
+    let id: string;
+    await ctx.spaceContext.run(spaceAId, async () => {
+      const schedule = buildSchedule().withIntervalDays(null).build();
+      await writeRepo.save(schedule);
+      id = schedule.id.value;
+    });
+
+    await ctx.spaceContext.run(spaceAId, async () => {
+      const found = await writeRepo.findById(id);
+      expect(found).not.toBeNull();
+      expect(found!.toPrimitives().intervalDays).toBeNull();
+    });
+  });
+
+  it('completing a one-time schedule deactivates it and keeps nextDueAt', async () => {
+    let id: string;
+    await ctx.spaceContext.run(spaceAId, async () => {
+      const schedule = buildSchedule().withIntervalDays(null).build();
+      schedule.complete(new Date('2026-06-27T09:00:00.000Z'));
+      await writeRepo.save(schedule);
+      id = schedule.id.value;
+    });
+
+    await ctx.spaceContext.run(spaceAId, async () => {
+      const found = await writeRepo.findById(id);
+      const p = found!.toPrimitives();
+      expect(p.active).toBe(false);
+      expect(p.lastCompletedAt).not.toBeNull();
+      expect(p.nextDueAt).toEqual(NOW);
+    });
+  });
+
   it('completing advances nextDueAt and persists', async () => {
     let id: string;
     await ctx.spaceContext.run(spaceAId, async () => {
