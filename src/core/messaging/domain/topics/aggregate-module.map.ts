@@ -13,6 +13,7 @@ export const AGGREGATE_MODULE_MAP: Readonly<Record<string, string>> = {
   AuthSessionAggregate: 'auth',
   OAuthIdentityAggregate: 'auth',
   CareLogEntryAggregate: 'care-log',
+  CareScheduleAggregate: 'care-schedule',
   HarvestAggregate: 'harvests',
   InventoryItemAggregate: 'inventory',
   PlantSpeciesAggregate: 'plant-species',
