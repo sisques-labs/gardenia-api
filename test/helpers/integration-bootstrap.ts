@@ -6,20 +6,6 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { DataSource } from 'typeorm';
 import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
 
-import { AccountEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/account.entity';
-import { AuthSessionEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/auth-session.entity';
-import { OAuthIdentityTypeOrmEntity } from '../../src/contexts/auth/infrastructure/persistence/typeorm/entities/oauth-identity.entity';
-import { HarvestTypeOrmEntity } from '../../src/contexts/harvests/infrastructure/persistence/typeorm/entities/harvest.entity';
-import { InventoryItemTypeOrmEntity } from '../../src/contexts/inventory/infrastructure/persistence/typeorm/entities/inventory-item.entity';
-import { SpaceEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space.entity';
-import { SpaceInvitationEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-invitation.entity';
-import { SpaceMembershipEntity } from '../../src/contexts/spaces/infrastructure/persistence/typeorm/entities/space-membership.entity';
-import { UserTypeOrmEntity } from '../../src/contexts/users/infrastructure/persistence/typeorm/entities/user.entity';
-import { PlantSpeciesTypeOrmEntity } from '../../src/contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
-import { PlantTypeOrmEntity } from '../../src/contexts/plants/infrastructure/persistence/typeorm/entities/plant.entity';
-import { QrTypeOrmEntity } from '../../src/contexts/qr/infrastructure/persistence/typeorm/entities/qr.entity';
-import { PlantingSpotTypeOrmEntity } from '../../src/contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
-import { CareLogEntryTypeOrmEntity } from '../../src/contexts/care-log/infrastructure/persistence/typeorm/entities/care-log-entry.entity';
 import { appConfig } from '../../src/core/config/app.config';
 import { authConfig } from '../../src/core/config/auth.config';
 import { SharedModule } from '../../src/shared/shared.module';
@@ -31,23 +17,6 @@ const DB_PORT = parseInt(process.env.DATABASE_PORT ?? '5433', 10);
 const DB_DATABASE = process.env.DATABASE_DATABASE ?? 'gardenia_test';
 const DB_USERNAME = process.env.DATABASE_USERNAME ?? 'gardenia';
 const DB_PASSWORD = process.env.DATABASE_PASSWORD ?? 'gardenia';
-
-const TEST_ENTITIES = [
-  AccountEntity,
-  AuthSessionEntity,
-  UserTypeOrmEntity,
-  SpaceEntity,
-  SpaceMembershipEntity,
-  SpaceInvitationEntity,
-  PlantSpeciesTypeOrmEntity,
-  PlantTypeOrmEntity,
-  QrTypeOrmEntity,
-  PlantingSpotTypeOrmEntity,
-  OAuthIdentityTypeOrmEntity,
-  HarvestTypeOrmEntity,
-  CareLogEntryTypeOrmEntity,
-  InventoryItemTypeOrmEntity,
-];
 
 export interface IntegrationModuleOptions {
   imports: Array<Type<unknown> | DynamicModule>;
@@ -79,7 +48,11 @@ export async function createIntegrationModule(
         database: DB_DATABASE,
         username: DB_USERNAME,
         password: DB_PASSWORD,
-        entities: TEST_ENTITIES,
+        // Entities are auto-loaded from whatever bounded-context module the test
+        // imports (each registers its entity via TypeOrmModule.forFeature), so
+        // adding a new context never requires editing this list. Mirrors the
+        // production AppModule (autoLoadEntities: true).
+        autoLoadEntities: true,
         synchronize: false,
         logging: false,
       }),
