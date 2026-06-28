@@ -1,6 +1,8 @@
 import { AuthModule } from '@contexts/auth/auth.module';
 import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
 import { CareLogModule } from '@contexts/care-log/care-log.module';
+import { CareScheduleModule } from '@contexts/care-schedule/care-schedule.module';
+import { FilesModule } from '@contexts/files/files.module';
 import { HarvestsModule } from '@contexts/harvests/harvests.module';
 import { InventoryModule } from '@contexts/inventory/inventory.module';
 import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
@@ -15,10 +17,12 @@ import { WeatherModule } from '@contexts/weather/weather.module';
 import { appConfig } from '@core/config/app.config';
 import { authConfig } from '@core/config/auth.config';
 import { validateEnv } from '@core/config/env.validation';
+import { kafkaConfig } from '@core/config/kafka.config';
 import { postgresConfig } from '@core/config/postgres.config';
 import { sentryConfig } from '@core/config/sentry.config';
 import { HealthModule } from '@core/health/health.module';
 import { McpModule } from '@core/mcp/mcp.module';
+import { MessagingModule } from '@core/messaging/messaging.module';
 import { MetricsModule } from '@core/metrics/metrics.module';
 import { ObservabilityModule } from '@core/observability/observability.module';
 import '@core/transport/graphql/registered-enums.graphql';
@@ -41,7 +45,7 @@ import { SupportModule } from './support/support.module';
     ConfigModule.forRoot({
       isGlobal: true,
       validate: validateEnv,
-      load: [postgresConfig, authConfig, appConfig, sentryConfig],
+      load: [postgresConfig, authConfig, appConfig, sentryConfig, kafkaConfig],
       cache: true,
     }),
     TypeOrmModule.forRootAsync({
@@ -64,6 +68,7 @@ import { SupportModule } from './support/support.module';
     }),
     ObservabilityModule,
     MetricsModule,
+    MessagingModule,
     HealthModule,
     McpModule,
     WeatherModule,
@@ -77,6 +82,8 @@ import { SupportModule } from './support/support.module';
     CareLogModule,
     HarvestsModule,
     InventoryModule,
+    CareScheduleModule,
+    FilesModule,
   ],
   providers: [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through

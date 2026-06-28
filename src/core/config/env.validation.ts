@@ -17,44 +17,64 @@ function formatZodIssues(issues: z.ZodIssue[]): string {
     .join('\n');
 }
 
-const baseEnvSchema = z.object({
-  NODE_ENV: z.string().optional(),
-  JWT_SECRET: z.string().trim().min(1, 'JWT_SECRET must not be empty'),
-  OAUTH_TOKEN_ENC_KEY: z
-    .string()
-    .trim()
-    .min(1, 'OAUTH_TOKEN_ENC_KEY must not be empty')
-    .refine(
-      isValidOAuthTokenEncKey,
-      'OAUTH_TOKEN_ENC_KEY must be a 32-byte (256-bit) base64-encoded key',
-    ),
-  OAUTH_STATE_SECRET: z
-    .string()
-    .trim()
-    .min(1, 'OAUTH_STATE_SECRET must not be empty'),
-  QR_BASE_URL: z.string().trim().min(1, 'QR_BASE_URL must not be empty'),
-  DATABASE_DRIVER: z.string().optional(),
-  DATABASE_HOST: z.string().trim().min(1, 'DATABASE_HOST must not be empty'),
-  DATABASE_PORT: z.string().optional(),
-  DATABASE_USERNAME: z
-    .string()
-    .trim()
-    .min(1, 'DATABASE_USERNAME must not be empty'),
-  DATABASE_PASSWORD: z.string().min(1, 'DATABASE_PASSWORD must not be empty'),
-  DATABASE_DATABASE: z
-    .string()
-    .trim()
-    .min(1, 'DATABASE_DATABASE must not be empty'),
-  SENTRY_DSN: z.string().optional(),
-  SENTRY_ENVIRONMENT: z.string().optional(),
-  SENTRY_RELEASE: z.string().optional(),
-  SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).optional(),
-  SENTRY_PROFILE_SESSION_SAMPLE_RATE: z.coerce
-    .number()
-    .min(0)
-    .max(1)
-    .optional(),
-});
+const baseEnvSchema = z
+  .object({
+    NODE_ENV: z.string().optional(),
+    JWT_SECRET: z.string().trim().min(1, 'JWT_SECRET must not be empty'),
+    OAUTH_TOKEN_ENC_KEY: z
+      .string()
+      .trim()
+      .min(1, 'OAUTH_TOKEN_ENC_KEY must not be empty')
+      .refine(
+        isValidOAuthTokenEncKey,
+        'OAUTH_TOKEN_ENC_KEY must be a 32-byte (256-bit) base64-encoded key',
+      ),
+    OAUTH_STATE_SECRET: z
+      .string()
+      .trim()
+      .min(1, 'OAUTH_STATE_SECRET must not be empty'),
+    QR_BASE_URL: z.string().trim().min(1, 'QR_BASE_URL must not be empty'),
+    DATABASE_DRIVER: z.string().optional(),
+    DATABASE_HOST: z.string().trim().min(1, 'DATABASE_HOST must not be empty'),
+    DATABASE_PORT: z.string().optional(),
+    DATABASE_USERNAME: z
+      .string()
+      .trim()
+      .min(1, 'DATABASE_USERNAME must not be empty'),
+    DATABASE_PASSWORD: z.string().min(1, 'DATABASE_PASSWORD must not be empty'),
+    DATABASE_DATABASE: z
+      .string()
+      .trim()
+      .min(1, 'DATABASE_DATABASE must not be empty'),
+    SENTRY_DSN: z.string().optional(),
+    SENTRY_ENVIRONMENT: z.string().optional(),
+    SENTRY_RELEASE: z.string().optional(),
+    SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).optional(),
+    SENTRY_PROFILE_SESSION_SAMPLE_RATE: z.coerce
+      .number()
+      .min(0)
+      .max(1)
+      .optional(),
+    KAFKA_ENABLED: z.enum(['true', 'false']).optional(),
+    KAFKA_BROKERS: z.string().optional(),
+    KAFKA_CLIENT_ID: z.string().optional(),
+    KAFKA_TOPIC_PREFIX: z.string().optional(),
+    KAFKA_SSL: z.enum(['true', 'false']).optional(),
+    KAFKA_SASL_MECHANISM: z
+      .enum(['plain', 'scram-sha-256', 'scram-sha-512'])
+      .optional(),
+    KAFKA_SASL_USERNAME: z.string().optional(),
+    KAFKA_SASL_PASSWORD: z.string().optional(),
+  })
+  .superRefine((env, ctx) => {
+    if (env.KAFKA_ENABLED === 'true' && !env.KAFKA_BROKERS?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['KAFKA_BROKERS'],
+        message: 'KAFKA_BROKERS is required when KAFKA_ENABLED is "true"',
+      });
+    }
+  });
 
 export function validateProductionSecrets(env: {
   JWT_SECRET: string;

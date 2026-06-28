@@ -1,5 +1,7 @@
 import { resolveAuthExceptionStatus } from '@contexts/auth/transport/exceptions/auth-exception.filter';
 import { resolveCareLogExceptionStatus } from '@contexts/care-log/transport/exceptions/care-log-exception.filter';
+import { resolveCareScheduleExceptionStatus } from '@contexts/care-schedule/transport/exceptions/care-schedule-exception.filter';
+import { resolveFilesExceptionStatus } from '@contexts/files/transport/exceptions/files-exception.filter';
 import { resolveHarvestsExceptionStatus } from '@contexts/harvests/transport/exceptions/harvests-exception.filter';
 import { resolveInventoryExceptionStatus } from '@contexts/inventory/transport/exceptions/inventory-exception.filter';
 import { resolvePlantSpeciesExceptionStatus } from '@contexts/plant-species/transport/exceptions/plant-species-exception.filter';
@@ -52,6 +54,8 @@ export class BaseExceptionFilter
       resolveCareLogExceptionStatus(exception) ??
       resolveHarvestsExceptionStatus(exception) ??
       resolveInventoryExceptionStatus(exception) ??
+      resolveCareScheduleExceptionStatus(exception) ??
+      resolveFilesExceptionStatus(exception) ??
       HttpStatus.BAD_REQUEST
     );
   }

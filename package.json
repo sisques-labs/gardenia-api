@@ -1,6 +1,6 @@
 {
   "name": "sisques-labs/gardenia-api",
-  "version": "0.23.1",
+  "version": "0.24.0-beta.0",
   "description": "Garden & plant manager API",
   "author": "Sisques Labs",
   "repository": {
@@ -19,6 +19,8 @@
     "debug": "nest start --debug --watch",
     "prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "gen:topics": "ts-node --transpile-only scripts/generate-aggregate-module-map.ts",
+    "gen:topics:check": "ts-node --transpile-only scripts/generate-aggregate-module-map.ts --check",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -69,6 +71,7 @@
     "express": "^5.2.1",
     "graphql": "^16.14.0",
     "graphql-query-complexity": "^1.1.0",
+    "kafkajs": "^2.2.4",
     "nest-winston": "^1.10.2",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
