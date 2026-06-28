@@ -5,7 +5,7 @@ import { ICareSchedulePrimitives } from '@contexts/care-schedule/domain/primitiv
 export class CareScheduleViewModel extends BaseViewModel {
   public readonly plantId: string;
   public readonly activityType: string;
-  public readonly intervalDays: number;
+  public readonly intervalDays: number | null;
   public readonly quantity: number | null;
   public readonly unit: string | null;
   public readonly notes: string | null;

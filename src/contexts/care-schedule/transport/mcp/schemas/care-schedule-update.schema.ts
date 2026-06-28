@@ -14,8 +14,9 @@ export const careScheduleUpdateSchema = {
     .number()
     .int()
     .positive()
+    .nullable()
     .optional()
-    .describe('New interval in days (>= 1)'),
+    .describe('New interval in days (>= 1), or null to clear (one-time)'),
   quantity: z
     .number()
     .positive()

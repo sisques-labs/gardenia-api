@@ -5,9 +5,12 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 export class CareScheduleIntervalDaysChangedEvent extends BaseEvent<
-  IFieldChangedEventData<number>
+  IFieldChangedEventData<number | null>
 > {
-  constructor(metadata: IEventMetadata, data: IFieldChangedEventData<number>) {
+  constructor(
+    metadata: IEventMetadata,
+    data: IFieldChangedEventData<number | null>,
+  ) {
     super(metadata, data);
   }
 }

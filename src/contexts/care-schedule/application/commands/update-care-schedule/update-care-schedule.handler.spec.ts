@@ -59,7 +59,33 @@ describe('UpdateCareScheduleCommandHandler', () => {
       }),
     );
 
-    expect(schedule.intervalDays.value).toBe(7);
+    expect(schedule.intervalDays?.value).toBe(7);
+    expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears intervalDays when null is provided (one-time schedule)', async () => {
+    const now = new Date();
+    const schedule = new CareScheduleBuilder()
+      .withId('550e8400-e29b-41d4-a716-446655440000')
+      .withPlantId('110e8400-e29b-41d4-a716-446655440010')
+      .withActivityType(CareScheduleActivityTypeEnum.WATERING)
+      .withIntervalDays(3)
+      .withNextDueAt(now)
+      .withUserId('660e8400-e29b-41d4-a716-446655440001')
+      .withSpaceId('770e8400-e29b-41d4-a716-446655440002')
+      .withCreatedAt(now)
+      .withUpdatedAt(now)
+      .build();
+    mockAssert.execute.mockResolvedValue(schedule);
+
+    await handler.execute(
+      new UpdateCareScheduleCommand({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        intervalDays: null,
+      }),
+    );
+
+    expect(schedule.intervalDays).toBeNull();
     expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
   });
 });

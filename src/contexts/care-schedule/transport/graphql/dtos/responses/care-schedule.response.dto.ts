@@ -15,8 +15,11 @@ export class CareScheduleResponseDto {
   @Field(() => CareScheduleActivityTypeEnum, { description: 'Activity type' })
   activityType!: CareScheduleActivityTypeEnum;
 
-  @Field(() => Number, { description: 'Recurrence interval in days' })
-  intervalDays!: number;
+  @Field(() => Number, {
+    nullable: true,
+    description: 'Recurrence interval in days (null for one-time schedules)',
+  })
+  intervalDays!: number | null;
 
   @Field(() => Number, { nullable: true, description: 'Dosage quantity' })
   quantity!: number | null;

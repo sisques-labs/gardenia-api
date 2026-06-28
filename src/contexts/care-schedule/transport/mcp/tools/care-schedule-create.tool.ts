@@ -18,7 +18,7 @@ export class CareScheduleCreateMcpTool implements IMcpTool {
   readonly name = 'care_schedule_create';
   readonly title = 'Create care schedule';
   readonly description =
-    'Creates a recurring care schedule for a plant in the current space.';
+    'Creates a care schedule for a plant in the current space. Provide intervalDays for a recurring schedule, or omit it for a one-time schedule due on nextDueAt.';
   readonly inputSchema = careScheduleCreateSchema;
 
   constructor(private readonly commandBus: CommandBus) {}
@@ -39,7 +39,7 @@ export class CareScheduleCreateMcpTool implements IMcpTool {
     } = args as {
       plantId: string;
       activityType: CareScheduleActivityTypeEnum;
-      intervalDays: number;
+      intervalDays?: number | null;
       quantity?: number | null;
       unit?: CareScheduleUnitEnum | null;
       notes?: string | null;

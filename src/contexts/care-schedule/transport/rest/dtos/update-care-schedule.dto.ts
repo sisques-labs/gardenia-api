@@ -19,11 +19,16 @@ export class UpdateCareScheduleDto {
   @IsEnum(CareScheduleActivityTypeEnum)
   activityType?: CareScheduleActivityTypeEnum;
 
-  @ApiPropertyOptional({ example: 5, description: 'Interval in days (>= 1)' })
+  @ApiPropertyOptional({
+    example: 5,
+    description:
+      'Interval in days (>= 1). Send null to clear it (one-time schedule).',
+    nullable: true,
+  })
   @IsOptional()
   @IsInt()
   @Min(1)
-  intervalDays?: number;
+  intervalDays?: number | null;
 
   @ApiPropertyOptional({
     example: 250,

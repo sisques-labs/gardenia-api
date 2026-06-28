@@ -85,6 +85,23 @@ describe('Care Schedule REST API (e2e)', () => {
       expect(res.body.id).toBeDefined();
     });
 
+    it('201 — creates a one-time schedule when intervalDays is omitted', async () => {
+      const { intervalDays, ...oneTime } = VALID_SCHEDULE;
+      void intervalDays;
+      const res = await ctx
+        .http()
+        .post('/api/care-schedules')
+        .set('Authorization', `Bearer ${userA.token}`)
+        .set('X-Space-ID', userA.spaceId)
+        .send(oneTime)
+        .expect(201);
+
+      expect(res.body.intervalDays).toBeNull();
+      expect(new Date(res.body.nextDueAt)).toEqual(
+        new Date('2026-06-27T00:00:00.000Z'),
+      );
+    });
+
     it('400 — rejects interval below one', async () => {
       await ctx
         .http()
@@ -127,6 +144,34 @@ describe('Care Schedule REST API (e2e)', () => {
 
       expect(new Date(res.body.nextDueAt)).toEqual(
         new Date('2026-06-30T00:00:00.000Z'),
+      );
+      expect(res.body.lastCompletedAt).not.toBeNull();
+    });
+
+    it('200 — completing a one-time schedule deactivates it and keeps nextDueAt', async () => {
+      const { intervalDays, ...oneTime } = VALID_SCHEDULE;
+      void intervalDays;
+      const createRes = await ctx
+        .http()
+        .post('/api/care-schedules')
+        .set('Authorization', `Bearer ${userA.token}`)
+        .set('X-Space-ID', userA.spaceId)
+        .send(oneTime)
+        .expect(201);
+
+      const { id } = createRes.body as { id: string };
+
+      const res = await ctx
+        .http()
+        .post(`/api/care-schedules/${id}/complete`)
+        .set('Authorization', `Bearer ${userA.token}`)
+        .set('X-Space-ID', userA.spaceId)
+        .send({ completedAt: '2026-06-27T09:00:00.000Z' })
+        .expect(200);
+
+      expect(res.body.active).toBe(false);
+      expect(new Date(res.body.nextDueAt)).toEqual(
+        new Date('2026-06-27T00:00:00.000Z'),
       );
       expect(res.body.lastCompletedAt).not.toBeNull();
     });

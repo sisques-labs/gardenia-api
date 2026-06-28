@@ -31,7 +31,7 @@ export class CareScheduleAggregate extends BaseAggregate {
   private readonly _id: CareScheduleIdValueObject;
   private readonly _plantId: UuidValueObject;
   private _activityType: CareScheduleActivityTypeValueObject;
-  private _intervalDays: CareScheduleIntervalDaysValueObject;
+  private _intervalDays: CareScheduleIntervalDaysValueObject | null;
   private _quantity: CareScheduleQuantityValueObject | null;
   private _unit: CareScheduleUnitValueObject | null;
   private _notes: CareScheduleNotesValueObject | null;
@@ -111,13 +111,22 @@ export class CareScheduleAggregate extends BaseAggregate {
   }
 
   public complete(completedAt: Date): void {
-    const nextDue = new Date(
-      completedAt.getTime() + this._intervalDays.value * MS_PER_DAY,
-    );
     this._lastCompletedAt = new CareScheduleLastCompletedAtValueObject(
       completedAt,
     );
-    this._nextDueAt = new CareScheduleNextDueAtValueObject(nextDue);
+
+    if (this._intervalDays !== null) {
+      // Recurring schedule: advance the next due date by the interval.
+      const nextDue = new Date(
+        completedAt.getTime() + this._intervalDays.value * MS_PER_DAY,
+      );
+      this._nextDueAt = new CareScheduleNextDueAtValueObject(nextDue);
+    } else {
+      // One-time schedule (no interval): nothing recurs, so it is done.
+      // Keep nextDueAt as the day it was due and deactivate it.
+      this._active = new BooleanValueObject(false);
+    }
+
     this.touch();
     this.apply(
       new CareScheduleCompletedEvent(
@@ -128,7 +137,11 @@ export class CareScheduleAggregate extends BaseAggregate {
           entityType: CareScheduleAggregate.name,
           eventType: CareScheduleCompletedEvent.name,
         },
-        { id: this._id.value, completedAt, nextDueAt: nextDue },
+        {
+          id: this._id.value,
+          completedAt,
+          nextDueAt: this._nextDueAt.value,
+        },
       ),
     );
   }
@@ -171,10 +184,10 @@ export class CareScheduleAggregate extends BaseAggregate {
   }
 
   private changeIntervalDays(
-    newIntervalDays: CareScheduleIntervalDaysValueObject,
+    newIntervalDays: CareScheduleIntervalDaysValueObject | null,
   ): void {
-    const oldValue = this._intervalDays.value;
-    const newValue = newIntervalDays.value;
+    const oldValue = this._intervalDays?.value ?? null;
+    const newValue = newIntervalDays?.value ?? null;
     if (oldValue === newValue) return;
     this._intervalDays = newIntervalDays;
     this.touch();
@@ -279,7 +292,7 @@ export class CareScheduleAggregate extends BaseAggregate {
       id: this._id.value,
       plantId: this._plantId.value,
       activityType: this._activityType.value,
-      intervalDays: this._intervalDays.value,
+      intervalDays: this._intervalDays?.value ?? null,
       quantity: this._quantity?.value ?? null,
       unit: this._unit?.value ?? null,
       notes: this._notes?.value ?? null,
@@ -302,7 +315,7 @@ export class CareScheduleAggregate extends BaseAggregate {
   get activityType(): CareScheduleActivityTypeValueObject {
     return this._activityType;
   }
-  get intervalDays(): CareScheduleIntervalDaysValueObject {
+  get intervalDays(): CareScheduleIntervalDaysValueObject | null {
     return this._intervalDays;
   }
   get quantity(): CareScheduleQuantityValueObject | null {

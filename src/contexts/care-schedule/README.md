@@ -2,12 +2,14 @@
 
 ## Purpose
 
-The `care-schedule` context manages **recurring care plans** for plants: *"do
-activity X for this plant every N days"*. Where the `care-log` context records
-the care a plant *received* (the past), `care-schedule` plans the care a plant
-*needs* (the future). Each schedule tracks the next due date and can be marked
-complete, which advances the next due date by the interval and records the last
-completion.
+The `care-schedule` context manages **care plans** for plants. A schedule can be
+**recurring** (*"do activity X for this plant every N days"*, with `intervalDays`
+set) or **one-time** for a specific day (*"do activity X on this date"*, with
+`intervalDays` omitted / `null`). Where the `care-log` context records the care a
+plant *received* (the past), `care-schedule` plans the care a plant *needs* (the
+future). Each schedule tracks the next due date and can be marked complete:
+recurring schedules advance the next due date by the interval, while one-time
+schedules are deactivated. Both record the last completion.
 
 This is a **standalone, tenant-scoped** bounded context. It references a plant
 only by raw `plantId` and imports nothing from other bounded contexts. All data
@@ -24,7 +26,7 @@ is scoped to the active `spaceId` via `SpaceContext`.
 | `id` | `CareScheduleIdValueObject` | UUID generated on creation |
 | `plantId` | `UuidValueObject` | Plant the schedule belongs to |
 | `activityType` | `CareScheduleActivityTypeValueObject` | `WATERING`, `FERTILIZING`, `PRUNING`, `REPOTTING`, `TRANSPLANTING`, `PEST_TREATMENT`, `MISTING`, `ROTATION`, `OTHER` |
-| `intervalDays` | `CareScheduleIntervalDaysValueObject` | Recurrence interval in days (≥ 1) |
+| `intervalDays` | `CareScheduleIntervalDaysValueObject \| null` | Recurrence interval in days (≥ 1); `null` for a one-time schedule |
 | `quantity` | `CareScheduleQuantityValueObject \| null` | Optional dosage (> 0) |
 | `unit` | `CareScheduleUnitValueObject \| null` | `ML`, `L`, `G`, `KG` |
 | `notes` | `CareScheduleNotesValueObject \| null` | Optional notes, ≤ 2000 chars |
@@ -42,13 +44,14 @@ Domain methods:
   (`activityType`, `intervalDays`, `quantity`, `unit`, `notes`, `active`) plus
   `CareScheduleUpdatedEvent`. `nextDueAt` / `lastCompletedAt` are never mutated
   here (they are in the `Omit` set).
-- `complete(completedAt)` — sets `lastCompletedAt = completedAt`, recomputes
-  `nextDueAt = completedAt + intervalDays` days, applies
-  `CareScheduleCompletedEvent`
+- `complete(completedAt)` — sets `lastCompletedAt = completedAt`. For a recurring
+  schedule, recomputes `nextDueAt = completedAt + intervalDays` days. For a
+  one-time schedule (`intervalDays === null`), keeps `nextDueAt` and deactivates
+  the schedule (`active = false`). Applies `CareScheduleCompletedEvent`
 - `delete()` — applies `CareScheduleDeletedEvent`
 
 Business rules enforced in the domain:
-- `intervalDays` ≥ 1 (`CareScheduleIntervalDaysValueObject`, `min: 1`)
+- `intervalDays` ≥ 1 when present (`CareScheduleIntervalDaysValueObject`, `min: 1`); `null` marks a one-time schedule
 - `quantity` > 0 when present (`CareScheduleQuantityValueObject`, `min: 0.001`)
 - `notes` ≤ 2000 chars
 - Any space member can create, update, complete, and delete any schedule.

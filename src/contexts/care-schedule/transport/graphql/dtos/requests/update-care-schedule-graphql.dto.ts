@@ -29,12 +29,13 @@ export class UpdateCareScheduleGraphQLDto {
 
   @Field(() => Number, {
     nullable: true,
-    description: 'Interval in days (>= 1)',
+    description:
+      'Interval in days (>= 1). Send null to clear it (one-time schedule).',
   })
   @IsOptional()
   @IsInt()
   @Min(1)
-  intervalDays?: number;
+  intervalDays?: number | null;
 
   @Field(() => Number, { nullable: true, description: 'Send null to clear' })
   @IsOptional()

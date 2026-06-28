@@ -14,7 +14,9 @@ export class CareScheduleTypeOrmMapper {
       .withId(entity.id)
       .withPlantId(entity.plantId)
       .withActivityType(entity.activityType)
-      .withIntervalDays(Number(entity.intervalDays))
+      .withIntervalDays(
+        entity.intervalDays != null ? Number(entity.intervalDays) : null,
+      )
       .withQuantity(
         entity.quantity != null ? parseFloat(entity.quantity) : null,
       )

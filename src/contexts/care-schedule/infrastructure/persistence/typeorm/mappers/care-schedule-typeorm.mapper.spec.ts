@@ -28,7 +28,7 @@ describe('CareScheduleTypeOrmMapper', () => {
 
   it('maps entity → domain → persistence round-trip', () => {
     const aggregate = mapper.toDomain(buildEntity());
-    expect(aggregate.intervalDays.value).toBe(14);
+    expect(aggregate.intervalDays?.value).toBe(14);
     expect(aggregate.quantity?.value).toBe(250);
 
     const persisted = mapper.toPersistence(aggregate);
@@ -55,5 +55,15 @@ describe('CareScheduleTypeOrmMapper', () => {
     expect(aggregate.quantity).toBeNull();
     expect(aggregate.unit).toBeNull();
     expect(aggregate.notes).toBeNull();
+  });
+
+  it('maps a one-time schedule with null interval_days', () => {
+    const entity = buildEntity();
+    entity.intervalDays = null;
+    const aggregate = mapper.toDomain(entity);
+    expect(aggregate.intervalDays).toBeNull();
+
+    const persisted = mapper.toPersistence(aggregate);
+    expect(persisted.intervalDays).toBeNull();
   });
 });

@@ -30,10 +30,15 @@ export class CreateCareScheduleGraphQLDto {
   @IsEnum(CareScheduleActivityTypeEnum)
   activityType!: CareScheduleActivityTypeEnum;
 
-  @Field(() => Number, { description: 'Recurrence interval in days (>= 1)' })
+  @Field(() => Number, {
+    nullable: true,
+    description:
+      'Recurrence interval in days (>= 1). Omit for a one-time schedule due on nextDueAt.',
+  })
+  @IsOptional()
   @IsInt()
   @Min(1)
-  intervalDays!: number;
+  intervalDays?: number | null;
 
   @Field(() => Number, { nullable: true, description: 'Dosage quantity (> 0)' })
   @IsOptional()

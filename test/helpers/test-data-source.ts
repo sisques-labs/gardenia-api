@@ -23,6 +23,7 @@ import { CreateCareLog1780000000016 } from '../../src/database/migrations/178000
 import { CreateInventoryItems1780000000018 } from '../../src/database/migrations/1780000000018-CreateInventoryItems';
 import { CreateFiles1780000000019 } from '../../src/database/migrations/1780000000019-CreateFiles';
 import { CreateCareSchedules1780000000020 } from '../../src/database/migrations/1780000000020-CreateCareSchedules';
+import { MakeCareScheduleIntervalDaysNullable1780000000021 } from '../../src/database/migrations/1780000000021-MakeCareScheduleIntervalDaysNullable';
 
 // This DataSource only runs migrations to build the test schema; TypeORM does
 // not need entity metadata for that, so no entity list is maintained here.
@@ -50,6 +51,7 @@ const TEST_MIGRATIONS = [
   CreateInventoryItems1780000000018,
   CreateFiles1780000000019,
   CreateCareSchedules1780000000020,
+  MakeCareScheduleIntervalDaysNullable1780000000021,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

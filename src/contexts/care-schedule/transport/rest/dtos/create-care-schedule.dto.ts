@@ -30,13 +30,16 @@ export class CreateCareScheduleDto {
   @IsEnum(CareScheduleActivityTypeEnum)
   activityType!: CareScheduleActivityTypeEnum;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 3,
-    description: 'Recurrence interval in days (>= 1)',
+    description:
+      'Recurrence interval in days (>= 1). Omit for a one-time schedule due on nextDueAt.',
+    nullable: true,
   })
+  @IsOptional()
   @IsInt()
   @Min(1)
-  intervalDays!: number;
+  intervalDays?: number | null;
 
   @ApiPropertyOptional({ example: 250, description: 'Dosage quantity (> 0)' })
   @IsOptional()

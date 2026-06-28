@@ -27,7 +27,7 @@ export class CareScheduleUpdateMcpTool implements IMcpTool {
       args as {
         id: string;
         activityType?: CareScheduleActivityTypeEnum;
-        intervalDays?: number;
+        intervalDays?: number | null;
         quantity?: number | null;
         unit?: CareScheduleUnitEnum | null;
         notes?: string | null;
