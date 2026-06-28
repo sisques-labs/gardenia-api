@@ -3,28 +3,17 @@
  * the Kafka topic suffix (`${prefix}.${module}`).
  *
  * A `BaseEvent` only carries `aggregateRootType` (e.g. `PlantAggregate`), not the
- * owning context, and the relationship is not derivable by convention — `auth`
- * owns three aggregates, and modules are pluralised/kebab-cased independently. So
- * the mapping is explicit. **Add a new aggregate here when you create one**; an
- * unmapped aggregate falls back to the `unmapped` topic with a warning.
+ * owning context, so the routing table is materialised explicitly — but it is
+ * **auto-generated**, not hand-maintained. The generator derives it from the
+ * folder layout (`src/contexts/<module>/domain/aggregates/*.aggregate.ts`), so
+ * creating a new module/aggregate requires no edit here: the pre-commit hook and
+ * CI (`pnpm gen:topics:check`) keep `aggregate-module.map.generated.ts` in sync.
+ * An aggregate that is somehow missing falls back to the `unmapped` topic with a
+ * warning.
+ *
+ * @see scripts/generate-aggregate-module-map.ts
  */
-export const AGGREGATE_MODULE_MAP: Readonly<Record<string, string>> = {
-  AccountAggregate: 'auth',
-  AuthSessionAggregate: 'auth',
-  OAuthIdentityAggregate: 'auth',
-  CareLogEntryAggregate: 'care-log',
-  CareScheduleAggregate: 'care-schedule',
-  HarvestAggregate: 'harvests',
-  InventoryItemAggregate: 'inventory',
-  PlantSpeciesAggregate: 'plant-species',
-  PlantingSpotAggregate: 'planting-spots',
-  PlantingSpotPlantAggregate: 'planting-spots',
-  PlantAggregate: 'plants',
-  QrAggregate: 'qr',
-  SpaceAggregate: 'spaces',
-  SpaceInvitationAggregate: 'spaces',
-  UserAggregate: 'users',
-};
+export { AGGREGATE_MODULE_MAP } from '@core/messaging/domain/topics/aggregate-module.map.generated';
 
 /** Module used when an aggregate root type has no explicit mapping. */
 export const UNMAPPED_MODULE = 'unmapped';

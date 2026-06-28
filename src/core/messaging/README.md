@@ -45,13 +45,19 @@ and `correlation-id` / `causation-id` when present.
 ### Module mapping
 
 A `BaseEvent` carries `aggregateRootType` (`PlantAggregate`) but not its bounded
-context, and the relationship is not derivable by convention (`auth` owns three
-aggregates; modules are pluralised/kebab-cased independently). The mapping is therefore
-**explicit** in `domain/topics/aggregate-module.map.ts`.
+context, so the routing table `aggregateRootType -> module` is materialised in
+`domain/topics/aggregate-module.map.ts`. That table is **auto-generated**, not
+hand-maintained: the module is the bounded-context folder that owns the aggregate
+(`src/contexts/<module>/domain/aggregates/*.aggregate.ts`).
 
-> **When you add a new aggregate, add it to `AGGREGATE_MODULE_MAP`.** Unmapped
-> aggregates are routed to the `${prefix}.unmapped` topic and logged with a warning
-> (once per type) so nothing is silently dropped.
+> **You never edit the map by hand.** `scripts/generate-aggregate-module-map.ts`
+> regenerates `aggregate-module.map.generated.ts` from the folder layout. It runs on
+> the **pre-commit hook** (staging the result) and is verified in **CI**
+> (`pnpm gen:topics:check`); run `pnpm gen:topics` manually anytime. So creating a
+> new module/aggregate wires up its Kafka topic automatically — nothing to remember.
+
+If an aggregate is somehow still unmapped it falls back to the `${prefix}.unmapped`
+topic and is logged with a warning (once per type) so nothing is silently dropped.
 
 ## Configuration
 
@@ -77,7 +83,8 @@ src/core/messaging/
 │   ├── interfaces/outbound-event.interface.ts   — transport-agnostic event shape
 │   ├── ports/event-publisher.port.ts            — IEventPublisher + EVENT_PUBLISHER token
 │   └── topics/
-│       ├── aggregate-module.map.ts              — aggregateRootType -> module
+│       ├── aggregate-module.map.ts              — UNMAPPED_MODULE + re-export of the generated map
+│       ├── aggregate-module.map.generated.ts    — AUTO-GENERATED aggregateRootType -> module
 │       └── event-routing.ts                     — resolveModule + deriveAction (pure)
 ├── application/
 │   └── services/domain-event-forwarder.service.ts  — subscribes to EventBus, forwards

@@ -19,6 +19,8 @@
     "debug": "nest start --debug --watch",
     "prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "gen:topics": "ts-node --transpile-only scripts/generate-aggregate-module-map.ts",
+    "gen:topics:check": "ts-node --transpile-only scripts/generate-aggregate-module-map.ts --check",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

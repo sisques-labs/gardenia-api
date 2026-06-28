@@ -15,6 +15,7 @@ describe('event-routing', () => {
       ['SpaceInvitationAggregate', 'spaces'],
       ['CareLogEntryAggregate', 'care-log'],
       ['CareScheduleAggregate', 'care-schedule'],
+      ['FileAggregate', 'files'],
     ])('maps %s -> %s', (aggregateRootType, expected) => {
       expect(resolveModule(aggregateRootType)).toEqual({
         module: expected,

@@ -27,6 +27,9 @@ jobs:
       - name: Lint code
         run: pnpm lint
 
+      - name: Check Kafka topic map is in sync
+        run: pnpm gen:topics:check
+
       - name: Run unit tests
         run: pnpm test
 
