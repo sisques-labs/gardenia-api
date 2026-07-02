@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.24.1-beta.0] - 2026-07-02
+## [0.24.1] - 2026-07-02
 
 ### Build
 - **deps-dev:** Bump ts-loader from 9.5.7 to 9.6.2 (95ca2a2)
