@@ -32,3 +32,20 @@ jobs:
     permissions:
       contents: write
       packages: write
+
+  notify-e2e:
+    name: Trigger e2e (${{ github.ref_name == 'develop' && 'alpha' || 'beta' }})
+    needs: release
+    if: github.ref_name == 'develop' || github.ref_name == 'staging'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch gardenia-e2e run
+        env:
+          CHANNEL: ${{ github.ref_name == 'develop' && 'alpha' || 'beta' }}
+          TOKEN: ${{ secrets.E2E_DISPATCH_TOKEN }}
+        run: |
+          curl -sf -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $TOKEN" \
+            https://api.github.com/repos/sisques-labs/gardenia-e2e/dispatches \
+            -d "{\"event_type\":\"${CHANNEL}-released\",\"client_payload\":{\"channel\":\"${CHANNEL}\",\"source\":\"${{ github.repository }}\",\"ref\":\"${{ github.sha }}\"}}"
