@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.24.2-beta.0] - 2026-07-02
+## [0.24.2] - 2026-07-02
 
 ### CI
 - Dispatch gardenia-e2e run after alpha/beta release (7de4c74)
