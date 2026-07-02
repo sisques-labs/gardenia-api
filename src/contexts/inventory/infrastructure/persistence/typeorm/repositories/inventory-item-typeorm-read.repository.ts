@@ -69,6 +69,28 @@ export class InventoryItemTypeOrmReadRepository
             [filter.field]: filter.value,
           });
           break;
+        case FilterOperator.NOT_EQUALS:
+          qb.andWhere(`item.${filter.field} != :${filter.field}`, {
+            [filter.field]: filter.value,
+          });
+          break;
+        case FilterOperator.IN:
+          qb.andWhere(`item.${filter.field} IN (:...${filter.field})`, {
+            [filter.field]: Array.isArray(filter.value)
+              ? filter.value
+              : [filter.value],
+          });
+          break;
+        case FilterOperator.GREATER_THAN:
+          qb.andWhere(`item.${filter.field} > :${filter.field}From`, {
+            [`${filter.field}From`]: filter.value,
+          });
+          break;
+        case FilterOperator.LESS_THAN:
+          qb.andWhere(`item.${filter.field} < :${filter.field}To`, {
+            [`${filter.field}To`]: filter.value,
+          });
+          break;
         case FilterOperator.GREATER_THAN_OR_EQUAL:
           qb.andWhere(`item.${filter.field} >= :${filter.field}From`, {
             [`${filter.field}From`]: filter.value,
