@@ -83,7 +83,7 @@ describe('Plants GraphQL find-by-criteria filters (e2e)', () => {
       PLANTS_FIND_BY_CRITERIA,
       {
         input: {
-          filters: [{ field: 'USER_ID', operator: 'EQUALS', value: 'x' }],
+          filters: [{ field: 'SPACE_ID', operator: 'EQUALS', value: 'x' }],
         },
       },
       token,

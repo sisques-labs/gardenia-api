@@ -9,8 +9,12 @@ import { PlantQueryableField } from '@contexts/plants/transport/graphql/enums/pl
  * (`{ type: 'enum', enum: PlantStatusEnum }`) the day such a field exists.
  */
 export const plantFilterableFields: FilterFieldRegistry<PlantQueryableField> = {
+  [PlantQueryableField.ID]: { type: 'uuid' },
   [PlantQueryableField.NAME]: { type: 'string' },
   [PlantQueryableField.PLANT_SPECIES_ID]: { type: 'uuid' },
+  [PlantQueryableField.IMAGE_URL]: { type: 'string' },
+  [PlantQueryableField.USER_ID]: { type: 'uuid' },
+  [PlantQueryableField.QR_ID]: { type: 'uuid' },
   [PlantQueryableField.PLANTING_SPOT_ID]: { type: 'uuid' },
   [PlantQueryableField.CREATED_AT]: { type: 'date' },
   [PlantQueryableField.UPDATED_AT]: { type: 'date' },

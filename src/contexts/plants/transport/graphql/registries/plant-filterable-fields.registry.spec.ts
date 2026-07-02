@@ -71,14 +71,80 @@ describe('plantFilterableFields', () => {
     expect(() => pipe.transform(input)).not.toThrow();
   });
 
-  it('rejects a filter on a field outside the whitelist', () => {
+  it('rejects a filter on a field outside the whitelist (e.g. spaceId — deliberately excluded, already tenant-scoped)', () => {
     const input = {
       filters: [
-        { field: 'userId', operator: FilterOperator.EQUALS, value: 'x' },
+        { field: 'spaceId', operator: FilterOperator.EQUALS, value: 'x' },
       ],
     };
 
     expect(() => pipe.transform(input)).toThrow(/Unknown filter field/);
+  });
+
+  it('rejects a filter on a resolved/nested field (species, qr, plantingSpot are not plants columns)', () => {
+    const input = {
+      filters: [
+        { field: 'species', operator: FilterOperator.EQUALS, value: 'x' },
+      ],
+    };
+
+    expect(() => pipe.transform(input)).toThrow(/Unknown filter field/);
+  });
+
+  it('accepts an EQUALS filter on id with a uuid string', () => {
+    const input = {
+      filters: [
+        {
+          field: PlantQueryableField.ID,
+          operator: FilterOperator.EQUALS,
+          value: 'a3f1b2c4-0000-4000-8000-000000000000',
+        },
+      ],
+    };
+
+    expect(() => pipe.transform(input)).not.toThrow();
+  });
+
+  it('accepts a LIKE filter on imageUrl with a string value', () => {
+    const input = {
+      filters: [
+        {
+          field: PlantQueryableField.IMAGE_URL,
+          operator: FilterOperator.LIKE,
+          value: 'https://example.com',
+        },
+      ],
+    };
+
+    expect(() => pipe.transform(input)).not.toThrow();
+  });
+
+  it('accepts an EQUALS filter on userId with a uuid string', () => {
+    const input = {
+      filters: [
+        {
+          field: PlantQueryableField.USER_ID,
+          operator: FilterOperator.EQUALS,
+          value: 'a3f1b2c4-0000-4000-8000-000000000000',
+        },
+      ],
+    };
+
+    expect(() => pipe.transform(input)).not.toThrow();
+  });
+
+  it('accepts an EQUALS filter on qrId with a uuid string', () => {
+    const input = {
+      filters: [
+        {
+          field: PlantQueryableField.QR_ID,
+          operator: FilterOperator.EQUALS,
+          value: 'a3f1b2c4-0000-4000-8000-000000000000',
+        },
+      ],
+    };
+
+    expect(() => pipe.transform(input)).not.toThrow();
   });
 
   it('rejects a non-string value on the name filter', () => {

@@ -153,6 +153,66 @@ describe('PlantTypeOrmReadRepository (integration)', () => {
   });
 
   describe('findByCriteria() with filters and sorts', () => {
+    it('applies an EQUALS filter on userId', async () => {
+      await ctx.spaceContext.run(spaceAId, async () => {
+        await plantWriteRepo.save(buildPlant('Rose', userAId));
+        await plantWriteRepo.save(buildPlant('Fern', userBId));
+      });
+
+      await ctx.spaceContext.run(spaceAId, async () => {
+        const result = await plantReadRepo.findByCriteria(
+          new Criteria(
+            [
+              {
+                field: PlantQueryableField.USER_ID,
+                operator: FilterOperator.EQUALS,
+                value: userAId,
+              },
+            ],
+            [],
+            { page: 1, perPage: 10 },
+          ),
+        );
+
+        expect(result.items.map((p) => p.name)).toEqual(['Rose']);
+      });
+    });
+
+    it('applies a LIKE filter on imageUrl', async () => {
+      await ctx.spaceContext.run(spaceAId, async () => {
+        await plantWriteRepo.save(
+          new PlantBuilder()
+            .withId(randomUUID())
+            .withName('Rose')
+            .withUserId(userAId)
+            .withSpaceId(PLACEHOLDER_SPACE_ID)
+            .withImageUrl('https://cdn.example.com/rose.jpg')
+            .withCreatedAt(NOW)
+            .withUpdatedAt(NOW)
+            .build(),
+        );
+        await plantWriteRepo.save(buildPlant('Fern', userAId));
+      });
+
+      await ctx.spaceContext.run(spaceAId, async () => {
+        const result = await plantReadRepo.findByCriteria(
+          new Criteria(
+            [
+              {
+                field: PlantQueryableField.IMAGE_URL,
+                operator: FilterOperator.LIKE,
+                value: 'cdn.example.com',
+              },
+            ],
+            [],
+            { page: 1, perPage: 10 },
+          ),
+        );
+
+        expect(result.items.map((p) => p.name)).toEqual(['Rose']);
+      });
+    });
+
     it('applies a LIKE filter on name', async () => {
       await ctx.spaceContext.run(spaceAId, async () => {
         await plantWriteRepo.save(buildPlant('Rose', userAId));
