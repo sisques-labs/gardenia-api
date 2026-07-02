@@ -1,6 +1,16 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.24.1-beta.0] - 2026-07-02
+
+### Build
+- **deps-dev:** Bump ts-loader from 9.5.7 to 9.6.2 (95ca2a2)
+- **deps-dev:** Bump lint-staged from 17.0.5 to 17.0.8 (42a9105)
+- **deps:** Bump pg from 8.21.0 to 8.22.0 (fe709b3)
+- **deps-dev:** Bump @testcontainers/postgresql from 12.0.1 to 12.0.4 (28f8e79)
+- **deps:** Bump axios from 1.17.0 to 1.18.1 (87886d4)
+- **deps-dev:** Bump @nestjs/cli from 10.4.9 to 11.0.23 (1cfef6a)
+- **deps-dev:** Bump @types/node from 20.19.41 to 26.1.0 (d634be0)
 ## [0.24.0] - 2026-06-28
 
 ### Bug Fixes
