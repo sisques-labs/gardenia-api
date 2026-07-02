@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.24.0-beta.0] - 2026-06-28
+## [0.24.0] - 2026-06-28
 
 ### Bug Fixes
 - **files:** Return raw MIME string in GraphQL file response (20e08c4)
