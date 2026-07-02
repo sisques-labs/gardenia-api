@@ -39,7 +39,9 @@ export class CareLogEntryTypeOrmReadRepository
 
     const qb = this.repository
       .createQueryBuilder('entry')
-      .where('entry.space_id = :spaceId', { spaceId: this.spaceContext.require() })
+      .where('entry.space_id = :spaceId', {
+        spaceId: this.spaceContext.require(),
+      })
       .skip(skip)
       .take(limit);
 
@@ -57,6 +59,16 @@ export class CareLogEntryTypeOrmReadRepository
         case FilterOperator.EQUALS:
           qb.andWhere(`entry.${filter.field} = :${param}`, {
             [param]: filter.value,
+          });
+          break;
+        case FilterOperator.NOT_EQUALS:
+          qb.andWhere(`entry.${filter.field} != :${param}`, {
+            [param]: filter.value,
+          });
+          break;
+        case FilterOperator.LIKE:
+          qb.andWhere(`entry.${filter.field} ILIKE :${param}`, {
+            [param]: `%${filter.value}%`,
           });
           break;
         case FilterOperator.IN:
