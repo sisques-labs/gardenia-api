@@ -67,6 +67,28 @@ export class CareScheduleTypeOrmReadRepository
             [filter.field]: filter.value,
           });
           break;
+        case FilterOperator.NOT_EQUALS:
+          qb.andWhere(`schedule.${filter.field} != :${filter.field}`, {
+            [filter.field]: filter.value,
+          });
+          break;
+        case FilterOperator.IN:
+          qb.andWhere(`schedule.${filter.field} IN (:...${filter.field})`, {
+            [filter.field]: Array.isArray(filter.value)
+              ? filter.value
+              : [filter.value],
+          });
+          break;
+        case FilterOperator.GREATER_THAN:
+          qb.andWhere(`schedule.${filter.field} > :${filter.field}From`, {
+            [`${filter.field}From`]: filter.value,
+          });
+          break;
+        case FilterOperator.LESS_THAN:
+          qb.andWhere(`schedule.${filter.field} < :${filter.field}To`, {
+            [`${filter.field}To`]: filter.value,
+          });
+          break;
         case FilterOperator.GREATER_THAN_OR_EQUAL:
           qb.andWhere(`schedule.${filter.field} >= :${filter.field}From`, {
             [`${filter.field}From`]: filter.value,
