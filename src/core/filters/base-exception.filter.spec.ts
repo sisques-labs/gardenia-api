@@ -199,7 +199,7 @@ describe('BaseExceptionFilter', () => {
   });
 
   describe('catch() — GraphQL host', () => {
-    it('should rethrow the exception with a statusCode property for GraphQL', () => {
+    it('should throw a GraphQLError for GraphQL', () => {
       const host = {
         getType: jest.fn().mockReturnValue('graphql'),
       } as unknown as ArgumentsHost;
@@ -209,7 +209,7 @@ describe('BaseExceptionFilter', () => {
       ).toThrow();
     });
 
-    it('should attach the resolved statusCode to the rethrown exception', () => {
+    it('should set extensions.code to the exception class name', () => {
       const host = {
         getType: jest.fn().mockReturnValue('graphql'),
       } as unknown as ArgumentsHost;
@@ -218,8 +218,52 @@ describe('BaseExceptionFilter', () => {
 
       try {
         filter.catch(exception, host);
+        fail('expected filter.catch to throw');
       } catch (e: any) {
-        expect(e.statusCode).toBe(HttpStatus.NOT_FOUND);
+        expect(e.extensions.code).toBe('UserNotFoundException');
+      }
+    });
+
+    it('should set extensions.statusCode to the resolved HTTP status', () => {
+      const host = {
+        getType: jest.fn().mockReturnValue('graphql'),
+      } as unknown as ArgumentsHost;
+
+      const exception = new UserNotFoundException('some-id');
+
+      try {
+        filter.catch(exception, host);
+        fail('expected filter.catch to throw');
+      } catch (e: any) {
+        expect(e.extensions.statusCode).toBe(HttpStatus.NOT_FOUND);
+      }
+    });
+
+    it('should preserve the exception message', () => {
+      const host = {
+        getType: jest.fn().mockReturnValue('graphql'),
+      } as unknown as ArgumentsHost;
+
+      const exception = new UserNotFoundException('some-id');
+
+      try {
+        filter.catch(exception, host);
+        fail('expected filter.catch to throw');
+      } catch (e: any) {
+        expect(e.message).toBe(exception.message);
+      }
+    });
+
+    it('should set a distinct extensions.code per exception type', () => {
+      const host = {
+        getType: jest.fn().mockReturnValue('graphql'),
+      } as unknown as ArgumentsHost;
+
+      try {
+        filter.catch(new SpaceContextMissingException(), host);
+        fail('expected filter.catch to throw');
+      } catch (e: any) {
+        expect(e.extensions.code).toBe('SpaceContextMissingException');
       }
     });
   });

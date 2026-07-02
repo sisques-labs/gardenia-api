@@ -18,6 +18,7 @@ import { SPACE_WEATHER_PORT } from './application/ports/space-weather.port';
 import { GetSpaceWeatherQueryHandler } from './application/queries/get-space-weather/get-space-weather.handler';
 import { MembershipFindByUserAndSpaceQueryHandler } from './application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.handler';
 import { SpaceFindByIdQueryHandler } from './application/queries/space-find-by-id/space-find-by-id.handler';
+import { SpaceInvitationPreviewFindByCodeQueryHandler } from './application/queries/space-invitation-preview-find-by-code/space-invitation-preview-find-by-code.handler';
 import { SpacesFindByUserQueryHandler } from './application/queries/spaces-find-by-user/spaces-find-by-user.handler';
 import { AssertSpaceInvitationViewModelExistsByCodeService } from './application/services/read/assert-space-invitation-view-model-exists-by-code/assert-space-invitation-view-model-exists-by-code.service';
 import { AssertSpaceViewModelExistsService } from './application/services/read/assert-space-view-model-exists/assert-space-view-model-exists.service';
@@ -87,6 +88,7 @@ const QUERY_HANDLERS = [
   SpacesFindByUserQueryHandler,
   MembershipFindByUserAndSpaceQueryHandler,
   GetSpaceWeatherQueryHandler,
+  SpaceInvitationPreviewFindByCodeQueryHandler,
 ];
 
 const APPLICATION_SERVICES = [
