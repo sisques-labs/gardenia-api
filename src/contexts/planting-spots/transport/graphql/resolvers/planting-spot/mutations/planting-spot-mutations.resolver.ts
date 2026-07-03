@@ -6,9 +6,13 @@ import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guar
 import { CreatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/create-planting-spot/create-planting-spot.command';
 import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.command';
 import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
+import { WaterPlantingSpotCommand } from '@contexts/planting-spots/application/commands/water-planting-spot/water-planting-spot.command';
+import { WaterPlantingSpotResult } from '@contexts/planting-spots/application/commands/water-planting-spot/water-planting-spot.result';
 import { PlantingSpotCreateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-create.request.dto';
 import { PlantingSpotDeleteRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-delete.request.dto';
 import { PlantingSpotUpdateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-update.request.dto';
+import { PlantingSpotWaterRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-water.request.dto';
+import { PlantingSpotWaterResultObject } from '@contexts/planting-spots/transport/graphql/objects/planting-spot-water-result.object';
 import { Logger, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
@@ -83,9 +87,18 @@ export class PlantingSpotMutationsResolver {
         capacity: input.capacity,
         row: input.row,
         column: input.column,
-        dimensionsWidth: input.dimensions !== undefined ? (input.dimensions?.width ?? null) : undefined,
-        dimensionsHeight: input.dimensions !== undefined ? (input.dimensions?.height ?? null) : undefined,
-        dimensionsLength: input.dimensions !== undefined ? (input.dimensions?.length ?? null) : undefined,
+        dimensionsWidth:
+          input.dimensions !== undefined
+            ? (input.dimensions?.width ?? null)
+            : undefined,
+        dimensionsHeight:
+          input.dimensions !== undefined
+            ? (input.dimensions?.height ?? null)
+            : undefined,
+        dimensionsLength:
+          input.dimensions !== undefined
+            ? (input.dimensions?.length ?? null)
+            : undefined,
         soilType: input.soilType,
         requestingUserId: user.userId,
         spaceId,
@@ -97,6 +110,31 @@ export class PlantingSpotMutationsResolver {
       message: 'Planting spot updated successfully',
       id: input.id,
     });
+  }
+
+  @Mutation(() => PlantingSpotWaterResultObject)
+  async plantingSpotWater(
+    @Args('input') input: PlantingSpotWaterRequestDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<PlantingSpotWaterResultObject> {
+    this.logger.log(
+      `Watering planting spot ${input.id} for user: ${user.userId}`,
+    );
+
+    const spaceId = this.spaceContext.require();
+    const result = await this.commandBus.execute<
+      WaterPlantingSpotCommand,
+      WaterPlantingSpotResult
+    >(
+      new WaterPlantingSpotCommand({
+        plantingSpotId: input.id,
+        userId: user.userId,
+        spaceId,
+        performedAt: input.performedAt,
+      }),
+    );
+
+    return result;
   }
 
   @Mutation(() => MutationResponseDto)

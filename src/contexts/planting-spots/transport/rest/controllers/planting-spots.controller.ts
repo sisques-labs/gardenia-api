@@ -30,11 +30,15 @@ import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/
 import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
 import { PlantingSpotFindByCriteriaQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.query';
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
+import { WaterPlantingSpotCommand } from '@contexts/planting-spots/application/commands/water-planting-spot/water-planting-spot.command';
+import { WaterPlantingSpotResult } from '@contexts/planting-spots/application/commands/water-planting-spot/water-planting-spot.result';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
 
 import { CreatePlantingSpotDto } from '../dtos/create-planting-spot.dto';
 import { PlantingSpotRestResponseDto } from '../dtos/planting-spot-rest-response.dto';
 import { UpdatePlantingSpotDto } from '../dtos/update-planting-spot.dto';
+import { WaterPlantingSpotDto } from '../dtos/water-planting-spot.dto';
+import { WaterPlantingSpotRestResponseDto } from '../dtos/water-planting-spot-rest-response.dto';
 import { PlantingSpotRestMapper } from '../mappers/planting-spot/planting-spot.mapper';
 
 @ApiTags('planting-spots')
@@ -177,9 +181,18 @@ export class PlantingSpotsController {
         capacity: dto.capacity,
         row: dto.row,
         column: dto.column,
-        dimensionsWidth: dto.dimensions !== undefined ? (dto.dimensions?.width ?? null) : undefined,
-        dimensionsHeight: dto.dimensions !== undefined ? (dto.dimensions?.height ?? null) : undefined,
-        dimensionsLength: dto.dimensions !== undefined ? (dto.dimensions?.length ?? null) : undefined,
+        dimensionsWidth:
+          dto.dimensions !== undefined
+            ? (dto.dimensions?.width ?? null)
+            : undefined,
+        dimensionsHeight:
+          dto.dimensions !== undefined
+            ? (dto.dimensions?.height ?? null)
+            : undefined,
+        dimensionsLength:
+          dto.dimensions !== undefined
+            ? (dto.dimensions?.length ?? null)
+            : undefined,
         soilType: dto.soilType,
         requestingUserId: user.userId,
         spaceId,
@@ -192,6 +205,36 @@ export class PlantingSpotsController {
     >(new PlantingSpotFindByIdQuery({ id }));
 
     return this.plantingSpotRestMapper.toResponse(vm);
+  }
+
+  @Post(':id/water')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Water every plant in a planting spot (hybrid mechanism, best-effort)',
+  })
+  @ApiResponse({ status: 200, type: WaterPlantingSpotRestResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Planting spot not found' })
+  async waterPlantingSpot(
+    @Param('id') id: string,
+    @Body() dto: WaterPlantingSpotDto,
+    @CurrentUser() user: CurrentUserPayload,
+    @Headers('x-space-id') spaceId: string,
+  ): Promise<WaterPlantingSpotRestResponseDto> {
+    const result = await this.commandBus.execute<
+      WaterPlantingSpotCommand,
+      WaterPlantingSpotResult
+    >(
+      new WaterPlantingSpotCommand({
+        plantingSpotId: id,
+        userId: user.userId,
+        spaceId,
+        performedAt: dto.performedAt,
+      }),
+    );
+
+    return result;
   }
 
   @Delete(':id')

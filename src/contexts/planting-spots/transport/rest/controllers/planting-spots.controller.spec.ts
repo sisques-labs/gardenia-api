@@ -151,4 +151,25 @@ describe('PlantingSpotsController', () => {
       expect(commandBus.execute).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('waterPlantingSpot', () => {
+    it('dispatches WaterPlantingSpotCommand and returns the watering result', async () => {
+      const wateringResult = {
+        plantingSpotId: SPOT_ID,
+        wateredPlantIds: ['plant-1', 'plant-2'],
+        failedPlants: [],
+      };
+      commandBus.execute.mockResolvedValueOnce(wateringResult);
+
+      const result = await controller.waterPlantingSpot(
+        SPOT_ID,
+        {},
+        mockUser,
+        SPACE_ID,
+      );
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(wateringResult);
+    });
+  });
 });
