@@ -1,22 +1,26 @@
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
+
+import { IPlantingSpotPrimitives } from '@contexts/planting-spots/domain/primitives/planting-spot.primitives';
 import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
 
-export interface WaterPlantingSpotCommandInput {
-  plantingSpotId: string;
+export type WaterPlantingSpotCommandInput = Pick<
+  IPlantingSpotPrimitives,
+  'id' | 'spaceId'
+> & {
   userId: string;
-  spaceId: string;
   performedAt?: Date;
-}
+};
 
 export class WaterPlantingSpotCommand {
-  public readonly plantingSpotId: PlantingSpotIdValueObject;
-  public readonly userId: string;
-  public readonly spaceId: string;
+  public readonly id: PlantingSpotIdValueObject;
+  public readonly userId: UuidValueObject;
+  public readonly spaceId: UuidValueObject;
   public readonly performedAt: Date | null;
 
   constructor(input: WaterPlantingSpotCommandInput) {
-    this.plantingSpotId = new PlantingSpotIdValueObject(input.plantingSpotId);
-    this.userId = input.userId;
-    this.spaceId = input.spaceId;
+    this.id = new PlantingSpotIdValueObject(input.id);
+    this.userId = new UuidValueObject(input.userId);
+    this.spaceId = new UuidValueObject(input.spaceId);
     this.performedAt = input.performedAt ?? null;
   }
 }

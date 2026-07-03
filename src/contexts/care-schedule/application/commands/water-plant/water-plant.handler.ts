@@ -37,12 +37,12 @@ export class WaterPlantCommandHandler implements ICommandHandler<
     const criteria = new Criteria(
       [
         {
-          field: 'plant_id',
+          field: 'plantId',
           operator: FilterOperator.EQUALS,
-          value: command.plantId,
+          value: command.plantId.value,
         },
         {
-          field: 'activity_type',
+          field: 'activityType',
           operator: FilterOperator.EQUALS,
           value: CareScheduleActivityTypeEnum.WATERING,
         },
@@ -64,27 +64,27 @@ export class WaterPlantCommandHandler implements ICommandHandler<
         }),
       );
       this.logger.log(
-        `Watered plant ${command.plantId} by completing care schedule ${schedule.id}`,
+        `Watered plant ${command.plantId.value} by completing care schedule ${schedule.id}`,
       );
       return {
-        plantId: command.plantId,
+        plantId: command.plantId.value,
         mode: 'SCHEDULE_COMPLETED',
         careScheduleId: schedule.id,
       };
     }
 
     await this.careLogPort.recordCareLogEntry({
-      plantId: command.plantId,
-      userId: command.userId,
-      spaceId: command.spaceId,
+      plantId: command.plantId.value,
+      userId: command.userId.value,
+      spaceId: command.spaceId.value,
       activityType: CareScheduleActivityTypeEnum.WATERING,
       performedAt,
       quantity: null,
       unit: null,
     });
     this.logger.log(
-      `Watered plant ${command.plantId} via ad-hoc care-log entry (no active WATERING schedule)`,
+      `Watered plant ${command.plantId.value} via ad-hoc care-log entry (no active WATERING schedule)`,
     );
-    return { plantId: command.plantId, mode: 'CARE_LOG_CREATED' };
+    return { plantId: command.plantId.value, mode: 'CARE_LOG_CREATED' };
   }
 }

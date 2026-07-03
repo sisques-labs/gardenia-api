@@ -64,7 +64,7 @@ describe('WaterPlantingSpotCommandHandler', () => {
 
     const result = await handler.execute(
       new WaterPlantingSpotCommand({
-        plantingSpotId: SPOT_ID,
+        id: SPOT_ID,
         userId: USER_ID,
         spaceId: SPACE_ID,
         performedAt: NOW,
@@ -87,7 +87,7 @@ describe('WaterPlantingSpotCommandHandler', () => {
 
     const result = await handler.execute(
       new WaterPlantingSpotCommand({
-        plantingSpotId: SPOT_ID,
+        id: SPOT_ID,
         userId: USER_ID,
         spaceId: SPACE_ID,
       }),
@@ -119,7 +119,7 @@ describe('WaterPlantingSpotCommandHandler', () => {
 
     const result = await handler.execute(
       new WaterPlantingSpotCommand({
-        plantingSpotId: SPOT_ID,
+        id: SPOT_ID,
         userId: USER_ID,
         spaceId: SPACE_ID,
         performedAt: NOW,
@@ -138,7 +138,7 @@ describe('WaterPlantingSpotCommandHandler', () => {
     await expect(
       handler.execute(
         new WaterPlantingSpotCommand({
-          plantingSpotId: SPOT_ID,
+          id: SPOT_ID,
           userId: USER_ID,
           spaceId: SPACE_ID,
         }),

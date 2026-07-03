@@ -35,18 +35,18 @@ export class WaterPlantingSpotCommandHandler implements ICommandHandler<
   async execute(
     command: WaterPlantingSpotCommand,
   ): Promise<WaterPlantingSpotResult> {
-    await this.assertPlantingSpotExistsService.execute(command.plantingSpotId);
+    await this.assertPlantingSpotExistsService.execute(command.id);
 
     const plants = await this.plantingSpotPlantsPort.findByPlantingSpotId(
-      command.plantingSpotId.value,
+      command.id.value,
     );
 
     const settled = await Promise.allSettled(
       plants.map((plant) =>
         this.waterPlantPort.waterPlant({
           plantId: plant.id,
-          userId: command.userId,
-          spaceId: command.spaceId,
+          userId: command.userId.value,
+          spaceId: command.spaceId.value,
           performedAt: command.performedAt ?? undefined,
         }),
       ),
@@ -71,11 +71,11 @@ export class WaterPlantingSpotCommandHandler implements ICommandHandler<
     });
 
     this.logger.log(
-      `Watered planting spot ${command.plantingSpotId.value}: ${wateredPlantIds.length} succeeded, ${failedPlants.length} failed`,
+      `Watered planting spot ${command.id.value}: ${wateredPlantIds.length} succeeded, ${failedPlants.length} failed`,
     );
 
     return {
-      plantingSpotId: command.plantingSpotId.value,
+      plantingSpotId: command.id.value,
       wateredPlantIds,
       failedPlants,
     };

@@ -227,7 +227,7 @@ export class PlantingSpotsController {
       WaterPlantingSpotResult
     >(
       new WaterPlantingSpotCommand({
-        plantingSpotId: id,
+        id,
         userId: user.userId,
         spaceId,
         performedAt: dto.performedAt,

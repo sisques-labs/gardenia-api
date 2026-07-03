@@ -127,7 +127,7 @@ export class PlantingSpotMutationsResolver {
       WaterPlantingSpotResult
     >(
       new WaterPlantingSpotCommand({
-        plantingSpotId: input.id,
+        id: input.id,
         userId: user.userId,
         spaceId,
         performedAt: input.performedAt,

@@ -30,9 +30,9 @@ describe('WaterPlantAdapter', () => {
     expect(commandBus.execute).toHaveBeenCalledTimes(1);
     const dispatched = commandBus.execute.mock.calls[0][0] as WaterPlantCommand;
     expect(dispatched).toBeInstanceOf(WaterPlantCommand);
-    expect(dispatched.plantId).toBe(PLANT_ID);
-    expect(dispatched.userId).toBe(USER_ID);
-    expect(dispatched.spaceId).toBe(SPACE_ID);
+    expect(dispatched.plantId.value).toBe(PLANT_ID);
+    expect(dispatched.userId.value).toBe(USER_ID);
+    expect(dispatched.spaceId.value).toBe(SPACE_ID);
     expect(dispatched.performedAt).toEqual(PERFORMED_AT);
   });
 });

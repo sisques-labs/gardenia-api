@@ -37,7 +37,7 @@ export class PlantingSpotWaterMcpTool implements IMcpTool {
       WaterPlantingSpotResult
     >(
       new WaterPlantingSpotCommand({
-        plantingSpotId: id,
+        id,
         userId: context.userId,
         spaceId: context.spaceId,
         performedAt: performedAt ? new Date(performedAt) : undefined,
