@@ -1,5 +1,6 @@
 import { EventBus } from '@nestjs/cqrs';
 
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { IPlantingSpotWriteRepository } from '@contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
 import { PlantingSpotBuilder } from '@contexts/planting-spots/domain/builders/planting-spot.builder';
@@ -105,6 +106,29 @@ describe('CreatePlantingSpotCommandHandler', () => {
       await handler.execute(command);
 
       expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should default the created spot to ACTIVE status with no fallowSince', async () => {
+      const command = new CreatePlantingSpotCommand({
+        name: 'Bancal Norte',
+        type: PlantingSpotTypeEnum.RAISED_BED,
+        description: null,
+        capacity: null,
+        row: null,
+        column: null,
+        dimensionsWidth: null,
+        dimensionsHeight: null,
+        dimensionsLength: null,
+        soilType: null,
+        userId: USER_ID,
+        spaceId: SPACE_ID,
+      });
+
+      await handler.execute(command);
+
+      const savedAggregate = writeRepository.save.mock.calls[0][0];
+      expect(savedAggregate.status.value).toBe(PlantingSpotStatusEnum.ACTIVE);
+      expect(savedAggregate.fallowSince).toBeNull();
     });
   });
 });
