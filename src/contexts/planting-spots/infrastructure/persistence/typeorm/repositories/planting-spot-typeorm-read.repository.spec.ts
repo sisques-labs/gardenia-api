@@ -1,5 +1,5 @@
 import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 
 import { PlantingSpotBuilder } from '@contexts/planting-spots/domain/builders/planting-spot.builder';
 import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
@@ -30,6 +30,23 @@ const buildSpotEntity = (
   return { ...e, ...overrides };
 };
 
+function createMockQueryBuilder(
+  result: [PlantingSpotTypeOrmEntity[], number],
+): jest.Mocked<SelectQueryBuilder<PlantingSpotTypeOrmEntity>> {
+  const qb = {
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    addOrderBy: jest.fn().mockReturnThis(),
+    skip: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getManyAndCount: jest.fn().mockResolvedValue(result),
+  };
+  return qb as unknown as jest.Mocked<
+    SelectQueryBuilder<PlantingSpotTypeOrmEntity>
+  >;
+}
+
 describe('PlantingSpotTypeOrmReadRepository', () => {
   let repository: PlantingSpotTypeOrmReadRepository;
   let rawRepo: jest.Mocked<Repository<PlantingSpotTypeOrmEntity>>;
@@ -38,7 +55,7 @@ describe('PlantingSpotTypeOrmReadRepository', () => {
   beforeEach(() => {
     rawRepo = {
       findOne: jest.fn(),
-      findAndCount: jest.fn(),
+      createQueryBuilder: jest.fn(),
     } as unknown as jest.Mocked<Repository<PlantingSpotTypeOrmEntity>>;
 
     mapper = new PlantingSpotTypeOrmMapper(new PlantingSpotBuilder());
@@ -77,7 +94,9 @@ describe('PlantingSpotTypeOrmReadRepository', () => {
     const emptyCriteria = new Criteria(undefined, undefined, undefined);
 
     it('should return a PaginatedResult with view models', async () => {
-      rawRepo.findAndCount.mockResolvedValue([[buildSpotEntity()], 1]);
+      rawRepo.createQueryBuilder.mockReturnValue(
+        createMockQueryBuilder([[buildSpotEntity()], 1]),
+      );
 
       const result = await repository.findByCriteria(emptyCriteria);
 
@@ -88,7 +107,9 @@ describe('PlantingSpotTypeOrmReadRepository', () => {
     });
 
     it('should return empty paginated result when no entities match', async () => {
-      rawRepo.findAndCount.mockResolvedValue([[], 0]);
+      rawRepo.createQueryBuilder.mockReturnValue(
+        createMockQueryBuilder([[], 0]),
+      );
 
       const result = await repository.findByCriteria(emptyCriteria);
 
@@ -98,7 +119,9 @@ describe('PlantingSpotTypeOrmReadRepository', () => {
 
     it('should return correct type value from entity', async () => {
       const potEntity = buildSpotEntity({ type: PlantingSpotTypeEnum.POT });
-      rawRepo.findAndCount.mockResolvedValue([[potEntity], 1]);
+      rawRepo.createQueryBuilder.mockReturnValue(
+        createMockQueryBuilder([[potEntity], 1]),
+      );
 
       const result = await repository.findByCriteria(emptyCriteria);
 

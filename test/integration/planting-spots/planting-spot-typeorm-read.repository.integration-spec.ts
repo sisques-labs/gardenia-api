@@ -11,7 +11,8 @@ import {
   PLANTING_SPOT_WRITE_REPOSITORY,
 } from '../../../src/contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
 import { PlantingSpotsModule } from '../../../src/contexts/planting-spots/planting-spots.module';
-import { Criteria } from '@sisques-labs/nestjs-kit';
+import { PlantingSpotQueryableField } from '../../../src/contexts/planting-spots/transport/graphql/enums/planting-spot-queryable-field.enum';
+import { Criteria, FilterOperator } from '@sisques-labs/nestjs-kit';
 
 import {
   createIntegrationModule,
@@ -172,6 +173,65 @@ describe('PlantingSpotTypeOrmReadRepository (integration)', () => {
         const ids = result.items.map((p) => p.id);
         expect(ids).not.toContain(spotAId);
         expect(result.total).toBe(0);
+      });
+    });
+
+    it('applies a LIKE filter on name', async () => {
+      await ctx.spaceContext.run(spaceAId, async () => {
+        await writeRepo.save(buildSpot('North Bed', userAId));
+        await writeRepo.save(buildSpot('South Bed', userAId));
+        await writeRepo.save(buildSpot('Greenhouse', userAId));
+      });
+
+      await ctx.spaceContext.run(spaceAId, async () => {
+        const result = await readRepo.findByCriteria(
+          new Criteria(
+            [
+              {
+                field: PlantingSpotQueryableField.NAME,
+                operator: FilterOperator.LIKE,
+                value: 'Bed',
+              },
+            ],
+            [],
+            { page: 1, perPage: 10 },
+          ),
+        );
+
+        expect(result.items.map((s) => s.name).sort()).toEqual([
+          'North Bed',
+          'South Bed',
+        ]);
+      });
+    });
+
+    it('applies an EQUALS filter on type', async () => {
+      await ctx.spaceContext.run(spaceAId, async () => {
+        await writeRepo.save(
+          buildSpot('Pot 1', userAId, PlantingSpotTypeEnum.POT),
+        );
+        await writeRepo.save(
+          buildSpot('Bed 1', userAId, PlantingSpotTypeEnum.RAISED_BED),
+        );
+      });
+
+      await ctx.spaceContext.run(spaceAId, async () => {
+        const result = await readRepo.findByCriteria(
+          new Criteria(
+            [
+              {
+                field: PlantingSpotQueryableField.TYPE,
+                operator: FilterOperator.EQUALS,
+                value: PlantingSpotTypeEnum.POT,
+              },
+            ],
+            [],
+            { page: 1, perPage: 10 },
+          ),
+        );
+
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].name).toBe('Pot 1');
       });
     });
   });

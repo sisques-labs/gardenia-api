@@ -34,13 +34,17 @@ import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guar
 import { AdjustInventoryItemQuantityCommand } from '@contexts/inventory/application/commands/adjust-inventory-item-quantity/adjust-inventory-item-quantity.command';
 import { CreateInventoryItemCommand } from '@contexts/inventory/application/commands/create-inventory-item/create-inventory-item.command';
 import { DeleteInventoryItemCommand } from '@contexts/inventory/application/commands/delete-inventory-item/delete-inventory-item.command';
+import { DeleteInventoryItemsBulkCommand } from '@contexts/inventory/application/commands/delete-inventory-items-bulk/delete-inventory-items-bulk.command';
+import { DeleteInventoryItemsBulkResult } from '@contexts/inventory/application/commands/delete-inventory-items-bulk/delete-inventory-items-bulk.handler';
 import { UpdateInventoryItemCommand } from '@contexts/inventory/application/commands/update-inventory-item/update-inventory-item.command';
 import { InventoryItemFindByCriteriaQuery } from '@contexts/inventory/application/queries/inventory-item-find-by-criteria/inventory-item-find-by-criteria.query';
 import { InventoryItemFindByIdQuery } from '@contexts/inventory/application/queries/inventory-item-find-by-id/inventory-item-find-by-id.query';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryItemViewModel } from '@contexts/inventory/domain/view-models/inventory-item.view-model';
 import { AdjustInventoryItemQuantityDto } from '../dtos/adjust-inventory-item-quantity.dto';
+import { BulkDeleteResultRestResponseDto } from '../dtos/bulk-delete-result-rest-response.dto';
 import { CreateInventoryItemDto } from '../dtos/create-inventory-item.dto';
+import { DeleteInventoryItemsBulkDto } from '../dtos/delete-inventory-items-bulk.dto';
 import { InventoryItemRestResponseDto } from '../dtos/inventory-item-rest-response.dto';
 import { UpdateInventoryItemDto } from '../dtos/update-inventory-item.dto';
 import { InventoryItemRestMapper } from '../mappers/inventory-item/inventory-item.mapper';
@@ -95,6 +99,27 @@ export class InventoryItemsController {
     >(new InventoryItemFindByIdQuery({ id: inventoryItemId }));
 
     return this.inventoryItemRestMapper.toResponse(vm);
+  }
+
+  @Post('bulk-delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete multiple inventory items in one request' })
+  @ApiResponse({ status: 200, type: BulkDeleteResultRestResponseDto })
+  @ApiResponse({ status: 400, description: 'Empty batch or more than 100 ids' })
+  async inventoryItemsDeleteBulk(
+    @Body() dto: DeleteInventoryItemsBulkDto,
+  ): Promise<BulkDeleteResultRestResponseDto> {
+    const result = await this.commandBus.execute<
+      DeleteInventoryItemsBulkCommand,
+      DeleteInventoryItemsBulkResult
+    >(new DeleteInventoryItemsBulkCommand({ ids: dto.ids }));
+
+    return {
+      deletedIds: result.deletedIds,
+      notFoundIds: result.notFoundIds,
+      deletedCount: result.deletedIds.length,
+      requestedCount: result.deletedIds.length + result.notFoundIds.length,
+    };
   }
 
   @Get()

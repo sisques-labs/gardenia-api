@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  applyCriteriaToQueryBuilder,
   BaseDatabaseRepository,
   Criteria,
-  FilterOperator,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
@@ -14,6 +15,8 @@ import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
 import { CareLogEntryTypeOrmEntity } from '../entities/care-log-entry.entity';
 import { CareLogEntryTypeOrmMapper } from '../mappers/care-log-entry-typeorm.mapper';
+
+const ALIAS = 'entry';
 
 @Injectable()
 export class CareLogEntryTypeOrmReadRepository
@@ -38,53 +41,16 @@ export class CareLogEntryTypeOrmReadRepository
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
     const qb = this.repository
-      .createQueryBuilder('entry')
-      .where('entry.space_id = :spaceId', { spaceId: this.spaceContext.require() })
+      .createQueryBuilder(ALIAS)
+      .where(`${ALIAS}.space_id = :spaceId`, {
+        spaceId: this.spaceContext.require(),
+      })
       .skip(skip)
       .take(limit);
 
-    if (criteria.sorts.length > 0) {
-      criteria.sorts.forEach((sort) => {
-        qb.addOrderBy(`entry.${sort.field}`, sort.direction);
-      });
-    } else {
-      qb.orderBy('entry.performedAt', 'DESC');
-    }
-
-    criteria.filters.forEach((filter, index) => {
-      const param = `p${index}`;
-      switch (filter.operator) {
-        case FilterOperator.EQUALS:
-          qb.andWhere(`entry.${filter.field} = :${param}`, {
-            [param]: filter.value,
-          });
-          break;
-        case FilterOperator.IN:
-          qb.andWhere(`entry.${filter.field} IN (:...${param})`, {
-            [param]: filter.value,
-          });
-          break;
-        case FilterOperator.GREATER_THAN_OR_EQUAL:
-          qb.andWhere(`entry.${filter.field} >= :${param}`, {
-            [param]: filter.value,
-          });
-          break;
-        case FilterOperator.LESS_THAN_OR_EQUAL:
-          qb.andWhere(`entry.${filter.field} <= :${param}`, {
-            [param]: filter.value,
-          });
-          break;
-        case FilterOperator.GREATER_THAN:
-          qb.andWhere(`entry.${filter.field} > :${param}`, {
-            [param]: filter.value,
-          });
-          break;
-        case FilterOperator.LESS_THAN:
-          qb.andWhere(`entry.${filter.field} < :${param}`, {
-            [param]: filter.value,
-          });
-          break;
-      }
+    applyCriteriaToQueryBuilder(qb, criteria, {
+      alias: ALIAS,
+      defaultSort: { field: 'performedAt', direction: SortDirection.DESC },
     });
 
     const [entities, total] = await qb.getManyAndCount();

@@ -8,6 +8,7 @@ import {
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { SpaceFindByIdQuery } from '@contexts/spaces/application/queries/space-find-by-id/space-find-by-id.query';
+import { SpaceInvitationPreviewFindByCodeQuery } from '@contexts/spaces/application/queries/space-invitation-preview-find-by-code/space-invitation-preview-find-by-code.query';
 import { SpacesFindByUserQuery } from '@contexts/spaces/application/queries/spaces-find-by-user/spaces-find-by-user.query';
 import { SkipSpace } from '../../../../../../shared/decorators/skip-space.decorator';
 import { SpaceFindByIdRequestDto } from '../../dtos/requests/space/space-find-by-id.request.dto';
@@ -15,7 +16,9 @@ import {
   PaginatedSpaceResultDto,
   SpaceResponseDto,
 } from '../../dtos/responses/space/space.response.dto';
+import { SpaceInvitationGraphQLMapper } from '../../mappers/space-invitation/space-invitation.mapper';
 import { SpaceGraphQLMapper } from '../../mappers/space/space.mapper';
+import { SpaceInvitationPreviewResponseDto } from '../../objects/space-invitation-preview.object';
 
 @Resolver()
 export class SpaceQueriesResolver {
@@ -24,6 +27,7 @@ export class SpaceQueriesResolver {
   constructor(
     private readonly queryBus: QueryBus,
     private readonly spaceGraphQLMapper: SpaceGraphQLMapper,
+    private readonly spaceInvitationGraphQLMapper: SpaceInvitationGraphQLMapper,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -58,5 +62,19 @@ export class SpaceQueriesResolver {
     );
 
     return this.spaceGraphQLMapper.toPaginatedResponseDto(result);
+  }
+
+  @SkipSpace()
+  @Query(() => SpaceInvitationPreviewResponseDto)
+  async spaceInvitationPreview(
+    @Args('code') code: string,
+  ): Promise<SpaceInvitationPreviewResponseDto> {
+    this.logger.log(`Previewing invitation with code ${code}`);
+
+    const result = await this.queryBus.execute(
+      new SpaceInvitationPreviewFindByCodeQuery({ code }),
+    );
+
+    return this.spaceInvitationGraphQLMapper.toPreviewResponse(result);
   }
 }

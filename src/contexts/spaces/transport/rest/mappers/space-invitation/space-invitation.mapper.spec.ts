@@ -61,4 +61,22 @@ describe('SpaceInvitationRestMapper', () => {
       expect(dto).toEqual({ userId: USER_ID, spaceId: SPACE_ID });
     });
   });
+
+  describe('toPreviewResponse()', () => {
+    it('maps the preview view model and serializes expiresAt to ISO string', () => {
+      const dto = mapper.toPreviewResponse({
+        spaceName: 'Greenhouse A',
+        role: MembershipRoleEnum.MEMBER,
+        expiresAt: EXPIRES_AT,
+        isExpired: false,
+      });
+
+      expect(dto).toEqual({
+        spaceName: 'Greenhouse A',
+        role: MembershipRoleEnum.MEMBER,
+        expiresAt: EXPIRES_AT.toISOString(),
+        isExpired: false,
+      });
+    });
+  });
 });

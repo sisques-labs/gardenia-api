@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  applyCriteriaToQueryBuilder,
   BaseDatabaseRepository,
   Criteria,
-  FilterOperator,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
@@ -14,6 +15,8 @@ import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
 import { CareScheduleTypeOrmEntity } from '../entities/care-schedule.entity';
 import { CareScheduleTypeOrmMapper } from '../mappers/care-schedule-typeorm.mapper';
+
+const ALIAS = 'schedule';
 
 @Injectable()
 export class CareScheduleTypeOrmReadRepository
@@ -42,45 +45,24 @@ export class CareScheduleTypeOrmReadRepository
   ): Promise<PaginatedResult<CareScheduleViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    const qb = this.repository.createQueryBuilder('schedule');
-    qb.where('schedule.space_id = :spaceId', {
+    const qb = this.repository.createQueryBuilder(ALIAS);
+    qb.where(`${ALIAS}.space_id = :spaceId`, {
       spaceId: this.spaceContext.require(),
     });
 
-    for (const filter of criteria.filters) {
-      // Cross-field "due before" filter: schedules due on/before the given date.
-      if (filter.field === 'due_before') {
-        qb.andWhere('schedule.next_due_at <= :dueBefore', {
+    applyCriteriaToQueryBuilder(qb, criteria, {
+      alias: ALIAS,
+      defaultSort: { field: 'nextDueAt', direction: SortDirection.ASC },
+      onCustomFilter: (builder, filter) => {
+        // Cross-field "due before" filter: schedules due on/before the given date.
+        if (filter.field !== 'due_before') return false;
+        builder.andWhere(`${ALIAS}.next_due_at <= :dueBefore`, {
           dueBefore: filter.value,
         });
-        continue;
-      }
+        return true;
+      },
+    });
 
-      switch (filter.operator) {
-        case FilterOperator.LIKE:
-          qb.andWhere(`LOWER(schedule.${filter.field}) LIKE :${filter.field}`, {
-            [filter.field]: `%${String(filter.value).toLowerCase()}%`,
-          });
-          break;
-        case FilterOperator.EQUALS:
-          qb.andWhere(`schedule.${filter.field} = :${filter.field}`, {
-            [filter.field]: filter.value,
-          });
-          break;
-        case FilterOperator.GREATER_THAN_OR_EQUAL:
-          qb.andWhere(`schedule.${filter.field} >= :${filter.field}From`, {
-            [`${filter.field}From`]: filter.value,
-          });
-          break;
-        case FilterOperator.LESS_THAN_OR_EQUAL:
-          qb.andWhere(`schedule.${filter.field} <= :${filter.field}To`, {
-            [`${filter.field}To`]: filter.value,
-          });
-          break;
-      }
-    }
-
-    qb.orderBy('schedule.next_due_at', 'ASC');
     qb.skip(skip).take(limit);
 
     const [entities, total] = await qb.getManyAndCount();

@@ -61,3 +61,17 @@ export async function seedPlantSpecies(
     [id, scientificName, SEED_TIMESTAMP],
   );
 }
+
+export async function seedPlantingSpot(
+  dataSource: DataSource,
+  id: string,
+  spaceId: string,
+  userId: string,
+  name = 'Test Spot',
+): Promise<void> {
+  await dataSource.query(
+    `INSERT INTO "planting_spots" ("id", "name", "type", "user_id", "space_id", "created_at", "updated_at")
+     VALUES ($1, $2, $3, $4, $5, $6, $6)`,
+    [id, name, 'bed', userId, spaceId, SEED_TIMESTAMP],
+  );
+}
