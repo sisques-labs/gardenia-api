@@ -37,12 +37,16 @@ import { DeleteCareScheduleCommand } from '@contexts/care-schedule/application/c
 import { UpdateCareScheduleCommand } from '@contexts/care-schedule/application/commands/update-care-schedule/update-care-schedule.command';
 import { CareScheduleFindByCriteriaQuery } from '@contexts/care-schedule/application/queries/care-schedule-find-by-criteria/care-schedule-find-by-criteria.query';
 import { CareScheduleFindByIdQuery } from '@contexts/care-schedule/application/queries/care-schedule-find-by-id/care-schedule-find-by-id.query';
+import { WaterPlantCommand } from '@contexts/care-schedule/application/commands/water-plant/water-plant.command';
+import { WaterPlantResult } from '@contexts/care-schedule/application/commands/water-plant/water-plant.result';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
 import { CareScheduleViewModel } from '@contexts/care-schedule/domain/view-models/care-schedule.view-model';
 import { CompleteCareScheduleDto } from '../dtos/complete-care-schedule.dto';
 import { CreateCareScheduleDto } from '../dtos/create-care-schedule.dto';
 import { CareScheduleRestResponseDto } from '../dtos/care-schedule-rest-response.dto';
 import { UpdateCareScheduleDto } from '../dtos/update-care-schedule.dto';
+import { WaterPlantDto } from '../dtos/water-plant.dto';
+import { WaterPlantRestResponseDto } from '../dtos/water-plant-rest-response.dto';
 import { CareScheduleRestMapper } from '../mappers/care-schedule/care-schedule.mapper';
 
 @ApiTags('care-schedules')
@@ -223,6 +227,38 @@ export class CareSchedulesController {
       CareScheduleViewModel
     >(new CareScheduleFindByIdQuery({ id }));
     return this.careScheduleRestMapper.toResponse(vm);
+  }
+
+  @Post('water-plant')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Water a single plant: completes its active WATERING care schedule, or records an ad-hoc care-log entry if it has none',
+  })
+  @ApiResponse({ status: 200, type: WaterPlantRestResponseDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input or missing X-Space-ID',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async waterPlant(
+    @Body() dto: WaterPlantDto,
+    @CurrentUser() user: CurrentUserPayload,
+    @Headers('x-space-id') spaceId: string,
+  ): Promise<WaterPlantRestResponseDto> {
+    const result = await this.commandBus.execute<
+      WaterPlantCommand,
+      WaterPlantResult
+    >(
+      new WaterPlantCommand({
+        plantId: dto.plantId,
+        userId: user.userId,
+        spaceId,
+        performedAt: dto.performedAt,
+      }),
+    );
+
+    return result;
   }
 
   @Delete(':id')

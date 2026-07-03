@@ -6,6 +6,7 @@ import { CompleteCareScheduleCommandHandler } from '@contexts/care-schedule/appl
 import { CreateCareScheduleCommandHandler } from '@contexts/care-schedule/application/commands/create-care-schedule/create-care-schedule.handler';
 import { DeleteCareScheduleCommandHandler } from '@contexts/care-schedule/application/commands/delete-care-schedule/delete-care-schedule.handler';
 import { UpdateCareScheduleCommandHandler } from '@contexts/care-schedule/application/commands/update-care-schedule/update-care-schedule.handler';
+import { WaterPlantCommandHandler } from '@contexts/care-schedule/application/commands/water-plant/water-plant.handler';
 import { CareScheduleFindByCriteriaQueryHandler } from '@contexts/care-schedule/application/queries/care-schedule-find-by-criteria/care-schedule-find-by-criteria.handler';
 import { CareScheduleFindByIdQueryHandler } from '@contexts/care-schedule/application/queries/care-schedule-find-by-id/care-schedule-find-by-id.handler';
 import { CARE_LOG_PORT } from '@contexts/care-schedule/application/ports/care-log.port';
@@ -25,6 +26,7 @@ import { CareScheduleDeleteMcpTool } from '@contexts/care-schedule/transport/mcp
 import { CareScheduleFindByCriteriaMcpTool } from '@contexts/care-schedule/transport/mcp/tools/care-schedule-find-by-criteria.tool';
 import { CareScheduleFindByIdMcpTool } from '@contexts/care-schedule/transport/mcp/tools/care-schedule-find-by-id.tool';
 import { CareScheduleUpdateMcpTool } from '@contexts/care-schedule/transport/mcp/tools/care-schedule-update.tool';
+import { CareScheduleWaterPlantMcpTool } from '@contexts/care-schedule/transport/mcp/tools/care-schedule-water-plant.tool';
 import '@contexts/care-schedule/transport/graphql/enums/care-schedule-registered-enums.graphql';
 import { CareScheduleGraphQLMapper } from '@contexts/care-schedule/transport/graphql/mappers/care-schedule.mapper';
 import { CareScheduleMutationsResolver } from '@contexts/care-schedule/transport/graphql/resolvers/care-schedule-mutations.resolver';
@@ -37,6 +39,7 @@ const COMMAND_HANDLERS = [
   UpdateCareScheduleCommandHandler,
   CompleteCareScheduleCommandHandler,
   DeleteCareScheduleCommandHandler,
+  WaterPlantCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -86,6 +89,7 @@ const MCP_TOOLS = [
   CareScheduleDeleteMcpTool,
   CareScheduleFindByIdMcpTool,
   CareScheduleFindByCriteriaMcpTool,
+  CareScheduleWaterPlantMcpTool,
 ];
 
 @Module({

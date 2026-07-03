@@ -71,6 +71,7 @@ The aggregate is built exclusively through `CareScheduleBuilder` (extends
 | `UpdateCareScheduleCommand` | Update activity/interval/quantity/unit/notes/active |
 | `CompleteCareScheduleCommand` | Mark complete; advances `nextDueAt` and mirrors the activity into `care-log` |
 | `DeleteCareScheduleCommand` | Delete a care schedule |
+| `WaterPlantCommand` | Water a single plant: completes its active `WATERING` schedule if one exists, otherwise records an ad-hoc `care-log` entry (hybrid mechanism) |
 
 ### Queries
 
@@ -99,6 +100,7 @@ The aggregate is built exclusively through `CareScheduleBuilder` (extends
 | GET | `/care-schedules/:id` | Find by id |
 | PATCH | `/care-schedules/:id` | Update |
 | POST | `/care-schedules/:id/complete` | Complete |
+| POST | `/care-schedules/water-plant` | Water a single plant (hybrid mechanism) |
 | DELETE | `/care-schedules/:id` | Delete |
 
 All endpoints are guarded by `JwtAuthGuard` + `SpaceGuard` and require the
@@ -108,7 +110,7 @@ All endpoints are guarded by `JwtAuthGuard` + `SpaceGuard` and require the
 
 - Queries: `careScheduleFindById`, `careSchedulesFindByCriteria`
 - Mutations: `careScheduleCreate`, `careScheduleUpdate`, `careScheduleComplete`,
-  `careScheduleDelete`
+  `careScheduleWaterPlant`, `careScheduleDelete`
 
 ### MCP Tools
 
@@ -117,6 +119,7 @@ All endpoints are guarded by `JwtAuthGuard` + `SpaceGuard` and require the
 | `care_schedule_create` | Create a care schedule |
 | `care_schedule_update` | Update a care schedule |
 | `care_schedule_complete` | Complete a care schedule |
+| `care_schedule_water_plant` | Water a single plant (hybrid mechanism) |
 | `care_schedule_delete` | Delete a care schedule |
 | `care_schedule_find_by_id` | Get a care schedule by id |
 | `care_schedule_find_by_criteria` | List care schedules |
