@@ -34,7 +34,9 @@ function buildEntry(overrides: {
     .withPlantId(overrides.plantId)
     .withUserId(randomUUID())
     .withSpaceId(PLACEHOLDER_SPACE_ID)
-    .withActivityType(overrides.activityType ?? CareLogActivityTypeEnum.WATERING)
+    .withActivityType(
+      overrides.activityType ?? CareLogActivityTypeEnum.WATERING,
+    )
     .withPerformedAt(overrides.performedAt ?? LATER)
     .withNotes(null)
     .withQuantity(null)
@@ -80,7 +82,13 @@ describe('CareLogEntryTypeOrmReadRepository (integration)', () => {
       await ctx.spaceContext.run(spaceAId, async () => {
         const result = await readRepo.findByCriteria(
           new Criteria(
-            [{ field: 'plantId', operator: FilterOperator.EQUALS, value: targetPlantId }],
+            [
+              {
+                field: 'plantId',
+                operator: FilterOperator.EQUALS,
+                value: targetPlantId,
+              },
+            ],
             [],
             { page: 1, perPage: 10 },
           ),
@@ -102,7 +110,13 @@ describe('CareLogEntryTypeOrmReadRepository (integration)', () => {
       await ctx.spaceContext.run(spaceAId, async () => {
         const result = await readRepo.findByCriteria(
           new Criteria(
-            [{ field: 'plantId', operator: FilterOperator.EQUALS, value: plantId }],
+            [
+              {
+                field: 'plantId',
+                operator: FilterOperator.EQUALS,
+                value: plantId,
+              },
+            ],
             [],
             { page: 1, perPage: 10 },
           ),
@@ -139,7 +153,10 @@ describe('CareLogEntryTypeOrmReadRepository (integration)', () => {
       });
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const last = await readRepo.findLastByType(plantId, CareLogActivityTypeEnum.WATERING);
+        const last = await readRepo.findLastByType(
+          plantId,
+          CareLogActivityTypeEnum.WATERING,
+        );
         expect(last).not.toBeNull();
         expect(last!.id).toBe(laterId);
       });
@@ -149,11 +166,19 @@ describe('CareLogEntryTypeOrmReadRepository (integration)', () => {
       const plantId = randomUUID();
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        await writeRepo.save(buildEntry({ plantId, activityType: CareLogActivityTypeEnum.PRUNING }));
+        await writeRepo.save(
+          buildEntry({
+            plantId,
+            activityType: CareLogActivityTypeEnum.PRUNING,
+          }),
+        );
       });
 
       await ctx.spaceContext.run(spaceAId, async () => {
-        const last = await readRepo.findLastByType(plantId, CareLogActivityTypeEnum.WATERING);
+        const last = await readRepo.findLastByType(
+          plantId,
+          CareLogActivityTypeEnum.WATERING,
+        );
         expect(last).toBeNull();
       });
     });
@@ -173,7 +198,13 @@ describe('CareLogEntryTypeOrmReadRepository (integration)', () => {
       await ctx.spaceContext.run(spaceBId, async () => {
         const result = await readRepo.findByCriteria(
           new Criteria(
-            [{ field: 'plantId', operator: FilterOperator.EQUALS, value: plantId }],
+            [
+              {
+                field: 'plantId',
+                operator: FilterOperator.EQUALS,
+                value: plantId,
+              },
+            ],
             [],
             { page: 1, perPage: 10 },
           ),
