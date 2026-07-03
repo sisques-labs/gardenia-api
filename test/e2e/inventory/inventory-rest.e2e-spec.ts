@@ -385,4 +385,131 @@ describe('Inventory REST API (e2e)', () => {
         .expect(404);
     });
   });
+
+  describe('POST /api/inventory-items/bulk-delete', () => {
+    it('200 — deletes all ids and reports counts', async () => {
+      const idA = (
+        await ctx
+          .http()
+          .post('/api/inventory-items')
+          .set('Authorization', `Bearer ${userA.token}`)
+          .set('X-Space-ID', userA.spaceId)
+          .send(VALID_ITEM)
+          .expect(201)
+      ).body.id as string;
+
+      const idB = (
+        await ctx
+          .http()
+          .post('/api/inventory-items')
+          .set('Authorization', `Bearer ${userA.token}`)
+          .set('X-Space-ID', userA.spaceId)
+          .send({ ...VALID_ITEM, name: 'Tomato seeds' })
+          .expect(201)
+      ).body.id as string;
+
+      const res = await ctx
+        .http()
+        .post('/api/inventory-items/bulk-delete')
+        .set('Authorization', `Bearer ${userA.token}`)
+        .set('X-Space-ID', userA.spaceId)
+        .send({ ids: [idA, idB] })
+        .expect(200);
+
+      expect(res.body).toMatchObject({
+        deletedCount: 2,
+        requestedCount: 2,
+        notFoundIds: [],
+      });
+      expect(res.body.deletedIds.sort()).toEqual([idA, idB].sort());
+
+      await ctx
+        .http()
+        .get(`/api/inventory-items/${idA}`)
+        .set('Authorization', `Bearer ${userA.token}`)
+        .set('X-Space-ID', userA.spaceId)
+        .expect(404);
+    });
+
+    it('200 — mixed valid/invalid ids: reports the unknown one without failing the batch', async () => {
+      const idA = (
+        await ctx
+          .http()
+          .post('/api/inventory-items')
+          .set('Authorization', `Bearer ${userA.token}`)
+          .set('X-Space-ID', userA.spaceId)
+          .send(VALID_ITEM)
+          .expect(201)
+      ).body.id as string;
+
+      const res = await ctx
+        .http()
+        .post('/api/inventory-items/bulk-delete')
+        .set('Authorization', `Bearer ${userA.token}`)
+        .set('X-Space-ID', userA.spaceId)
+        .send({ ids: [idA, NON_EXISTENT_ID] })
+        .expect(200);
+
+      expect(res.body).toMatchObject({
+        deletedIds: [idA],
+        notFoundIds: [NON_EXISTENT_ID],
+        deletedCount: 1,
+        requestedCount: 2,
+      });
+    });
+
+    it('200 — cross-tenant id is reported as not found, not deleted', async () => {
+      const idA = (
+        await ctx
+          .http()
+          .post('/api/inventory-items')
+          .set('Authorization', `Bearer ${userA.token}`)
+          .set('X-Space-ID', userA.spaceId)
+          .send(VALID_ITEM)
+          .expect(201)
+      ).body.id as string;
+
+      const res = await ctx
+        .http()
+        .post('/api/inventory-items/bulk-delete')
+        .set('Authorization', `Bearer ${userB.token}`)
+        .set('X-Space-ID', userB.spaceId)
+        .send({ ids: [idA] })
+        .expect(200);
+
+      expect(res.body).toMatchObject({
+        deletedIds: [],
+        notFoundIds: [idA],
+        deletedCount: 0,
+      });
+
+      await ctx
+        .http()
+        .get(`/api/inventory-items/${idA}`)
+        .set('Authorization', `Bearer ${userA.token}`)
+        .set('X-Space-ID', userA.spaceId)
+        .expect(200);
+    });
+
+    it('400 — rejects a batch over 100 ids', async () => {
+      const ids = Array.from({ length: 101 }, () => NON_EXISTENT_ID);
+
+      await ctx
+        .http()
+        .post('/api/inventory-items/bulk-delete')
+        .set('Authorization', `Bearer ${userA.token}`)
+        .set('X-Space-ID', userA.spaceId)
+        .send({ ids })
+        .expect(400);
+    });
+
+    it('401 — rejects unauthenticated request', async () => {
+      await ctx
+        .http()
+        .post('/api/inventory-items/bulk-delete')
+        .set('X-Space-ID', userA.spaceId)
+        .send({ ids: [NON_EXISTENT_ID] })
+        .expect(401);
+    });
+  });
 });

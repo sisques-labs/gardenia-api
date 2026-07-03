@@ -1,11 +1,16 @@
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
+import {
+  Criteria,
+  FilterValidationPipe,
+  PaginatedResult,
+} from '@sisques-labs/nestjs-kit';
 
 import { PlantingSpotFindByCriteriaQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.query';
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
+import { plantingSpotFilterableFields } from '@contexts/planting-spots/transport/graphql/registries/planting-spot-filterable-fields.registry';
 import { PlantingSpotFindByCriteriaRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-find-by-criteria.request.dto';
 import { PlantingSpotFindByIdRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-find-by-id.request.dto';
 import {
@@ -25,7 +30,11 @@ export class PlantingSpotQueriesResolver {
 
   @Query(() => PaginatedPlantingSpotResultDto)
   async plantingSpotsFindByCriteria(
-    @Args('input', { nullable: true })
+    @Args(
+      'input',
+      { nullable: true },
+      new FilterValidationPipe(plantingSpotFilterableFields),
+    )
     input?: PlantingSpotFindByCriteriaRequestDto,
   ): Promise<PaginatedPlantingSpotResultDto> {
     this.logger.log(
