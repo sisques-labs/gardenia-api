@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  applyCriteriaToQueryBuilder,
   BaseDatabaseRepository,
   Criteria,
-  FilterOperator,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
@@ -14,6 +15,8 @@ import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
 import { HarvestTypeOrmEntity } from '../entities/harvest.entity';
 import { HarvestTypeOrmMapper } from '../mappers/harvest-typeorm.mapper';
+
+const ALIAS = 'harvest';
 
 @Injectable()
 export class HarvestTypeOrmReadRepository
@@ -42,57 +45,15 @@ export class HarvestTypeOrmReadRepository
   ): Promise<PaginatedResult<HarvestViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    const qb = this.repository.createQueryBuilder('harvest');
-    qb.where('harvest.space_id = :spaceId', {
+    const qb = this.repository.createQueryBuilder(ALIAS);
+    qb.where(`${ALIAS}.space_id = :spaceId`, {
       spaceId: this.spaceContext.require(),
     });
 
-    for (const filter of criteria.filters) {
-      switch (filter.operator) {
-        case FilterOperator.LIKE:
-          qb.andWhere(`LOWER(harvest.${filter.field}) LIKE :${filter.field}`, {
-            [filter.field]: `%${String(filter.value).toLowerCase()}%`,
-          });
-          break;
-        case FilterOperator.EQUALS:
-          qb.andWhere(`harvest.${filter.field} = :${filter.field}`, {
-            [filter.field]: filter.value,
-          });
-          break;
-        case FilterOperator.NOT_EQUALS:
-          qb.andWhere(`harvest.${filter.field} != :${filter.field}`, {
-            [filter.field]: filter.value,
-          });
-          break;
-        case FilterOperator.IN:
-          qb.andWhere(`harvest.${filter.field} IN (:...${filter.field})`, {
-            [filter.field]: Array.isArray(filter.value)
-              ? filter.value
-              : [filter.value],
-          });
-          break;
-        case FilterOperator.GREATER_THAN:
-          qb.andWhere(`harvest.${filter.field} > :${filter.field}From`, {
-            [`${filter.field}From`]: filter.value,
-          });
-          break;
-        case FilterOperator.LESS_THAN:
-          qb.andWhere(`harvest.${filter.field} < :${filter.field}To`, {
-            [`${filter.field}To`]: filter.value,
-          });
-          break;
-        case FilterOperator.GREATER_THAN_OR_EQUAL:
-          qb.andWhere(`harvest.${filter.field} >= :${filter.field}From`, {
-            [`${filter.field}From`]: filter.value,
-          });
-          break;
-        case FilterOperator.LESS_THAN_OR_EQUAL:
-          qb.andWhere(`harvest.${filter.field} <= :${filter.field}To`, {
-            [`${filter.field}To`]: filter.value,
-          });
-          break;
-      }
-    }
+    applyCriteriaToQueryBuilder(qb, criteria, {
+      alias: ALIAS,
+      defaultSort: { field: 'createdAt', direction: SortDirection.DESC },
+    });
 
     qb.skip(skip).take(limit);
 

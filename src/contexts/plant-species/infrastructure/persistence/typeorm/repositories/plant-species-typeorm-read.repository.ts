@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  applyCriteriaToQueryBuilder,
   BaseDatabaseRepository,
   Criteria,
-  Filter,
-  FilterOperator,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { IPlantSpeciesReadRepository } from '@contexts/plant-species/domain/repositories/read/plant-species-read.repository';
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
@@ -44,11 +44,10 @@ export class PlantSpeciesTypeOrmReadRepository
 
     const qb = this.plantSpeciesRepo.createQueryBuilder(ALIAS);
 
-    (criteria.filters ?? []).forEach((filter, index) =>
-      this.applyFilter(qb, filter, index),
-    );
-
-    this.applySort(qb, criteria);
+    applyCriteriaToQueryBuilder(qb, criteria, {
+      alias: ALIAS,
+      defaultSort: { field: 'scientificName', direction: SortDirection.ASC },
+    });
 
     const [entities, total] = await qb.skip(skip).take(limit).getManyAndCount();
 
@@ -58,62 +57,6 @@ export class PlantSpeciesTypeOrmReadRepository
     });
 
     return new PaginatedResult(items, total, page, limit);
-  }
-
-  private applyFilter(
-    qb: SelectQueryBuilder<PlantSpeciesTypeOrmEntity>,
-    filter: Filter,
-    index: number,
-  ): void {
-    const column = `${ALIAS}.${filter.field}`;
-    const param = `filter${index}`;
-
-    switch (filter.operator) {
-      case FilterOperator.EQUALS:
-        qb.andWhere(`${column} = :${param}`, { [param]: filter.value });
-        break;
-      case FilterOperator.NOT_EQUALS:
-        qb.andWhere(`${column} != :${param}`, { [param]: filter.value });
-        break;
-      case FilterOperator.LIKE:
-        qb.andWhere(`${column} ILIKE :${param}`, {
-          [param]: `%${filter.value}%`,
-        });
-        break;
-      case FilterOperator.IN:
-        qb.andWhere(`${column} IN (:...${param})`, {
-          [param]: Array.isArray(filter.value) ? filter.value : [filter.value],
-        });
-        break;
-      case FilterOperator.GREATER_THAN:
-        qb.andWhere(`${column} > :${param}`, { [param]: filter.value });
-        break;
-      case FilterOperator.LESS_THAN:
-        qb.andWhere(`${column} < :${param}`, { [param]: filter.value });
-        break;
-      case FilterOperator.GREATER_THAN_OR_EQUAL:
-        qb.andWhere(`${column} >= :${param}`, { [param]: filter.value });
-        break;
-      case FilterOperator.LESS_THAN_OR_EQUAL:
-        qb.andWhere(`${column} <= :${param}`, { [param]: filter.value });
-        break;
-    }
-  }
-
-  private applySort(
-    qb: SelectQueryBuilder<PlantSpeciesTypeOrmEntity>,
-    criteria: Criteria,
-  ): void {
-    if (!criteria.sorts?.length) {
-      qb.orderBy(`${ALIAS}.scientificName`, 'ASC');
-      return;
-    }
-
-    criteria.sorts.forEach((sort, index) => {
-      const column = `${ALIAS}.${sort.field}`;
-      if (index === 0) qb.orderBy(column, sort.direction);
-      else qb.addOrderBy(column, sort.direction);
-    });
   }
 
   async save(_viewModel: PlantSpeciesViewModel): Promise<void> {
