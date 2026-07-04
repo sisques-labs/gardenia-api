@@ -1,4 +1,5 @@
 import { PlantingSpotBuilder } from '@contexts/planting-spots/domain/builders/planting-spot.builder';
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotTypeOrmEntity } from '../entities/planting-spot.entity';
 import { PlantingSpotTypeOrmMapper } from './planting-spot-typeorm.mapper';
@@ -15,6 +16,8 @@ const entityFixture = (): PlantingSpotTypeOrmEntity => {
   e.name = 'Bancal Norte';
   e.type = PlantingSpotTypeEnum.RAISED_BED;
   e.description = 'A raised bed';
+  e.status = PlantingSpotStatusEnum.ACTIVE;
+  e.fallowSince = null;
   e.userId = USER_ID;
   e.spaceId = SPACE_ID;
   e.createdAt = new Date('2024-01-01T00:00:00.000Z');
@@ -41,6 +44,8 @@ describe('PlantingSpotTypeOrmMapper', () => {
       expect(primitives.description).toBe(entity.description);
       expect(primitives.userId).toBe(entity.userId);
       expect(primitives.spaceId).toBe(entity.spaceId);
+      expect(primitives.status).toBe(entity.status);
+      expect(primitives.fallowSince).toBe(entity.fallowSince);
     });
 
     it('should map entity with null description', () => {
@@ -48,6 +53,16 @@ describe('PlantingSpotTypeOrmMapper', () => {
       entity.description = null;
       const aggregate = mapper.toDomain(entity);
       expect(aggregate.toPrimitives().description).toBeNull();
+    });
+
+    it('should map entity with fallow status and fallowSince', () => {
+      const entity = entityFixture();
+      entity.status = PlantingSpotStatusEnum.FALLOW;
+      entity.fallowSince = new Date('2026-05-01T00:00:00.000Z');
+      const aggregate = mapper.toDomain(entity);
+      const primitives = aggregate.toPrimitives();
+      expect(primitives.status).toBe(PlantingSpotStatusEnum.FALLOW);
+      expect(primitives.fallowSince).toEqual(entity.fallowSince);
     });
   });
 
@@ -63,6 +78,8 @@ describe('PlantingSpotTypeOrmMapper', () => {
       expect(result.description).toBe(entity.description);
       expect(result.userId).toBe(entity.userId);
       expect(result.spaceId).toBe(entity.spaceId);
+      expect(result.status).toBe(entity.status);
+      expect(result.fallowSince).toBe(entity.fallowSince);
     });
   });
 });

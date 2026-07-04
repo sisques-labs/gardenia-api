@@ -30,17 +30,41 @@ export class PlantingSpotTypeOrmEntity {
   @Column({ name: 'spot_column', type: 'int', nullable: true })
   column!: number | null;
 
-  @Column({ name: 'dimensions_width', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'dimensions_width',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   dimensionsWidth!: number | null;
 
-  @Column({ name: 'dimensions_height', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'dimensions_height',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   dimensionsHeight!: number | null;
 
-  @Column({ name: 'dimensions_length', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'dimensions_length',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   dimensionsLength!: number | null;
 
   @Column({ name: 'soil_type', type: 'varchar', length: 100, nullable: true })
   soilType!: string | null;
+
+  @Column({ type: 'varchar', length: 10, nullable: false, default: 'active' })
+  status!: string;
+
+  @Column({ name: 'fallow_since', type: 'timestamptz', nullable: true })
+  fallowSince!: Date | null;
 
   @Index('IDX_planting_spots_user_id')
   @Column({ name: 'user_id', type: 'uuid', nullable: false })

@@ -43,6 +43,8 @@ export class CreatePlantingSpotCommandHandler
       .withDimensionsHeight(command.dimensions?.height ?? null)
       .withDimensionsLength(command.dimensions?.length ?? null)
       .withSoilType(command.soilType?.value ?? null)
+      .withStatus(command.status.value)
+      .withFallowSince(command.fallowSince)
       .withUserId(command.userId.value)
       .withSpaceId(command.spaceId.value)
       .withCreatedAt(now)

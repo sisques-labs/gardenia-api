@@ -1,6 +1,7 @@
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
 import { CreatePlantingSpotDto } from '../dtos/create-planting-spot.dto';
@@ -31,6 +32,8 @@ const mockVm = new PlantingSpotViewModel({
   dimensionsHeight: null,
   dimensionsLength: null,
   soilType: null,
+  status: 'active',
+  fallowSince: null,
   userId: USER_ID,
   spaceId: SPACE_ID,
   createdAt: now,
@@ -42,6 +45,8 @@ const mockResponseDto = {
   name: 'North Bed',
   type: PlantingSpotTypeEnum.RAISED_BED,
   description: null,
+  status: PlantingSpotStatusEnum.ACTIVE,
+  fallowSince: null,
   userId: USER_ID,
   spaceId: SPACE_ID,
   createdAt: now,
@@ -149,6 +154,42 @@ describe('PlantingSpotsController', () => {
       await controller.deletePlantingSpot(SPOT_ID, mockUser, SPACE_ID);
 
       expect(commandBus.execute).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('markPlantingSpotFallow', () => {
+    it('dispatches MarkPlantingSpotFallowCommand, fetches the spot and returns mapped response', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+      queryBus.execute.mockResolvedValueOnce(mockVm);
+      mapper.toResponse.mockReturnValueOnce(mockResponseDto);
+
+      const result = await controller.markPlantingSpotFallow(
+        SPOT_ID,
+        mockUser,
+        SPACE_ID,
+      );
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(queryBus.execute).toHaveBeenCalledTimes(1);
+      expect(result.id).toBe(SPOT_ID);
+    });
+  });
+
+  describe('markPlantingSpotActive', () => {
+    it('dispatches MarkPlantingSpotActiveCommand, fetches the spot and returns mapped response', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+      queryBus.execute.mockResolvedValueOnce(mockVm);
+      mapper.toResponse.mockReturnValueOnce(mockResponseDto);
+
+      const result = await controller.markPlantingSpotActive(
+        SPOT_ID,
+        mockUser,
+        SPACE_ID,
+      );
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(queryBus.execute).toHaveBeenCalledTimes(1);
+      expect(result.id).toBe(SPOT_ID);
     });
   });
 });
