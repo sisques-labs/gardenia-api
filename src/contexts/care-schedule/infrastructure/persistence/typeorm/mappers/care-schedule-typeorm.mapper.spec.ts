@@ -57,6 +57,16 @@ describe('CareScheduleTypeOrmMapper', () => {
     expect(aggregate.notes).toBeNull();
   });
 
+  it('persists a null quantity as null (not "0" or "null" string)', () => {
+    const entity = buildEntity();
+    entity.quantity = null;
+    const aggregate = mapper.toDomain(entity);
+
+    const persisted = mapper.toPersistence(aggregate);
+
+    expect(persisted.quantity).toBeNull();
+  });
+
   it('maps a one-time schedule with null interval_days', () => {
     const entity = buildEntity();
     entity.intervalDays = null;
