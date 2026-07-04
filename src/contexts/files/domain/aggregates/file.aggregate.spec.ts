@@ -53,4 +53,21 @@ describe('FileAggregate', () => {
       size: 204800,
     });
   });
+
+  describe('getters', () => {
+    it('should expose every value object field', () => {
+      const file = buildFile();
+
+      expect(file.id.value).toBe('550e8400-e29b-41d4-a716-446655440000');
+      expect(file.filename.value).toBe('rose.png');
+      expect(file.mimeType.value).toBe(FileMimeTypeEnum.IMAGE_PNG);
+      expect(file.size.value).toBe(204800);
+      expect(file.storageKey.value).toBe(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      expect(file.url.value).toBe('/api/files/550e8400/content');
+      expect(file.userId.value).toBe('660e8400-e29b-41d4-a716-446655440001');
+      expect(file.spaceId.value).toBe('770e8400-e29b-41d4-a716-446655440002');
+    });
+  });
 });
