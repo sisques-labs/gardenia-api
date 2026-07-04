@@ -2,6 +2,7 @@ import {
   Criteria,
   FilterOperator,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 
@@ -39,7 +40,13 @@ describe('FileTypeOrmReadRepository', () => {
   let mockQb: jest.Mocked<
     Pick<
       SelectQueryBuilder<FileTypeOrmEntity>,
-      'where' | 'andWhere' | 'orderBy' | 'skip' | 'take' | 'getManyAndCount'
+      | 'where'
+      | 'andWhere'
+      | 'orderBy'
+      | 'addOrderBy'
+      | 'skip'
+      | 'take'
+      | 'getManyAndCount'
     >
   >;
   let mapper: FileTypeOrmMapper;
@@ -49,6 +56,7 @@ describe('FileTypeOrmReadRepository', () => {
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       take: jest.fn().mockReturnThis(),
       getManyAndCount: jest.fn(),
@@ -104,7 +112,10 @@ describe('FileTypeOrmReadRepository', () => {
       expect(mockQb.where).toHaveBeenCalledWith('file.space_id = :spaceId', {
         spaceId: SPACE_ID,
       });
-      expect(mockQb.orderBy).toHaveBeenCalledWith('file.created_at', 'DESC');
+      expect(mockQb.orderBy).toHaveBeenCalledWith(
+        'file.createdAt',
+        SortDirection.DESC,
+      );
     });
 
     it('returns empty result when no files match', async () => {
@@ -116,6 +127,19 @@ describe('FileTypeOrmReadRepository', () => {
 
       expect(result.items).toHaveLength(0);
       expect(result.total).toBe(0);
+    });
+
+    it('applies a client-supplied sort instead of the default', async () => {
+      mockQb.getManyAndCount.mockResolvedValue([[], 0]);
+
+      await repository.findByCriteria(
+        new Criteria([], [{ field: 'filename', direction: SortDirection.ASC }]),
+      );
+
+      expect(mockQb.orderBy).toHaveBeenCalledWith(
+        'file.filename',
+        SortDirection.ASC,
+      );
     });
 
     it('applies LIKE filter for filename', async () => {
@@ -136,19 +160,19 @@ describe('FileTypeOrmReadRepository', () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'LOWER(file.filename) LIKE :filename',
-        { filename: '%rose%' },
+        'file.filename ILIKE :filter0',
+        { filter0: '%Rose%' },
       );
     });
 
-    it('applies EQUALS filter for mime_type', async () => {
+    it('applies EQUALS filter for mimeType', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
 
       await repository.findByCriteria(
         new Criteria(
           [
             {
-              field: 'mime_type',
+              field: 'mimeType',
               operator: FilterOperator.EQUALS,
               value: FileMimeTypeEnum.IMAGE_PNG,
             },
@@ -158,13 +182,12 @@ describe('FileTypeOrmReadRepository', () => {
         ),
       );
 
-      expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'file.mime_type = :mime_type',
-        { mime_type: FileMimeTypeEnum.IMAGE_PNG },
-      );
+      expect(mockQb.andWhere).toHaveBeenCalledWith('file.mimeType = :filter0', {
+        filter0: FileMimeTypeEnum.IMAGE_PNG,
+      });
     });
 
-    it('ignores unsupported filter operators', async () => {
+    it('applies GTE filter for size', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
 
       await repository.findByCriteria(
@@ -181,7 +204,9 @@ describe('FileTypeOrmReadRepository', () => {
         ),
       );
 
-      expect(mockQb.andWhere).not.toHaveBeenCalled();
+      expect(mockQb.andWhere).toHaveBeenCalledWith('file.size >= :filter0', {
+        filter0: 1000,
+      });
     });
   });
 

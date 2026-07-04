@@ -2,6 +2,7 @@ import {
   Criteria,
   FilterOperator,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 
@@ -115,8 +116,8 @@ describe('CareScheduleTypeOrmReadRepository', () => {
         { spaceId: SPACE_ID },
       );
       expect(mockQb.orderBy).toHaveBeenCalledWith(
-        'schedule.next_due_at',
-        'ASC',
+        'schedule.nextDueAt',
+        SortDirection.ASC,
       );
     });
 
@@ -167,8 +168,8 @@ describe('CareScheduleTypeOrmReadRepository', () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'LOWER(schedule.notes) LIKE :notes',
-        { notes: '%deep%' },
+        'schedule.notes ILIKE :filter0',
+        { filter0: '%Deep%' },
       );
     });
 
@@ -179,7 +180,7 @@ describe('CareScheduleTypeOrmReadRepository', () => {
         new Criteria(
           [
             {
-              field: 'plant_id',
+              field: 'plantId',
               operator: FilterOperator.EQUALS,
               value: PLANT_ID,
             },
@@ -190,8 +191,8 @@ describe('CareScheduleTypeOrmReadRepository', () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'schedule.plant_id = :plant_id',
-        { plant_id: PLANT_ID },
+        'schedule.plantId = :filter0',
+        { filter0: PLANT_ID },
       );
     });
 
@@ -203,7 +204,7 @@ describe('CareScheduleTypeOrmReadRepository', () => {
         new Criteria(
           [
             {
-              field: 'next_due_at',
+              field: 'nextDueAt',
               operator: FilterOperator.GREATER_THAN_OR_EQUAL,
               value: from,
             },
@@ -214,8 +215,8 @@ describe('CareScheduleTypeOrmReadRepository', () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'schedule.next_due_at >= :next_due_atFrom',
-        { next_due_atFrom: from },
+        'schedule.nextDueAt >= :filter0',
+        { filter0: from },
       );
     });
 
@@ -227,7 +228,7 @@ describe('CareScheduleTypeOrmReadRepository', () => {
         new Criteria(
           [
             {
-              field: 'next_due_at',
+              field: 'nextDueAt',
               operator: FilterOperator.LESS_THAN_OR_EQUAL,
               value: to,
             },
@@ -238,8 +239,8 @@ describe('CareScheduleTypeOrmReadRepository', () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'schedule.next_due_at <= :next_due_atTo',
-        { next_due_atTo: to },
+        'schedule.nextDueAt <= :filter0',
+        { filter0: to },
       );
     });
   });
