@@ -142,6 +142,7 @@ export class PlantsController {
         name: dto.name,
         plantSpeciesId: dto.plantSpeciesId,
         imageUrl: dto.imageUrl,
+        plantingSpotId: dto.plantingSpotId,
         requestingUserId: user.userId,
       }),
     );

@@ -16,4 +16,10 @@ export const plantUpdateSchema = {
     .nullable()
     .optional()
     .describe('New image URL, or null to remove'),
+  plantingSpotId: z
+    .string()
+    .uuid()
+    .nullable()
+    .optional()
+    .describe('New planting spot id to assign, or null to unassign'),
 };
