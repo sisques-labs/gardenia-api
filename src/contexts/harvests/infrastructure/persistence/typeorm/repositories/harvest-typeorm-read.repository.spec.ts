@@ -2,6 +2,7 @@ import {
   Criteria,
   FilterOperator,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 
@@ -38,7 +39,13 @@ describe('HarvestTypeOrmReadRepository', () => {
   let mockQb: jest.Mocked<
     Pick<
       SelectQueryBuilder<HarvestTypeOrmEntity>,
-      'where' | 'andWhere' | 'skip' | 'take' | 'getManyAndCount'
+      | 'where'
+      | 'andWhere'
+      | 'orderBy'
+      | 'addOrderBy'
+      | 'skip'
+      | 'take'
+      | 'getManyAndCount'
     >
   >;
   let mapper: HarvestTypeOrmMapper;
@@ -47,6 +54,8 @@ describe('HarvestTypeOrmReadRepository', () => {
     mockQb = {
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       take: jest.fn().mockReturnThis(),
       getManyAndCount: jest.fn(),
@@ -127,14 +136,43 @@ describe('HarvestTypeOrmReadRepository', () => {
       expect(result.total).toBe(0);
     });
 
-    it('applies LIKE filter for crop_type', async () => {
+    it('defaults to createdAt DESC when no sort is given', async () => {
+      mockQb.getManyAndCount.mockResolvedValue([[], 0]);
+
+      await repository.findByCriteria(
+        new Criteria(undefined, undefined, undefined),
+      );
+
+      expect(mockQb.orderBy).toHaveBeenCalledWith(
+        'harvest.createdAt',
+        SortDirection.DESC,
+      );
+    });
+
+    it('applies a client-supplied sort instead of the default', async () => {
+      mockQb.getManyAndCount.mockResolvedValue([[], 0]);
+
+      await repository.findByCriteria(
+        new Criteria(
+          [],
+          [{ field: 'harvestedAt', direction: SortDirection.ASC }],
+        ),
+      );
+
+      expect(mockQb.orderBy).toHaveBeenCalledWith(
+        'harvest.harvestedAt',
+        SortDirection.ASC,
+      );
+    });
+
+    it('applies LIKE filter for cropType', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
 
       await repository.findByCriteria(
         new Criteria(
           [
             {
-              field: 'crop_type',
+              field: 'cropType',
               operator: FilterOperator.LIKE,
               value: 'Tomate',
             },
@@ -145,8 +183,8 @@ describe('HarvestTypeOrmReadRepository', () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'LOWER(harvest.crop_type) LIKE :crop_type',
-        { crop_type: '%tomate%' },
+        'harvest.cropType ILIKE :filter0',
+        { filter0: '%Tomate%' },
       );
     });
 
@@ -167,12 +205,12 @@ describe('HarvestTypeOrmReadRepository', () => {
         ),
       );
 
-      expect(mockQb.andWhere).toHaveBeenCalledWith('harvest.unit = :unit', {
-        unit: HarvestUnitEnum.KG,
+      expect(mockQb.andWhere).toHaveBeenCalledWith('harvest.unit = :filter0', {
+        filter0: HarvestUnitEnum.KG,
       });
     });
 
-    it('applies GTE filter for harvested_at', async () => {
+    it('applies GTE filter for harvestedAt', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
       const dateFrom = new Date('2026-01-01');
 
@@ -180,7 +218,7 @@ describe('HarvestTypeOrmReadRepository', () => {
         new Criteria(
           [
             {
-              field: 'harvested_at',
+              field: 'harvestedAt',
               operator: FilterOperator.GREATER_THAN_OR_EQUAL,
               value: dateFrom,
             },
@@ -191,12 +229,12 @@ describe('HarvestTypeOrmReadRepository', () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'harvest.harvested_at >= :harvested_atFrom',
-        { harvested_atFrom: dateFrom },
+        'harvest.harvestedAt >= :filter0',
+        { filter0: dateFrom },
       );
     });
 
-    it('applies LTE filter for harvested_at', async () => {
+    it('applies LTE filter for harvestedAt', async () => {
       mockQb.getManyAndCount.mockResolvedValue([[], 0]);
       const dateTo = new Date('2026-12-31');
 
@@ -204,7 +242,7 @@ describe('HarvestTypeOrmReadRepository', () => {
         new Criteria(
           [
             {
-              field: 'harvested_at',
+              field: 'harvestedAt',
               operator: FilterOperator.LESS_THAN_OR_EQUAL,
               value: dateTo,
             },
@@ -215,8 +253,44 @@ describe('HarvestTypeOrmReadRepository', () => {
       );
 
       expect(mockQb.andWhere).toHaveBeenCalledWith(
-        'harvest.harvested_at <= :harvested_atTo',
-        { harvested_atTo: dateTo },
+        'harvest.harvestedAt <= :filter0',
+        { filter0: dateTo },
+      );
+    });
+
+    it('applies a date range without parameter collisions', async () => {
+      mockQb.getManyAndCount.mockResolvedValue([[], 0]);
+      const dateFrom = new Date('2026-01-01');
+      const dateTo = new Date('2026-12-31');
+
+      await repository.findByCriteria(
+        new Criteria(
+          [
+            {
+              field: 'harvestedAt',
+              operator: FilterOperator.GREATER_THAN_OR_EQUAL,
+              value: dateFrom,
+            },
+            {
+              field: 'harvestedAt',
+              operator: FilterOperator.LESS_THAN_OR_EQUAL,
+              value: dateTo,
+            },
+          ],
+          undefined,
+          undefined,
+        ),
+      );
+
+      expect(mockQb.andWhere).toHaveBeenNthCalledWith(
+        1,
+        'harvest.harvestedAt >= :filter0',
+        { filter0: dateFrom },
+      );
+      expect(mockQb.andWhere).toHaveBeenNthCalledWith(
+        2,
+        'harvest.harvestedAt <= :filter1',
+        { filter1: dateTo },
       );
     });
   });

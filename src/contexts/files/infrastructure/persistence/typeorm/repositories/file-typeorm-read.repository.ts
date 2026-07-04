@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  applyCriteriaToQueryBuilder,
   BaseDatabaseRepository,
   Criteria,
-  FilterOperator,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
@@ -14,6 +15,8 @@ import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
 import { FileTypeOrmEntity } from '../entities/file.entity';
 import { FileTypeOrmMapper } from '../mappers/file-typeorm.mapper';
+
+const ALIAS = 'file';
 
 @Injectable()
 export class FileTypeOrmReadRepository
@@ -42,27 +45,16 @@ export class FileTypeOrmReadRepository
   ): Promise<PaginatedResult<FileViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    const qb = this.repository.createQueryBuilder('file');
-    qb.where('file.space_id = :spaceId', {
+    const qb = this.repository.createQueryBuilder(ALIAS);
+    qb.where(`${ALIAS}.space_id = :spaceId`, {
       spaceId: this.spaceContext.require(),
     });
 
-    for (const filter of criteria.filters) {
-      switch (filter.operator) {
-        case FilterOperator.LIKE:
-          qb.andWhere(`LOWER(file.${filter.field}) LIKE :${filter.field}`, {
-            [filter.field]: `%${String(filter.value).toLowerCase()}%`,
-          });
-          break;
-        case FilterOperator.EQUALS:
-          qb.andWhere(`file.${filter.field} = :${filter.field}`, {
-            [filter.field]: filter.value,
-          });
-          break;
-      }
-    }
+    applyCriteriaToQueryBuilder(qb, criteria, {
+      alias: ALIAS,
+      defaultSort: { field: 'createdAt', direction: SortDirection.DESC },
+    });
 
-    qb.orderBy('file.created_at', 'DESC');
     qb.skip(skip).take(limit);
 
     const [entities, total] = await qb.getManyAndCount();

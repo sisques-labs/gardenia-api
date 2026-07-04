@@ -4,10 +4,12 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
+import { PlantPlantingSpotNotFoundException } from '@contexts/plants/domain/exceptions/plant-planting-spot-not-found.exception';
 import { IPlantWriteRepository } from '@contexts/plants/domain/repositories/write/plant-write.repository';
 import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
 import { PlantNameValueObject } from '@contexts/plants/domain/value-objects/plant-name/plant-name.value-object';
 import { AssertPlantExistsService } from '../../services/write/assert-plant-exists/assert-plant-exists.service';
+import { AssertPlantPlantingSpotExistsService } from '../../services/write/assert-plant-planting-spot-exists/assert-plant-planting-spot-exists.service';
 
 import { UpdatePlantCommand } from './update-plant.command';
 import { UpdatePlantCommandHandler } from './update-plant.handler';
@@ -36,6 +38,7 @@ describe('UpdatePlantCommandHandler', () => {
   let handler: UpdatePlantCommandHandler;
   let writeRepository: jest.Mocked<IPlantWriteRepository>;
   let assertPlantExistsService: jest.Mocked<AssertPlantExistsService>;
+  let assertPlantPlantingSpotExistsService: jest.Mocked<AssertPlantPlantingSpotExistsService>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -61,10 +64,15 @@ describe('UpdatePlantCommandHandler', () => {
       execute: jest.fn().mockResolvedValue(undefined),
     };
 
+    assertPlantPlantingSpotExistsService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<AssertPlantPlantingSpotExistsService>;
+
     handler = new UpdatePlantCommandHandler(
       writeRepository,
       assertPlantExistsService,
       assertPlantLinkedSpeciesExistsService as never,
+      assertPlantPlantingSpotExistsService,
       eventBus,
     );
   });
@@ -119,6 +127,67 @@ describe('UpdatePlantCommandHandler', () => {
       await expect(handler.execute(command)).rejects.toThrow(
         PlantNotFoundException,
       );
+    });
+  });
+
+  describe('assigning a planting spot', () => {
+    const SPOT_ID = '550e8400-e29b-41d4-a716-446655440003';
+
+    it('validates the spot exists in the plant space and assigns it', async () => {
+      const aggregate = buildAggregate();
+      assertPlantExistsService.execute.mockResolvedValue(aggregate);
+
+      const command = new UpdatePlantCommand({
+        plantId: PLANT_ID,
+        plantingSpotId: SPOT_ID,
+        requestingUserId: OWNER_ID,
+      });
+
+      await handler.execute(command);
+
+      expect(assertPlantPlantingSpotExistsService.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ value: SPOT_ID }),
+        SPACE_ID,
+      );
+      expect(aggregate.plantingSpotId?.value).toBe(SPOT_ID);
+      expect(writeRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates PlantPlantingSpotNotFoundException when the spot does not exist', async () => {
+      const aggregate = buildAggregate();
+      assertPlantExistsService.execute.mockResolvedValue(aggregate);
+      assertPlantPlantingSpotExistsService.execute.mockRejectedValue(
+        new PlantPlantingSpotNotFoundException(SPOT_ID),
+      );
+
+      const command = new UpdatePlantCommand({
+        plantId: PLANT_ID,
+        plantingSpotId: SPOT_ID,
+        requestingUserId: OWNER_ID,
+      });
+
+      await expect(handler.execute(command)).rejects.toThrow(
+        PlantPlantingSpotNotFoundException,
+      );
+      expect(writeRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('unassigns the spot when plantingSpotId is null without validating', async () => {
+      const aggregate = buildAggregate();
+      assertPlantExistsService.execute.mockResolvedValue(aggregate);
+
+      const command = new UpdatePlantCommand({
+        plantId: PLANT_ID,
+        plantingSpotId: null,
+        requestingUserId: OWNER_ID,
+      });
+
+      await handler.execute(command);
+
+      expect(
+        assertPlantPlantingSpotExistsService.execute,
+      ).not.toHaveBeenCalled();
+      expect(aggregate.plantingSpotId).toBeNull();
     });
   });
 });

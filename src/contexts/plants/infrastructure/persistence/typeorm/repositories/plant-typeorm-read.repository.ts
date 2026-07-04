@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  applyCriteriaToQueryBuilder,
   BaseDatabaseRepository,
   Criteria,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
 import { Repository } from 'typeorm';
 
@@ -13,6 +15,8 @@ import { SpaceContext } from '../../../../../../shared/space-context/space-conte
 import { createTenantRepository } from '../../../../../../shared/tenant-repository/create-tenant-repository.factory';
 import { PlantTypeOrmEntity } from '../entities/plant.entity';
 import { PlantTypeOrmMapper } from '../mappers/plant-typeorm.mapper';
+
+const ALIAS = 'plant';
 
 @Injectable()
 export class PlantTypeOrmReadRepository
@@ -41,14 +45,20 @@ export class PlantTypeOrmReadRepository
   ): Promise<PaginatedResult<PlantViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    const [entities, total] = await this.repo.findAndCount({
-      skip,
-      take: limit,
-      order: criteria.sorts.reduce(
-        (acc, s) => ({ ...acc, [s.field]: s.direction }),
-        {},
-      ),
+    // createQueryBuilder bypasses createTenantRepository's find/findOne
+    // proxy interception, so the space scope must be applied explicitly here.
+    const qb = this.repo
+      .createQueryBuilder(ALIAS)
+      .where(`${ALIAS}.spaceId = :spaceId`, {
+        spaceId: this.spaceContext.require(),
+      });
+
+    applyCriteriaToQueryBuilder(qb, criteria, {
+      alias: ALIAS,
+      defaultSort: { field: 'createdAt', direction: SortDirection.DESC },
     });
+
+    const [entities, total] = await qb.skip(skip).take(limit).getManyAndCount();
 
     const items = entities.map((e) => this.mapper.toViewModel(e));
     return new PaginatedResult(items, total, page, limit);

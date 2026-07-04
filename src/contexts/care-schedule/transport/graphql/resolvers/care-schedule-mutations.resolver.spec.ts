@@ -9,6 +9,7 @@ import { CompleteCareScheduleCommand } from '@contexts/care-schedule/application
 import { CreateCareScheduleCommand } from '@contexts/care-schedule/application/commands/create-care-schedule/create-care-schedule.command';
 import { DeleteCareScheduleCommand } from '@contexts/care-schedule/application/commands/delete-care-schedule/delete-care-schedule.command';
 import { UpdateCareScheduleCommand } from '@contexts/care-schedule/application/commands/update-care-schedule/update-care-schedule.command';
+import { WaterPlantCommand } from '@contexts/care-schedule/application/commands/water-plant/water-plant.command';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { CareScheduleMutationsResolver } from './care-schedule-mutations.resolver';
@@ -71,6 +72,22 @@ describe('CareScheduleMutationsResolver', () => {
     expect(commandBus.execute).toHaveBeenCalledWith(
       expect.any(CompleteCareScheduleCommand),
     );
+  });
+
+  it('careScheduleWaterPlant() resolves the space and dispatches WaterPlantCommand', async () => {
+    const waterResult = { plantId: PLANT_ID, mode: 'CARE_LOG_CREATED' };
+    commandBus.execute.mockResolvedValue(waterResult);
+
+    const result = await sut.careScheduleWaterPlant(
+      { plantId: PLANT_ID } as never,
+      user,
+    );
+
+    expect(spaceContext.require).toHaveBeenCalledTimes(1);
+    expect(commandBus.execute).toHaveBeenCalledWith(
+      expect.any(WaterPlantCommand),
+    );
+    expect(result).toBe(waterResult);
   });
 
   it('careScheduleDelete() dispatches DeleteCareScheduleCommand', async () => {

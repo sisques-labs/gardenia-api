@@ -30,6 +30,8 @@ describe('PlantingSpotQueriesResolver', () => {
     dimensionsHeight: null,
     dimensionsLength: null,
     soilType: null,
+    status: 'active',
+    fallowSince: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
     createdAt: now,

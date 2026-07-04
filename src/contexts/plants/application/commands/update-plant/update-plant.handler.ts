@@ -10,6 +10,7 @@ import {
 } from '@contexts/plants/domain/repositories/write/plant-write.repository';
 import { AssertPlantLinkedSpeciesExistsService } from '../../services/write/assert-plant-linked-species-exists/assert-plant-linked-species-exists.service';
 import { AssertPlantExistsService } from '../../services/write/assert-plant-exists/assert-plant-exists.service';
+import { AssertPlantPlantingSpotExistsService } from '../../services/write/assert-plant-planting-spot-exists/assert-plant-planting-spot-exists.service';
 
 import { UpdatePlantCommand } from './update-plant.command';
 
@@ -25,6 +26,7 @@ export class UpdatePlantCommandHandler
     private readonly plantWriteRepository: IPlantWriteRepository,
     private readonly assertPlantExistsService: AssertPlantExistsService,
     private readonly assertPlantLinkedSpeciesExistsService: AssertPlantLinkedSpeciesExistsService,
+    private readonly assertPlantPlantingSpotExistsService: AssertPlantPlantingSpotExistsService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -46,10 +48,18 @@ export class UpdatePlantCommandHandler
       );
     }
 
+    if (command.plantingSpotId) {
+      await this.assertPlantPlantingSpotExistsService.execute(
+        command.plantingSpotId,
+        plant.spaceId.value,
+      );
+    }
+
     plant.update({
       name: command.name,
       plantSpeciesId: command.plantSpeciesId,
       imageUrl: command.imageUrl,
+      plantingSpotId: command.plantingSpotId,
     });
 
     await this.plantWriteRepository.save(plant);

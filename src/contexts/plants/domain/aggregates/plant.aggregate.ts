@@ -2,6 +2,7 @@ import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantImageUrlChangedEvent } from '../events/field-changed/plant-image-url-changed/plant-image-url-changed.event';
 import { PlantNameChangedEvent } from '../events/field-changed/plant-name-changed/plant-name-changed.event';
+import { PlantPlantingSpotIdChangedEvent } from '../events/field-changed/plant-planting-spot-id-changed/plant-planting-spot-id-changed.event';
 import { PlantSpeciesIdChangedEvent } from '../events/field-changed/plant-species-id-changed/plant-species-id-changed.event';
 import { PlantCreatedEvent } from '../events/plant-created/plant-created.event';
 import { PlantDeletedEvent } from '../events/plant-deleted/plant-deleted.event';
@@ -59,6 +60,7 @@ export class PlantAggregate extends BaseAggregate {
     name?: PlantNameValueObject;
     plantSpeciesId?: PlantLinkedSpeciesIdValueObject | null;
     imageUrl?: PlantImageUrlValueObject | null;
+    plantingSpotId?: UuidValueObject | null;
   }): void {
     if (props.name !== undefined) {
       this.changeName(props.name);
@@ -70,6 +72,10 @@ export class PlantAggregate extends BaseAggregate {
 
     if (props.imageUrl !== undefined) {
       this.changeImageUrl(props.imageUrl);
+    }
+
+    if (props.plantingSpotId !== undefined) {
+      this.changePlantingSpotId(props.plantingSpotId);
     }
 
     this.apply(
@@ -166,6 +172,31 @@ export class PlantAggregate extends BaseAggregate {
           entityId: this._id.value,
           entityType: PlantAggregate.name,
           eventType: PlantImageUrlChangedEvent.name,
+        },
+        { id: this._id.value, oldValue, newValue },
+      ),
+    );
+  }
+
+  private changePlantingSpotId(
+    newPlantingSpotId: UuidValueObject | null,
+  ): void {
+    const oldValue = this._plantingSpotId?.value ?? null;
+    const newValue = newPlantingSpotId?.value ?? null;
+
+    if (oldValue === newValue) return;
+
+    this._plantingSpotId = newPlantingSpotId;
+    this.touch();
+
+    this.apply(
+      new PlantPlantingSpotIdChangedEvent(
+        {
+          aggregateRootId: this._id.value,
+          aggregateRootType: PlantAggregate.name,
+          entityId: this._id.value,
+          entityType: PlantAggregate.name,
+          eventType: PlantPlantingSpotIdChangedEvent.name,
         },
         { id: this._id.value, oldValue, newValue },
       ),

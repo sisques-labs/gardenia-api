@@ -50,4 +50,22 @@ describe('SpaceInvitationGraphQLMapper', () => {
 
     expect(dto.qrId).toBeNull();
   });
+
+  describe('toPreviewResponse()', () => {
+    it('maps the preview view model to a response object', () => {
+      const dto = mapper.toPreviewResponse({
+        spaceName: 'Greenhouse A',
+        role: MembershipRoleEnum.MEMBER,
+        expiresAt: EXPIRES_AT,
+        isExpired: false,
+      });
+
+      expect(dto).toEqual({
+        spaceName: 'Greenhouse A',
+        role: MembershipRoleEnum.MEMBER,
+        expiresAt: EXPIRES_AT,
+        isExpired: false,
+      });
+    });
+  });
 });

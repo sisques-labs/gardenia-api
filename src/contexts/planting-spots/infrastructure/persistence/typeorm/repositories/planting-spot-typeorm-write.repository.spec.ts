@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
 
 import { PlantingSpotBuilder } from '@contexts/planting-spots/domain/builders/planting-spot.builder';
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotTypeOrmEntity } from '../entities/planting-spot.entity';
 import { PlantingSpotTypeOrmMapper } from '../mappers/planting-spot-typeorm.mapper';
@@ -28,6 +29,8 @@ const buildSpotEntity = (): PlantingSpotTypeOrmEntity => {
   e.name = 'Bancal Norte';
   e.type = PlantingSpotTypeEnum.RAISED_BED;
   e.description = null;
+  e.status = PlantingSpotStatusEnum.ACTIVE;
+  e.fallowSince = null;
   e.userId = USER_ID;
   e.spaceId = SPACE_ID;
   e.createdAt = new Date('2024-01-01');

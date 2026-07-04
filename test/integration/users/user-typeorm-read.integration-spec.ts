@@ -11,7 +11,8 @@ import {
   USER_WRITE_REPOSITORY,
 } from '@contexts/users/domain/repositories/write/user-write.repository';
 import { UsersModule } from '@contexts/users/users.module';
-import { Criteria } from '@sisques-labs/nestjs-kit';
+import { UserQueryableField } from '@contexts/users/transport/graphql/enums/user/user-queryable-field.enum';
+import { Criteria, FilterOperator } from '@sisques-labs/nestjs-kit';
 
 import {
   createIntegrationModule,
@@ -110,6 +111,69 @@ describe('UserTypeOrmReadRepository (integration)', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].username).toBe('gamma');
+    });
+  });
+
+  it('applies a LIKE filter on username', async () => {
+    await ctx.spaceContext.run(spaceAId, async () => {
+      await userWriteRepo.save(buildUser('alpha_gardener'));
+      await userWriteRepo.save(buildUser('beta_gardener'));
+      await userWriteRepo.save(buildUser('zzz_other'));
+    });
+
+    await ctx.spaceContext.run(spaceAId, async () => {
+      const result = await userReadRepo.findByCriteria(
+        new Criteria(
+          [
+            {
+              field: UserQueryableField.USERNAME,
+              operator: FilterOperator.LIKE,
+              value: 'gardener',
+            },
+          ],
+          [],
+          { page: 1, perPage: 10 },
+        ),
+      );
+
+      expect(result.items.map((u) => u.username).sort()).toEqual([
+        'alpha_gardener',
+        'beta_gardener',
+      ]);
+    });
+  });
+
+  it('applies an EQUALS filter on status', async () => {
+    await ctx.spaceContext.run(spaceAId, async () => {
+      await userWriteRepo.save(buildUser('active_user'));
+      await userWriteRepo.save(
+        new UserBuilder()
+          .withId(randomUUID())
+          .withUsername('blocked_user')
+          .withStatus(UserStatusEnum.BLOCKED)
+          .withCreatedAt(NOW)
+          .withUpdatedAt(NOW)
+          .build(),
+      );
+    });
+
+    await ctx.spaceContext.run(spaceAId, async () => {
+      const result = await userReadRepo.findByCriteria(
+        new Criteria(
+          [
+            {
+              field: UserQueryableField.STATUS,
+              operator: FilterOperator.EQUALS,
+              value: UserStatusEnum.BLOCKED,
+            },
+          ],
+          [],
+          { page: 1, perPage: 10 },
+        ),
+      );
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].username).toBe('blocked_user');
     });
   });
 });

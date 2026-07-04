@@ -1,10 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { Criteria } from '@sisques-labs/nestjs-kit';
+import { Criteria, FilterValidationPipe } from '@sisques-labs/nestjs-kit';
 
 import { CareScheduleFindByCriteriaQuery } from '@contexts/care-schedule/application/queries/care-schedule-find-by-criteria/care-schedule-find-by-criteria.query';
 import { CareScheduleFindByIdQuery } from '@contexts/care-schedule/application/queries/care-schedule-find-by-id/care-schedule-find-by-id.query';
+import { careScheduleFilterableFields } from '@contexts/care-schedule/transport/graphql/registries/care-schedule-filterable-fields.registry';
 import { CareScheduleCriteriaGraphQLDto } from '@contexts/care-schedule/transport/graphql/dtos/requests/care-schedule-criteria-graphql.dto';
 import { CareScheduleFindByIdGraphQLDto } from '@contexts/care-schedule/transport/graphql/dtos/requests/care-schedule-find-by-id-graphql.dto';
 import {
@@ -24,7 +25,11 @@ export class CareScheduleQueriesResolver {
 
   @Query(() => PaginatedCareSchedulesResultDto)
   async careSchedulesFindByCriteria(
-    @Args('input', { nullable: true })
+    @Args(
+      'input',
+      { nullable: true },
+      new FilterValidationPipe(careScheduleFilterableFields),
+    )
     input?: CareScheduleCriteriaGraphQLDto,
   ): Promise<PaginatedCareSchedulesResultDto> {
     this.logger.log(

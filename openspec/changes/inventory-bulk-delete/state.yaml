@@ -1,0 +1,28 @@
+change: inventory-bulk-delete
+status: apply
+created: 2026-07-03
+artifact_store: hybrid
+context: inventory
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: done
+  verify: partial
+  archive: pending
+next_recommended:
+  - sdd-verify
+notes: |
+  Implemented: DeleteInventoryItemsBulkCommand/Handler, REST POST
+  /inventory-items/bulk-delete, GraphQL inventoryItemsDeleteBulk mutation, MCP
+  tool inventory_item_delete_bulk, module wiring, README. Unit tests (handler +
+  resolver) green, full pnpm test suite green (394 suites / 1649 tests), tsc
+  --noEmit clean, eslint clean, nest build green. E2E tests (REST + GraphQL)
+  were authored (test/e2e/inventory/) but NOT executed in this environment (no
+  Docker/Postgres available) — run `pnpm test:e2e --testPathPattern=inventory`
+  where a database is available. No integration test added: bulk delete reuses
+  the write repo's existing findById/delete methods, whose tenant isolation is
+  already covered by inventory-item-typeorm-write.repository.integration-spec.ts.
+  Unblocks gardenia-web `inventory-table-redesign` PR5.

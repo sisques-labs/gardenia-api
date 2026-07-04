@@ -1,11 +1,12 @@
 import { Logger, UseGuards } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { Criteria } from '@sisques-labs/nestjs-kit';
+import { Criteria, FilterValidationPipe } from '@sisques-labs/nestjs-kit';
 
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { PlantSpeciesFindByCriteriaQuery } from '@contexts/plant-species/application/queries/plant-species-find-by-criteria/plant-species-find-by-criteria.query';
 import { PlantSpeciesFindByIdQuery } from '@contexts/plant-species/application/queries/plant-species-find-by-id/plant-species-find-by-id.query';
+import { plantSpeciesFilterableFields } from '@contexts/plant-species/transport/graphql/registries/plant-species-filterable-fields.registry';
 import { SkipSpace } from '@shared/decorators/skip-space.decorator';
 
 import { PlantSpeciesFindByCriteriaRequestDto } from '@contexts/plant-species/transport/graphql/dtos/requests/plant-species-find-by-criteria.request.dto';
@@ -42,7 +43,11 @@ export class PlantSpeciesQueriesResolver {
 
   @Query(() => PaginatedPlantSpeciesResultDto)
   async plantSpeciesFindByCriteria(
-    @Args('input', { nullable: true })
+    @Args(
+      'input',
+      { nullable: true },
+      new FilterValidationPipe(plantSpeciesFilterableFields),
+    )
     input?: PlantSpeciesFindByCriteriaRequestDto,
   ): Promise<PaginatedPlantSpeciesResultDto> {
     this.logger.log(
