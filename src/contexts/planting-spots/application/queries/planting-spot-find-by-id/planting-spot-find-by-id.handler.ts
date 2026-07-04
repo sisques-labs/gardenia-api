@@ -7,16 +7,19 @@ import { AssertPlantingSpotViewModelExistsService } from '../../services/read/as
 import { PlantingSpotFindByIdQuery } from './planting-spot-find-by-id.query';
 
 @QueryHandler(PlantingSpotFindByIdQuery)
-export class PlantingSpotFindByIdQueryHandler
-  implements IQueryHandler<PlantingSpotFindByIdQuery, PlantingSpotViewModel>
-{
+export class PlantingSpotFindByIdQueryHandler implements IQueryHandler<
+  PlantingSpotFindByIdQuery,
+  PlantingSpotViewModel
+> {
   private readonly logger = new Logger(PlantingSpotFindByIdQueryHandler.name);
 
   constructor(
     private readonly assertPlantingSpotViewModelExistsService: AssertPlantingSpotViewModelExistsService,
   ) {}
 
-  async execute(query: PlantingSpotFindByIdQuery): Promise<PlantingSpotViewModel> {
+  async execute(
+    query: PlantingSpotFindByIdQuery,
+  ): Promise<PlantingSpotViewModel> {
     this.logger.log(
       `Executing PlantingSpotFindByIdQuery for spot ${query.id.value}`,
     );

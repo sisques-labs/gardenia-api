@@ -10,6 +10,7 @@ export interface UpdatePlantCommandInput {
   name?: string;
   plantSpeciesId?: string | null;
   imageUrl?: string | null;
+  plantingSpotId?: string | null;
   requestingUserId: string;
 }
 
@@ -21,6 +22,7 @@ export class UpdatePlantCommand {
     | null
     | undefined;
   public readonly imageUrl: PlantImageUrlValueObject | null | undefined;
+  public readonly plantingSpotId: UuidValueObject | null | undefined;
   public readonly requestingUserId: UuidValueObject;
 
   constructor(input: UpdatePlantCommandInput) {
@@ -36,6 +38,12 @@ export class UpdatePlantCommand {
       input.imageUrl !== undefined
         ? input.imageUrl != null
           ? new PlantImageUrlValueObject(input.imageUrl)
+          : null
+        : undefined;
+    this.plantingSpotId =
+      input.plantingSpotId !== undefined
+        ? input.plantingSpotId != null
+          ? new UuidValueObject(input.plantingSpotId)
           : null
         : undefined;
     this.requestingUserId = new UuidValueObject(input.requestingUserId);

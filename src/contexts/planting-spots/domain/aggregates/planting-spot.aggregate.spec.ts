@@ -1,11 +1,15 @@
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotCreatedEvent } from '@contexts/planting-spots/domain/events/planting-spot-created/planting-spot-created.event';
 import { PlantingSpotDeletedEvent } from '@contexts/planting-spots/domain/events/planting-spot-deleted/planting-spot-deleted.event';
 import { PlantingSpotUpdatedEvent } from '@contexts/planting-spots/domain/events/planting-spot-updated/planting-spot-updated.event';
+import { PlantingSpotStatusChangedEvent } from '@contexts/planting-spots/domain/events/field-changed/status-changed/status-changed.event';
+import { PlantingSpotFallowSinceValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-fallow-since/planting-spot-fallow-since.value-object';
 import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
 import { PlantingSpotNameValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-name/planting-spot-name.value-object';
+import { PlantingSpotStatusValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-status/planting-spot-status.value-object';
 import { PlantingSpotTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-type/planting-spot-type.value-object';
 
 import { PlantingSpotAggregate } from './planting-spot.aggregate';
@@ -15,7 +19,10 @@ const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';
 const NOW = new Date('2024-01-01');
 
-const buildAggregate = (): PlantingSpotAggregate =>
+const buildAggregate = (
+  status: PlantingSpotStatusEnum = PlantingSpotStatusEnum.ACTIVE,
+  fallowSince: Date | null = null,
+): PlantingSpotAggregate =>
   new PlantingSpotAggregate({
     id: new PlantingSpotIdValueObject(SPOT_ID),
     name: new PlantingSpotNameValueObject('Bancal Norte'),
@@ -26,6 +33,10 @@ const buildAggregate = (): PlantingSpotAggregate =>
     column: null,
     dimensions: null,
     soilType: null,
+    status: new PlantingSpotStatusValueObject(status),
+    fallowSince: fallowSince
+      ? new PlantingSpotFallowSinceValueObject(fallowSince)
+      : null,
     userId: new UuidValueObject(USER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     createdAt: new DateValueObject(NOW),
@@ -82,6 +93,74 @@ describe('PlantingSpotAggregate', () => {
       // Only PlantingSpotUpdatedEvent, no field-changed events
       expect(events).toHaveLength(1);
       expect(events[0]).toBeInstanceOf(PlantingSpotUpdatedEvent);
+    });
+  });
+
+  describe('markFallow()', () => {
+    it('should set status to FALLOW and fallowSince to now', () => {
+      const spot = buildAggregate();
+      spot.markFallow();
+      expect(spot.status.value).toBe(PlantingSpotStatusEnum.FALLOW);
+      expect(spot.fallowSince).not.toBeNull();
+    });
+
+    it('should emit a PlantingSpotStatusChangedEvent', () => {
+      const spot = buildAggregate();
+      spot.markFallow();
+      const events = spot.getUncommittedEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(PlantingSpotStatusChangedEvent);
+    });
+
+    it('should be a no-op when already fallow', () => {
+      const spot = buildAggregate(
+        PlantingSpotStatusEnum.FALLOW,
+        new Date('2025-06-01'),
+      );
+      spot.markFallow();
+      expect(spot.getUncommittedEvents()).toHaveLength(0);
+      expect(spot.fallowSince?.value).toEqual(new Date('2025-06-01'));
+    });
+  });
+
+  describe('markActive()', () => {
+    it('should set status to ACTIVE and clear fallowSince', () => {
+      const spot = buildAggregate(
+        PlantingSpotStatusEnum.FALLOW,
+        new Date('2025-06-01'),
+      );
+      spot.markActive();
+      expect(spot.status.value).toBe(PlantingSpotStatusEnum.ACTIVE);
+      expect(spot.fallowSince).toBeNull();
+    });
+
+    it('should emit a PlantingSpotStatusChangedEvent', () => {
+      const spot = buildAggregate(
+        PlantingSpotStatusEnum.FALLOW,
+        new Date('2025-06-01'),
+      );
+      spot.markActive();
+      const events = spot.getUncommittedEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(PlantingSpotStatusChangedEvent);
+    });
+
+    it('should be a no-op when already active', () => {
+      const spot = buildAggregate();
+      spot.markActive();
+      expect(spot.getUncommittedEvents()).toHaveLength(0);
+    });
+  });
+
+  describe('update() does not touch status', () => {
+    it('should leave status and fallowSince unchanged', () => {
+      const spot = buildAggregate(
+        PlantingSpotStatusEnum.FALLOW,
+        new Date('2025-06-01'),
+      );
+      spot.update({ name: new PlantingSpotNameValueObject('Bancal Sur') });
+      expect(spot.status.value).toBe(PlantingSpotStatusEnum.FALLOW);
+      expect(spot.fallowSince?.value).toEqual(new Date('2025-06-01'));
     });
   });
 

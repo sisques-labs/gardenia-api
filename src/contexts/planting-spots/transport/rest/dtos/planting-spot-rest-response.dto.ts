@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
+
 export class PlantingSpotDimensionsResponseDto {
   @ApiPropertyOptional({ example: 2.4, description: 'Width in metres' })
   width?: number | null;
@@ -71,6 +73,19 @@ export class PlantingSpotRestResponseDto {
     nullable: true,
   })
   soilType?: string | null;
+
+  @ApiProperty({
+    enum: PlantingSpotStatusEnum,
+    example: PlantingSpotStatusEnum.ACTIVE,
+    description: 'Whether the spot is active or fallow',
+  })
+  status!: PlantingSpotStatusEnum;
+
+  @ApiPropertyOptional({
+    description: 'When the spot entered fallow status, if it is fallow',
+    nullable: true,
+  })
+  fallowSince?: Date | null;
 
   @ApiProperty({
     example: '660e8400-e29b-41d4-a716-446655440001',

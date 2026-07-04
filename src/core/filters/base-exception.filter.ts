@@ -19,6 +19,7 @@ import {
 import { GqlExceptionFilter } from '@nestjs/graphql';
 import { BaseException } from '@sisques-labs/nestjs-kit';
 import { Response } from 'express';
+import { GraphQLError } from 'graphql';
 
 @Catch(BaseException)
 export class BaseExceptionFilter
@@ -38,7 +39,9 @@ export class BaseExceptionFilter
         error: exception.name,
       });
     } else {
-      throw Object.assign(exception, { statusCode: status });
+      throw new GraphQLError(exception.message, {
+        extensions: { code: exception.name, statusCode: status },
+      });
     }
   }
 

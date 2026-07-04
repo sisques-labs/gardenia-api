@@ -64,6 +64,7 @@ export class PlantMutationsResolver {
         name: input.name,
         plantSpeciesId: input.plantSpeciesId ?? undefined,
         imageUrl: input.imageUrl ?? undefined,
+        plantingSpotId: input.plantingSpotId,
         requestingUserId: user.userId,
       }),
     );

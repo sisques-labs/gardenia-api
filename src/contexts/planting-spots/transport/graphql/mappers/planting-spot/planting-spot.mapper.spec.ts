@@ -25,6 +25,8 @@ const buildViewModel = (
     dimensionsHeight: 50,
     dimensionsLength: 200,
     soilType: 'Loamy',
+    status: 'active',
+    fallowSince: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
     createdAt: NOW,
@@ -49,6 +51,8 @@ describe('PlantingSpotGraphQLMapper', () => {
       expect(dto.capacity).toBe(12);
       expect(dto.dimensionsWidth).toBe(100);
       expect(dto.resolvedPlants).toEqual([]);
+      expect(dto.status).toBe('active');
+      expect(dto.fallowSince).toBeNull();
     });
 
     it('maps null optional fields', () => {

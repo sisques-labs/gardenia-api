@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdjustInventoryItemQuantityCommandHandler } from '@contexts/inventory/application/commands/adjust-inventory-item-quantity/adjust-inventory-item-quantity.handler';
 import { CreateInventoryItemCommandHandler } from '@contexts/inventory/application/commands/create-inventory-item/create-inventory-item.handler';
 import { DeleteInventoryItemCommandHandler } from '@contexts/inventory/application/commands/delete-inventory-item/delete-inventory-item.handler';
+import { DeleteInventoryItemsBulkCommandHandler } from '@contexts/inventory/application/commands/delete-inventory-items-bulk/delete-inventory-items-bulk.handler';
 import { UpdateInventoryItemCommandHandler } from '@contexts/inventory/application/commands/update-inventory-item/update-inventory-item.handler';
 import { InventoryItemFindByCriteriaQueryHandler } from '@contexts/inventory/application/queries/inventory-item-find-by-criteria/inventory-item-find-by-criteria.handler';
 import { InventoryItemFindByIdQueryHandler } from '@contexts/inventory/application/queries/inventory-item-find-by-id/inventory-item-find-by-id.handler';
@@ -20,6 +21,7 @@ import { InventoryItemTypeOrmWriteRepository } from '@contexts/inventory/infrast
 import { InventoryItemAdjustQuantityMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-adjust-quantity.tool';
 import { InventoryItemCreateMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-create.tool';
 import { InventoryItemDeleteMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-delete.tool';
+import { InventoryItemDeleteBulkMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-delete-bulk.tool';
 import { InventoryItemFindByCriteriaMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-find-by-criteria.tool';
 import { InventoryItemFindByIdMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-find-by-id.tool';
 import { InventoryItemUpdateMcpTool } from '@contexts/inventory/transport/mcp/tools/inventory-item-update.tool';
@@ -35,6 +37,7 @@ const COMMAND_HANDLERS = [
   UpdateInventoryItemCommandHandler,
   AdjustInventoryItemQuantityCommandHandler,
   DeleteInventoryItemCommandHandler,
+  DeleteInventoryItemsBulkCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -78,6 +81,7 @@ const MCP_TOOLS = [
   InventoryItemUpdateMcpTool,
   InventoryItemAdjustQuantityMcpTool,
   InventoryItemDeleteMcpTool,
+  InventoryItemDeleteBulkMcpTool,
   InventoryItemFindByIdMcpTool,
   InventoryItemFindByCriteriaMcpTool,
 ];

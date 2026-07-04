@@ -11,13 +11,10 @@ import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-mode
 import { PlantingSpotFindByCriteriaQuery } from './planting-spot-find-by-criteria.query';
 
 @QueryHandler(PlantingSpotFindByCriteriaQuery)
-export class PlantingSpotFindByCriteriaQueryHandler
-  implements
-    IQueryHandler<
-      PlantingSpotFindByCriteriaQuery,
-      PaginatedResult<PlantingSpotViewModel>
-    >
-{
+export class PlantingSpotFindByCriteriaQueryHandler implements IQueryHandler<
+  PlantingSpotFindByCriteriaQuery,
+  PaginatedResult<PlantingSpotViewModel>
+> {
   private readonly logger = new Logger(
     PlantingSpotFindByCriteriaQueryHandler.name,
   );

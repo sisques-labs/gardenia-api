@@ -3,6 +3,7 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { PlantCreatedEvent } from '../events/plant-created/plant-created.event';
 import { PlantDeletedEvent } from '../events/plant-deleted/plant-deleted.event';
 import { PlantNameChangedEvent } from '../events/field-changed/plant-name-changed/plant-name-changed.event';
+import { PlantPlantingSpotIdChangedEvent } from '../events/field-changed/plant-planting-spot-id-changed/plant-planting-spot-id-changed.event';
 import { PlantSpeciesIdChangedEvent } from '../events/field-changed/plant-species-id-changed/plant-species-id-changed.event';
 import { PlantUpdatedEvent } from '../events/plant-updated/plant-updated.event';
 import { IPlant } from '../interfaces/plant.interface';
@@ -16,6 +17,7 @@ const PLANT_ID = '550e8400-e29b-41d4-a716-446655440000';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';
 const SPECIES_ID = '550e8400-e29b-41d4-a716-446655440003';
+const SPOT_ID = '550e8400-e29b-41d4-a716-446655440004';
 const NOW = new Date('2024-01-01');
 
 const buildPlant = (overrides?: Partial<IPlant>): PlantAggregate =>
@@ -114,6 +116,33 @@ describe('PlantAggregate', () => {
 
       const events = plant.getUncommittedEvents();
       expect(events[0]).toBeInstanceOf(PlantSpeciesIdChangedEvent);
+    });
+
+    it('should assign plantingSpotId and emit PlantPlantingSpotIdChangedEvent', () => {
+      const plant = buildPlant();
+      plant.update({ plantingSpotId: new UuidValueObject(SPOT_ID) });
+
+      expect(plant.plantingSpotId?.value).toBe(SPOT_ID);
+      const events = plant.getUncommittedEvents();
+      expect(events[0]).toBeInstanceOf(PlantPlantingSpotIdChangedEvent);
+    });
+
+    it('should clear plantingSpotId when set to null', () => {
+      const plant = buildPlant({
+        plantingSpotId: new UuidValueObject(SPOT_ID),
+      });
+      plant.update({ plantingSpotId: null });
+
+      expect(plant.plantingSpotId).toBeNull();
+    });
+
+    it('should not touch plantingSpotId when undefined', () => {
+      const plant = buildPlant({
+        plantingSpotId: new UuidValueObject(SPOT_ID),
+      });
+      plant.update({ name: new PlantNameValueObject('Updated') });
+
+      expect(plant.plantingSpotId?.value).toBe(SPOT_ID);
     });
   });
 

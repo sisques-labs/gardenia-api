@@ -13,6 +13,8 @@ export class PlantingSpotViewModel extends BaseViewModel {
   public readonly dimensionsHeight: number | null;
   public readonly dimensionsLength: number | null;
   public readonly soilType: string | null;
+  public readonly status: string;
+  public readonly fallowSince: Date | null;
   public readonly userId: string;
   public readonly spaceId: string;
 
@@ -28,6 +30,8 @@ export class PlantingSpotViewModel extends BaseViewModel {
     this.dimensionsHeight = props.dimensionsHeight;
     this.dimensionsLength = props.dimensionsLength;
     this.soilType = props.soilType;
+    this.status = props.status;
+    this.fallowSince = props.fallowSince;
     this.userId = props.userId;
     this.spaceId = props.spaceId;
   }
