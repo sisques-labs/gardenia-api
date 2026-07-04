@@ -4,12 +4,14 @@ import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/
 import { MarkPlantingSpotActiveCommand } from '@contexts/planting-spots/application/commands/mark-planting-spot-active/mark-planting-spot-active.command';
 import { MarkPlantingSpotFallowCommand } from '@contexts/planting-spots/application/commands/mark-planting-spot-fallow/mark-planting-spot-fallow.command';
 import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
+import { WaterPlantingSpotCommand } from '@contexts/planting-spots/application/commands/water-planting-spot/water-planting-spot.command';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotCreateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-create.request.dto';
 import { PlantingSpotDeleteRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-delete.request.dto';
 import { PlantingSpotMarkActiveRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-mark-active.request.dto';
 import { PlantingSpotMarkFallowRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-mark-fallow.request.dto';
 import { PlantingSpotUpdateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-update.request.dto';
+import { PlantingSpotWaterRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-water.request.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import {
   MutationResponseDto,
@@ -96,6 +98,27 @@ describe('PlantingSpotMutationsResolver', () => {
         expect.any(UpdatePlantingSpotCommand),
       );
       expect(result.id).toBe(SPOT_ID);
+    });
+  });
+
+  describe('plantingSpotWater()', () => {
+    it('should execute WaterPlantingSpotCommand with space from context and return the watering result', async () => {
+      const wateringResult = {
+        plantingSpotId: SPOT_ID,
+        wateredPlantIds: ['plant-1'],
+        failedPlants: [],
+      };
+      commandBus.execute.mockResolvedValue(wateringResult);
+
+      const input: PlantingSpotWaterRequestDto = { id: SPOT_ID };
+
+      const result = await sut.plantingSpotWater(input, mockUser);
+
+      expect(spaceContext.require).toHaveBeenCalledTimes(1);
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.any(WaterPlantingSpotCommand),
+      );
+      expect(result).toEqual(wateringResult);
     });
   });
 

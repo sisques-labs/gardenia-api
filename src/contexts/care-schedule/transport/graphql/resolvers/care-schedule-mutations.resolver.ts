@@ -15,9 +15,13 @@ import { CompleteCareScheduleCommand } from '@contexts/care-schedule/application
 import { CreateCareScheduleCommand } from '@contexts/care-schedule/application/commands/create-care-schedule/create-care-schedule.command';
 import { DeleteCareScheduleCommand } from '@contexts/care-schedule/application/commands/delete-care-schedule/delete-care-schedule.command';
 import { UpdateCareScheduleCommand } from '@contexts/care-schedule/application/commands/update-care-schedule/update-care-schedule.command';
+import { WaterPlantCommand } from '@contexts/care-schedule/application/commands/water-plant/water-plant.command';
+import { WaterPlantResult } from '@contexts/care-schedule/application/commands/water-plant/water-plant.result';
 import { CompleteCareScheduleGraphQLDto } from '@contexts/care-schedule/transport/graphql/dtos/requests/complete-care-schedule-graphql.dto';
 import { CreateCareScheduleGraphQLDto } from '@contexts/care-schedule/transport/graphql/dtos/requests/create-care-schedule-graphql.dto';
 import { UpdateCareScheduleGraphQLDto } from '@contexts/care-schedule/transport/graphql/dtos/requests/update-care-schedule-graphql.dto';
+import { WaterPlantGraphQLDto } from '@contexts/care-schedule/transport/graphql/dtos/requests/water-plant-graphql.dto';
+import { WaterPlantResultObject } from '@contexts/care-schedule/transport/graphql/objects/water-plant-result.object';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 
 @UseGuards(JwtAuthGuard)
@@ -107,6 +111,29 @@ export class CareScheduleMutationsResolver {
       message: 'Care schedule completed successfully',
       id: input.id,
     });
+  }
+
+  @Mutation(() => WaterPlantResultObject)
+  async careScheduleWaterPlant(
+    @Args('input') input: WaterPlantGraphQLDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<WaterPlantResultObject> {
+    this.logger.log(`Watering plant ${input.plantId}`);
+
+    const spaceId = this.spaceContext.require();
+    const result = await this.commandBus.execute<
+      WaterPlantCommand,
+      WaterPlantResult
+    >(
+      new WaterPlantCommand({
+        plantId: input.plantId,
+        userId: user.userId,
+        spaceId,
+        performedAt: input.performedAt,
+      }),
+    );
+
+    return result;
   }
 
   @Mutation(() => MutationResponseDto)

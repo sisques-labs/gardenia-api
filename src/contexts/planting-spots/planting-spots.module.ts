@@ -7,8 +7,10 @@ import { DeletePlantingSpotCommandHandler } from '@contexts/planting-spots/appli
 import { MarkPlantingSpotActiveCommandHandler } from '@contexts/planting-spots/application/commands/mark-planting-spot-active/mark-planting-spot-active.handler';
 import { MarkPlantingSpotFallowCommandHandler } from '@contexts/planting-spots/application/commands/mark-planting-spot-fallow/mark-planting-spot-fallow.handler';
 import { UpdatePlantingSpotCommandHandler } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.handler';
+import { WaterPlantingSpotCommandHandler } from '@contexts/planting-spots/application/commands/water-planting-spot/water-planting-spot.handler';
 import { PLANTING_SPOT_IN_USE_PORT } from '@contexts/planting-spots/application/ports/planting-spot-in-use.port';
 import { PLANTING_SPOT_PLANTS_PORT } from '@contexts/planting-spots/application/ports/planting-spot-plants.port';
+import { WATER_PLANT_PORT } from '@contexts/planting-spots/application/ports/water-plant.port';
 import { PlantingSpotFindByCriteriaQueryHandler } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.handler';
 import { PlantingSpotFindByIdQueryHandler } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.handler';
 import { AssertPlantingSpotViewModelExistsService } from '@contexts/planting-spots/application/services/read/assert-planting-spot-view-model-exists/assert-planting-spot-view-model-exists.service';
@@ -20,6 +22,7 @@ import { PLANTING_SPOT_READ_REPOSITORY } from '@contexts/planting-spots/domain/r
 import { PLANTING_SPOT_WRITE_REPOSITORY } from '@contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
 import { PlantingSpotInUseAdapter } from '@contexts/planting-spots/infrastructure/adapters/planting-spot-in-use.adapter';
 import { PlantingSpotPlantsAdapter } from '@contexts/planting-spots/infrastructure/adapters/planting-spot-plants.adapter';
+import { WaterPlantAdapter } from '@contexts/planting-spots/infrastructure/adapters/water-plant.adapter';
 import { PlantingSpotTypeOrmEntity } from '@contexts/planting-spots/infrastructure/persistence/typeorm/entities/planting-spot.entity';
 import { PlantingSpotTypeOrmMapper } from '@contexts/planting-spots/infrastructure/persistence/typeorm/mappers/planting-spot-typeorm.mapper';
 import { PlantingSpotTypeOrmReadRepository } from '@contexts/planting-spots/infrastructure/persistence/typeorm/repositories/planting-spot-typeorm-read.repository';
@@ -31,6 +34,7 @@ import { PlantingSpotFindByIdMcpTool } from '@contexts/planting-spots/transport/
 import { PlantingSpotMarkActiveMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-mark-active.tool';
 import { PlantingSpotMarkFallowMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-mark-fallow.tool';
 import { PlantingSpotUpdateMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-update.tool';
+import { PlantingSpotWaterMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-water.tool';
 import '@contexts/planting-spots/transport/graphql/enums/planting-spot-registered-enums.graphql';
 import { PlantingSpotGraphQLMapper } from '@contexts/planting-spots/transport/graphql/mappers/planting-spot/planting-spot.mapper';
 import { PlantingSpotMutationsResolver } from '@contexts/planting-spots/transport/graphql/resolvers/planting-spot/mutations/planting-spot-mutations.resolver';
@@ -43,6 +47,7 @@ const COMMAND_HANDLERS = [
   CreatePlantingSpotCommandHandler,
   UpdatePlantingSpotCommandHandler,
   DeletePlantingSpotCommandHandler,
+  WaterPlantingSpotCommandHandler,
   MarkPlantingSpotFallowCommandHandler,
   MarkPlantingSpotActiveCommandHandler,
 ];
@@ -82,6 +87,10 @@ const INFRASTRUCTURE_ADAPTERS = [
     provide: PLANTING_SPOT_PLANTS_PORT,
     useClass: PlantingSpotPlantsAdapter,
   },
+  {
+    provide: WATER_PLANT_PORT,
+    useClass: WaterPlantAdapter,
+  },
 ];
 
 const REST_CONTROLLERS = [PlantingSpotsController];
@@ -100,6 +109,7 @@ const MCP_TOOLS = [
   PlantingSpotDeleteMcpTool,
   PlantingSpotFindByIdMcpTool,
   PlantingSpotFindByCriteriaMcpTool,
+  PlantingSpotWaterMcpTool,
   PlantingSpotMarkFallowMcpTool,
   PlantingSpotMarkActiveMcpTool,
 ];
