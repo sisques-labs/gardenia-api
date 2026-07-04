@@ -12,6 +12,7 @@ import {
   CARE_SCHEDULE_READ_REPOSITORY,
   ICareScheduleReadRepository,
 } from '@contexts/care-schedule/domain/repositories/read/care-schedule-read.repository';
+import { CareScheduleQueryableField } from '@contexts/care-schedule/transport/graphql/enums/care-schedule-queryable-field.enum';
 
 import { WaterPlantCommand } from './water-plant.command';
 import { WaterPlantResult } from './water-plant.result';
@@ -32,21 +33,25 @@ export class WaterPlantCommandHandler implements ICommandHandler<
   ) {}
 
   async execute(command: WaterPlantCommand): Promise<WaterPlantResult> {
-    const performedAt = command.performedAt ?? new Date();
+    const performedAt = command.performedAt?.value ?? new Date();
 
     const criteria = new Criteria(
       [
         {
-          field: 'plantId',
+          field: CareScheduleQueryableField.PLANT_ID,
           operator: FilterOperator.EQUALS,
           value: command.plantId.value,
         },
         {
-          field: 'activityType',
+          field: CareScheduleQueryableField.ACTIVITY_TYPE,
           operator: FilterOperator.EQUALS,
           value: CareScheduleActivityTypeEnum.WATERING,
         },
-        { field: 'active', operator: FilterOperator.EQUALS, value: true },
+        {
+          field: CareScheduleQueryableField.ACTIVE,
+          operator: FilterOperator.EQUALS,
+          value: true,
+        },
       ],
       undefined,
       { page: 1, perPage: 1 },

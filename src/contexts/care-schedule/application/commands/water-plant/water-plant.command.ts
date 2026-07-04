@@ -1,4 +1,4 @@
-import { UuidValueObject } from '@sisques-labs/nestjs-kit';
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { ICareSchedulePrimitives } from '@contexts/care-schedule/domain/primitives/care-schedule.primitives';
 
@@ -20,12 +20,14 @@ export class WaterPlantCommand {
   public readonly plantId: UuidValueObject;
   public readonly userId: UuidValueObject;
   public readonly spaceId: UuidValueObject;
-  public readonly performedAt: Date | null;
+  public readonly performedAt: DateValueObject | null;
 
   constructor(input: WaterPlantCommandInput) {
     this.plantId = new UuidValueObject(input.plantId);
     this.userId = new UuidValueObject(input.userId);
     this.spaceId = new UuidValueObject(input.spaceId);
-    this.performedAt = input.performedAt ?? null;
+    this.performedAt = input.performedAt
+      ? new DateValueObject(input.performedAt)
+      : null;
   }
 }

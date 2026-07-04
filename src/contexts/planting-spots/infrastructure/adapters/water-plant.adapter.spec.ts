@@ -33,6 +33,6 @@ describe('WaterPlantAdapter', () => {
     expect(dispatched.plantId.value).toBe(PLANT_ID);
     expect(dispatched.userId.value).toBe(USER_ID);
     expect(dispatched.spaceId.value).toBe(SPACE_ID);
-    expect(dispatched.performedAt).toEqual(PERFORMED_AT);
+    expect(dispatched.performedAt?.value).toEqual(PERFORMED_AT);
   });
 });

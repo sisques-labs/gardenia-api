@@ -47,7 +47,7 @@ export class WaterPlantingSpotCommandHandler implements ICommandHandler<
           plantId: plant.id,
           userId: command.userId.value,
           spaceId: command.spaceId.value,
-          performedAt: command.performedAt ?? undefined,
+          performedAt: command.performedAt?.value,
         }),
       ),
     );
