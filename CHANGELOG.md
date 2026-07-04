@@ -1,6 +1,41 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.25.0-beta.0] - 2026-07-04
+
+### Bug Fixes
+- **build:** Disable webpack bundling so migrations glob resolves at runtime (66b66e4)
+
+### Chore
+- **deps:** Bump @sisques-labs/nestjs-kit to 0.11.1 (59a4e59)
+
+### Documentation
+- **openspec:** Propose space-invitation-preview change (6412e7e)
+- **openspec:** Propose type-safe criteria filters for plants (577af95)
+- Codify find-by-criteria filter pattern as mandatory convention (a444c36)
+
+### Features
+- **care-schedule:** Water a single plant via hybrid schedule/care-log mechanism (d02d0d4)
+- **planting-spots:** Water all plants in a planting spot in one action (0e9d846)
+- **spaces:** Add public space invitation preview and structured GraphQL errors (09a8960)
+- **plants:** Type-safe filters and sorts for plantsFindByCriteria (f903dc4)
+- **plants:** Expose every plant view-model column as queryable (e7034e4)
+- **users:** Type-safe filters/sorts for usersFindByCriteria (7f07241)
+- **plant-species:** Type-safe filters/sorts for plantSpeciesFindByCriteria (2b3a215)
+- **planting-spots:** Type-safe filters/sorts for plantingSpotsFindByCriteria (5debc45)
+- **harvests:** Type-safe filters/sorts for harvestsFindByCriteria (19cc5b1)
+- **care-schedule:** Type-safe filters/sorts for careSchedulesFindByCriteria (3e6a725)
+- **care-log:** Type-safe filters/sorts for careLogFindByCriteria (a7869ae)
+- **inventory:** Type-safe filters/sorts for inventoryItemsFindByCriteria (016d08e)
+- **inventory:** Add bulk delete for inventory items (e31a5d1)
+- **planting-spots:** Add fallow/active status to planting spots (dce9dd6)
+- **planting-spots:** Expose status/fallowSince as filterable/sortable (f858f39)
+- **plants:** Allow assigning and changing a plant's planting spot via update (8f1f196)
+
+### Refactor
+- **criteria:** Unify read repositories on nestjs-kit's applyCriteriaToQueryBuilder (18c60d9)
+- **watering:** Use value objects and camelCase Criteria fields (798eb95)
+- **watering:** Address review feedback on VOs and filter fields (478bbf9)
 ## [0.24.2] - 2026-07-02
 
 ### CI
