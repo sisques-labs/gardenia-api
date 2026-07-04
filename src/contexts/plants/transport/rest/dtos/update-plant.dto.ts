@@ -27,4 +27,14 @@ export class UpdatePlantDto {
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @ApiPropertyOptional({
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'UUID of the planting spot to assign; null to unassign',
+    nullable: true,
+  })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUUID()
+  plantingSpotId?: string | null;
 }

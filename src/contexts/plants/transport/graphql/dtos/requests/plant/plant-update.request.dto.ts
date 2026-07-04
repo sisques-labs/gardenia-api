@@ -31,4 +31,12 @@ export class PlantUpdateRequestDto {
   @IsOptional()
   @IsString()
   imageUrl?: string | null;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'UUID of the planting spot to assign; null to unassign',
+  })
+  @IsOptional()
+  @IsUUID()
+  plantingSpotId?: string | null;
 }

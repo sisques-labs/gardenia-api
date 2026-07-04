@@ -1,5 +1,6 @@
 import { FilterOperator, FilterValidationPipe } from '@sisques-labs/nestjs-kit';
 
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotQueryableField } from '@contexts/planting-spots/transport/graphql/enums/planting-spot-queryable-field.enum';
 import { plantingSpotFilterableFields } from '@contexts/planting-spots/transport/graphql/registries/planting-spot-filterable-fields.registry';
@@ -34,6 +35,34 @@ describe('plantingSpotFilterableFields', () => {
           field: PlantingSpotQueryableField.TYPE,
           operator: FilterOperator.EQUALS,
           value: 'greenhouse',
+        },
+      ],
+    };
+
+    expect(() => pipe.transform(input)).toThrow(/expected one of/);
+  });
+
+  it('accepts an EQUALS filter on status with a real PlantingSpotStatusEnum value', () => {
+    const input = {
+      filters: [
+        {
+          field: PlantingSpotQueryableField.STATUS,
+          operator: FilterOperator.EQUALS,
+          value: PlantingSpotStatusEnum.FALLOW,
+        },
+      ],
+    };
+
+    expect(() => pipe.transform(input)).not.toThrow();
+  });
+
+  it('rejects a status value outside PlantingSpotStatusEnum', () => {
+    const input = {
+      filters: [
+        {
+          field: PlantingSpotQueryableField.STATUS,
+          operator: FilterOperator.EQUALS,
+          value: 'dormant',
         },
       ],
     };

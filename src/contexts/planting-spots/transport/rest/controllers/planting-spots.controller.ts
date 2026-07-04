@@ -27,6 +27,8 @@ import {
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CreatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/create-planting-spot/create-planting-spot.command';
 import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.command';
+import { MarkPlantingSpotActiveCommand } from '@contexts/planting-spots/application/commands/mark-planting-spot-active/mark-planting-spot-active.command';
+import { MarkPlantingSpotFallowCommand } from '@contexts/planting-spots/application/commands/mark-planting-spot-fallow/mark-planting-spot-fallow.command';
 import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
 import { PlantingSpotFindByCriteriaQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.query';
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';
@@ -235,6 +237,70 @@ export class PlantingSpotsController {
     );
 
     return result;
+  }
+
+  @Post(':id/mark-fallow')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mark a planting spot as fallow (resting)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Planting spot marked fallow successfully',
+    type: PlantingSpotRestResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not the owner' })
+  @ApiResponse({ status: 404, description: 'Planting spot not found' })
+  async markPlantingSpotFallow(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+    @Headers('x-space-id') spaceId: string,
+  ): Promise<PlantingSpotRestResponseDto> {
+    await this.commandBus.execute(
+      new MarkPlantingSpotFallowCommand({
+        id,
+        requestingUserId: user.userId,
+        spaceId,
+      }),
+    );
+
+    const vm = await this.queryBus.execute<
+      PlantingSpotFindByIdQuery,
+      PlantingSpotViewModel
+    >(new PlantingSpotFindByIdQuery({ id }));
+
+    return this.plantingSpotRestMapper.toResponse(vm);
+  }
+
+  @Post(':id/mark-active')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mark a planting spot as active (reactivate)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Planting spot marked active successfully',
+    type: PlantingSpotRestResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not the owner' })
+  @ApiResponse({ status: 404, description: 'Planting spot not found' })
+  async markPlantingSpotActive(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+    @Headers('x-space-id') spaceId: string,
+  ): Promise<PlantingSpotRestResponseDto> {
+    await this.commandBus.execute(
+      new MarkPlantingSpotActiveCommand({
+        id,
+        requestingUserId: user.userId,
+        spaceId,
+      }),
+    );
+
+    const vm = await this.queryBus.execute<
+      PlantingSpotFindByIdQuery,
+      PlantingSpotViewModel
+    >(new PlantingSpotFindByIdQuery({ id }));
+
+    return this.plantingSpotRestMapper.toResponse(vm);
   }
 
   @Delete(':id')

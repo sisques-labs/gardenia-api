@@ -25,11 +25,12 @@ export class PlantUpdateMcpTool implements IMcpTool {
     args: Record<string, unknown>,
     context: IMcpToolContext,
   ): Promise<CallToolResult> {
-    const { id, name, plantSpeciesId, imageUrl } = args as {
+    const { id, name, plantSpeciesId, imageUrl, plantingSpotId } = args as {
       id: string;
       name?: string;
       plantSpeciesId?: string | null;
       imageUrl?: string | null;
+      plantingSpotId?: string | null;
     };
     this.logger.log(`Updating plant ${id} for user: ${context.userId}`);
 
@@ -39,6 +40,7 @@ export class PlantUpdateMcpTool implements IMcpTool {
         name,
         plantSpeciesId,
         imageUrl,
+        plantingSpotId,
         requestingUserId: context.userId,
       }),
     );

@@ -20,6 +20,8 @@ export enum PlantingSpotQueryableField {
   DIMENSIONS_HEIGHT = 'dimensionsHeight',
   DIMENSIONS_LENGTH = 'dimensionsLength',
   SOIL_TYPE = 'soilType',
+  STATUS = 'status',
+  FALLOW_SINCE = 'fallowSince',
   USER_ID = 'userId',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',

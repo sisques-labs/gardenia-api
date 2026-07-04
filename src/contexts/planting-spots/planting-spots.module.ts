@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CreatePlantingSpotCommandHandler } from '@contexts/planting-spots/application/commands/create-planting-spot/create-planting-spot.handler';
 import { DeletePlantingSpotCommandHandler } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.handler';
+import { MarkPlantingSpotActiveCommandHandler } from '@contexts/planting-spots/application/commands/mark-planting-spot-active/mark-planting-spot-active.handler';
+import { MarkPlantingSpotFallowCommandHandler } from '@contexts/planting-spots/application/commands/mark-planting-spot-fallow/mark-planting-spot-fallow.handler';
 import { UpdatePlantingSpotCommandHandler } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.handler';
 import { WaterPlantingSpotCommandHandler } from '@contexts/planting-spots/application/commands/water-planting-spot/water-planting-spot.handler';
 import { PLANTING_SPOT_IN_USE_PORT } from '@contexts/planting-spots/application/ports/planting-spot-in-use.port';
@@ -29,6 +31,8 @@ import { PlantingSpotCreateMcpTool } from '@contexts/planting-spots/transport/mc
 import { PlantingSpotDeleteMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-delete.tool';
 import { PlantingSpotFindByCriteriaMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-find-by-criteria.tool';
 import { PlantingSpotFindByIdMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-find-by-id.tool';
+import { PlantingSpotMarkActiveMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-mark-active.tool';
+import { PlantingSpotMarkFallowMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-mark-fallow.tool';
 import { PlantingSpotUpdateMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-update.tool';
 import { PlantingSpotWaterMcpTool } from '@contexts/planting-spots/transport/mcp/tools/planting-spot-water.tool';
 import '@contexts/planting-spots/transport/graphql/enums/planting-spot-registered-enums.graphql';
@@ -44,6 +48,8 @@ const COMMAND_HANDLERS = [
   UpdatePlantingSpotCommandHandler,
   DeletePlantingSpotCommandHandler,
   WaterPlantingSpotCommandHandler,
+  MarkPlantingSpotFallowCommandHandler,
+  MarkPlantingSpotActiveCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -104,6 +110,8 @@ const MCP_TOOLS = [
   PlantingSpotFindByIdMcpTool,
   PlantingSpotFindByCriteriaMcpTool,
   PlantingSpotWaterMcpTool,
+  PlantingSpotMarkFallowMcpTool,
+  PlantingSpotMarkActiveMcpTool,
 ];
 
 @Module({

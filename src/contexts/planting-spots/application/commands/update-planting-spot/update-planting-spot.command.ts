@@ -28,18 +28,26 @@ export class UpdatePlantingSpotCommand {
   public readonly id: PlantingSpotIdValueObject;
   public readonly name: PlantingSpotNameValueObject | undefined;
   public readonly type: PlantingSpotTypeValueObject | undefined;
-  public readonly description: PlantingSpotDescriptionValueObject | null | undefined;
+  public readonly description:
+    | PlantingSpotDescriptionValueObject
+    | null
+    | undefined;
   public readonly capacity: PlantingSpotCapacityValueObject | null | undefined;
   public readonly row: PlantingSpotRowValueObject | null | undefined;
   public readonly column: PlantingSpotColumnValueObject | null | undefined;
-  public readonly dimensions: PlantingSpotDimensionsValueObject | null | undefined;
+  public readonly dimensions:
+    | PlantingSpotDimensionsValueObject
+    | null
+    | undefined;
   public readonly soilType: PlantingSpotSoilTypeValueObject | null | undefined;
   public readonly requestingUserId: UuidValueObject;
   public readonly spaceId: UuidValueObject;
 
   constructor(input: UpdatePlantingSpotCommandInput) {
     this.id = new PlantingSpotIdValueObject(input.id);
-    this.name = input.name ? new PlantingSpotNameValueObject(input.name) : undefined;
+    this.name = input.name
+      ? new PlantingSpotNameValueObject(input.name)
+      : undefined;
     this.type = input.type
       ? new PlantingSpotTypeValueObject(input.type as PlantingSpotTypeEnum)
       : undefined;
