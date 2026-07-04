@@ -131,4 +131,19 @@ describe('CompleteCareScheduleCommandHandler', () => {
     ).resolves.toBeUndefined();
     expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
   });
+
+  it('does not fail completion when the care-log bridge throws a non-Error value', async () => {
+    const schedule = buildSchedule();
+    mockAssert.execute.mockResolvedValue(schedule);
+    mockCareLogPort.recordCareLogEntry.mockRejectedValue('boom-string');
+
+    await expect(
+      handler.execute(
+        new CompleteCareScheduleCommand({
+          id: '550e8400-e29b-41d4-a716-446655440000',
+        }),
+      ),
+    ).resolves.toBeUndefined();
+    expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
+  });
 });

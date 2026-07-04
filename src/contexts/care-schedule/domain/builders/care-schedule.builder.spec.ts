@@ -56,4 +56,64 @@ describe('CareScheduleBuilder', () => {
       .build();
     expect(aggregate.intervalDays).toBeNull();
   });
+
+  it('builds an aggregate with a non-null lastCompletedAt', () => {
+    const completedAt = new Date('2026-06-27T00:00:00.000Z');
+    const aggregate = seed(new CareScheduleBuilder())
+      .withLastCompletedAt(completedAt)
+      .build();
+    expect(aggregate.lastCompletedAt?.value).toEqual(completedAt);
+  });
+
+  it('throws when activityType is missing', () => {
+    const builder = new CareScheduleBuilder()
+      .withId('550e8400-e29b-41d4-a716-446655440000')
+      .withPlantId('110e8400-e29b-41d4-a716-446655440010')
+      .withIntervalDays(3)
+      .withNextDueAt(new Date())
+      .withUserId('660e8400-e29b-41d4-a716-446655440001')
+      .withSpaceId('770e8400-e29b-41d4-a716-446655440002')
+      .withCreatedAt(new Date())
+      .withUpdatedAt(new Date());
+    expect(() => builder.build()).toThrow();
+  });
+
+  it('throws when nextDueAt is missing', () => {
+    const builder = new CareScheduleBuilder()
+      .withId('550e8400-e29b-41d4-a716-446655440000')
+      .withPlantId('110e8400-e29b-41d4-a716-446655440010')
+      .withActivityType(CareScheduleActivityTypeEnum.WATERING)
+      .withIntervalDays(3)
+      .withUserId('660e8400-e29b-41d4-a716-446655440001')
+      .withSpaceId('770e8400-e29b-41d4-a716-446655440002')
+      .withCreatedAt(new Date())
+      .withUpdatedAt(new Date());
+    expect(() => builder.build()).toThrow();
+  });
+
+  it('throws when userId is missing', () => {
+    const builder = new CareScheduleBuilder()
+      .withId('550e8400-e29b-41d4-a716-446655440000')
+      .withPlantId('110e8400-e29b-41d4-a716-446655440010')
+      .withActivityType(CareScheduleActivityTypeEnum.WATERING)
+      .withIntervalDays(3)
+      .withNextDueAt(new Date())
+      .withSpaceId('770e8400-e29b-41d4-a716-446655440002')
+      .withCreatedAt(new Date())
+      .withUpdatedAt(new Date());
+    expect(() => builder.build()).toThrow();
+  });
+
+  it('throws when spaceId is missing', () => {
+    const builder = new CareScheduleBuilder()
+      .withId('550e8400-e29b-41d4-a716-446655440000')
+      .withPlantId('110e8400-e29b-41d4-a716-446655440010')
+      .withActivityType(CareScheduleActivityTypeEnum.WATERING)
+      .withIntervalDays(3)
+      .withNextDueAt(new Date())
+      .withUserId('660e8400-e29b-41d4-a716-446655440001')
+      .withCreatedAt(new Date())
+      .withUpdatedAt(new Date());
+    expect(() => builder.build()).toThrow();
+  });
 });

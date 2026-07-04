@@ -5,16 +5,24 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
+import { CareScheduleUnitEnum } from '@contexts/care-schedule/domain/enums/care-schedule-unit.enum';
 import { CareScheduleCompletedEvent } from '@contexts/care-schedule/domain/events/care-schedule-completed/care-schedule-completed.event';
 import { CareScheduleCreatedEvent } from '@contexts/care-schedule/domain/events/care-schedule-created/care-schedule-created.event';
 import { CareScheduleDeletedEvent } from '@contexts/care-schedule/domain/events/care-schedule-deleted/care-schedule-deleted.event';
 import { CareScheduleUpdatedEvent } from '@contexts/care-schedule/domain/events/care-schedule-updated/care-schedule-updated.event';
 import { CareScheduleActiveChangedEvent } from '@contexts/care-schedule/domain/events/field-changed/active-changed/active-changed.event';
+import { CareScheduleActivityTypeChangedEvent } from '@contexts/care-schedule/domain/events/field-changed/activity-type-changed/activity-type-changed.event';
 import { CareScheduleIntervalDaysChangedEvent } from '@contexts/care-schedule/domain/events/field-changed/interval-days-changed/interval-days-changed.event';
+import { CareScheduleNotesChangedEvent } from '@contexts/care-schedule/domain/events/field-changed/notes-changed/notes-changed.event';
+import { CareScheduleQuantityChangedEvent } from '@contexts/care-schedule/domain/events/field-changed/quantity-changed/quantity-changed.event';
+import { CareScheduleUnitChangedEvent } from '@contexts/care-schedule/domain/events/field-changed/unit-changed/unit-changed.event';
 import { CareScheduleActivityTypeValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-activity-type/care-schedule-activity-type.value-object';
 import { CareScheduleIdValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-id/care-schedule-id.value-object';
 import { CareScheduleIntervalDaysValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-interval-days/care-schedule-interval-days.value-object';
 import { CareScheduleNextDueAtValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-next-due-at/care-schedule-next-due-at.value-object';
+import { CareScheduleNotesValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-notes/care-schedule-notes.value-object';
+import { CareScheduleQuantityValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-quantity/care-schedule-quantity.value-object';
+import { CareScheduleUnitValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-unit/care-schedule-unit.value-object';
 import { CareScheduleAggregate } from './care-schedule.aggregate';
 
 function buildSchedule(intervalDays: number | null = 3): CareScheduleAggregate {
@@ -90,6 +98,123 @@ describe('CareScheduleAggregate', () => {
     expect(events.some((e) => e instanceof CareScheduleUpdatedEvent)).toBe(
       true,
     );
+  });
+
+  it('update() changes activityType and emits ActivityTypeChanged', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({
+      activityType: new CareScheduleActivityTypeValueObject(
+        CareScheduleActivityTypeEnum.FERTILIZING,
+      ),
+    });
+    expect(schedule.activityType.value).toBe(
+      CareScheduleActivityTypeEnum.FERTILIZING,
+    );
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleActivityTypeChangedEvent),
+    ).toBe(true);
+  });
+
+  it('update() does NOT emit ActivityTypeChanged when activityType is unchanged', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({
+      activityType: new CareScheduleActivityTypeValueObject(
+        CareScheduleActivityTypeEnum.WATERING,
+      ),
+    });
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleActivityTypeChangedEvent),
+    ).toBe(false);
+  });
+
+  it('update() sets quantity and emits QuantityChanged', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({
+      quantity: new CareScheduleQuantityValueObject(250),
+    });
+    expect(schedule.quantity?.value).toBe(250);
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleQuantityChangedEvent),
+    ).toBe(true);
+  });
+
+  it('update() clears quantity and emits QuantityChanged', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({ quantity: new CareScheduleQuantityValueObject(250) });
+    schedule.update({ quantity: null });
+    expect(schedule.quantity).toBeNull();
+  });
+
+  it('update() sets unit and emits UnitChanged', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({
+      unit: new CareScheduleUnitValueObject(CareScheduleUnitEnum.ML),
+    });
+    expect(schedule.unit?.value).toBe(CareScheduleUnitEnum.ML);
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleUnitChangedEvent),
+    ).toBe(true);
+  });
+
+  it('update() sets notes and emits NotesChanged', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({
+      notes: new CareScheduleNotesValueObject('Deep watering'),
+    });
+    expect(schedule.notes?.value).toBe('Deep watering');
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleNotesChangedEvent),
+    ).toBe(true);
+  });
+
+  it('update() does NOT emit NotesChanged when notes is unchanged (both null)', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({ notes: null });
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleNotesChangedEvent),
+    ).toBe(false);
+  });
+
+  it('update() does NOT emit QuantityChanged when quantity is unchanged (both null)', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({ quantity: null });
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleQuantityChangedEvent),
+    ).toBe(false);
+  });
+
+  it('update() does NOT emit UnitChanged when unit is unchanged (both null)', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({ unit: null });
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleUnitChangedEvent),
+    ).toBe(false);
+  });
+
+  it('update() does NOT emit ActiveChanged when active is unchanged', () => {
+    const schedule = buildSchedule(3);
+    schedule.update({ active: new BooleanValueObject(true) });
+    expect(
+      schedule
+        .getUncommittedEvents()
+        .some((e) => e instanceof CareScheduleActiveChangedEvent),
+    ).toBe(false);
   });
 
   it('update() can deactivate a schedule and emits ActiveChanged', () => {
