@@ -7,7 +7,6 @@ import {
   PLANT_QR_PORT,
 } from '@contexts/plants/application/ports/plant-qr.port';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
-import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
 import {
   IPlantWriteRepository,
   PLANT_WRITE_REPOSITORY,
@@ -36,13 +35,6 @@ export class DeletePlantCommandHandler
 
   async execute(command: DeletePlantCommand): Promise<void> {
     const plant = await this.assertPlantExistsService.execute(command.plantId);
-
-    if (plant.userId.value !== command.requestingUserId.value) {
-      throw new NotPlantOwnerException(
-        command.requestingUserId.value,
-        command.plantId.value,
-      );
-    }
 
     plant.delete();
 

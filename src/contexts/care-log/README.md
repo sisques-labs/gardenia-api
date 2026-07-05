@@ -205,7 +205,6 @@ Mapped in `transport/exceptions/care-log-exception.filter.ts` and wired globally
 | Exception | HTTP |
 |-----------|------|
 | `CareLogEntryNotFoundException` | 404 Not Found |
-| `CareLogEntryForbiddenException` | 403 Forbidden |
 | `CareLogQuantityUnitMismatchException` | 422 Unprocessable Entity |
 
 ---

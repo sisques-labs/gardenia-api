@@ -4,7 +4,6 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { PlantingSpotAggregate } from '@contexts/planting-spots/domain/aggregates/planting-spot.aggregate';
 import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
-import { PlantingSpotForbiddenException } from '@contexts/planting-spots/domain/exceptions/planting-spot-forbidden.exception';
 import { PlantingSpotNotFoundException } from '@contexts/planting-spots/domain/exceptions/planting-spot-not-found.exception';
 import { IPlantingSpotWriteRepository } from '@contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
 import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
@@ -92,8 +91,8 @@ describe('UpdatePlantingSpotCommandHandler', () => {
     });
   });
 
-  describe('owner mismatch — throws PlantingSpotForbiddenException', () => {
-    it('should throw PlantingSpotForbiddenException when requesting user is not the owner', async () => {
+  describe('space member updates a spot they did not create', () => {
+    it('should allow any requesting user to update the spot', async () => {
       const aggregate = buildAggregate();
       assertExistsService.execute.mockResolvedValue(aggregate);
 
@@ -104,10 +103,10 @@ describe('UpdatePlantingSpotCommandHandler', () => {
         spaceId: SPACE_ID,
       });
 
-      await expect(handler.execute(command)).rejects.toThrow(
-        PlantingSpotForbiddenException,
-      );
-      expect(writeRepository.save).not.toHaveBeenCalled();
+      await handler.execute(command);
+
+      expect(writeRepository.save).toHaveBeenCalledTimes(1);
+      expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
   });
 

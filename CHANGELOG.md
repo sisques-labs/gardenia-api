@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.25.1-beta.0] - 2026-07-05
+
+### Bug Fixes
+- **permissions:** Allow any space member to manage plants, care log entries and planting spots (d462f5f)
+
+### Chore
+- **gitignore:** Ignore tsbuildinfo build cache (413e489)
 ## [0.25.0] - 2026-07-04
 
 ### Bug Fixes
