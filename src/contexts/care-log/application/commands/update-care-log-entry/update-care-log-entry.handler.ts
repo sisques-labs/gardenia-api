@@ -3,7 +3,6 @@ import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
 import { CareLogEntryAggregate } from '@contexts/care-log/domain/aggregates/care-log-entry.aggregate';
-import { CareLogEntryForbiddenException } from '@contexts/care-log/domain/exceptions/care-log-entry-forbidden.exception';
 import {
   CARE_LOG_ENTRY_WRITE_REPOSITORY,
   ICareLogEntryWriteRepository,
@@ -30,13 +29,6 @@ export class UpdateCareLogEntryCommandHandler
 
   async execute(command: UpdateCareLogEntryCommand): Promise<void> {
     const entry = await this.assertExists.execute(command.id);
-
-    if (entry.userId.value !== command.requestingUserId.value) {
-      throw new CareLogEntryForbiddenException(
-        command.requestingUserId.value,
-        command.id.value,
-      );
-    }
 
     entry.update({
       activityType: command.activityType,

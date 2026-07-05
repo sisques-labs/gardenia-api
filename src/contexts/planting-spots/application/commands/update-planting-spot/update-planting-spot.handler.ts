@@ -3,7 +3,6 @@ import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
 import { PlantingSpotAggregate } from '@contexts/planting-spots/domain/aggregates/planting-spot.aggregate';
-import { PlantingSpotForbiddenException } from '@contexts/planting-spots/domain/exceptions/planting-spot-forbidden.exception';
 import {
   IPlantingSpotWriteRepository,
   PLANTING_SPOT_WRITE_REPOSITORY,
@@ -30,13 +29,6 @@ export class UpdatePlantingSpotCommandHandler
 
   async execute(command: UpdatePlantingSpotCommand): Promise<void> {
     const spot = await this.assertPlantingSpotExistsService.execute(command.id);
-
-    if (spot.userId.value !== command.requestingUserId.value) {
-      throw new PlantingSpotForbiddenException(
-        command.requestingUserId.value,
-        command.id.value,
-      );
-    }
 
     spot.update({
       name: command.name,

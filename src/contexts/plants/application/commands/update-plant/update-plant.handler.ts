@@ -3,7 +3,6 @@ import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
-import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
 import {
   IPlantWriteRepository,
   PLANT_WRITE_REPOSITORY,
@@ -34,13 +33,6 @@ export class UpdatePlantCommandHandler
 
   async execute(command: UpdatePlantCommand): Promise<void> {
     const plant = await this.assertPlantExistsService.execute(command.plantId);
-
-    if (plant.userId.value !== command.requestingUserId.value) {
-      throw new NotPlantOwnerException(
-        command.requestingUserId.value,
-        command.plantId.value,
-      );
-    }
 
     if (command.plantSpeciesId) {
       await this.assertPlantLinkedSpeciesExistsService.execute(

@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.25.0-beta.0] - 2026-07-04
+## [0.25.0] - 2026-07-04
 
 ### Bug Fixes
 - **build:** Disable webpack bundling so migrations glob resolves at runtime (66b66e4)

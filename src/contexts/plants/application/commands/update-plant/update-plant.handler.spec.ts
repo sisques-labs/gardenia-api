@@ -2,7 +2,6 @@ import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
-import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
 import { PlantPlantingSpotNotFoundException } from '@contexts/plants/domain/exceptions/plant-planting-spot-not-found.exception';
 import { IPlantWriteRepository } from '@contexts/plants/domain/repositories/write/plant-write.repository';
@@ -95,8 +94,8 @@ describe('UpdatePlantCommandHandler', () => {
     });
   });
 
-  describe('owner mismatch — throws NotPlantOwnerException', () => {
-    it('should throw NotPlantOwnerException when requesting user is not the owner', async () => {
+  describe('space member updates a plant they did not create', () => {
+    it('should allow any requesting user to update the plant', async () => {
       const aggregate = buildAggregate();
       assertPlantExistsService.execute.mockResolvedValue(aggregate);
 
@@ -106,10 +105,10 @@ describe('UpdatePlantCommandHandler', () => {
         requestingUserId: OTHER_USER_ID,
       });
 
-      await expect(handler.execute(command)).rejects.toThrow(
-        NotPlantOwnerException,
-      );
-      expect(writeRepository.save).not.toHaveBeenCalled();
+      await handler.execute(command);
+
+      expect(writeRepository.save).toHaveBeenCalledTimes(1);
+      expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
   });
 
