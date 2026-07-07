@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { S3Client } from '@aws-sdk/client-s3';
 
 import { DeleteFileCommandHandler } from '@contexts/files/application/commands/delete-file/delete-file.handler';
 import { UploadFileCommandHandler } from '@contexts/files/application/commands/upload-file/upload-file.handler';
@@ -15,7 +17,15 @@ import { FileBuilder } from '@contexts/files/domain/builders/file.builder';
 import { FILE_READ_REPOSITORY } from '@contexts/files/domain/repositories/read/file-read.repository';
 import { FILE_WRITE_REPOSITORY } from '@contexts/files/domain/repositories/write/file-write.repository';
 import { DatabaseFileStorageAdapter } from '@contexts/files/infrastructure/adapters/database-file-storage.adapter';
-import { filesConfig } from '@contexts/files/infrastructure/config/files.config';
+import { S3FileStorageAdapter } from '@contexts/files/infrastructure/adapters/s3-file-storage.adapter';
+import {
+  FilesConfig,
+  filesConfig,
+} from '@contexts/files/infrastructure/config/files.config';
+import {
+  S3_CLIENT,
+  s3ClientProvider,
+} from '@contexts/files/infrastructure/config/s3-client.provider';
 import { FileContentTypeOrmEntity } from '@contexts/files/infrastructure/persistence/typeorm/entities/file-content.entity';
 import { FileTypeOrmEntity } from '@contexts/files/infrastructure/persistence/typeorm/entities/file.entity';
 import { FileTypeOrmMapper } from '@contexts/files/infrastructure/persistence/typeorm/mappers/file-typeorm.mapper';
@@ -31,6 +41,7 @@ import { FileListMcpTool } from '@contexts/files/transport/mcp/tools/file-list.t
 import { FilesController } from '@contexts/files/transport/rest/controllers/files.controller';
 import { FileRestMapper } from '@contexts/files/transport/rest/mappers/file/file.mapper';
 import { ImageFileValidationPipe } from '@contexts/files/transport/rest/pipes/image-file-validation.pipe';
+import { SpaceContext } from '@shared/space-context/space-context.service';
 
 const COMMAND_HANDLERS = [UploadFileCommandHandler, DeleteFileCommandHandler];
 
@@ -60,8 +71,28 @@ const INFRASTRUCTURE_REPOSITORIES = [
   },
   {
     provide: FILE_STORAGE_PORT,
-    useClass: DatabaseFileStorageAdapter,
+    inject: [
+      filesConfig.KEY,
+      getRepositoryToken(FileContentTypeOrmEntity),
+      SpaceContext,
+      S3_CLIENT,
+    ],
+    useFactory: (
+      config: FilesConfig,
+      contentRepo: Repository<FileContentTypeOrmEntity>,
+      spaceContext: SpaceContext,
+      s3Client: S3Client,
+    ) =>
+      config.storageDriver === 's3'
+        ? new S3FileStorageAdapter(s3Client, spaceContext, config)
+        : new DatabaseFileStorageAdapter(contentRepo, spaceContext, config),
   },
+];
+
+const INFRASTRUCTURE_STORAGE_PROVIDERS = [
+  s3ClientProvider,
+  DatabaseFileStorageAdapter,
+  S3FileStorageAdapter,
 ];
 
 const INFRASTRUCTURE_ENTITIES = [FileTypeOrmEntity, FileContentTypeOrmEntity];
@@ -91,6 +122,7 @@ const MCP_TOOLS = [FileFindByIdMcpTool, FileListMcpTool, FileDeleteMcpTool];
     ...APPLICATION_SERVICES,
     ...INFRASTRUCTURE_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
+    ...INFRASTRUCTURE_STORAGE_PROVIDERS,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
     ...MCP_TOOLS,
