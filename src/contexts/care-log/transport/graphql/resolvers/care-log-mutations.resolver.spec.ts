@@ -2,7 +2,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { CreateCareLogEntryCommand } from '@contexts/care-log/application/commands/create-care-log-entry/create-care-log-entry.command';

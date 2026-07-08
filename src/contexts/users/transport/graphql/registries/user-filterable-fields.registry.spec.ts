@@ -1,4 +1,5 @@
-import { FilterOperator, FilterValidationPipe } from '@sisques-labs/nestjs-kit';
+import { FilterOperator } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 import { UserStatusEnum } from '@contexts/users/domain/enums/user-status.enum';
 import { UserQueryableField } from '@contexts/users/transport/graphql/enums/user/user-queryable-field.enum';

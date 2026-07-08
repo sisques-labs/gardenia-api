@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
+import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit/graphql';
 
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
 

@@ -1,4 +1,5 @@
-import { FilterOperator, FilterValidationPipe } from '@sisques-labs/nestjs-kit';
+import { FilterOperator } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
 import { CareLogQueryableField } from '@contexts/care-log/transport/graphql/enums/care-log-queryable-field.enum';

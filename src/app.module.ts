@@ -33,7 +33,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
+import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit/graphql';
 import { SharedModule } from './shared/shared.module';
 import { SupportModule } from './support/support.module';
 @Module({

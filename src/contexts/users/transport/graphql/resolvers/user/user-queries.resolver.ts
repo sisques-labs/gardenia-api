@@ -11,7 +11,8 @@ import { userFilterableFields } from '@contexts/users/transport/graphql/registri
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { Criteria, FilterValidationPipe } from '@sisques-labs/nestjs-kit';
+import { Criteria } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 @Resolver()
 //@UseGuards(JwtAuthGuard)
