@@ -1,35 +1,40 @@
-import { UuidValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  NumberValueObject,
+  StringValueObject,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
-export type UploadPlantPhotoCommandInput = {
-  plantId: string;
+import { IPlantPhotoPrimitives } from '@contexts/plant-photos/domain/primitives/plant-photo.primitives';
+
+export type UploadPlantPhotoCommandInput = Pick<
+  IPlantPhotoPrimitives,
+  'plantId' | 'userId' | 'spaceId'
+> & {
   filename: string;
   mimeType: string;
   size: number;
   content: Buffer;
-  userId: string;
-  spaceId: string;
 };
 
 export class UploadPlantPhotoCommand {
   public readonly plantId: UuidValueObject;
+  public readonly filename: StringValueObject;
+  public readonly mimeType: StringValueObject;
+  public readonly size: NumberValueObject;
   /**
-   * Transient pass-through payload for `IFilesPort.uploadFile()` — not a
-   * `plant-photos` domain concept (this aggregate never stores filename,
-   * mime type, or size). Validated inside the `files` context, same
-   * reasoning as `content` on `UploadFileCommand`.
+   * Raw bytes handed to the storage port. Intentionally NOT a value object:
+   * the buffer is transient transport→port payload, never an aggregate
+   * field — same reasoning as `content` on `UploadFileCommand`.
    */
-  public readonly filename: string;
-  public readonly mimeType: string;
-  public readonly size: number;
   public readonly content: Buffer;
   public readonly userId: UuidValueObject;
   public readonly spaceId: UuidValueObject;
 
   constructor(input: UploadPlantPhotoCommandInput) {
     this.plantId = new UuidValueObject(input.plantId);
-    this.filename = input.filename;
-    this.mimeType = input.mimeType;
-    this.size = input.size;
+    this.filename = new StringValueObject(input.filename);
+    this.mimeType = new StringValueObject(input.mimeType);
+    this.size = new NumberValueObject(input.size);
     this.content = input.content;
     this.userId = new UuidValueObject(input.userId);
     this.spaceId = new UuidValueObject(input.spaceId);

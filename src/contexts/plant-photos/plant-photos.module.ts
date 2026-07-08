@@ -10,6 +10,8 @@ import { PlantPhotoFindByCriteriaQueryHandler } from '@contexts/plant-photos/app
 import { PlantPhotoFindByIdQueryHandler } from '@contexts/plant-photos/application/queries/plant-photo-find-by-id/plant-photo-find-by-id.handler';
 import { AssertPlantPhotoViewModelExistsService } from '@contexts/plant-photos/application/services/read/assert-plant-photo-view-model-exists/assert-plant-photo-view-model-exists.service';
 import { AssertPlantPhotoExistsService } from '@contexts/plant-photos/application/services/write/assert-plant-photo-exists/assert-plant-photo-exists.service';
+import { AssertPlantPhotoOwnershipService } from '@contexts/plant-photos/application/services/write/assert-plant-photo-ownership/assert-plant-photo-ownership.service';
+import { SyncPlantImageUrlService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url/sync-plant-image-url.service';
 import { PlantPhotoBuilder } from '@contexts/plant-photos/domain/builders/plant-photo.builder';
 import { PLANT_PHOTO_READ_REPOSITORY } from '@contexts/plant-photos/domain/repositories/read/plant-photo-read.repository';
 import { PLANT_PHOTO_WRITE_REPOSITORY } from '@contexts/plant-photos/domain/repositories/write/plant-photo-write.repository';
@@ -44,6 +46,8 @@ const DOMAIN_BUILDERS = [PlantPhotoBuilder];
 const APPLICATION_SERVICES = [
   AssertPlantPhotoExistsService,
   AssertPlantPhotoViewModelExistsService,
+  AssertPlantPhotoOwnershipService,
+  SyncPlantImageUrlService,
 ];
 
 const INFRASTRUCTURE_MAPPERS = [PlantPhotoTypeOrmMapper];

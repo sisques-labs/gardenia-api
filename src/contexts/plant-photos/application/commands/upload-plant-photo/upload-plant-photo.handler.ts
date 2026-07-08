@@ -6,10 +6,7 @@ import {
   FILES_PORT,
   IFilesPort,
 } from '@contexts/plant-photos/application/ports/files.port';
-import {
-  PLANTS_PORT,
-  IPlantsPort,
-} from '@contexts/plant-photos/application/ports/plants.port';
+import { SyncPlantImageUrlService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url/sync-plant-image-url.service';
 import { PlantPhotoAggregate } from '@contexts/plant-photos/domain/aggregates/plant-photo.aggregate';
 import { PlantPhotoBuilder } from '@contexts/plant-photos/domain/builders/plant-photo.builder';
 import {
@@ -32,8 +29,7 @@ export class UploadPlantPhotoCommandHandler
     private readonly plantPhotoWriteRepository: IPlantPhotoWriteRepository,
     @Inject(FILES_PORT)
     private readonly filesPort: IFilesPort,
-    @Inject(PLANTS_PORT)
-    private readonly plantsPort: IPlantsPort,
+    private readonly syncPlantImageUrlService: SyncPlantImageUrlService,
     private readonly plantPhotoBuilder: PlantPhotoBuilder,
     eventBus: EventBus,
   ) {
@@ -51,8 +47,8 @@ export class UploadPlantPhotoCommandHandler
       mimeType: command.mimeType,
       size: command.size,
       content: command.content,
-      userId: command.userId.value,
-      spaceId: command.spaceId.value,
+      userId: command.userId,
+      spaceId: command.spaceId,
     });
 
     const photo = this.plantPhotoBuilder
@@ -75,21 +71,11 @@ export class UploadPlantPhotoCommandHandler
       `Plant photo uploaded: ${photoId} for plant: ${command.plantId.value} by user: ${command.userId.value}`,
     );
 
-    // Best-effort mirror — a dangling plantId or a plants outage must not
-    // fail an otherwise-successful photo upload.
-    await this.plantsPort
-      .updateImageUrl(
-        command.plantId.value,
-        uploadedFile.url,
-        command.userId.value,
-      )
-      .catch((error: unknown) => {
-        this.logger.warn(
-          `Failed to sync plants.imageUrl for plant ${command.plantId.value}: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        );
-      });
+    await this.syncPlantImageUrlService.afterUpload(
+      command.plantId.value,
+      uploadedFile.url,
+      command.userId.value,
+    );
 
     return {
       id: photoId,

@@ -17,16 +17,18 @@ export class FilesAdapter implements IFilesPort {
   async uploadFile(
     input: UploadFilePortInput,
   ): Promise<UploadedFilePortResult> {
-    this.logger.log(`Uploading file '${input.filename}' via files context`);
+    this.logger.log(
+      `Uploading file '${input.filename.value}' via files context`,
+    );
 
     return this.commandBus.execute<UploadFileCommand, UploadFileResult>(
       new UploadFileCommand({
-        filename: input.filename,
-        mimeType: input.mimeType,
-        size: input.size,
+        filename: input.filename.value,
+        mimeType: input.mimeType.value,
+        size: input.size.value,
         content: input.content,
-        userId: input.userId,
-        spaceId: input.spaceId,
+        userId: input.userId.value,
+        spaceId: input.spaceId.value,
       }),
     );
   }

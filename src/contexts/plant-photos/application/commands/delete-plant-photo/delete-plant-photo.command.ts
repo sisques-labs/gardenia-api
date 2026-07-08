@@ -1,9 +1,9 @@
 import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { IPlantPhotoPrimitives } from '@contexts/plant-photos/domain/primitives/plant-photo.primitives';
 import { PlantPhotoIdValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-id/plant-photo-id.value-object';
 
-export type DeletePlantPhotoCommandInput = {
-  id: string;
+export type DeletePlantPhotoCommandInput = Pick<IPlantPhotoPrimitives, 'id'> & {
   requestingUserId: string;
 };
 

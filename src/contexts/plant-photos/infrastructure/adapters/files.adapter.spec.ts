@@ -1,4 +1,9 @@
 import { CommandBus } from '@nestjs/cqrs';
+import {
+  NumberValueObject,
+  StringValueObject,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
 import { UploadFileCommand } from '@contexts/files/application/commands/upload-file/upload-file.command';
 import { DeleteFileCommand } from '@contexts/files/application/commands/delete-file/delete-file.command';
@@ -21,12 +26,12 @@ describe('FilesAdapter', () => {
     commandBus.execute.mockResolvedValue({ id: FILE_ID, url: '/x' });
 
     const result = await adapter.uploadFile({
-      filename: 'rose.png',
-      mimeType: 'image/png',
-      size: 100,
+      filename: new StringValueObject('rose.png'),
+      mimeType: new StringValueObject('image/png'),
+      size: new NumberValueObject(100),
       content: Buffer.from('x'),
-      userId: USER_ID,
-      spaceId: SPACE_ID,
+      userId: new UuidValueObject(USER_ID),
+      spaceId: new UuidValueObject(SPACE_ID),
     });
 
     expect(commandBus.execute).toHaveBeenCalledWith(

@@ -1,8 +1,7 @@
+import { IPlantPhotoPrimitives } from '@contexts/plant-photos/domain/primitives/plant-photo.primitives';
 import { PlantPhotoIdValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-id/plant-photo-id.value-object';
 
-export type PlantPhotoFindByIdQueryInput = {
-  id: string;
-};
+export type PlantPhotoFindByIdQueryInput = Pick<IPlantPhotoPrimitives, 'id'>;
 
 export class PlantPhotoFindByIdQuery {
   public readonly id: PlantPhotoIdValueObject;

@@ -14,7 +14,9 @@ export class CreatePlantPhotos1780000000023 implements MigrationInterface {
         "space_id" uuid NOT NULL,
         "created_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
-        CONSTRAINT "PK_plant_photos_id" PRIMARY KEY ("id")
+        CONSTRAINT "PK_plant_photos_id" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_plant_photos_file_id" FOREIGN KEY ("file_id")
+          REFERENCES "files" ("id") ON DELETE CASCADE
       )
     `);
     await queryRunner.query(

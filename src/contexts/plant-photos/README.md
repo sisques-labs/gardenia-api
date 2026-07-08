@@ -62,11 +62,24 @@ photo upload — the `PlantPhoto` record itself is the actual source of truth
 for history; `plants.imageUrl` is a convenience mirror for UI that hasn't
 adopted a gallery view yet.
 
-**Delete resync:** `DeletePlantPhotoCommandHandler` checks whether the
-deleted photo's `url` matches the plant's current `imageUrl` (via
+**Delete resync:** on delete, `SyncPlantImageUrlService.afterDelete()` checks
+whether the deleted photo's `url` matches the plant's current `imageUrl` (via
 `getImageUrl`); if so, it queries the next most recent remaining photo
-(`PlantPhotoFindByCriteriaQuery`, `plantId` filter, `createdAt` DESC, 1 item)
-and resyncs `imageUrl` to it, or to `null` if none remain.
+(`plantId` filter, `createdAt` DESC, 1 item) and resyncs `imageUrl` to it, or
+to `null` if none remain.
+
+Both the upload-time sync and the delete-time resync live in one shared
+application service — `SyncPlantImageUrlService`
+(`application/services/write/sync-plant-image-url/`) — used by both
+`UploadPlantPhotoCommandHandler` (`afterUpload`) and
+`DeletePlantPhotoCommandHandler` (`afterDelete`), instead of being duplicated
+inline in each handler.
+
+**Ownership check:** `AssertPlantPhotoOwnershipService`
+(`application/services/write/assert-plant-photo-ownership/`) throws
+`PlantPhotoForbiddenException` when `requestingUserId` doesn't match the
+photo's uploader — same "assert service instead of inline check" convention
+as `AssertPlantPhotoExistsService`.
 
 ## Commands & Queries
 
@@ -111,6 +124,10 @@ as `files`).
 
 - `plant_photos` — `id`, `plant_id`, `file_id`, `url`, `user_id`, `space_id`,
   `created_at`, `updated_at`.
+- `file_id` **is** FK-enforced (`FK_plant_photos_file_id`, `ON DELETE
+  CASCADE`) — unlike `plant_id`. Deleting a `files` row directly (any path,
+  not just `DeletePlantPhotoCommand`) removes its dependent `plant_photos` row
+  too, so an association can never outlive the bytes it points to.
 - Indexes: `IDX_plant_photos_space_id` (space_id),
   `IDX_plant_photos_plant_id_space_id` (plant_id, space_id),
   `IDX_plant_photos_plant_id_space_id_created_at` (plant_id, space_id,
