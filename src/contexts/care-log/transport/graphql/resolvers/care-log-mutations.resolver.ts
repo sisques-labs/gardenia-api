@@ -4,7 +4,7 @@ import { Args, ID, Mutation, Resolver } from '@nestjs/graphql';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 import {
   CurrentUser,

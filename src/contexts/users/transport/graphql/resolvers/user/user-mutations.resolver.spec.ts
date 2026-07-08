@@ -1,11 +1,11 @@
 import { DeleteUserCommand } from '@contexts/users/application/commands/delete-user/delete-user.command';
 import { UpdateUserCommand } from '@contexts/users/application/commands/update-user/update-user.command';
 import { CommandBus } from '@nestjs/cqrs';
+import { UserStatusEnum } from '@sisques-labs/nestjs-kit';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-  UserStatusEnum,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 import { UserMutationsResolver } from './user-mutations.resolver';
 

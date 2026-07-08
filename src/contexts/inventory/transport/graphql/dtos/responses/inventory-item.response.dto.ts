@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
+import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit/graphql';
 
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';

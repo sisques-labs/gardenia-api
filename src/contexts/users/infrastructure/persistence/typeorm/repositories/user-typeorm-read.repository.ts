@@ -5,12 +5,12 @@ import { UserTypeOrmMapper } from '@contexts/users/infrastructure/persistence/ty
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  applyCriteriaToQueryBuilder,
   BaseDatabaseRepository,
   Criteria,
   PaginatedResult,
   SortDirection,
 } from '@sisques-labs/nestjs-kit';
+import { applyCriteriaToQueryBuilder } from '@sisques-labs/nestjs-kit/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { SpaceContext } from '../../../../../../shared/space-context/space-context.service';
 

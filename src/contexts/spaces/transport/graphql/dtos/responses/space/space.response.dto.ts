@@ -1,4 +1,4 @@
-import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
+import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit/graphql';
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 
 import { SpaceWeatherResponseDto } from './space-weather.response.dto';
@@ -23,16 +23,28 @@ export class SpaceResponseDto {
   })
   updatedAt?: Date;
 
-  @Field(() => Float, { nullable: true, description: 'Latitude of the space location' })
+  @Field(() => Float, {
+    nullable: true,
+    description: 'Latitude of the space location',
+  })
   latitude?: number | null;
 
-  @Field(() => Float, { nullable: true, description: 'Longitude of the space location' })
+  @Field(() => Float, {
+    nullable: true,
+    description: 'Longitude of the space location',
+  })
   longitude?: number | null;
 
-  @Field(() => String, { nullable: true, description: 'Environment type of the space' })
+  @Field(() => String, {
+    nullable: true,
+    description: 'Environment type of the space',
+  })
   environment?: string | null;
 
-  @Field(() => SpaceWeatherResponseDto, { nullable: true, description: 'Weather forecast for the space location' })
+  @Field(() => SpaceWeatherResponseDto, {
+    nullable: true,
+    description: 'Weather forecast for the space location',
+  })
   weather?: SpaceWeatherResponseDto | null;
 }
 

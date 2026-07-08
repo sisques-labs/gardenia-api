@@ -1,5 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
+import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit/graphql';
 
 @ObjectType('FileResponseDto')
 export class FileResponseDto {

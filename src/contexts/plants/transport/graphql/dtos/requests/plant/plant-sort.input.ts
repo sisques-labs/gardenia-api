@@ -1,5 +1,5 @@
 import { InputType } from '@nestjs/graphql';
-import { createSortInput } from '@sisques-labs/nestjs-kit';
+import { createSortInput } from '@sisques-labs/nestjs-kit/graphql';
 
 import { PlantQueryableField } from '@contexts/plants/transport/graphql/enums/plant/plant-queryable-field.enum';
 

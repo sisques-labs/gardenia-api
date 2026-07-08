@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getDataSourceToken, TypeOrmModule } from '@nestjs/typeorm';
 import { CqrsModule } from '@nestjs/cqrs';
 import { DataSource } from 'typeorm';
-import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
+import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit/graphql';
 
 import { appConfig } from '../../src/core/config/app.config';
 import { authConfig } from '../../src/core/config/auth.config';

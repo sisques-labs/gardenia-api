@@ -8,7 +8,7 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 @Resolver()
 //@UseGuards(JwtAuthGuard)
