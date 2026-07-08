@@ -22,6 +22,7 @@
     "gen:topics": "ts-node --transpile-only scripts/generate-aggregate-module-map.ts",
     "gen:topics:check": "ts-node --transpile-only scripts/generate-aggregate-module-map.ts --check",
     "test": "jest",
+    "test:changed": "jest --onlyChanged",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
