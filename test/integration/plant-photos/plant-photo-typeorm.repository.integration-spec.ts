@@ -33,6 +33,8 @@ describe('PlantPhoto TypeORM repositories (integration)', () => {
   const userAId = randomUUID();
   const userBId = randomUUID();
   const plantId = randomUUID();
+  // Overwritten by tenant proxy at save time — must be a valid UUID for the builder.
+  const PLACEHOLDER_SPACE_ID = randomUUID();
 
   beforeAll(async () => {
     ctx = await createIntegrationModule({ imports: [PlantPhotosModule] });
@@ -63,7 +65,7 @@ describe('PlantPhoto TypeORM repositories (integration)', () => {
       .withFileId(fileId)
       .withUrl(`/api/files/${fileId}/content`)
       .withUserId(userAId)
-      .withSpaceId('placeholder')
+      .withSpaceId(PLACEHOLDER_SPACE_ID)
       .withCreatedAt(createdAt)
       .withUpdatedAt(createdAt)
       .build();
