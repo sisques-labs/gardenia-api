@@ -6,10 +6,11 @@ export const FILE_STORAGE_PORT = Symbol('FILE_STORAGE_PORT');
  * Storage backend abstraction for a file's raw bytes.
  *
  * This is the hexagonal seam that keeps the domain, application, and transport
- * layers ignorant of WHERE bytes live. The v1 adapter persists them in
- * PostgreSQL; a future S3/MinIO adapter implements the same contract and is
- * swapped in via a `useClass` rebinding of {@link FILE_STORAGE_PORT}, with no
- * change to any other layer.
+ * layers ignorant of WHERE bytes live. `DatabaseFileStorageAdapter` persists
+ * bytes in PostgreSQL; `S3FileStorageAdapter` persists them in S3-compatible
+ * object storage. `files.module.ts` selects between them at DI time via a
+ * `useFactory` binding of {@link FILE_STORAGE_PORT}, driven by the
+ * `FILES_STORAGE_DRIVER` env var — no change to any other layer.
  *
  * The signature MUST stay free of any TypeORM / Postgres / vendor type.
  */
