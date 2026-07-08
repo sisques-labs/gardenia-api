@@ -4,10 +4,12 @@ import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotPlantViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot-plant.view-model';
+import { PlantingSpotQrViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot-qr.view-model';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
 import {
   PaginatedPlantingSpotResultDto,
   PlantInSpotResponseDto,
+  PlantingSpotQrResponseDto,
   PlantingSpotResponseDto,
 } from '@contexts/planting-spots/transport/graphql/dtos/responses/planting-spot.response.dto';
 
@@ -36,9 +38,23 @@ export class PlantingSpotGraphQLMapper {
       soilType: vm.soilType,
       status: vm.status as PlantingSpotStatusEnum,
       fallowSince: vm.fallowSince,
+      qrId: vm.qrId ?? null,
+      qr: vm.qr ?? null,
       userId: vm.userId,
       spaceId: vm.spaceId,
       resolvedPlants: [],
+      createdAt: vm.createdAt,
+      updatedAt: vm.updatedAt,
+    };
+  }
+
+  toQrResponseDto(vm: PlantingSpotQrViewModel): PlantingSpotQrResponseDto {
+    return {
+      id: vm.id,
+      spaceId: vm.spaceId,
+      targetUrl: vm.targetUrl,
+      generation: vm.generation,
+      image: vm.image,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
     };

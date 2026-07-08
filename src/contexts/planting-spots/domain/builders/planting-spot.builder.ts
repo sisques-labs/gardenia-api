@@ -20,6 +20,7 @@ import { PlantingSpotRowValueObject } from '../value-objects/planting-spot-row/p
 import { PlantingSpotSoilTypeValueObject } from '../value-objects/planting-spot-soil-type/planting-spot-soil-type.value-object';
 import { PlantingSpotStatusValueObject } from '../value-objects/planting-spot-status/planting-spot-status.value-object';
 import { PlantingSpotTypeValueObject } from '../value-objects/planting-spot-type/planting-spot-type.value-object';
+import { PlantingSpotQrViewModel } from '../view-models/planting-spot-qr.view-model';
 import { PlantingSpotViewModel } from '../view-models/planting-spot.view-model';
 
 @Injectable()
@@ -39,6 +40,8 @@ export class PlantingSpotBuilder extends BaseBuilder<
   private _soilType: string | null = null;
   private _status: string = PlantingSpotStatusEnum.ACTIVE;
   private _fallowSince: Date | null = null;
+  private _qrId: string | null = null;
+  private _qr: PlantingSpotQrViewModel | null = null;
   private _userId!: string;
   private _spaceId!: string;
 
@@ -102,6 +105,16 @@ export class PlantingSpotBuilder extends BaseBuilder<
     return this;
   }
 
+  withQrId(qrId: string | null): this {
+    this._qrId = qrId;
+    return this;
+  }
+
+  withQr(qr: PlantingSpotQrViewModel | null): this {
+    this._qr = qr;
+    return this;
+  }
+
   withUserId(userId: string): this {
     this._userId = userId;
     return this;
@@ -158,6 +171,7 @@ export class PlantingSpotBuilder extends BaseBuilder<
         this._fallowSince != null
           ? new PlantingSpotFallowSinceValueObject(this._fallowSince)
           : null,
+      qrId: this._qrId != null ? new UuidValueObject(this._qrId) : null,
       userId: new UuidValueObject(this._userId),
       spaceId: new UuidValueObject(this._spaceId),
       createdAt: new DateValueObject(this._createdAt),
@@ -181,6 +195,8 @@ export class PlantingSpotBuilder extends BaseBuilder<
       soilType: this._soilType,
       status: this._status,
       fallowSince: this._fallowSince,
+      qrId: this._qrId,
+      qr: this._qr,
       userId: this._userId,
       spaceId: this._spaceId,
       createdAt: this._createdAt,

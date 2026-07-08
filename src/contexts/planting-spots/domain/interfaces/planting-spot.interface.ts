@@ -24,6 +24,7 @@ export interface IPlantingSpot {
   soilType: PlantingSpotSoilTypeValueObject | null;
   status: PlantingSpotStatusValueObject;
   fallowSince: PlantingSpotFallowSinceValueObject | null;
+  qrId: UuidValueObject | null;
   userId: UuidValueObject;
   spaceId: UuidValueObject;
   createdAt: DateValueObject;
