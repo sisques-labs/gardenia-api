@@ -40,6 +40,13 @@ REST `qrId` (metadata only, per the existing plant pattern).
 - REST: `qrId` on `PlantingSpotRestResponseDto` (metadata only — the PNG is
   only resolvable via GraphQL, matching the plant REST DTO's documented
   pattern).
+- `PlantingSpotQrBuilder` extends `BaseBuilder<PlantingSpotQrAggregate,
+  PlantingSpotQrViewModel>` — backed by a real `PlantingSpotQrAggregate`
+  (read-only projection of QR data resolved via `IPlantingSpotQrPort`, no
+  events/lifecycle of its own). This is a deliberate divergence from
+  `PlantQrBuilder` in `plants`, which only builds a view-model and doesn't
+  extend `BaseBuilder` (raised and resolved during review of gardenia-api
+  #325) — `plants`' version is left as-is, out of scope for this change.
 
 ### Out of Scope (matches GDN-44 acceptance criteria)
 

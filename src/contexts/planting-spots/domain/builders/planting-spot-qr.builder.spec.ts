@@ -18,6 +18,18 @@ const base = (): PlantingSpotQrBuilder =>
     .withUpdatedAt(UPDATED_AT);
 
 describe('PlantingSpotQrBuilder', () => {
+  describe('build()', () => {
+    it('builds an aggregate with all fields', () => {
+      const qr = base().build();
+
+      expect(qr.id.value).toBe(ID);
+      expect(qr.spaceId.value).toBe(SPACE_ID);
+      expect(qr.targetUrl.value).toBe('https://example.com/qr/123');
+      expect(qr.generation.value).toBe(1);
+      expect(qr.image.value).toBe('data:image/png;base64,abc');
+    });
+  });
+
   describe('buildViewModel()', () => {
     it('builds a view model with all fields', () => {
       const vm = base().buildViewModel();

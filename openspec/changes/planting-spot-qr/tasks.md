@@ -19,7 +19,7 @@
 
 ## Phase 2: Domain
 
-- [x] T2 — Create `domain/primitives/planting-spot-qr.primitives.ts`, `domain/view-models/planting-spot-qr.view-model.ts`, `domain/builders/planting-spot-qr.builder.ts` (+ `.spec.ts`) — mirror `plant-qr.{primitives,view-model,builder}.ts` exactly.
+- [x] T2 — Create `domain/primitives/planting-spot-qr.primitives.ts`, `domain/view-models/planting-spot-qr.view-model.ts`, `domain/builders/planting-spot-qr.builder.ts` (+ `.spec.ts`) — initially mirrored `plant-qr.{primitives,view-model,builder}.ts` exactly (no `PlantingSpotQrAggregate`, builder not extending `BaseBuilder`). Per PR review (gardenia-api#325), reworked to add a real `PlantingSpotQrAggregate` (+ `.spec.ts`) and `IPlantingSpotQr` interface, so `PlantingSpotQrBuilder` now `extends BaseBuilder<PlantingSpotQrAggregate, PlantingSpotQrViewModel>` and implements both `build()`/`buildViewModel()`, using real value objects (`UuidValueObject`, `UrlValueObject`, `NumberValueObject`, `StringValueObject`) instead of raw primitives. This intentionally diverges from `PlantQrBuilder` in `plants` (left as-is, out of scope for this change) — see `proposal.md` for why.
 - [x] T3 — Add `qrId: string | null` to `IPlantingSpotPrimitives`; add `qrId`/`qr` to `PlantingSpotViewModel`.
 - [x] T4 — Add `qrId: UuidValueObject | null` to `IPlantingSpot`; add `_qrId` field + `linkQr()` method + getter + `toPrimitives()` entry to `PlantingSpotAggregate`.
 - [x] T5 — Add `withQrId`/`withQr` to `PlantingSpotBuilder`, wired into `build()`/`buildViewModel()`.

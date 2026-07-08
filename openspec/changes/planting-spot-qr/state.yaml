@@ -31,3 +31,9 @@ notes: |
   repo's 400-line PR budget; chaining into stacked PRs was not feasible because
   the harness constrains delivery to a single designated feature branch per
   repo — flagged explicitly in the PR description instead.
+
+  Review round 1 (JSisques): PlantingSpotQrBuilder now extends BaseBuilder
+  backed by a real PlantingSpotQrAggregate (was a bare view-model builder,
+  mirroring PlantQrBuilder in plants which still doesn't extend BaseBuilder).
+  Re-ran full suite (409/409 suites, 1731/1731 tests), lint, and tsc clean
+  after the rework.

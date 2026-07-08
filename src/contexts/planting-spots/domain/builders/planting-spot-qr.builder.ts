@@ -1,22 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { FieldIsRequiredException } from '@sisques-labs/nestjs-kit';
+import {
+  BaseBuilder,
+  DateValueObject,
+  FieldIsRequiredException,
+  NumberValueObject,
+  StringValueObject,
+  UrlValueObject,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
+import { PlantingSpotQrAggregate } from '@contexts/planting-spots/domain/aggregates/planting-spot-qr.aggregate';
 import { PlantingSpotQrViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot-qr.view-model';
 
 @Injectable()
-export class PlantingSpotQrBuilder {
-  private _id!: string;
+export class PlantingSpotQrBuilder extends BaseBuilder<
+  PlantingSpotQrAggregate,
+  PlantingSpotQrViewModel
+> {
   private _spaceId!: string;
   private _targetUrl!: string;
   private _generation!: number;
   private _image!: string;
-  private _createdAt!: Date;
-  private _updatedAt!: Date;
-
-  withId(id: string): this {
-    this._id = id;
-    return this;
-  }
 
   withSpaceId(spaceId: string): this {
     this._spaceId = spaceId;
@@ -38,17 +42,20 @@ export class PlantingSpotQrBuilder {
     return this;
   }
 
-  withCreatedAt(createdAt: Date): this {
-    this._createdAt = createdAt;
-    return this;
+  public override build(): PlantingSpotQrAggregate {
+    this.validate();
+    return new PlantingSpotQrAggregate({
+      id: new UuidValueObject(this._id),
+      spaceId: new UuidValueObject(this._spaceId),
+      targetUrl: new UrlValueObject(this._targetUrl),
+      generation: new NumberValueObject(this._generation),
+      image: new StringValueObject(this._image),
+      createdAt: new DateValueObject(this._createdAt),
+      updatedAt: new DateValueObject(this._updatedAt),
+    });
   }
 
-  withUpdatedAt(updatedAt: Date): this {
-    this._updatedAt = updatedAt;
-    return this;
-  }
-
-  buildViewModel(): PlantingSpotQrViewModel {
+  public override buildViewModel(): PlantingSpotQrViewModel {
     this.validate();
     return new PlantingSpotQrViewModel({
       id: this._id,
@@ -61,14 +68,12 @@ export class PlantingSpotQrBuilder {
     });
   }
 
-  private validate(): void {
-    if (!this._id) throw new FieldIsRequiredException('id');
+  public override validate(): void {
+    super.validate();
     if (!this._spaceId) throw new FieldIsRequiredException('spaceId');
     if (!this._targetUrl) throw new FieldIsRequiredException('targetUrl');
     if (this._generation == null)
       throw new FieldIsRequiredException('generation');
     if (!this._image) throw new FieldIsRequiredException('image');
-    if (!this._createdAt) throw new FieldIsRequiredException('createdAt');
-    if (!this._updatedAt) throw new FieldIsRequiredException('updatedAt');
   }
 }
