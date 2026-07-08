@@ -1,0 +1,33 @@
+change: planting-spot-qr
+status: apply
+created: 2026-07-08
+artifact_store: hybrid
+context: planting-spots
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: skipped
+  tasks: done
+  apply: done
+  verify: partial
+  archive: pending
+next_recommended:
+  - sdd-verify
+  - sdd-archive
+notes: |
+  Extends the existing qr bounded context to a second consumer, planting-spots,
+  mirroring the plants <-> qr integration (plant-qr-generation) field-for-field:
+  qr_id FK + cascade trigger, port/adapter pair, target-url builder, synchronous
+  orchestration in CreatePlantingSpotCommandHandler, GraphQL resolved field, and
+  REST qrId (metadata only). qr itself is unmodified.
+
+  Implemented in full (23/23 tasks). Unit tests, lint, and typecheck all pass
+  (408/408 suites, 1728/1728 tests). Integration/E2E tests were NOT run — no
+  Docker/Postgres available in this sandbox. Run `pnpm test:integration` and
+  `pnpm test:e2e` against a real Postgres before merging.
+
+  PR opened against develop (gardenia-api#325). Diff is ~830 lines, over the
+  repo's 400-line PR budget; chaining into stacked PRs was not feasible because
+  the harness constrains delivery to a single designated feature branch per
+  repo — flagged explicitly in the PR description instead.
