@@ -135,6 +135,12 @@ file is invisible and un-downloadable outside its space. Migration:
 
 ## Out of scope (v1)
 
-Polymorphic ownership (`ownerType`/`ownerId`), wiring `plants`/`plant-species`
-to upload here, an S3/MinIO adapter, image processing (thumbnails/resize/EXIF),
-signed/public URLs, non-image types, and content-hash dedup.
+Polymorphic ownership (`ownerType`/`ownerId`), an S3/MinIO adapter, image
+processing (thumbnails/resize/EXIF), signed/public URLs, non-image types, and
+content-hash dedup.
+
+`plants` is now wired to this context — see `src/contexts/plant-photos/`,
+which orchestrates `UploadFileCommand`/`DeleteFileCommand` via `IFilesPort`
+and keeps its own `plant_photos` association table (this context has no
+knowledge of that link; the `url` it returns is opaque to it, per the
+"no link from this context back to them" note above).
