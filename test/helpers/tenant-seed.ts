@@ -30,6 +30,19 @@ export async function seedUser(
   );
 }
 
+export async function seedMembership(
+  dataSource: DataSource,
+  spaceId: string,
+  userId: string,
+  role = 'member',
+): Promise<void> {
+  await dataSource.query(
+    `INSERT INTO "space_memberships" ("space_id", "user_id", "role", "joined_at")
+     VALUES ($1, $2, $3, $4)`,
+    [spaceId, userId, role, SEED_TIMESTAMP],
+  );
+}
+
 export async function seedSpaceWithUser(
   dataSource: DataSource,
   spaceId: string,

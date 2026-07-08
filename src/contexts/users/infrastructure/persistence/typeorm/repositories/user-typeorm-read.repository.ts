@@ -11,31 +11,46 @@ import {
   PaginatedResult,
   SortDirection,
 } from '@sisques-labs/nestjs-kit';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { SpaceContext } from '../../../../../../shared/space-context/space-context.service';
-import { createTenantRepository } from '../../../../../../shared/tenant-repository/create-tenant-repository.factory';
 
 const ALIAS = 'user';
+const MEMBERSHIP_ALIAS = 'membership';
 
 @Injectable()
 export class UserTypeOrmReadRepository
   extends BaseDatabaseRepository
   implements IUserReadRepository
 {
-  private readonly repo: Repository<UserTypeOrmEntity>;
-
   constructor(
     @InjectRepository(UserTypeOrmEntity)
-    rawRepo: Repository<UserTypeOrmEntity>,
+    private readonly repo: Repository<UserTypeOrmEntity>,
     private readonly mapper: UserTypeOrmMapper,
     private readonly spaceContext: SpaceContext,
   ) {
     super();
-    this.repo = createTenantRepository(rawRepo, spaceContext);
+  }
+
+  // A user's identity (users row) is global; space membership — not the
+  // user's home space_id — determines who belongs to the active space, so
+  // members who joined via invitation are resolved through this join too.
+  private spaceMembersQueryBuilder(): SelectQueryBuilder<UserTypeOrmEntity> {
+    return this.repo
+      .createQueryBuilder(ALIAS)
+      .innerJoin(
+        'space_memberships',
+        MEMBERSHIP_ALIAS,
+        `${MEMBERSHIP_ALIAS}.user_id = ${ALIAS}.id`,
+      )
+      .where(`${MEMBERSHIP_ALIAS}.space_id = :spaceId`, {
+        spaceId: this.spaceContext.require(),
+      });
   }
 
   async findById(id: string): Promise<UserViewModel | null> {
-    const entity = await this.repo.findOne({ where: { id } });
+    const entity = await this.spaceMembersQueryBuilder()
+      .andWhere(`${ALIAS}.id = :id`, { id })
+      .getOne();
     return entity ? this.mapper.toViewModel(entity) : null;
   }
 
@@ -44,13 +59,7 @@ export class UserTypeOrmReadRepository
   ): Promise<PaginatedResult<UserViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    // createQueryBuilder bypasses createTenantRepository's find/findOne
-    // proxy interception, so the space scope must be applied explicitly here.
-    const qb = this.repo
-      .createQueryBuilder(ALIAS)
-      .where(`${ALIAS}.spaceId = :spaceId`, {
-        spaceId: this.spaceContext.require(),
-      });
+    const qb = this.spaceMembersQueryBuilder();
 
     applyCriteriaToQueryBuilder(qb, criteria, {
       alias: ALIAS,
@@ -72,9 +81,11 @@ export class UserTypeOrmReadRepository
   }
 
   async findByUsername(username: string): Promise<UserViewModel | null> {
-    const entity = await this.repo.findOne({
-      where: { username: username.toLowerCase() },
-    });
+    const entity = await this.spaceMembersQueryBuilder()
+      .andWhere(`${ALIAS}.username = :username`, {
+        username: username.toLowerCase(),
+      })
+      .getOne();
     return entity ? this.mapper.toViewModel(entity) : null;
   }
 }
