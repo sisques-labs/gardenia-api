@@ -21,7 +21,7 @@ import {
   createIntegrationModule,
   IntegrationContext,
 } from '../../helpers/integration-bootstrap';
-import { seedSpaceWithUser } from '../../helpers/tenant-seed';
+import { seedFile, seedSpaceWithUser } from '../../helpers/tenant-seed';
 
 describe('PlantPhoto TypeORM repositories (integration)', () => {
   let ctx: IntegrationContext;
@@ -58,7 +58,8 @@ describe('PlantPhoto TypeORM repositories (integration)', () => {
     });
   });
 
-  function buildPhoto(createdAt: Date, fileId = randomUUID()) {
+  async function buildPhoto(createdAt: Date, fileId = randomUUID()) {
+    await seedFile(ctx.dataSource, fileId, spaceAId, userAId);
     return new PlantPhotoBuilder()
       .withId(randomUUID())
       .withPlantId(plantId)
@@ -73,7 +74,7 @@ describe('PlantPhoto TypeORM repositories (integration)', () => {
 
   it('saves and finds a photo by id within the active space', async () => {
     await ctx.spaceContext.run(spaceAId, async () => {
-      const photo = buildPhoto(new Date('2026-06-01'));
+      const photo = await buildPhoto(new Date('2026-06-01'));
       await writeRepo.save(photo);
 
       const found = await writeRepo.findById(photo.id.value);
@@ -83,9 +84,9 @@ describe('PlantPhoto TypeORM repositories (integration)', () => {
 
   it('defaults to createdAt DESC and paginates', async () => {
     await ctx.spaceContext.run(spaceAId, async () => {
-      await writeRepo.save(buildPhoto(new Date('2026-01-01')));
-      await writeRepo.save(buildPhoto(new Date('2026-06-01')));
-      await writeRepo.save(buildPhoto(new Date('2026-03-01')));
+      await writeRepo.save(await buildPhoto(new Date('2026-01-01')));
+      await writeRepo.save(await buildPhoto(new Date('2026-06-01')));
+      await writeRepo.save(await buildPhoto(new Date('2026-03-01')));
 
       const result = await readRepo.findByCriteria(
         new Criteria(
@@ -109,8 +110,8 @@ describe('PlantPhoto TypeORM repositories (integration)', () => {
 
   it('honors a client-supplied sort over the default', async () => {
     await ctx.spaceContext.run(spaceAId, async () => {
-      await writeRepo.save(buildPhoto(new Date('2026-06-01')));
-      await writeRepo.save(buildPhoto(new Date('2026-01-01')));
+      await writeRepo.save(await buildPhoto(new Date('2026-06-01')));
+      await writeRepo.save(await buildPhoto(new Date('2026-01-01')));
 
       const result = await readRepo.findByCriteria(
         new Criteria(
@@ -132,7 +133,7 @@ describe('PlantPhoto TypeORM repositories (integration)', () => {
 
   it('scopes reads and writes to the active space (tenant isolation)', async () => {
     await ctx.spaceContext.run(spaceAId, async () => {
-      await writeRepo.save(buildPhoto(new Date('2026-06-01')));
+      await writeRepo.save(await buildPhoto(new Date('2026-06-01')));
     });
 
     await ctx.spaceContext.run(spaceBId, async () => {
