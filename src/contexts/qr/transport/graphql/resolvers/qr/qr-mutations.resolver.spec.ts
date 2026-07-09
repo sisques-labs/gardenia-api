@@ -1,5 +1,5 @@
 import { CommandBus } from '@nestjs/cqrs';
-import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
+import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit/graphql';
 
 import { RegenerateQrCommand } from '@contexts/qr/application/commands/regenerate-qr/regenerate-qr.command';
 import { QrRegenerateRequestDto } from '@contexts/qr/transport/graphql/dtos/requests/qr/qr-regenerate.request.dto';

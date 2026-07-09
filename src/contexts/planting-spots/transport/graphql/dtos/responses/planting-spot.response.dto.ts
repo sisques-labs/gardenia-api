@@ -1,4 +1,4 @@
-import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
+import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit/graphql';
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 
 import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';

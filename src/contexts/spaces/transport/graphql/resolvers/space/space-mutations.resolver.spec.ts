@@ -1,5 +1,5 @@
 import { CommandBus } from '@nestjs/cqrs';
-import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
+import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit/graphql';
 
 import { SKIP_SPACE_KEY } from '../../../../../../shared/decorators/skip-space.decorator';
 import { SpaceCreateRequestDto } from '../../dtos/requests/space/space-create.request.dto';
