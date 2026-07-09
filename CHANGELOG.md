@@ -1,6 +1,38 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.26.0-beta.0] - 2026-07-09
+
+### Bug Fixes
+- **users:** Resolve space members via memberships, not home space_id (f8b4e61)
+- **deps:** Finish @sisques-labs/nestjs-kit@1.0.0 migration (17d8fd3)
+- **deps:** Migrate remaining nestjs-kit import in integration test helper (5ddeb3a)
+- **planting-spots:** Delete linked qr via port before deleting spot (c2b7870)
+- **plant-photos:** Wire exception filter and fix integration test UUID (3b53271)
+- **plant-photos:** Seed a files row before integration-test inserts (39f39e8)
+- **plant-photos:** Migrate nestjs-kit imports to v1.0.0 subpath entrypoints (de9a82d)
+
+### Chore
+- **tsconfig:** Add tsBuildInfoFile option for incremental builds (17eeb6d)
+- **ci:** Run only changed tests on pre-push (6af4835)
+- **ci:** Remove notify-e2e job from release train (43bc865)
+- **deps:** Migrate to @sisques-labs/nestjs-kit GraphQL subpath export (2fdcf17)
+
+### Documentation
+- **openspec:** Add resolve-space-members-via-memberships change (354b805)
+- **planting-spots:** Add OpenSpec change docs for QR support (15bf2ce)
+
+### Features
+- **files:** Add S3 adapter to files storage port (a9c0797)
+- **env:** Add file storage configuration options to .env.example (414b66a)
+- **planting-spots:** Add QR code display and download support (a376c25)
+- **plant-photos:** Add photo upload and history for plants (ec814ba)
+
+### Refactor
+- **files:** Extract FILE_STORAGE_PORT factory into its own provider file (1fc600a)
+- **planting-spots:** Back PlantingSpotQrBuilder with a real aggregate (bcdc1f2)
+- **plant-photos:** Apply review feedback from PR #321 (fabfd9b)
+- **plant-photos:** Split SyncPlantImageUrlService into IBaseService-conforming services (c62fd8b)
 ## [0.25.1] - 2026-07-05
 
 ### Bug Fixes
