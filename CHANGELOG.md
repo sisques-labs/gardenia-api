@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.26.0-beta.0] - 2026-07-09
+## [0.26.0] - 2026-07-09
 
 ### Bug Fixes
 - **users:** Resolve space members via memberships, not home space_id (f8b4e61)
