@@ -88,3 +88,27 @@ export async function seedPlantingSpot(
     [id, name, 'bed', userId, spaceId, SEED_TIMESTAMP],
   );
 }
+
+export async function seedFile(
+  dataSource: DataSource,
+  id: string,
+  spaceId: string,
+  userId: string,
+  filename = 'rose.png',
+): Promise<void> {
+  await dataSource.query(
+    `INSERT INTO "files" ("id", "filename", "mime_type", "size", "storage_key", "url", "user_id", "space_id", "created_at", "updated_at")
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)`,
+    [
+      id,
+      filename,
+      'image/png',
+      2048,
+      id,
+      `/api/files/${id}/content`,
+      userId,
+      spaceId,
+      SEED_TIMESTAMP,
+    ],
+  );
+}
