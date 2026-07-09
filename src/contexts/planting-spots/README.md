@@ -13,6 +13,16 @@ go exclusively through `MarkPlantingSpotFallowCommand` /
 `MarkPlantingSpotActiveCommand`; `UpdatePlantingSpotCommand` never touches
 status.
 
+Every spot also carries a `qr` (nullable), auto-generated at creation time via
+`IPlantingSpotQrPort` and pointing to that spot's detail page
+(`{QR_BASE_URL}/planting-spots/{id}?spaceId={spaceId}`) — mirrors the same
+`qr` bounded-context integration `plants` already established
+(`plant-qr-generation`). The QR image/metadata are resolved lazily through a
+GraphQL field (`PlantingSpotQrResolvedFieldResolver`); REST only exposes
+`qrId` (resolve the image via GraphQL). There is no client-facing
+regenerate/delete action for a spot's QR, and no MCP tool for it — same as
+`plants`.
+
 ## Public API
 
 ### Commands
@@ -35,8 +45,9 @@ status.
 
 ### Transport
 
-- GraphQL: `planting-spot` resolvers (queries, mutations, resolved plants) —
-  mutations include `plantingSpotMarkFallow` / `plantingSpotMarkActive`.
+- GraphQL: `planting-spot` resolvers (queries, mutations, resolved plants,
+  resolved `qr` field) — mutations include `plantingSpotMarkFallow` /
+  `plantingSpotMarkActive`.
 - REST: `PlantingSpotsController` — `POST :id/mark-fallow` / `POST :id/mark-active`.
 - MCP: see below.
 

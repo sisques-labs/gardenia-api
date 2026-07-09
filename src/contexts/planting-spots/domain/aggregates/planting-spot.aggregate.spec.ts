@@ -37,6 +37,7 @@ const buildAggregate = (
     fallowSince: fallowSince
       ? new PlantingSpotFallowSinceValueObject(fallowSince)
       : null,
+    qrId: null,
     userId: new UuidValueObject(USER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     createdAt: new DateValueObject(NOW),

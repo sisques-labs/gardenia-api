@@ -39,6 +39,7 @@ export class PlantingSpotAggregate extends BaseAggregate {
   private _soilType: PlantingSpotSoilTypeValueObject | null;
   private _status: PlantingSpotStatusValueObject;
   private _fallowSince: PlantingSpotFallowSinceValueObject | null;
+  private _qrId: UuidValueObject | null;
   private readonly _userId: UuidValueObject;
   private readonly _spaceId: UuidValueObject;
 
@@ -55,8 +56,14 @@ export class PlantingSpotAggregate extends BaseAggregate {
     this._soilType = props.soilType;
     this._status = props.status;
     this._fallowSince = props.fallowSince;
+    this._qrId = props.qrId;
     this._userId = props.userId;
     this._spaceId = props.spaceId;
+  }
+
+  public linkQr(qrId: UuidValueObject): void {
+    this._qrId = qrId;
+    this.touch();
   }
 
   public create(): void {
@@ -358,6 +365,7 @@ export class PlantingSpotAggregate extends BaseAggregate {
       soilType: this._soilType?.value ?? null,
       status: this._status.value,
       fallowSince: this._fallowSince?.value ?? null,
+      qrId: this._qrId?.value ?? null,
       userId: this._userId.value,
       spaceId: this._spaceId.value,
       createdAt: this.createdAt.value,
@@ -397,6 +405,9 @@ export class PlantingSpotAggregate extends BaseAggregate {
   }
   get fallowSince(): PlantingSpotFallowSinceValueObject | null {
     return this._fallowSince;
+  }
+  get qrId(): UuidValueObject | null {
+    return this._qrId;
   }
   get userId(): UuidValueObject {
     return this._userId;

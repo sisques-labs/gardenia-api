@@ -87,6 +87,12 @@ export class PlantingSpotRestResponseDto {
   })
   fallowSince?: Date | null;
 
+  @ApiPropertyOptional({
+    example: 'd4e5f6a7-b8c9-4123-defa-234567890123',
+    description: 'UUID of the linked QR code (resolve via GraphQL qr field)',
+  })
+  qrId?: string | null;
+
   @ApiProperty({
     example: '660e8400-e29b-41d4-a716-446655440001',
     description: 'UUID of the owner user',

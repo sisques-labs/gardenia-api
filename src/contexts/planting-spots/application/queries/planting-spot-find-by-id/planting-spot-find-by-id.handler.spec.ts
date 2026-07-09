@@ -26,6 +26,7 @@ const buildViewModel = (): PlantingSpotViewModel =>
     soilType: null,
     status: 'active',
     fallowSince: null,
+    qrId: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
     createdAt: NOW,
