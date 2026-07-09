@@ -19,19 +19,9 @@ import {
   IntegrationContext,
 } from '../../helpers/integration-bootstrap';
 import { truncateAll } from '../../helpers/db-reset';
-import { seedSpace } from '../../helpers/tenant-seed';
+import { seedMembership, seedSpace } from '../../helpers/tenant-seed';
 
 const NOW = new Date('2024-06-01T00:00:00.000Z');
-
-function buildUser(username: string) {
-  return new UserBuilder()
-    .withId(randomUUID())
-    .withUsername(username)
-    .withStatus(UserStatusEnum.ACTIVE)
-    .withCreatedAt(NOW)
-    .withUpdatedAt(NOW)
-    .build();
-}
 
 describe('UserTypeOrmReadRepository (integration)', () => {
   let ctx: IntegrationContext;
@@ -40,6 +30,33 @@ describe('UserTypeOrmReadRepository (integration)', () => {
 
   const spaceAId = randomUUID();
   const spaceBId = randomUUID();
+
+  // Mirrors what the real write path does on signup/space-creation: a user
+  // row plus a space_memberships row for its home space. The read repo now
+  // resolves membership exclusively via the join, so tests must seed both.
+  async function saveUserWithMembership(
+    homeSpaceId: string,
+    username: string,
+    status: UserStatusEnum = UserStatusEnum.ACTIVE,
+  ): Promise<string> {
+    let userId!: string;
+
+    await ctx.spaceContext.run(homeSpaceId, async () => {
+      const saved = await userWriteRepo.save(
+        new UserBuilder()
+          .withId(randomUUID())
+          .withUsername(username)
+          .withStatus(status)
+          .withCreatedAt(NOW)
+          .withUpdatedAt(NOW)
+          .build(),
+      );
+      userId = saved.id.value;
+    });
+
+    await seedMembership(ctx.dataSource, homeSpaceId, userId);
+    return userId;
+  }
 
   beforeAll(async () => {
     ctx = await createIntegrationModule({ imports: [UsersModule] });
@@ -58,39 +75,24 @@ describe('UserTypeOrmReadRepository (integration)', () => {
   });
 
   it('returns only users from the active space via findById', async () => {
-    let userAId: string;
-    let userBId: string;
-
-    await ctx.spaceContext.run(spaceAId, async () => {
-      const saved = await userWriteRepo.save(buildUser('user_a'));
-      userAId = saved.id.value;
-    });
-
-    await ctx.spaceContext.run(spaceBId, async () => {
-      const saved = await userWriteRepo.save(buildUser('user_b'));
-      userBId = saved.id.value;
-    });
+    const userAId = await saveUserWithMembership(spaceAId, 'user_a');
+    const userBId = await saveUserWithMembership(spaceBId, 'user_b');
 
     await ctx.spaceContext.run(spaceAId, async () => {
       expect(await userReadRepo.findById(userAId)).not.toBeNull();
-      expect(await userReadRepo.findById(userBId!)).toBeNull();
+      expect(await userReadRepo.findById(userBId)).toBeNull();
     });
 
     await ctx.spaceContext.run(spaceBId, async () => {
-      expect(await userReadRepo.findById(userBId!)).not.toBeNull();
-      expect(await userReadRepo.findById(userAId!)).toBeNull();
+      expect(await userReadRepo.findById(userBId)).not.toBeNull();
+      expect(await userReadRepo.findById(userAId)).toBeNull();
     });
   });
 
   it('returns only users from the active space via findByCriteria', async () => {
-    await ctx.spaceContext.run(spaceAId, async () => {
-      await userWriteRepo.save(buildUser('alpha'));
-      await userWriteRepo.save(buildUser('beta'));
-    });
-
-    await ctx.spaceContext.run(spaceBId, async () => {
-      await userWriteRepo.save(buildUser('gamma'));
-    });
+    await saveUserWithMembership(spaceAId, 'alpha');
+    await saveUserWithMembership(spaceAId, 'beta');
+    await saveUserWithMembership(spaceBId, 'gamma');
 
     await ctx.spaceContext.run(spaceAId, async () => {
       const result = await userReadRepo.findByCriteria(
@@ -115,11 +117,9 @@ describe('UserTypeOrmReadRepository (integration)', () => {
   });
 
   it('applies a LIKE filter on username', async () => {
-    await ctx.spaceContext.run(spaceAId, async () => {
-      await userWriteRepo.save(buildUser('alpha_gardener'));
-      await userWriteRepo.save(buildUser('beta_gardener'));
-      await userWriteRepo.save(buildUser('zzz_other'));
-    });
+    await saveUserWithMembership(spaceAId, 'alpha_gardener');
+    await saveUserWithMembership(spaceAId, 'beta_gardener');
+    await saveUserWithMembership(spaceAId, 'zzz_other');
 
     await ctx.spaceContext.run(spaceAId, async () => {
       const result = await userReadRepo.findByCriteria(
@@ -144,18 +144,12 @@ describe('UserTypeOrmReadRepository (integration)', () => {
   });
 
   it('applies an EQUALS filter on status', async () => {
-    await ctx.spaceContext.run(spaceAId, async () => {
-      await userWriteRepo.save(buildUser('active_user'));
-      await userWriteRepo.save(
-        new UserBuilder()
-          .withId(randomUUID())
-          .withUsername('blocked_user')
-          .withStatus(UserStatusEnum.BLOCKED)
-          .withCreatedAt(NOW)
-          .withUpdatedAt(NOW)
-          .build(),
-      );
-    });
+    await saveUserWithMembership(spaceAId, 'active_user');
+    await saveUserWithMembership(
+      spaceAId,
+      'blocked_user',
+      UserStatusEnum.BLOCKED,
+    );
 
     await ctx.spaceContext.run(spaceAId, async () => {
       const result = await userReadRepo.findByCriteria(
@@ -174,6 +168,68 @@ describe('UserTypeOrmReadRepository (integration)', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].username).toBe('blocked_user');
+    });
+  });
+
+  describe('invited members (space_memberships-only, no home users.space_id match)', () => {
+    it('findById resolves a member whose home space differs from the active space', async () => {
+      const invitedUserId = await saveUserWithMembership(
+        spaceBId,
+        'invited_guest',
+      );
+      // Invitation accepted into Space A — membership only, no users row change.
+      await seedMembership(ctx.dataSource, spaceAId, invitedUserId);
+
+      await ctx.spaceContext.run(spaceAId, async () => {
+        const found = await userReadRepo.findById(invitedUserId);
+        expect(found).not.toBeNull();
+        expect(found!.username).toBe('invited_guest');
+      });
+    });
+
+    it('findByCriteria lists an invited member alongside home-space members', async () => {
+      await saveUserWithMembership(spaceAId, 'owner_a');
+      const invitedUserId = await saveUserWithMembership(
+        spaceBId,
+        'invited_guest',
+      );
+      await seedMembership(ctx.dataSource, spaceAId, invitedUserId);
+
+      await ctx.spaceContext.run(spaceAId, async () => {
+        const result = await userReadRepo.findByCriteria(
+          new Criteria([], [], { page: 1, perPage: 10 }),
+        );
+
+        expect(result.items.map((u) => u.username).sort()).toEqual([
+          'invited_guest',
+          'owner_a',
+        ]);
+      });
+    });
+
+    it('does not leak a non-member into the space listing merely because it is their home space_id', async () => {
+      // Simulates a stale/legacy users.space_id row with no membership row.
+      const userId = randomUUID();
+      await ctx.spaceContext.run(spaceAId, async () => {
+        await userWriteRepo.save(
+          new UserBuilder()
+            .withId(userId)
+            .withUsername('no_membership_user')
+            .withStatus(UserStatusEnum.ACTIVE)
+            .withCreatedAt(NOW)
+            .withUpdatedAt(NOW)
+            .build(),
+        );
+      });
+
+      await ctx.spaceContext.run(spaceAId, async () => {
+        expect(await userReadRepo.findById(userId)).toBeNull();
+
+        const result = await userReadRepo.findByCriteria(
+          new Criteria([], [], { page: 1, perPage: 10 }),
+        );
+        expect(result.items).toHaveLength(0);
+      });
     });
   });
 });

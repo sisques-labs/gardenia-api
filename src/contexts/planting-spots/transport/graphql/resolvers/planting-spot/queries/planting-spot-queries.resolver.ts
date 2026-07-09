@@ -1,11 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import {
-  Criteria,
-  FilterValidationPipe,
-  PaginatedResult,
-} from '@sisques-labs/nestjs-kit';
+import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 import { PlantingSpotFindByCriteriaQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-criteria/planting-spot-find-by-criteria.query';
 import { PlantingSpotFindByIdQuery } from '@contexts/planting-spots/application/queries/planting-spot-find-by-id/planting-spot-find-by-id.query';

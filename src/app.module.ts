@@ -5,6 +5,7 @@ import { CareScheduleModule } from '@contexts/care-schedule/care-schedule.module
 import { FilesModule } from '@contexts/files/files.module';
 import { HarvestsModule } from '@contexts/harvests/harvests.module';
 import { InventoryModule } from '@contexts/inventory/inventory.module';
+import { PlantPhotosModule } from '@contexts/plant-photos/plant-photos.module';
 import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
 import { PlantingSpotsModule } from '@contexts/planting-spots/planting-spots.module';
 import { PlantsModule } from '@contexts/plants/plants.module';
@@ -33,7 +34,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit';
+import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit/graphql';
 import { SharedModule } from './shared/shared.module';
 import { SupportModule } from './support/support.module';
 @Module({
@@ -84,6 +85,7 @@ import { SupportModule } from './support/support.module';
     InventoryModule,
     CareScheduleModule,
     FilesModule,
+    PlantPhotosModule,
   ],
   providers: [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through

@@ -1,4 +1,5 @@
-import { FilterOperator, FilterValidationPipe } from '@sisques-labs/nestjs-kit';
+import { FilterOperator } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 import { PlantSpeciesQueryableField } from '@contexts/plant-species/transport/graphql/enums/plant-species-queryable-field.enum';
 import { plantSpeciesFilterableFields } from '@contexts/plant-species/transport/graphql/registries/plant-species-filterable-fields.registry';

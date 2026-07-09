@@ -2,7 +2,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 import { CreatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/create-plant-species/create-plant-species.command';
 import { DeletePlantSpeciesCommand } from '@contexts/plant-species/application/commands/delete-plant-species/delete-plant-species.command';

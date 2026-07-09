@@ -35,6 +35,7 @@ const buildAggregate = (): PlantingSpotAggregate =>
     soilType: null,
     status: new PlantingSpotStatusValueObject(PlantingSpotStatusEnum.FALLOW),
     fallowSince: new PlantingSpotFallowSinceValueObject(new Date('2025-06-01')),
+    qrId: null,
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     createdAt: new DateValueObject(NOW),

@@ -1,11 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, ID, Query, Resolver } from '@nestjs/graphql';
-import {
-  Criteria,
-  FilterValidationPipe,
-  PaginatedResult,
-} from '@sisques-labs/nestjs-kit';
+import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 import { CareLogFindByCriteriaQuery } from '@contexts/care-log/application/queries/care-log-find-by-criteria/care-log-find-by-criteria.query';
 import { CareLogEntryViewModel } from '@contexts/care-log/domain/view-models/care-log-entry.view-model';

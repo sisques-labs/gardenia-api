@@ -31,6 +31,7 @@ export class PlantingSpotRestMapper {
     dto.soilType = vm.soilType;
     dto.status = vm.status as PlantingSpotStatusEnum;
     dto.fallowSince = vm.fallowSince;
+    dto.qrId = vm.qrId ?? null;
     dto.userId = vm.userId;
     dto.spaceId = vm.spaceId;
     dto.createdAt = vm.createdAt;

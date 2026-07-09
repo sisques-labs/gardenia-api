@@ -66,6 +66,9 @@ export class PlantingSpotTypeOrmEntity {
   @Column({ name: 'fallow_since', type: 'timestamptz', nullable: true })
   fallowSince!: Date | null;
 
+  @Column({ name: 'qr_id', type: 'uuid', nullable: true })
+  qrId!: string | null;
+
   @Index('IDX_planting_spots_user_id')
   @Column({ name: 'user_id', type: 'uuid', nullable: false })
   userId!: string;

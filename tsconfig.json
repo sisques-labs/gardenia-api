@@ -30,6 +30,12 @@
       ],
       "@modelcontextprotocol/sdk/types.js": [
         "node_modules/@modelcontextprotocol/sdk/dist/cjs/types"
+      ],
+      "@sisques-labs/nestjs-kit/graphql": [
+        "node_modules/@sisques-labs/nestjs-kit/dist/entrypoints/graphql"
+      ],
+      "@sisques-labs/nestjs-kit/typeorm": [
+        "node_modules/@sisques-labs/nestjs-kit/dist/entrypoints/typeorm"
       ]
     }
   }

@@ -2,7 +2,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { AdjustInventoryItemQuantityCommand } from '@contexts/inventory/application/commands/adjust-inventory-item-quantity/adjust-inventory-item-quantity.command';

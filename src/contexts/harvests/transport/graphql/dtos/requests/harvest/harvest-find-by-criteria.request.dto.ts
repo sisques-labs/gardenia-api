@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { BaseFindByCriteriaInput } from '@sisques-labs/nestjs-kit';
+import { BaseFindByCriteriaInput } from '@sisques-labs/nestjs-kit/graphql';
 import { Type } from 'class-transformer';
 import { IsArray, IsOptional, ValidateNested } from 'class-validator';
 

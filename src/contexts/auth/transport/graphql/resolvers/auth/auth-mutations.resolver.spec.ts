@@ -1,5 +1,5 @@
 import { CommandBus } from '@nestjs/cqrs';
-import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit';
+import { MutationResponseGraphQLMapper } from '@sisques-labs/nestjs-kit/graphql';
 
 import { ChangePasswordCommand } from '@contexts/auth/application/commands/change-password/change-password.command';
 import { DeleteAccountCommand } from '@contexts/auth/application/commands/delete-account/delete-account.command';

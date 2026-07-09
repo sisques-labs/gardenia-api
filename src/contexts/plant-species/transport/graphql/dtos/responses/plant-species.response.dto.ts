@@ -1,4 +1,4 @@
-import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
+import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit/graphql';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 @ObjectType('PlantSpeciesResponseDto')

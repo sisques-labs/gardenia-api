@@ -13,6 +13,16 @@ function buildConfig(overrides: Partial<FilesConfig> = {}): FilesConfig {
     maxSizeBytes: 10 * 1024 * 1024,
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
     publicBaseUrl: '',
+    storageDriver: 'database',
+    s3: {
+      bucket: '',
+      region: 'us-east-1',
+      endpoint: undefined,
+      forcePathStyle: false,
+      accessKeyId: undefined,
+      secretAccessKey: undefined,
+      keyPrefix: '',
+    },
     ...overrides,
   };
 }
