@@ -2,7 +2,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 import { CurrentUserPayload } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
 import { CompleteCareScheduleCommand } from '@contexts/care-schedule/application/commands/complete-care-schedule/complete-care-schedule.command';

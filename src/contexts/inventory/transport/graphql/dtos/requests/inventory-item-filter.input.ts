@@ -1,5 +1,5 @@
 import { InputType } from '@nestjs/graphql';
-import { createFilterInput } from '@sisques-labs/nestjs-kit';
+import { createFilterInput } from '@sisques-labs/nestjs-kit/graphql';
 
 import { InventoryItemQueryableField } from '@contexts/inventory/transport/graphql/enums/inventory-item-queryable-field.enum';
 

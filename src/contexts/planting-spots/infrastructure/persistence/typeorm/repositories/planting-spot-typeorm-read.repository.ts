@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  applyCriteriaToQueryBuilder,
   BaseDatabaseRepository,
   Criteria,
   PaginatedResult,
   SortDirection,
 } from '@sisques-labs/nestjs-kit';
+import { applyCriteriaToQueryBuilder } from '@sisques-labs/nestjs-kit/typeorm';
 import { Repository } from 'typeorm';
 
 import { IPlantingSpotReadRepository } from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
