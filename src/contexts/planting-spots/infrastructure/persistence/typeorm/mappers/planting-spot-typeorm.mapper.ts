@@ -34,6 +34,7 @@ export class PlantingSpotTypeOrmMapper {
       .withSoilType(entity.soilType)
       .withStatus(entity.status)
       .withFallowSince(entity.fallowSince)
+      .withQrId(entity.qrId ?? null)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
       .withCreatedAt(entity.createdAt)
@@ -60,6 +61,7 @@ export class PlantingSpotTypeOrmMapper {
     entity.soilType = primitives.soilType;
     entity.status = primitives.status;
     entity.fallowSince = primitives.fallowSince;
+    entity.qrId = primitives.qrId;
     entity.userId = primitives.userId;
     entity.spaceId = primitives.spaceId;
     entity.createdAt = primitives.createdAt;
@@ -93,6 +95,7 @@ export class PlantingSpotTypeOrmMapper {
       .withSoilType(entity.soilType)
       .withStatus(entity.status)
       .withFallowSince(entity.fallowSince)
+      .withQrId(entity.qrId ?? null)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
       .withCreatedAt(entity.createdAt)

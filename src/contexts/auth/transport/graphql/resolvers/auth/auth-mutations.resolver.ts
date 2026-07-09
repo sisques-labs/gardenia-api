@@ -26,7 +26,7 @@ import { SkipSpace } from '../../../../../../shared/decorators/skip-space.decora
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 @Resolver()
 export class AuthMutationsResolver {

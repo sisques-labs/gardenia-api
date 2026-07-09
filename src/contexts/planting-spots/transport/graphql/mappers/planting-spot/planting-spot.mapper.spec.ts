@@ -27,6 +27,7 @@ const buildViewModel = (
     soilType: 'Loamy',
     status: 'active',
     fallowSince: null,
+    qrId: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
     createdAt: NOW,

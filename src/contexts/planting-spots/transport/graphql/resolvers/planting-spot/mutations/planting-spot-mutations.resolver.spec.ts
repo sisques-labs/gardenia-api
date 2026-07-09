@@ -16,7 +16,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 
 import { PlantingSpotMutationsResolver } from './planting-spot-mutations.resolver';

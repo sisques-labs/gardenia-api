@@ -24,7 +24,7 @@ import { SpaceContext } from '@shared/space-context/space-context.service';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 @UseGuards(JwtAuthGuard)
 @Resolver()

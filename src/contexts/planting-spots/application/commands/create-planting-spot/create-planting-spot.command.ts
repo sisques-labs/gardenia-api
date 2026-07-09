@@ -15,7 +15,7 @@ import { PlantingSpotTypeValueObject } from '@contexts/planting-spots/domain/val
 
 export type CreatePlantingSpotCommandInput = Omit<
   IPlantingSpotPrimitives,
-  'id' | 'createdAt' | 'updatedAt' | 'status' | 'fallowSince'
+  'id' | 'createdAt' | 'updatedAt' | 'status' | 'fallowSince' | 'qrId'
 >;
 
 export class CreatePlantingSpotCommand {

@@ -10,12 +10,14 @@ import { FileFindByIdQueryHandler } from '@contexts/files/application/queries/fi
 import { FileFindContentByIdQueryHandler } from '@contexts/files/application/queries/file-find-content-by-id/file-find-content-by-id.handler';
 import { AssertFileViewModelExistsService } from '@contexts/files/application/services/read/assert-file-view-model-exists/assert-file-view-model-exists.service';
 import { AssertFileExistsService } from '@contexts/files/application/services/write/assert-file-exists/assert-file-exists.service';
-import { FILE_STORAGE_PORT } from '@contexts/files/application/ports/file-storage.port';
 import { FileBuilder } from '@contexts/files/domain/builders/file.builder';
 import { FILE_READ_REPOSITORY } from '@contexts/files/domain/repositories/read/file-read.repository';
 import { FILE_WRITE_REPOSITORY } from '@contexts/files/domain/repositories/write/file-write.repository';
 import { DatabaseFileStorageAdapter } from '@contexts/files/infrastructure/adapters/database-file-storage.adapter';
+import { S3FileStorageAdapter } from '@contexts/files/infrastructure/adapters/s3-file-storage.adapter';
 import { filesConfig } from '@contexts/files/infrastructure/config/files.config';
+import { fileStorageProvider } from '@contexts/files/infrastructure/config/file-storage.provider';
+import { s3ClientProvider } from '@contexts/files/infrastructure/config/s3-client.provider';
 import { FileContentTypeOrmEntity } from '@contexts/files/infrastructure/persistence/typeorm/entities/file-content.entity';
 import { FileTypeOrmEntity } from '@contexts/files/infrastructure/persistence/typeorm/entities/file.entity';
 import { FileTypeOrmMapper } from '@contexts/files/infrastructure/persistence/typeorm/mappers/file-typeorm.mapper';
@@ -58,10 +60,13 @@ const INFRASTRUCTURE_REPOSITORIES = [
     provide: FILE_READ_REPOSITORY,
     useClass: FileTypeOrmReadRepository,
   },
-  {
-    provide: FILE_STORAGE_PORT,
-    useClass: DatabaseFileStorageAdapter,
-  },
+  fileStorageProvider,
+];
+
+const INFRASTRUCTURE_STORAGE_PROVIDERS = [
+  s3ClientProvider,
+  DatabaseFileStorageAdapter,
+  S3FileStorageAdapter,
 ];
 
 const INFRASTRUCTURE_ENTITIES = [FileTypeOrmEntity, FileContentTypeOrmEntity];
@@ -91,6 +96,7 @@ const MCP_TOOLS = [FileFindByIdMcpTool, FileListMcpTool, FileDeleteMcpTool];
     ...APPLICATION_SERVICES,
     ...INFRASTRUCTURE_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
+    ...INFRASTRUCTURE_STORAGE_PROVIDERS,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
     ...MCP_TOOLS,

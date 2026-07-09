@@ -1,5 +1,6 @@
 import { createE2EApp, E2EContext } from '../../helpers/app-bootstrap';
 import { truncateAll } from '../../helpers/db-reset';
+import { gql } from '../../helpers/graphql-client';
 
 const PASSWORD = 'SuperStr0ng!Pass';
 const EMAIL_OWNER = 'invite-owner@example.com';
@@ -78,6 +79,30 @@ describe('Space invitations (e2e)', () => {
       userId: expect.any(String),
       spaceId,
     });
+    const { userId: guestUserId } = acceptRes.body as { userId: string };
+
+    // The guest's home space is their own (from registration) — only a
+    // space_memberships row ties them to `spaceId`, so the listing must
+    // resolve via that membership, not via users.space_id.
+    const membersRes = await gql(
+      ctx.app,
+      `query {
+        usersFindByCriteria {
+          items {
+            id
+          }
+        }
+      }`,
+      {},
+      ownerToken,
+      spaceId,
+    ).expect(200);
+
+    expect(membersRes.body.errors).toBeUndefined();
+    const memberIds = (
+      membersRes.body.data.usersFindByCriteria.items as Array<{ id: string }>
+    ).map((u) => u.id);
+    expect(memberIds).toContain(guestUserId);
 
     const spacesRes = await ctx
       .http()

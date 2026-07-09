@@ -4,7 +4,7 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { AppRoleGuard } from '@contexts/auth/infrastructure/guards/app-role.guard';

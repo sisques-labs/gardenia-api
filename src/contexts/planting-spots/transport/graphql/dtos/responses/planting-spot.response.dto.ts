@@ -1,4 +1,4 @@
-import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit';
+import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit/graphql';
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 
 import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
@@ -34,6 +34,32 @@ export class PlantInSpotResponseDto {
   createdAt!: Date;
 
   @Field(() => Date, { description: 'When the plant was last updated' })
+  updatedAt!: Date;
+}
+
+@ObjectType('PlantingSpotQrResponseDto')
+export class PlantingSpotQrResponseDto {
+  @Field(() => ID, { description: 'UUID of the QR record' })
+  id!: string;
+
+  @Field(() => String, { description: 'UUID of the space' })
+  spaceId!: string;
+
+  @Field(() => String, { description: 'Deep link URL encoded in the QR' })
+  targetUrl!: string;
+
+  @Field(() => Int, {
+    description: 'Number of times the QR has been regenerated',
+  })
+  generation!: number;
+
+  @Field(() => String, { description: 'Base64-encoded PNG of the QR image' })
+  image!: string;
+
+  @Field(() => Date, { description: 'When the QR was created' })
+  createdAt!: Date;
+
+  @Field(() => Date, { description: 'When the QR was last updated' })
   updatedAt!: Date;
 }
 
@@ -93,6 +119,18 @@ export class PlantingSpotResponseDto {
     description: 'When the spot entered fallow status, if it is fallow',
   })
   fallowSince?: Date | null;
+
+  @Field(() => ID, {
+    nullable: true,
+    description: 'UUID of the linked QR code',
+  })
+  qrId?: string | null;
+
+  @Field(() => PlantingSpotQrResponseDto, {
+    nullable: true,
+    description: 'QR code associated with this planting spot',
+  })
+  qr?: PlantingSpotQrResponseDto | null;
 
   @Field(() => String, { description: 'UUID of the owner user' })
   userId!: string;

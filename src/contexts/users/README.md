@@ -6,6 +6,14 @@ The `users` context owns user profiles: display names, avatars, bios, locale, ti
 
 ---
 
+## Identity vs. Membership
+
+A `users` row is a **global** profile keyed by a stable `id` — one row per person, never duplicated per space. Its `space_id` column only records the space the user's account was originally created in (their "home" space); it is **not** the source of truth for "who belongs to this space".
+
+Space membership is modeled separately in `space_memberships` (owned by the `spaces` context): a user who joins a space via an invitation gets a `space_memberships` row in that space without ever touching their `users` row. Because of this, `UserTypeOrmReadRepository` resolves `userFindById` / `usersFindByCriteria` with an explicit `INNER JOIN space_memberships ON space_memberships.user_id = users.id`, scoped by the active `X-Space-ID`, instead of filtering `users.space_id`. This ensures invited members are visible in the space's user listings even though their `users.space_id` still points at their original space. The write repository and the `users.space_id` column itself are untouched by this — they remain relevant for account-scoped flows that run outside a space context (e.g. delete-account).
+
+---
+
 ## Conceptual Flow (for newcomers)
 
 Here is what happens when a user is created end-to-end:
