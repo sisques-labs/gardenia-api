@@ -2,15 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
 import { UpdateUserCommand } from '@contexts/users/application/commands/update-user/update-user.command';
 import { userUpdateSchema } from '../schemas/user-update.schema';
 
 @McpTool()
 @Injectable()
-export class UserUpdateMcpTool implements IMcpTool {
+export class UserUpdateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
   private readonly logger = new Logger(UserUpdateMcpTool.name);
 
   readonly name = 'user_update';
@@ -23,7 +22,7 @@ export class UserUpdateMcpTool implements IMcpTool {
 
   async execute(
     args: Record<string, unknown>,
-    context: IMcpToolContext,
+    context: IGardeniaMcpToolContext,
   ): Promise<CallToolResult> {
     const { username, firstName, lastName, avatarUrl, bio, locale, timezone } =
       args as {

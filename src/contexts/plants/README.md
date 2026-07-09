@@ -72,7 +72,7 @@ tenant-scoping proxy that `find`/`findOne`/`findAndCount` go through.
 
 ## MCP Tools
 
-Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`).
+Exposed under `transport/mcp/` for AI clients (see the `@sisques-labs/nestjs-kit/mcp` module docs).
 Each tool dispatches through the Command/Query bus; the acting user and active
 space come from the authenticated MCP request context.
 

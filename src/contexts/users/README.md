@@ -179,7 +179,7 @@ The users context has no environment variables of its own. It relies on the data
 
 ## MCP Tools
 
-Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; `user_update` targets the authenticated user.
+Exposed under `transport/mcp/` for AI clients (see the `@sisques-labs/nestjs-kit/mcp` module docs). Each tool dispatches through the Command/Query bus; `user_update` targets the authenticated user.
 
 | Tool | Action |
 |------|--------|

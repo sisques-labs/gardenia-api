@@ -411,7 +411,7 @@ E2E invitation tests use REST. GraphQL accept/create mirror the same command han
 
 ## MCP Tools
 
-Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the acting user comes from the authenticated MCP request context.
+Exposed under `transport/mcp/` for AI clients (see the `@sisques-labs/nestjs-kit/mcp` module docs). Each tool dispatches through the Command/Query bus; the acting user comes from the authenticated MCP request context.
 
 | Tool | Action |
 |------|--------|

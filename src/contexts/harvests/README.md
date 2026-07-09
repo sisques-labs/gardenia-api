@@ -283,7 +283,7 @@ Migration: `src/database/migrations/1780000000015-CreateHarvests.ts`
 
 ## MCP Tools
 
-Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the acting user and active space come from the authenticated MCP request context.
+Exposed under `transport/mcp/` for AI clients (see the `@sisques-labs/nestjs-kit/mcp` module docs). Each tool dispatches through the Command/Query bus; the acting user and active space come from the authenticated MCP request context.
 
 | Tool | Action |
 |------|--------|

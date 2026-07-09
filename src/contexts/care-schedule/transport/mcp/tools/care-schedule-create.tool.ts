@@ -2,9 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
 import { CreateCareScheduleCommand } from '@contexts/care-schedule/application/commands/create-care-schedule/create-care-schedule.command';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
 import { CareScheduleUnitEnum } from '@contexts/care-schedule/domain/enums/care-schedule-unit.enum';
@@ -12,7 +11,7 @@ import { careScheduleCreateSchema } from '../schemas/care-schedule-create.schema
 
 @McpTool()
 @Injectable()
-export class CareScheduleCreateMcpTool implements IMcpTool {
+export class CareScheduleCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
   private readonly logger = new Logger(CareScheduleCreateMcpTool.name);
 
   readonly name = 'care_schedule_create';
@@ -25,7 +24,7 @@ export class CareScheduleCreateMcpTool implements IMcpTool {
 
   async execute(
     args: Record<string, unknown>,
-    context: IMcpToolContext,
+    context: IGardeniaMcpToolContext,
   ): Promise<CallToolResult> {
     const {
       plantId,

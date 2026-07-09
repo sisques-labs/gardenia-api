@@ -2,16 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
 import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { plantingSpotUpdateSchema } from '../schemas/planting-spot-update.schema';
 
 @McpTool()
 @Injectable()
-export class PlantingSpotUpdateMcpTool implements IMcpTool {
+export class PlantingSpotUpdateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
   private readonly logger = new Logger(PlantingSpotUpdateMcpTool.name);
 
   readonly name = 'planting_spot_update';
@@ -24,7 +23,7 @@ export class PlantingSpotUpdateMcpTool implements IMcpTool {
 
   async execute(
     args: Record<string, unknown>,
-    context: IMcpToolContext,
+    context: IGardeniaMcpToolContext,
   ): Promise<CallToolResult> {
     const {
       id,

@@ -1,10 +1,10 @@
 import { CommandBus } from '@nestjs/cqrs';
 
 import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
 import { SpaceCreateMcpTool } from './space-create.tool';
 
-const CONTEXT: IMcpToolContext = {
+const CONTEXT: IGardeniaMcpToolContext = {
   userId: '33333333-3333-4333-8333-333333333333',
   email: 'gardener@example.com',
   spaceId: '44444444-4444-4444-8444-444444444444',

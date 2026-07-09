@@ -2,15 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
 import { DeletePlantCommand } from '@contexts/plants/application/commands/delete-plant/delete-plant.command';
 import { plantDeleteSchema } from '../schemas/plant-delete.schema';
 
 @McpTool()
 @Injectable()
-export class PlantDeleteMcpTool implements IMcpTool {
+export class PlantDeleteMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
   private readonly logger = new Logger(PlantDeleteMcpTool.name);
 
   readonly name = 'plant_delete';
@@ -22,7 +21,7 @@ export class PlantDeleteMcpTool implements IMcpTool {
 
   async execute(
     args: Record<string, unknown>,
-    context: IMcpToolContext,
+    context: IGardeniaMcpToolContext,
   ): Promise<CallToolResult> {
     const { id } = args as { id: string };
     this.logger.log(`Deleting plant ${id} for user: ${context.userId}`);

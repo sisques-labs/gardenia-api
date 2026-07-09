@@ -2,15 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
 import { CreatePlantCommand } from '@contexts/plants/application/commands/create-plant/create-plant.command';
 import { plantCreateSchema } from '../schemas/plant-create.schema';
 
 @McpTool()
 @Injectable()
-export class PlantCreateMcpTool implements IMcpTool {
+export class PlantCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
   private readonly logger = new Logger(PlantCreateMcpTool.name);
 
   readonly name = 'plant_create';
@@ -23,7 +22,7 @@ export class PlantCreateMcpTool implements IMcpTool {
 
   async execute(
     args: Record<string, unknown>,
-    context: IMcpToolContext,
+    context: IGardeniaMcpToolContext,
   ): Promise<CallToolResult> {
     const { name, plantSpeciesId, imageUrl } = args as {
       name: string;

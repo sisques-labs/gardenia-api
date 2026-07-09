@@ -2,15 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
 import { AcceptSpaceInvitationCommand } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.command';
 import { spaceAcceptInvitationSchema } from '../schemas/space-accept-invitation.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceAcceptInvitationMcpTool implements IMcpTool {
+export class SpaceAcceptInvitationMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
   private readonly logger = new Logger(SpaceAcceptInvitationMcpTool.name);
 
   readonly name = 'space_accept_invitation';
@@ -23,7 +22,7 @@ export class SpaceAcceptInvitationMcpTool implements IMcpTool {
 
   async execute(
     args: Record<string, unknown>,
-    context: IMcpToolContext,
+    context: IGardeniaMcpToolContext,
   ): Promise<CallToolResult> {
     const { code } = args as { code: string };
     this.logger.log(`Accepting invitation for user: ${context.userId}`);
