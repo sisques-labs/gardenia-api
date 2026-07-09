@@ -6,7 +6,7 @@ import {
   FILES_PORT,
   IFilesPort,
 } from '@contexts/plant-photos/application/ports/files.port';
-import { SyncPlantImageUrlService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url/sync-plant-image-url.service';
+import { SyncPlantImageUrlAfterUploadService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url-after-upload/sync-plant-image-url-after-upload.service';
 import { PlantPhotoAggregate } from '@contexts/plant-photos/domain/aggregates/plant-photo.aggregate';
 import { PlantPhotoBuilder } from '@contexts/plant-photos/domain/builders/plant-photo.builder';
 import {
@@ -29,7 +29,7 @@ export class UploadPlantPhotoCommandHandler
     private readonly plantPhotoWriteRepository: IPlantPhotoWriteRepository,
     @Inject(FILES_PORT)
     private readonly filesPort: IFilesPort,
-    private readonly syncPlantImageUrlService: SyncPlantImageUrlService,
+    private readonly syncPlantImageUrlAfterUploadService: SyncPlantImageUrlAfterUploadService,
     private readonly plantPhotoBuilder: PlantPhotoBuilder,
     eventBus: EventBus,
   ) {
@@ -71,11 +71,11 @@ export class UploadPlantPhotoCommandHandler
       `Plant photo uploaded: ${photoId} for plant: ${command.plantId.value} by user: ${command.userId.value}`,
     );
 
-    await this.syncPlantImageUrlService.afterUpload(
-      command.plantId.value,
-      uploadedFile.url,
-      command.userId.value,
-    );
+    await this.syncPlantImageUrlAfterUploadService.execute({
+      plantId: command.plantId.value,
+      url: uploadedFile.url,
+      requestingUserId: command.userId.value,
+    });
 
     return {
       id: photoId,

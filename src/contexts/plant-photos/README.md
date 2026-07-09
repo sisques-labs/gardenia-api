@@ -62,18 +62,20 @@ photo upload — the `PlantPhoto` record itself is the actual source of truth
 for history; `plants.imageUrl` is a convenience mirror for UI that hasn't
 adopted a gallery view yet.
 
-**Delete resync:** on delete, `SyncPlantImageUrlService.afterDelete()` checks
-whether the deleted photo's `url` matches the plant's current `imageUrl` (via
-`getImageUrl`); if so, it queries the next most recent remaining photo
-(`plantId` filter, `createdAt` DESC, 1 item) and resyncs `imageUrl` to it, or
-to `null` if none remain.
+**Delete resync:** on delete, `SyncPlantImageUrlAfterDeleteService.execute()`
+checks whether the deleted photo's `url` matches the plant's current
+`imageUrl` (via `getImageUrl`); if so, it queries the next most recent
+remaining photo (`plantId` filter, `createdAt` DESC, 1 item) and resyncs
+`imageUrl` to it, or to `null` if none remain.
 
-Both the upload-time sync and the delete-time resync live in one shared
-application service — `SyncPlantImageUrlService`
-(`application/services/write/sync-plant-image-url/`) — used by both
-`UploadPlantPhotoCommandHandler` (`afterUpload`) and
-`DeletePlantPhotoCommandHandler` (`afterDelete`), instead of being duplicated
-inline in each handler.
+The upload-time sync and the delete-time resync each live in their own
+`IBaseService` application service —
+`SyncPlantImageUrlAfterUploadService`
+(`application/services/write/sync-plant-image-url-after-upload/`), used by
+`UploadPlantPhotoCommandHandler`, and `SyncPlantImageUrlAfterDeleteService`
+(`application/services/write/sync-plant-image-url-after-delete/`), used by
+`DeletePlantPhotoCommandHandler` — instead of being duplicated inline in
+each handler.
 
 **Ownership check:** `AssertPlantPhotoOwnershipService`
 (`application/services/write/assert-plant-photo-ownership/`) throws

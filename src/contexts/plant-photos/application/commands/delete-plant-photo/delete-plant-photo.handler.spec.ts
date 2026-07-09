@@ -4,7 +4,7 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { IFilesPort } from '@contexts/plant-photos/application/ports/files.port';
 import { AssertPlantPhotoExistsService } from '@contexts/plant-photos/application/services/write/assert-plant-photo-exists/assert-plant-photo-exists.service';
 import { AssertPlantPhotoOwnershipService } from '@contexts/plant-photos/application/services/write/assert-plant-photo-ownership/assert-plant-photo-ownership.service';
-import { SyncPlantImageUrlService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url/sync-plant-image-url.service';
+import { SyncPlantImageUrlAfterDeleteService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url-after-delete/sync-plant-image-url-after-delete.service';
 import { PlantPhotoAggregate } from '@contexts/plant-photos/domain/aggregates/plant-photo.aggregate';
 import { PlantPhotoForbiddenException } from '@contexts/plant-photos/domain/exceptions/plant-photo-forbidden.exception';
 import { IPlantPhotoWriteRepository } from '@contexts/plant-photos/domain/repositories/write/plant-photo-write.repository';
@@ -39,7 +39,7 @@ describe('DeletePlantPhotoCommandHandler', () => {
   let filesPort: jest.Mocked<IFilesPort>;
   let assertExistsService: jest.Mocked<AssertPlantPhotoExistsService>;
   let assertOwnershipService: jest.Mocked<AssertPlantPhotoOwnershipService>;
-  let syncPlantImageUrlService: jest.Mocked<SyncPlantImageUrlService>;
+  let syncPlantImageUrlAfterDeleteService: jest.Mocked<SyncPlantImageUrlAfterDeleteService>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -63,10 +63,9 @@ describe('DeletePlantPhotoCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertPlantPhotoOwnershipService>;
 
-    syncPlantImageUrlService = {
-      afterUpload: jest.fn(),
-      afterDelete: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<SyncPlantImageUrlService>;
+    syncPlantImageUrlAfterDeleteService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<SyncPlantImageUrlAfterDeleteService>;
 
     eventBus = {
       publish: jest.fn(),
@@ -78,12 +77,12 @@ describe('DeletePlantPhotoCommandHandler', () => {
       filesPort,
       assertExistsService,
       assertOwnershipService,
-      syncPlantImageUrlService,
+      syncPlantImageUrlAfterDeleteService,
       eventBus,
     );
   });
 
-  it('deletes the file, the record, and resyncs via SyncPlantImageUrlService', async () => {
+  it('deletes the file, the record, and resyncs via SyncPlantImageUrlAfterDeleteService', async () => {
     const photo = buildPhoto();
     assertExistsService.execute.mockResolvedValue(photo);
 
@@ -97,7 +96,9 @@ describe('DeletePlantPhotoCommandHandler', () => {
     );
     expect(filesPort.deleteFile).toHaveBeenCalledWith(FILE_ID);
     expect(writeRepository.delete).toHaveBeenCalledWith(PHOTO_ID);
-    expect(syncPlantImageUrlService.afterDelete).toHaveBeenCalledWith(photo);
+    expect(syncPlantImageUrlAfterDeleteService.execute).toHaveBeenCalledWith(
+      photo,
+    );
   });
 
   it('propagates PlantPhotoForbiddenException from the ownership service and does not delete', async () => {

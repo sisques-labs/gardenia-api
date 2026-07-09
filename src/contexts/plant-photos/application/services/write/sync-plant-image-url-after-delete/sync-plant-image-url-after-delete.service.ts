@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   Criteria,
   FilterOperator,
+  IBaseService,
   SortDirection,
 } from '@sisques-labs/nestjs-kit';
 
@@ -16,15 +17,19 @@ import {
 } from '@contexts/plant-photos/domain/repositories/read/plant-photo-read.repository';
 
 /**
- * Keeps `plants.imageUrl` mirroring the plant's most recent photo. Both
- * operations are best-effort: a dangling `plantId` or a `plants` outage must
- * not fail an otherwise-successful upload/delete — the `PlantPhoto` record
- * itself is the source of truth for history, this is only a convenience
- * mirror for UI that hasn't adopted a gallery view yet.
+ * Best-effort: a dangling `plantId` or a `plants` outage must not fail an
+ * otherwise-successful delete — the `PlantPhoto` record itself is the source
+ * of truth for history, this is only a convenience mirror for UI that hasn't
+ * adopted a gallery view yet.
  */
 @Injectable()
-export class SyncPlantImageUrlService {
-  private readonly logger = new Logger(SyncPlantImageUrlService.name);
+export class SyncPlantImageUrlAfterDeleteService implements IBaseService<
+  PlantPhotoAggregate,
+  void
+> {
+  private readonly logger = new Logger(
+    SyncPlantImageUrlAfterDeleteService.name,
+  );
 
   constructor(
     @Inject(PLANTS_PORT)
@@ -33,23 +38,7 @@ export class SyncPlantImageUrlService {
     private readonly plantPhotoReadRepository: IPlantPhotoReadRepository,
   ) {}
 
-  async afterUpload(
-    plantId: string,
-    url: string,
-    requestingUserId: string,
-  ): Promise<void> {
-    await this.plantsPort
-      .updateImageUrl(plantId, url, requestingUserId)
-      .catch((error: unknown) => {
-        this.logger.warn(
-          `Failed to sync plants.imageUrl for plant ${plantId}: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        );
-      });
-  }
-
-  async afterDelete(deletedPhoto: PlantPhotoAggregate): Promise<void> {
+  async execute(deletedPhoto: PlantPhotoAggregate): Promise<void> {
     try {
       const currentImageUrl = await this.plantsPort.getImageUrl(
         deletedPhoto.plantId.value,

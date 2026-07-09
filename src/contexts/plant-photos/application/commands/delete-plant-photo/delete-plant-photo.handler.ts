@@ -8,7 +8,7 @@ import {
 } from '@contexts/plant-photos/application/ports/files.port';
 import { AssertPlantPhotoExistsService } from '@contexts/plant-photos/application/services/write/assert-plant-photo-exists/assert-plant-photo-exists.service';
 import { AssertPlantPhotoOwnershipService } from '@contexts/plant-photos/application/services/write/assert-plant-photo-ownership/assert-plant-photo-ownership.service';
-import { SyncPlantImageUrlService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url/sync-plant-image-url.service';
+import { SyncPlantImageUrlAfterDeleteService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url-after-delete/sync-plant-image-url-after-delete.service';
 import { PlantPhotoAggregate } from '@contexts/plant-photos/domain/aggregates/plant-photo.aggregate';
 import {
   PLANT_PHOTO_WRITE_REPOSITORY,
@@ -31,7 +31,7 @@ export class DeletePlantPhotoCommandHandler
     private readonly filesPort: IFilesPort,
     private readonly assertPlantPhotoExistsService: AssertPlantPhotoExistsService,
     private readonly assertPlantPhotoOwnershipService: AssertPlantPhotoOwnershipService,
-    private readonly syncPlantImageUrlService: SyncPlantImageUrlService,
+    private readonly syncPlantImageUrlAfterDeleteService: SyncPlantImageUrlAfterDeleteService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -53,6 +53,6 @@ export class DeletePlantPhotoCommandHandler
 
     this.logger.log(`Plant photo deleted: ${command.id.value}`);
 
-    await this.syncPlantImageUrlService.afterDelete(photo);
+    await this.syncPlantImageUrlAfterDeleteService.execute(photo);
   }
 }

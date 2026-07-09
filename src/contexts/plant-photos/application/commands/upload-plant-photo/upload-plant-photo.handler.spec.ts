@@ -1,7 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 
 import { IFilesPort } from '@contexts/plant-photos/application/ports/files.port';
-import { SyncPlantImageUrlService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url/sync-plant-image-url.service';
+import { SyncPlantImageUrlAfterUploadService } from '@contexts/plant-photos/application/services/write/sync-plant-image-url-after-upload/sync-plant-image-url-after-upload.service';
 import { PlantPhotoBuilder } from '@contexts/plant-photos/domain/builders/plant-photo.builder';
 import { IPlantPhotoWriteRepository } from '@contexts/plant-photos/domain/repositories/write/plant-photo-write.repository';
 import { UploadPlantPhotoCommand } from './upload-plant-photo.command';
@@ -17,7 +17,7 @@ describe('UploadPlantPhotoCommandHandler', () => {
   let handler: UploadPlantPhotoCommandHandler;
   let mockWriteRepo: jest.Mocked<IPlantPhotoWriteRepository>;
   let mockFilesPort: jest.Mocked<IFilesPort>;
-  let mockSyncPlantImageUrlService: jest.Mocked<SyncPlantImageUrlService>;
+  let mockSyncPlantImageUrlAfterUploadService: jest.Mocked<SyncPlantImageUrlAfterUploadService>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   function buildCommand(): UploadPlantPhotoCommand {
@@ -45,10 +45,9 @@ describe('UploadPlantPhotoCommandHandler', () => {
       deleteFile: jest.fn(),
     };
 
-    mockSyncPlantImageUrlService = {
-      afterUpload: jest.fn().mockResolvedValue(undefined),
-      afterDelete: jest.fn(),
-    } as unknown as jest.Mocked<SyncPlantImageUrlService>;
+    mockSyncPlantImageUrlAfterUploadService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<SyncPlantImageUrlAfterUploadService>;
 
     mockEventBus = {
       publish: jest.fn(),
@@ -58,7 +57,7 @@ describe('UploadPlantPhotoCommandHandler', () => {
     handler = new UploadPlantPhotoCommandHandler(
       mockWriteRepo,
       mockFilesPort,
-      mockSyncPlantImageUrlService,
+      mockSyncPlantImageUrlAfterUploadService,
       new PlantPhotoBuilder(),
       mockEventBus,
     );
@@ -80,14 +79,16 @@ describe('UploadPlantPhotoCommandHandler', () => {
     expect(result.id).toHaveLength(36);
   });
 
-  it('syncs plants.imageUrl to the new photo url via SyncPlantImageUrlService', async () => {
+  it('syncs plants.imageUrl to the new photo url via SyncPlantImageUrlAfterUploadService', async () => {
     await handler.execute(buildCommand());
 
-    expect(mockSyncPlantImageUrlService.afterUpload).toHaveBeenCalledWith(
-      PLANT_ID,
-      FILE_URL,
-      USER_ID,
-    );
+    expect(
+      mockSyncPlantImageUrlAfterUploadService.execute,
+    ).toHaveBeenCalledWith({
+      plantId: PLANT_ID,
+      url: FILE_URL,
+      requestingUserId: USER_ID,
+    });
   });
 
   it('propagates the error and never saves when the files port rejects', async () => {
