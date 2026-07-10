@@ -1,4 +1,4 @@
-import { IMcpToolContext as IBaseMcpToolContext } from '@sisques-labs/nestjs-kit/mcp';
+import { IBaseMcpToolContext } from '@sisques-labs/nestjs-kit/mcp';
 
 /**
  * gardenia-api's MCP tool context: the authenticated user and their active
