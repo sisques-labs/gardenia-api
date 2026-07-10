@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.0] - 2026-07-10
+
+### Documentation
+- **openspec:** Propose gbif-species-search change (GDN-35) (b7d1a82)
+- **openspec:** Revise gbif-species-search to keep plant-species trimmed (e10cf93)
+
+### Features
+- **plant-species:** Trim catalog to gbifKey+scientificName, add live GBIF search (0381db1)
 ## [0.26.1] - 2026-07-10
 
 ### Chore
