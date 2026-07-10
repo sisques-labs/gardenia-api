@@ -2,9 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { UpdateCareLogEntryCommand } from '@contexts/care-log/application/commands/update-care-log-entry/update-care-log-entry.command';
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
 import { CareLogUnitEnum } from '@contexts/care-log/domain/enums/care-log-unit.enum';
@@ -12,7 +11,7 @@ import { careLogUpdateSchema } from '../schemas/care-log-update.schema';
 
 @McpTool()
 @Injectable()
-export class CareLogUpdateMcpTool implements IMcpTool {
+export class CareLogUpdateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(CareLogUpdateMcpTool.name);
 
   readonly name = 'care_log_update';

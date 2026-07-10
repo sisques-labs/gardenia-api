@@ -2,8 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
 import { SpaceFindByIdQuery } from '@contexts/spaces/application/queries/space-find-by-id/space-find-by-id.query';
 import { spaceFindByIdSchema } from '../schemas/space-find-by-id.schema';
 

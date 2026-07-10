@@ -3,8 +3,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { Criteria } from '@sisques-labs/nestjs-kit';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
 import { HarvestFindByCriteriaQuery } from '@contexts/harvests/application/queries/harvest-find-by-criteria/harvest-find-by-criteria.query';
 import { harvestFindByCriteriaSchema } from '../schemas/harvest-find-by-criteria.schema';
 

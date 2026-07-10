@@ -2,15 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { MarkPlantingSpotActiveCommand } from '@contexts/planting-spots/application/commands/mark-planting-spot-active/mark-planting-spot-active.command';
 import { plantingSpotMarkActiveSchema } from '../schemas/planting-spot-mark-active.schema';
 
 @McpTool()
 @Injectable()
-export class PlantingSpotMarkActiveMcpTool implements IMcpTool {
+export class PlantingSpotMarkActiveMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(PlantingSpotMarkActiveMcpTool.name);
 
   readonly name = 'planting_spot_mark_active';

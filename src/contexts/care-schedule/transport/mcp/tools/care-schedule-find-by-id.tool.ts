@@ -2,8 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
 import { CareScheduleFindByIdQuery } from '@contexts/care-schedule/application/queries/care-schedule-find-by-id/care-schedule-find-by-id.query';
 import { careScheduleFindByIdSchema } from '../schemas/care-schedule-find-by-id.schema';
 
