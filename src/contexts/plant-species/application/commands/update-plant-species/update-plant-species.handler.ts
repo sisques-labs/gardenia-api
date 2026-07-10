@@ -8,7 +8,7 @@ import {
   PLANT_SPECIES_WRITE_REPOSITORY,
 } from '@contexts/plant-species/domain/repositories/write/plant-species-write.repository';
 import { AssertPlantSpeciesExistsService } from '@contexts/plant-species/application/services/write/assert-plant-species-exists/assert-plant-species-exists.service';
-import { AssertPlantSpeciesNameAvailableService } from '@contexts/plant-species/application/services/write/assert-plant-species-name-available/assert-plant-species-name-available.service';
+import { AssertPlantSpeciesGbifKeyAvailableService } from '@contexts/plant-species/application/services/write/assert-plant-species-gbif-key-available/assert-plant-species-gbif-key-available.service';
 
 import { UpdatePlantSpeciesCommand } from './update-plant-species.command';
 
@@ -23,7 +23,7 @@ export class UpdatePlantSpeciesCommandHandler
     @Inject(PLANT_SPECIES_WRITE_REPOSITORY)
     private readonly plantSpeciesWriteRepository: IPlantSpeciesWriteRepository,
     private readonly assertPlantSpeciesExistsService: AssertPlantSpeciesExistsService,
-    private readonly assertPlantSpeciesNameAvailableService: AssertPlantSpeciesNameAvailableService,
+    private readonly assertPlantSpeciesGbifKeyAvailableService: AssertPlantSpeciesGbifKeyAvailableService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -34,17 +34,16 @@ export class UpdatePlantSpeciesCommandHandler
       command.id,
     );
 
-    if (command.scientificName) {
-      await this.assertPlantSpeciesNameAvailableService.execute(
-        command.scientificName,
+    if (command.gbifKey) {
+      await this.assertPlantSpeciesGbifKeyAvailableService.execute(
+        command.gbifKey,
         command.id.value,
       );
     }
 
     plantSpecies.update({
       scientificName: command.scientificName,
-      description: command.description,
-      imageUrl: command.imageUrl,
+      gbifKey: command.gbifKey,
     });
 
     await this.plantSpeciesWriteRepository.save(plantSpecies);

@@ -92,17 +92,11 @@ export class PlantLinkedSpeciesResponseDto {
   @Field(() => String, { description: 'Scientific name of the species' })
   scientificName!: string;
 
-  @Field(() => String, {
+  @Field(() => Int, {
     nullable: true,
-    description: 'General description of the species',
+    description: "GBIF's numeric usageKey identifying the species",
   })
-  description!: string | null;
-
-  @Field(() => String, {
-    nullable: true,
-    description: 'Representative image URL of the species',
-  })
-  imageUrl!: string | null;
+  gbifKey!: number | null;
 
   @Field(() => Date, { description: 'When the catalog entry was created' })
   createdAt!: Date;

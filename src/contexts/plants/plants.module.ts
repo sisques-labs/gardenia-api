@@ -21,7 +21,6 @@ import { EnrichPlantWithQrService } from './application/services/read/enrich-pla
 import { EnrichPlantWithSpeciesService } from './application/services/read/enrich-plant-with-species/enrich-plant-with-species.service';
 import { PlantQrTargetUrlBuilderService } from './application/services/read/plant-qr-target-url-builder/plant-qr-target-url-builder.service';
 import { AssertPlantExistsService } from './application/services/write/assert-plant-exists/assert-plant-exists.service';
-import { AssertPlantLinkedSpeciesExistsService } from './application/services/write/assert-plant-linked-species-exists/assert-plant-linked-species-exists.service';
 import { AssertPlantPlantingSpotExistsService } from './application/services/write/assert-plant-planting-spot-exists/assert-plant-planting-spot-exists.service';
 import { PlantPlantingSpotBuilder } from './domain/builders/plant-planting-spot.builder';
 import { PlantQrBuilder } from './domain/builders/plant-qr.builder';
@@ -67,7 +66,6 @@ const APPLICATION_SERVICES = [
   EnrichPlantWithSpeciesService,
   EnrichPlantWithQrService,
   PlantQrTargetUrlBuilderService,
-  AssertPlantLinkedSpeciesExistsService,
   AssertPlantPlantingSpotExistsService,
 ];
 

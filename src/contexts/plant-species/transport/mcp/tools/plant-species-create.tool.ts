@@ -19,11 +19,14 @@ export class PlantSpeciesCreateMcpTool implements IMcpTool {
   constructor(private readonly commandBus: CommandBus) {}
 
   async execute(args: Record<string, unknown>): Promise<CallToolResult> {
-    const { scientificName } = args as { scientificName: string };
+    const { scientificName, gbifKey } = args as {
+      scientificName: string;
+      gbifKey: number;
+    };
     this.logger.log(`Creating plant species: ${scientificName}`);
 
     const id = await this.commandBus.execute<CreatePlantSpeciesCommand, string>(
-      new CreatePlantSpeciesCommand({ scientificName }),
+      new CreatePlantSpeciesCommand({ scientificName, gbifKey }),
     );
 
     return {

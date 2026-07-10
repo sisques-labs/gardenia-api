@@ -1,13 +1,11 @@
-import { PlantSpeciesDescriptionValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-description/plant-species-description.value-object';
+import { PlantSpeciesGbifKeyValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-gbif-key/plant-species-gbif-key.value-object';
 import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
-import { PlantSpeciesImageUrlValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-image-url/plant-species-image-url.value-object';
 import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 
 export interface UpdatePlantSpeciesCommandInput {
   id: string;
   scientificName?: string;
-  description?: string | null;
-  imageUrl?: string | null;
+  gbifKey?: number | null;
 }
 
 export class UpdatePlantSpeciesCommand {
@@ -15,27 +13,17 @@ export class UpdatePlantSpeciesCommand {
   public readonly scientificName:
     | PlantSpeciesScientificNameValueObject
     | undefined;
-  public readonly description:
-    | PlantSpeciesDescriptionValueObject
-    | null
-    | undefined;
-  public readonly imageUrl: PlantSpeciesImageUrlValueObject | null | undefined;
+  public readonly gbifKey: PlantSpeciesGbifKeyValueObject | null | undefined;
 
   constructor(input: UpdatePlantSpeciesCommandInput) {
     this.id = new PlantSpeciesIdValueObject(input.id);
     this.scientificName = input.scientificName
       ? new PlantSpeciesScientificNameValueObject(input.scientificName)
       : undefined;
-    this.description =
-      input.description !== undefined
-        ? input.description != null
-          ? new PlantSpeciesDescriptionValueObject(input.description)
-          : null
-        : undefined;
-    this.imageUrl =
-      input.imageUrl !== undefined
-        ? input.imageUrl != null
-          ? new PlantSpeciesImageUrlValueObject(input.imageUrl)
+    this.gbifKey =
+      input.gbifKey !== undefined
+        ? input.gbifKey != null
+          ? new PlantSpeciesGbifKeyValueObject(input.gbifKey)
           : null
         : undefined;
   }

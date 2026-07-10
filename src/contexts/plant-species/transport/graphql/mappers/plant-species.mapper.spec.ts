@@ -12,8 +12,7 @@ const buildViewModel = (
   new PlantSpeciesViewModel({
     id: ID,
     scientificName: 'Monstera deliciosa',
-    description: 'A tropical plant',
-    imageUrl: 'https://example.com/m.png',
+    gbifKey: 2882337,
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
@@ -31,17 +30,15 @@ describe('PlantSpeciesGraphQLMapper', () => {
 
     expect(dto.id).toBe(ID);
     expect(dto.scientificName).toBe('Monstera deliciosa');
-    expect(dto.description).toBe('A tropical plant');
-    expect(dto.imageUrl).toBe('https://example.com/m.png');
+    expect(dto.gbifKey).toBe(2882337);
   });
 
-  it('maps null optional fields', () => {
+  it('maps a null gbifKey', () => {
     const dto = mapper.toResponseDtoFromViewModel(
-      buildViewModel({ description: null, imageUrl: null }),
+      buildViewModel({ gbifKey: null }),
     );
 
-    expect(dto.description).toBeNull();
-    expect(dto.imageUrl).toBeNull();
+    expect(dto.gbifKey).toBeNull();
   });
 
   describe('toPaginatedResponseDto()', () => {
@@ -53,6 +50,20 @@ describe('PlantSpeciesGraphQLMapper', () => {
       expect(dto.items).toHaveLength(1);
       expect(dto.items[0].id).toBe(ID);
       expect(dto.total).toBe(1);
+    });
+  });
+
+  describe('toSuggestionResponseDto()', () => {
+    it('maps a gbif suggestion', () => {
+      const dto = mapper.toSuggestionResponseDto({
+        gbifKey: 2882337,
+        scientificName: 'Monstera deliciosa',
+      });
+
+      expect(dto).toEqual({
+        gbifKey: 2882337,
+        scientificName: 'Monstera deliciosa',
+      });
     });
   });
 });

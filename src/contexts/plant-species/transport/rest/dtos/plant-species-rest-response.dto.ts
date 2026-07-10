@@ -9,23 +9,16 @@ export class PlantSpeciesRestResponseDto {
 
   @ApiProperty({
     example: 'Monstera deliciosa',
-    description: 'Globally unique species scientific name',
+    description: 'Species scientific name',
   })
   scientificName!: string;
 
   @ApiPropertyOptional({
-    example: 'A tropical flowering plant species.',
-    description: 'Species description',
+    example: 2882337,
+    description: "GBIF's numeric usageKey identifying the species",
     nullable: true,
   })
-  description!: string | null;
-
-  @ApiPropertyOptional({
-    example: 'https://example.com/monstera.jpg',
-    description: 'Species image URL',
-    nullable: true,
-  })
-  imageUrl!: string | null;
+  gbifKey!: number | null;
 
   @ApiProperty({ description: 'When the catalog entry was created' })
   createdAt!: Date;

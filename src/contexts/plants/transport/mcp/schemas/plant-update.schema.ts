@@ -4,12 +4,23 @@ import { z } from 'zod';
 export const plantUpdateSchema = {
   id: z.string().uuid().describe('The id of the plant to update'),
   name: z.string().min(1).optional().describe('New display name'),
-  plantSpeciesId: z
-    .string()
-    .uuid()
+  gbifSpeciesKey: z
+    .number()
+    .int()
+    .positive()
     .nullable()
     .optional()
-    .describe('New linked species id, or null to unlink'),
+    .describe(
+      'New GBIF usageKey of the species to link (from a live search result), or null to unlink',
+    ),
+  speciesScientificName: z
+    .string()
+    .min(1)
+    .nullable()
+    .optional()
+    .describe(
+      'New scientific name of the species to link, as chosen from a live search result, or null to unlink',
+    ),
   imageUrl: z
     .string()
     .url()

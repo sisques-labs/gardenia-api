@@ -64,7 +64,8 @@ export class PlantsController {
     const plantId = await this.commandBus.execute<CreatePlantCommand, string>(
       new CreatePlantCommand({
         name: dto.name,
-        plantSpeciesId: dto.plantSpeciesId,
+        gbifSpeciesKey: dto.gbifSpeciesKey,
+        speciesScientificName: dto.speciesScientificName,
         imageUrl: dto.imageUrl,
         userId: user.userId,
       }),
@@ -140,7 +141,8 @@ export class PlantsController {
       new UpdatePlantCommand({
         plantId: id,
         name: dto.name,
-        plantSpeciesId: dto.plantSpeciesId,
+        gbifSpeciesKey: dto.gbifSpeciesKey,
+        speciesScientificName: dto.speciesScientificName,
         imageUrl: dto.imageUrl,
         plantingSpotId: dto.plantingSpotId,
         requestingUserId: user.userId,

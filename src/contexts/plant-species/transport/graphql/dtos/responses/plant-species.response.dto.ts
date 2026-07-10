@@ -1,5 +1,5 @@
 import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit/graphql';
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType('PlantSpeciesResponseDto')
 export class PlantSpeciesResponseDto {
@@ -7,21 +7,15 @@ export class PlantSpeciesResponseDto {
   id!: string;
 
   @Field(() => String, {
-    description: 'Globally unique species scientific name',
+    description: 'Species scientific name',
   })
   scientificName!: string;
 
-  @Field(() => String, {
+  @Field(() => Int, {
     nullable: true,
-    description: 'Species description',
+    description: "GBIF's numeric usageKey identifying the species",
   })
-  description!: string | null;
-
-  @Field(() => String, {
-    nullable: true,
-    description: 'Species image URL',
-  })
-  imageUrl!: string | null;
+  gbifKey!: number | null;
 
   @Field(() => Date, { description: 'When the catalog entry was created' })
   createdAt!: Date;

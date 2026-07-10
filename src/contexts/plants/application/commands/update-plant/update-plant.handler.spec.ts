@@ -1,6 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { IPlantSpeciesPort } from '@contexts/plants/application/ports/plant-species.port';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
 import { PlantPlantingSpotNotFoundException } from '@contexts/plants/domain/exceptions/plant-planting-spot-not-found.exception';
@@ -38,6 +39,7 @@ describe('UpdatePlantCommandHandler', () => {
   let writeRepository: jest.Mocked<IPlantWriteRepository>;
   let assertPlantExistsService: jest.Mocked<AssertPlantExistsService>;
   let assertPlantPlantingSpotExistsService: jest.Mocked<AssertPlantPlantingSpotExistsService>;
+  let plantSpeciesPort: jest.Mocked<IPlantSpeciesPort>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -59,9 +61,10 @@ describe('UpdatePlantCommandHandler', () => {
       publishAll: jest.fn(),
     } as unknown as jest.Mocked<EventBus>;
 
-    const assertPlantLinkedSpeciesExistsService = {
-      execute: jest.fn().mockResolvedValue(undefined),
-    };
+    plantSpeciesPort = {
+      findByPlantSpeciesId: jest.fn(),
+      findOrCreateByGbifKey: jest.fn(),
+    } as jest.Mocked<IPlantSpeciesPort>;
 
     assertPlantPlantingSpotExistsService = {
       execute: jest.fn().mockResolvedValue(undefined),
@@ -70,7 +73,7 @@ describe('UpdatePlantCommandHandler', () => {
     handler = new UpdatePlantCommandHandler(
       writeRepository,
       assertPlantExistsService,
-      assertPlantLinkedSpeciesExistsService as never,
+      plantSpeciesPort,
       assertPlantPlantingSpotExistsService,
       eventBus,
     );
@@ -187,6 +190,67 @@ describe('UpdatePlantCommandHandler', () => {
         assertPlantPlantingSpotExistsService.execute,
       ).not.toHaveBeenCalled();
       expect(aggregate.plantingSpotId).toBeNull();
+    });
+  });
+
+  describe('linking a species via gbifSpeciesKey', () => {
+    const SPECIES_ID = '550e8400-e29b-41d4-a716-446655440004';
+
+    it('resolves the species via findOrCreateByGbifKey and links it', async () => {
+      const aggregate = buildAggregate();
+      assertPlantExistsService.execute.mockResolvedValue(aggregate);
+      plantSpeciesPort.findOrCreateByGbifKey.mockResolvedValue({
+        id: SPECIES_ID,
+      });
+
+      const command = new UpdatePlantCommand({
+        plantId: PLANT_ID,
+        gbifSpeciesKey: 2882337,
+        speciesScientificName: 'Monstera deliciosa',
+        requestingUserId: OWNER_ID,
+      });
+
+      await handler.execute(command);
+
+      expect(plantSpeciesPort.findOrCreateByGbifKey).toHaveBeenCalledWith(
+        2882337,
+        'Monstera deliciosa',
+      );
+      expect(aggregate.plantSpeciesId?.value).toBe(SPECIES_ID);
+      expect(writeRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('unlinks the species when gbifSpeciesKey is null without calling the port', async () => {
+      const aggregate = buildAggregate();
+      assertPlantExistsService.execute.mockResolvedValue(aggregate);
+
+      const command = new UpdatePlantCommand({
+        plantId: PLANT_ID,
+        gbifSpeciesKey: null,
+        speciesScientificName: null,
+        requestingUserId: OWNER_ID,
+      });
+
+      await handler.execute(command);
+
+      expect(plantSpeciesPort.findOrCreateByGbifKey).not.toHaveBeenCalled();
+      expect(aggregate.plantSpeciesId).toBeNull();
+    });
+
+    it('leaves plantSpeciesId untouched when species fields are omitted', async () => {
+      const aggregate = buildAggregate();
+      assertPlantExistsService.execute.mockResolvedValue(aggregate);
+
+      const command = new UpdatePlantCommand({
+        plantId: PLANT_ID,
+        name: 'Tulip',
+        requestingUserId: OWNER_ID,
+      });
+
+      await handler.execute(command);
+
+      expect(plantSpeciesPort.findOrCreateByGbifKey).not.toHaveBeenCalled();
+      expect(aggregate.plantSpeciesId).toBeNull();
     });
   });
 });
