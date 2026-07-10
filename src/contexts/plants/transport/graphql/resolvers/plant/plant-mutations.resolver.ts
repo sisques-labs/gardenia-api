@@ -38,7 +38,8 @@ export class PlantMutationsResolver {
     const plantId = await this.commandBus.execute<CreatePlantCommand, string>(
       new CreatePlantCommand({
         name: input.name,
-        plantSpeciesId: input.plantSpeciesId ?? undefined,
+        gbifSpeciesKey: input.gbifSpeciesKey,
+        speciesScientificName: input.speciesScientificName,
         imageUrl: input.imageUrl ?? undefined,
         userId: user.userId,
       }),
@@ -62,7 +63,8 @@ export class PlantMutationsResolver {
       new UpdatePlantCommand({
         plantId: input.id,
         name: input.name,
-        plantSpeciesId: input.plantSpeciesId ?? undefined,
+        gbifSpeciesKey: input.gbifSpeciesKey,
+        speciesScientificName: input.speciesScientificName,
         imageUrl: input.imageUrl ?? undefined,
         plantingSpotId: input.plantingSpotId,
         requestingUserId: user.userId,

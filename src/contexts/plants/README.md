@@ -15,6 +15,16 @@ history references. Follows the project's DDD + CQRS + Hexagonal layering
 | `DeletePlantCommand` | Delete a plant |
 | `SetPlantQrIdCommand` | Link a QR code to a plant (internal) |
 
+`plantSpeciesId` (the FK into the `plant-species` catalog) is still the
+aggregate/persisted field, but clients no longer supply it directly:
+`CreatePlantCommand`/`UpdatePlantCommand` accept `gbifSpeciesKey` +
+`speciesScientificName` instead — whatever a client picked from the
+`plant-species` context's live `gbifSpeciesSearch` query. The handler
+resolves that pair to a catalog id via
+`IPlantSpeciesPort.findOrCreateByGbifKey` (creating the catalog row on first
+use, reusing it otherwise) before persisting. Passing both fields as `null`
+on update unlinks the species; omitting them leaves the link unchanged.
+
 ### Queries
 
 | Query | Purpose |

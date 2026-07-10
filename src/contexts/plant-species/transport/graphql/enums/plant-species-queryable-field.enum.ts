@@ -10,8 +10,7 @@
 export enum PlantSpeciesQueryableField {
   ID = 'id',
   SCIENTIFIC_NAME = 'scientificName',
-  DESCRIPTION = 'description',
-  IMAGE_URL = 'imageUrl',
+  GBIF_KEY = 'gbifKey',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
 }

@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -26,8 +27,10 @@ import { RequireAppRole } from '@shared/decorators/require-app-role.decorator';
 import { CreatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/create-plant-species/create-plant-species.command';
 import { DeletePlantSpeciesCommand } from '@contexts/plant-species/application/commands/delete-plant-species/delete-plant-species.command';
 import { UpdatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/update-plant-species/update-plant-species.command';
+import { GbifSpeciesSuggestion } from '@contexts/plant-species/application/ports/gbif-species-search.port';
 import { PlantSpeciesFindByCriteriaQuery } from '@contexts/plant-species/application/queries/plant-species-find-by-criteria/plant-species-find-by-criteria.query';
 import { PlantSpeciesFindByIdQuery } from '@contexts/plant-species/application/queries/plant-species-find-by-id/plant-species-find-by-id.query';
+import { GbifSpeciesSearchQuery } from '@contexts/plant-species/application/queries/gbif-species-search/gbif-species-search.query';
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 import { SkipSpace } from '@shared/decorators/skip-space.decorator';
 
@@ -67,7 +70,12 @@ export class PlantSpeciesController {
     const plantSpeciesId = await this.commandBus.execute<
       CreatePlantSpeciesCommand,
       string
-    >(new CreatePlantSpeciesCommand({ scientificName: dto.scientificName }));
+    >(
+      new CreatePlantSpeciesCommand({
+        scientificName: dto.scientificName,
+        gbifKey: dto.gbifKey,
+      }),
+    );
 
     const vm = await this.queryBus.execute<
       PlantSpeciesFindByIdQuery,
@@ -103,6 +111,29 @@ export class PlantSpeciesController {
       result.total,
       result.page,
       result.perPage,
+    );
+  }
+
+  @Get('search')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Live-search GBIF species by name (autocomplete)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns live GBIF species suggestions; never persisted',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async searchGbifSpecies(
+    @Query('name') name: string,
+    @Query('limit') limit?: string,
+  ): Promise<GbifSpeciesSuggestion[]> {
+    return this.queryBus.execute<
+      GbifSpeciesSearchQuery,
+      GbifSpeciesSuggestion[]
+    >(
+      new GbifSpeciesSearchQuery({
+        name,
+        limit: limit ? Number(limit) : undefined,
+      }),
     );
   }
 
@@ -149,8 +180,7 @@ export class PlantSpeciesController {
       new UpdatePlantSpeciesCommand({
         id,
         scientificName: dto.scientificName,
-        description: dto.description,
-        imageUrl: dto.imageUrl,
+        gbifKey: dto.gbifKey,
       }),
     );
 

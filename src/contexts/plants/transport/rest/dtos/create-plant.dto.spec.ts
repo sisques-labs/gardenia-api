@@ -9,10 +9,11 @@ describe('CreatePlantDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('passes with name + plantSpeciesId + imageUrl', async () => {
+  it('passes with name + gbifSpeciesKey + speciesScientificName + imageUrl', async () => {
     const dto = new CreatePlantDto();
     dto.name = 'Rose';
-    dto.plantSpeciesId = '550e8400-e29b-41d4-a716-446655440003';
+    dto.gbifSpeciesKey = 2882337;
+    dto.speciesScientificName = 'Monstera deliciosa';
     dto.imageUrl = 'https://example.com/rose.jpg';
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);

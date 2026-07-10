@@ -31,7 +31,7 @@ describe('DeletePlantSpeciesCommandHandler', () => {
       save: jest.fn(),
       delete: jest.fn(),
       findById: jest.fn(),
-      findByScientificName: jest.fn(),
+      findByGbifKey: jest.fn(),
     } as unknown as jest.Mocked<IPlantSpeciesWriteRepository>;
 
     assertExists = {

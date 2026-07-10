@@ -1,6 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.26.1] - 2026-07-10
+
+### Chore
+- **deps:** Bump @sisques-labs/nestjs-kit to 1.2.1 (b6cb66a)
+
+### Documentation
+- Add docker/README.md for the Docker Hub repository page (b96e130)
+
+### Refactor
+- **mcp:** Consume @sisques-labs/nestjs-kit/mcp instead of a local copy (406146d)
+- **metrics,messaging:** Consume @sisques-labs/nestjs-kit instead of local copies (a236086)
+- **mcp:** Drop Gardenia prefix from context builder/interface names (09cbb6b)
+- Aggregate core/context wiring into CoreModule/ContextsModule (1f08a1a)
 ## [0.26.0] - 2026-07-09
 
 ### Bug Fixes

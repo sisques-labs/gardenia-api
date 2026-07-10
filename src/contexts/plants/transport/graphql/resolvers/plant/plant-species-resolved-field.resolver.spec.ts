@@ -13,8 +13,7 @@ function makeSpeciesVm(): PlantSpeciesViewModel {
   return new PlantSpeciesViewModel({
     id: SPECIES_ID,
     scientificName: 'Rosa canina',
-    description: 'Wild rose species',
-    imageUrl: null,
+    gbifKey: 3033874,
     createdAt: NOW,
     updatedAt: NOW,
   });
@@ -43,6 +42,7 @@ describe('PlantSpeciesResolvedFieldResolver', () => {
   beforeEach(() => {
     plantSpeciesPort = {
       findByPlantSpeciesId: jest.fn(),
+      findOrCreateByGbifKey: jest.fn(),
     } as jest.Mocked<IPlantSpeciesPort>;
     plantGraphQLMapper = new PlantGraphQLMapper();
     resolver = new PlantSpeciesResolvedFieldResolver(

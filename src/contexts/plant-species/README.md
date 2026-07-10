@@ -1,8 +1,14 @@
 # Plant Species Context
 
-Maintains the shared catalog of plant species (scientific name, description,
-image) and imports/enriches species data from external sources. Follows the
-project's DDD + CQRS + Hexagonal layering.
+Maintains a lightweight catalog of plant species identified by GBIF's
+numeric `usageKey` plus a scientific name, and proxies GBIF's live
+`/species/suggest` endpoint for autocomplete. Follows the project's
+DDD + CQRS + Hexagonal layering.
+
+The catalog entry itself carries only `scientificName` and `gbifKey` — no
+description, image, or other enrichment data. Live search results are never
+persisted; only a species actually linked to a `Plant` gets a catalog row,
+created on demand (see `FindOrCreatePlantSpeciesByGbifKeyCommand`).
 
 ## Public API
 
@@ -10,11 +16,10 @@ project's DDD + CQRS + Hexagonal layering.
 
 | Command | Purpose |
 |---------|---------|
-| `CreatePlantSpeciesCommand` | Add a species to the catalog |
-| `UpdatePlantSpeciesCommand` | Update a species |
-| `DeletePlantSpeciesCommand` | Remove a species |
-| `EnrichPlantSpeciesCommand` | Enrich a species from external data |
-| `ImportPlantSpeciesCommand` | Import a batch from the external catalog |
+| `CreatePlantSpeciesCommand` | Add a species to the catalog directly (manual path) |
+| `UpdatePlantSpeciesCommand` | Update a species' scientificName/gbifKey |
+| `DeletePlantSpeciesCommand` | Remove a species (blocked while any plant references it) |
+| `FindOrCreatePlantSpeciesByGbifKeyCommand` | Resolve a `gbifKey`+`scientificName` pair (from a live search pick) to a catalog id — creates the row on first use, reuses it otherwise. Used by `plants` via `IPlantSpeciesPort.findOrCreateByGbifKey`. |
 
 ### Queries
 
@@ -22,11 +27,12 @@ project's DDD + CQRS + Hexagonal layering.
 |-------|---------|
 | `PlantSpeciesFindByIdQuery` | Get a species by id |
 | `PlantSpeciesFindByCriteriaQuery` | Paginated/filtered list |
+| `GbifSpeciesSearchQuery` | Live, non-persisting GBIF species search (autocomplete) — proxies `GET /species/suggest`. Never writes to the database. |
 
 ### Transport
 
-- GraphQL: `plant-species` resolvers (queries, mutations).
-- REST: `PlantSpeciesController`.
+- GraphQL: `plant-species` resolvers (queries, mutations) + `gbifSpeciesSearch` query.
+- REST: `PlantSpeciesController` (`/plant-species`, including `/plant-species/search`).
 - MCP: see below.
 
 ## MCP Tools
@@ -39,7 +45,6 @@ Each tool dispatches through the Command/Query bus.
 | `plant_species_create` | Create a species |
 | `plant_species_update` | Update a species |
 | `plant_species_delete` | Delete a species |
-| `plant_species_enrich` | Enrich a species from external data |
-| `plant_species_import` | Import a batch of species |
+| `plant_species_search` | Live GBIF species search (autocomplete), no persistence |
 | `plant_species_find_by_id` | Get a species by id |
 | `plant_species_find_by_criteria` | Paginated list of species |

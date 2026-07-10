@@ -1,8 +1,7 @@
 export type IPlantSpeciesPrimitives = {
   id: string;
   scientificName: string;
-  description: string | null;
-  imageUrl: string | null;
+  gbifKey: number | null;
   createdAt: Date;
   updatedAt: Date;
 };

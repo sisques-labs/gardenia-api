@@ -3,8 +3,11 @@ import {
   IPlantQrPort,
   PLANT_QR_PORT,
 } from '@contexts/plants/application/ports/plant-qr.port';
+import {
+  IPlantSpeciesPort,
+  PLANT_SPECIES_PORT,
+} from '@contexts/plants/application/ports/plant-species.port';
 import { PlantQrTargetUrlBuilderService } from '@contexts/plants/application/services/read/plant-qr-target-url-builder/plant-qr-target-url-builder.service';
-import { AssertPlantLinkedSpeciesExistsService } from '@contexts/plants/application/services/write/assert-plant-linked-species-exists/assert-plant-linked-species-exists.service';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { PlantBuilder } from '@contexts/plants/domain/builders/plant.builder';
 import {
@@ -31,17 +34,21 @@ export class CreatePlantCommandHandler
     @Inject(PLANT_QR_PORT)
     private readonly plantQrPort: IPlantQrPort,
     private readonly plantQrTargetUrlBuilder: PlantQrTargetUrlBuilderService,
-    private readonly assertPlantLinkedSpeciesExistsService: AssertPlantLinkedSpeciesExistsService,
+    @Inject(PLANT_SPECIES_PORT)
+    private readonly plantSpeciesPort: IPlantSpeciesPort,
     eventBus: EventBus,
   ) {
     super(eventBus);
   }
 
   async execute(command: CreatePlantCommand): Promise<string> {
-    if (command.plantSpeciesId) {
-      await this.assertPlantLinkedSpeciesExistsService.execute(
-        command.plantSpeciesId,
+    let plantSpeciesId: string | null = null;
+    if (command.gbifSpeciesKey && command.speciesScientificName) {
+      const linked = await this.plantSpeciesPort.findOrCreateByGbifKey(
+        command.gbifSpeciesKey.value,
+        command.speciesScientificName.value,
       );
+      plantSpeciesId = linked.id;
     }
 
     const now = new Date();
@@ -57,7 +64,7 @@ export class CreatePlantCommandHandler
     const plant = this.plantBuilder
       .withId(plantId)
       .withName(command.name.value)
-      .withPlantSpeciesId(command.plantSpeciesId?.value ?? null)
+      .withPlantSpeciesId(plantSpeciesId)
       .withImageUrl(command.imageUrl?.value ?? null)
       .withUserId(command.userId.value)
       .withSpaceId(spaceId)

@@ -12,8 +12,7 @@ export class PlantSpeciesTypeOrmMapper {
     return this.plantSpeciesBuilder
       .withId(entity.id)
       .withScientificName(entity.scientificName)
-      .withDescription(entity.description ?? null)
-      .withImageUrl(entity.imageUrl ?? null)
+      .withGbifKey(entity.gbifKey ?? null)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -27,8 +26,7 @@ export class PlantSpeciesTypeOrmMapper {
 
     entity.id = primitives.id;
     entity.scientificName = primitives.scientificName;
-    entity.description = primitives.description;
-    entity.imageUrl = primitives.imageUrl;
+    entity.gbifKey = primitives.gbifKey;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
 

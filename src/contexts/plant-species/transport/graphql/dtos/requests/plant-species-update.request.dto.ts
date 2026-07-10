@@ -1,5 +1,5 @@
-import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Field, InputType, Int } from '@nestjs/graphql';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 @InputType('PlantSpeciesUpdateRequestDto')
 export class PlantSpeciesUpdateRequestDto {
@@ -10,26 +10,19 @@ export class PlantSpeciesUpdateRequestDto {
 
   @Field(() => String, {
     nullable: true,
-    description: 'Updated globally unique species scientific name',
+    description: 'Updated species scientific name',
   })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   scientificName?: string;
 
-  @Field(() => String, {
+  @Field(() => Int, {
     nullable: true,
-    description: 'Updated species description',
+    description: 'Updated GBIF usageKey identifying the species',
   })
   @IsOptional()
-  @IsString()
-  description?: string | null;
-
-  @Field(() => String, {
-    nullable: true,
-    description: 'Updated species image URL',
-  })
-  @IsOptional()
-  @IsString()
-  imageUrl?: string | null;
+  @IsInt()
+  @Min(1)
+  gbifKey?: number;
 }
