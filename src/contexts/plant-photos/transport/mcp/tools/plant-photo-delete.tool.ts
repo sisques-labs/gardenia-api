@@ -2,15 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { DeletePlantPhotoCommand } from '@contexts/plant-photos/application/commands/delete-plant-photo/delete-plant-photo.command';
 import { plantPhotoDeleteSchema } from '../schemas/plant-photo-delete.schema';
 
 @McpTool()
 @Injectable()
-export class PlantPhotoDeleteMcpTool implements IMcpTool {
+export class PlantPhotoDeleteMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(PlantPhotoDeleteMcpTool.name);
 
   readonly name = 'plant_photo_delete';

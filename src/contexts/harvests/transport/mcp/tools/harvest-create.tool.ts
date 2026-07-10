@@ -2,16 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreateHarvestCommand } from '@contexts/harvests/application/commands/create-harvest/create-harvest.command';
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
 import { harvestCreateSchema } from '../schemas/harvest-create.schema';
 
 @McpTool()
 @Injectable()
-export class HarvestCreateMcpTool implements IMcpTool {
+export class HarvestCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(HarvestCreateMcpTool.name);
 
   readonly name = 'harvest_create';

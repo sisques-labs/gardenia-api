@@ -2,15 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreateQrCommand } from '@contexts/qr/application/commands/create-qr/create-qr.command';
 import { qrCreateSchema } from '../schemas/qr-create.schema';
 
 @McpTool()
 @Injectable()
-export class QrCreateMcpTool implements IMcpTool {
+export class QrCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(QrCreateMcpTool.name);
 
   readonly name = 'qr_create';

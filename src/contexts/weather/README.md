@@ -19,7 +19,7 @@ layering.
 
 ## MCP Tools
 
-Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`).
+Exposed under `transport/mcp/` for AI clients (see the `@sisques-labs/nestjs-kit/mcp` module docs).
 The tool dispatches through the Query bus.
 
 | Tool | Action |

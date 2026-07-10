@@ -2,16 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { WaterPlantCommand } from '@contexts/care-schedule/application/commands/water-plant/water-plant.command';
 import { WaterPlantResult } from '@contexts/care-schedule/application/commands/water-plant/water-plant.result';
 import { careScheduleWaterPlantSchema } from '../schemas/care-schedule-water-plant.schema';
 
 @McpTool()
 @Injectable()
-export class CareScheduleWaterPlantMcpTool implements IMcpTool {
+export class CareScheduleWaterPlantMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(CareScheduleWaterPlantMcpTool.name);
 
   readonly name = 'care_schedule_water_plant';
