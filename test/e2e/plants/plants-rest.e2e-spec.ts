@@ -77,22 +77,7 @@ describe('Plants REST API (e2e)', () => {
       expect(res.body.qrId).toBeDefined();
     });
 
-    it('201 — creates a plant with plantSpeciesId and imageUrl', async () => {
-      const admin = await loginAsAdmin(
-        ctx,
-        'plants-admin@example.com',
-        PASSWORD,
-      );
-
-      const speciesRes = await ctx
-        .http()
-        .post('/api/plant-species')
-        .set('Authorization', `Bearer ${admin.token}`)
-        .send({ scientificName: 'Rosa canina' })
-        .expect(201);
-
-      const { id: plantSpeciesId } = speciesRes.body as { id: string };
-
+    it('201 — creates a plant with a species link (gbifSpeciesKey) and imageUrl', async () => {
       const res = await ctx
         .http()
         .post('/api/plants')
@@ -100,16 +85,36 @@ describe('Plants REST API (e2e)', () => {
         .set('X-Space-ID', owner.spaceId)
         .send({
           name: 'Rose',
-          plantSpeciesId,
+          gbifSpeciesKey: 3033874,
+          speciesScientificName: 'Rosa canina',
           imageUrl: 'https://example.com/rose.jpg',
         })
         .expect(201);
 
       expect(res.body).toMatchObject({
         name: 'Rose',
-        plantSpeciesId,
         imageUrl: 'https://example.com/rose.jpg',
       });
+      expect(res.body.plantSpeciesId).toBeDefined();
+
+      const admin = await loginAsAdmin(
+        ctx,
+        'plants-admin@example.com',
+        PASSWORD,
+      );
+      const listRes = await ctx
+        .http()
+        .get('/api/plant-species')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .expect(200);
+
+      expect(listRes.body.items).toContainEqual(
+        expect.objectContaining({
+          id: res.body.plantSpeciesId,
+          scientificName: 'Rosa canina',
+          gbifKey: 3033874,
+        }),
+      );
     });
 
     it('400 — rejects empty name', async () => {

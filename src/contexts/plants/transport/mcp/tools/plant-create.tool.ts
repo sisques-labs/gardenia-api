@@ -24,9 +24,10 @@ export class PlantCreateMcpTool implements IMcpTool<IMcpToolContext> {
     args: Record<string, unknown>,
     context: IMcpToolContext,
   ): Promise<CallToolResult> {
-    const { name, plantSpeciesId, imageUrl } = args as {
+    const { name, gbifSpeciesKey, speciesScientificName, imageUrl } = args as {
       name: string;
-      plantSpeciesId?: string;
+      gbifSpeciesKey?: number;
+      speciesScientificName?: string;
       imageUrl?: string;
     };
     this.logger.log(`Creating plant for user: ${context.userId}`);
@@ -34,7 +35,8 @@ export class PlantCreateMcpTool implements IMcpTool<IMcpToolContext> {
     const plantId = await this.commandBus.execute<CreatePlantCommand, string>(
       new CreatePlantCommand({
         name,
-        plantSpeciesId: plantSpeciesId ?? undefined,
+        gbifSpeciesKey,
+        speciesScientificName,
         imageUrl: imageUrl ?? undefined,
         userId: context.userId,
       }),

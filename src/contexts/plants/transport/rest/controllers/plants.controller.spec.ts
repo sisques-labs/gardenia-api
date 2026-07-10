@@ -59,7 +59,8 @@ describe('PlantsController', () => {
 
     const dto = new CreatePlantDto();
     dto.name = 'Rose';
-    dto.plantSpeciesId = SPECIES_ID;
+    dto.gbifSpeciesKey = 2882337;
+    dto.speciesScientificName = 'Monstera deliciosa';
 
     const result = await controller.createPlant(dto, {
       userId: USER_ID,

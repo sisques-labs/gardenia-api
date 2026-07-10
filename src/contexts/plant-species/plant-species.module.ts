@@ -7,21 +7,21 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CreatePlantSpeciesCommandHandler } from './application/commands/create-plant-species/create-plant-species.handler';
 import { DeletePlantSpeciesCommandHandler } from './application/commands/delete-plant-species/delete-plant-species.handler';
-import { EnrichPlantSpeciesCommandHandler } from './application/commands/enrich-plant-species/enrich-plant-species.handler';
-import { ImportPlantSpeciesCommandHandler } from './application/commands/import-plant-species/import-plant-species.handler';
+import { FindOrCreatePlantSpeciesByGbifKeyCommandHandler } from './application/commands/find-or-create-plant-species-by-gbif-key/find-or-create-plant-species-by-gbif-key.handler';
 import { UpdatePlantSpeciesCommandHandler } from './application/commands/update-plant-species/update-plant-species.handler';
-import { PLANT_SPECIES_IMPORT_PORT } from './application/ports/plant-species-import.port';
+import { GBIF_SPECIES_SEARCH_PORT } from './application/ports/gbif-species-search.port';
 import { PLANT_SPECIES_REFERENCE_PORT } from './application/ports/plant-species-reference.port';
+import { GbifSpeciesSearchQueryHandler } from './application/queries/gbif-species-search/gbif-species-search.handler';
 import { PlantSpeciesFindByCriteriaQueryHandler } from './application/queries/plant-species-find-by-criteria/plant-species-find-by-criteria.handler';
 import { PlantSpeciesFindByIdQueryHandler } from './application/queries/plant-species-find-by-id/plant-species-find-by-id.handler';
 import { AssertPlantSpeciesViewModelExistsService } from './application/services/read/assert-plant-species-view-model-exists/assert-plant-species-view-model-exists.service';
 import { AssertPlantSpeciesExistsService } from './application/services/write/assert-plant-species-exists/assert-plant-species-exists.service';
-import { AssertPlantSpeciesNameAvailableService } from './application/services/write/assert-plant-species-name-available/assert-plant-species-name-available.service';
+import { AssertPlantSpeciesGbifKeyAvailableService } from './application/services/write/assert-plant-species-gbif-key-available/assert-plant-species-gbif-key-available.service';
 import { AssertPlantSpeciesNotInUseService } from './application/services/write/assert-plant-species-not-in-use/assert-plant-species-not-in-use.service';
 import { PlantSpeciesBuilder } from './domain/builders/plant-species.builder';
 import { PLANT_SPECIES_READ_REPOSITORY } from './domain/repositories/read/plant-species-read.repository';
 import { PLANT_SPECIES_WRITE_REPOSITORY } from './domain/repositories/write/plant-species-write.repository';
-import { GbifPlantSpeciesImportAdapter } from './infrastructure/adapters/gbif-plant-species-import.adapter';
+import { GbifSpeciesSuggestAdapter } from './infrastructure/adapters/gbif-species-suggest.adapter';
 import { PlantSpeciesReferenceAdapter } from './infrastructure/adapters/plant-species-reference.adapter';
 import { PlantSpeciesTypeOrmEntity } from './infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantSpeciesTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers/plant-species-typeorm.mapper';
@@ -29,12 +29,12 @@ import { PlantSpeciesTypeOrmReadRepository } from './infrastructure/persistence/
 import { PlantSpeciesTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/plant-species-typeorm-write.repository';
 import { PlantSpeciesCreateMcpTool } from './transport/mcp/tools/plant-species-create.tool';
 import { PlantSpeciesDeleteMcpTool } from './transport/mcp/tools/plant-species-delete.tool';
-import { PlantSpeciesEnrichMcpTool } from './transport/mcp/tools/plant-species-enrich.tool';
 import { PlantSpeciesFindByCriteriaMcpTool } from './transport/mcp/tools/plant-species-find-by-criteria.tool';
 import { PlantSpeciesFindByIdMcpTool } from './transport/mcp/tools/plant-species-find-by-id.tool';
-import { PlantSpeciesImportMcpTool } from './transport/mcp/tools/plant-species-import.tool';
+import { PlantSpeciesSearchMcpTool } from './transport/mcp/tools/plant-species-search.tool';
 import { PlantSpeciesUpdateMcpTool } from './transport/mcp/tools/plant-species-update.tool';
 import { PlantSpeciesGraphQLMapper } from './transport/graphql/mappers/plant-species.mapper';
+import { GbifSpeciesSearchQueriesResolver } from './transport/graphql/resolvers/gbif-species-search-queries.resolver';
 import { PlantSpeciesMutationsResolver } from './transport/graphql/resolvers/plant-species-mutations.resolver';
 import { PlantSpeciesQueriesResolver } from './transport/graphql/resolvers/plant-species-queries.resolver';
 import { PlantSpeciesController } from './transport/rest/controllers/plant-species.controller';
@@ -44,19 +44,19 @@ const COMMAND_HANDLERS = [
   CreatePlantSpeciesCommandHandler,
   UpdatePlantSpeciesCommandHandler,
   DeletePlantSpeciesCommandHandler,
-  EnrichPlantSpeciesCommandHandler,
-  ImportPlantSpeciesCommandHandler,
+  FindOrCreatePlantSpeciesByGbifKeyCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
   PlantSpeciesFindByIdQueryHandler,
   PlantSpeciesFindByCriteriaQueryHandler,
+  GbifSpeciesSearchQueryHandler,
 ];
 
 const APPLICATION_SERVICES = [
   AssertPlantSpeciesViewModelExistsService,
   AssertPlantSpeciesExistsService,
-  AssertPlantSpeciesNameAvailableService,
+  AssertPlantSpeciesGbifKeyAvailableService,
   AssertPlantSpeciesNotInUseService,
 ];
 
@@ -81,8 +81,8 @@ const INFRASTRUCTURE_ADAPTERS = [
     useClass: PlantSpeciesReferenceAdapter,
   },
   {
-    provide: PLANT_SPECIES_IMPORT_PORT,
-    useClass: GbifPlantSpeciesImportAdapter,
+    provide: GBIF_SPECIES_SEARCH_PORT,
+    useClass: GbifSpeciesSuggestAdapter,
   },
 ];
 
@@ -92,6 +92,7 @@ const REST_PROVIDERS = [PlantSpeciesRestMapper];
 const GRAPHQL_PROVIDERS = [
   PlantSpeciesQueriesResolver,
   PlantSpeciesMutationsResolver,
+  GbifSpeciesSearchQueriesResolver,
   PlantSpeciesGraphQLMapper,
 ];
 
@@ -99,8 +100,7 @@ const MCP_TOOLS = [
   PlantSpeciesCreateMcpTool,
   PlantSpeciesUpdateMcpTool,
   PlantSpeciesDeleteMcpTool,
-  PlantSpeciesEnrichMcpTool,
-  PlantSpeciesImportMcpTool,
+  PlantSpeciesSearchMcpTool,
   PlantSpeciesFindByIdMcpTool,
   PlantSpeciesFindByCriteriaMcpTool,
 ];

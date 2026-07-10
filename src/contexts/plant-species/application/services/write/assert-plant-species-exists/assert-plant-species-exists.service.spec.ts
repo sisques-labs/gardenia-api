@@ -14,7 +14,7 @@ describe('AssertPlantSpeciesExistsService', () => {
     jest.clearAllMocks();
     writeRepository = {
       findById: jest.fn(),
-      findByScientificName: jest.fn(),
+      findByGbifKey: jest.fn(),
       save: jest.fn(),
       delete: jest.fn(),
       findByCriteria: jest.fn(),

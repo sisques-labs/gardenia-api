@@ -2,7 +2,7 @@ import { EventBus } from '@nestjs/cqrs';
 
 import { PlantSpeciesBuilder } from '@contexts/plant-species/domain/builders/plant-species.builder';
 import { IPlantSpeciesWriteRepository } from '@contexts/plant-species/domain/repositories/write/plant-species-write.repository';
-import { AssertPlantSpeciesNameAvailableService } from '@contexts/plant-species/application/services/write/assert-plant-species-name-available/assert-plant-species-name-available.service';
+import { AssertPlantSpeciesGbifKeyAvailableService } from '@contexts/plant-species/application/services/write/assert-plant-species-gbif-key-available/assert-plant-species-gbif-key-available.service';
 
 import { CreatePlantSpeciesCommand } from './create-plant-species.command';
 import { CreatePlantSpeciesCommandHandler } from './create-plant-species.handler';
@@ -10,7 +10,7 @@ import { CreatePlantSpeciesCommandHandler } from './create-plant-species.handler
 describe('CreatePlantSpeciesCommandHandler', () => {
   let handler: CreatePlantSpeciesCommandHandler;
   let writeRepository: jest.Mocked<IPlantSpeciesWriteRepository>;
-  let assertNameAvailable: jest.Mocked<AssertPlantSpeciesNameAvailableService>;
+  let assertGbifKeyAvailable: jest.Mocked<AssertPlantSpeciesGbifKeyAvailableService>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -19,16 +19,16 @@ describe('CreatePlantSpeciesCommandHandler', () => {
     writeRepository = {
       findById: jest.fn(),
       findByCriteria: jest.fn(),
-      findByScientificName: jest.fn(),
+      findByGbifKey: jest.fn(),
       save: jest
         .fn()
         .mockImplementation((aggregate) => Promise.resolve(aggregate)),
       delete: jest.fn(),
     } as jest.Mocked<IPlantSpeciesWriteRepository>;
 
-    assertNameAvailable = {
+    assertGbifKeyAvailable = {
       execute: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<AssertPlantSpeciesNameAvailableService>;
+    } as unknown as jest.Mocked<AssertPlantSpeciesGbifKeyAvailableService>;
 
     eventBus = {
       publish: jest.fn(),
@@ -37,7 +37,7 @@ describe('CreatePlantSpeciesCommandHandler', () => {
 
     handler = new CreatePlantSpeciesCommandHandler(
       writeRepository,
-      assertNameAvailable,
+      assertGbifKeyAvailable,
       new PlantSpeciesBuilder(),
       eventBus,
     );
@@ -46,6 +46,7 @@ describe('CreatePlantSpeciesCommandHandler', () => {
   it('returns a valid UUID', async () => {
     const command = new CreatePlantSpeciesCommand({
       scientificName: 'Monstera',
+      gbifKey: 2882337,
     });
 
     const id = await handler.execute(command);
@@ -55,19 +56,21 @@ describe('CreatePlantSpeciesCommandHandler', () => {
     );
   });
 
-  it('asserts scientificName is globally available', async () => {
+  it('asserts gbifKey is available', async () => {
     const command = new CreatePlantSpeciesCommand({
       scientificName: 'Monstera',
+      gbifKey: 2882337,
     });
 
     await handler.execute(command);
 
-    expect(assertNameAvailable.execute).toHaveBeenCalledTimes(1);
+    expect(assertGbifKeyAvailable.execute).toHaveBeenCalledTimes(1);
   });
 
   it('saves the aggregate', async () => {
     const command = new CreatePlantSpeciesCommand({
       scientificName: 'Monstera',
+      gbifKey: 2882337,
     });
 
     await handler.execute(command);
@@ -78,6 +81,7 @@ describe('CreatePlantSpeciesCommandHandler', () => {
   it('publishes events after saving', async () => {
     const command = new CreatePlantSpeciesCommand({
       scientificName: 'Monstera',
+      gbifKey: 2882337,
     });
 
     await handler.execute(command);
