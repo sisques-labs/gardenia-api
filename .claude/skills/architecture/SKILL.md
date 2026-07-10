@@ -15,10 +15,11 @@ Apply this skill whenever creating or modifying any file under `src/contexts/` o
 
 1. **Constructor = hydration only.** Never call `this.apply()` inside a constructor. Domain events are emitted exclusively from named instance methods (`create()`, `delete()`, etc.).
 2. **Resolvers use the bus, never services.** `CommandBus.execute()` / `QueryBus.execute()` only — no direct service injection in transport.
-3. **`MutationResponseGraphQLMapper` is global.** It is provided by `AppModule`. Never add it to a bounded-context module's providers.
+3. **`MutationResponseGraphQLMapper` is global.** It is provided by `CoreModule`. Never add it to a bounded-context module's providers.
 4. **Repository interfaces live in domain.** Infrastructure classes implement them; domain never imports from infrastructure.
 5. **No module compilation tests.** Do not create `*.module.spec.ts` files.
 6. **Unit tests = manual instantiation.** Use `jest.Mocked<T>`, co-located with source. No `@nestjs/testing` in unit specs (enforced by ESLint `no-restricted-imports` on `src/**/*.spec.ts`).
+7. **New bounded context module → register it, don't wire it loose.** Add it to `CONTEXT_MODULES` in `src/contexts/contexts.module.ts`. Never import a context module directly in `AppModule`.
 
 ## Test Layers
 
@@ -88,6 +89,7 @@ src/contexts/{context}/
 | Where does HTTP/GraphQL wiring live? | `transport/` — no logic, only bus dispatch |
 | Cross-context shared utilities? | `src/core/` (filters, config, guards) |
 | Adding/changing a `findByCriteria` query? | See "Find-By-Criteria Filters" below — mandatory pattern, not optional |
+| Where do I register a new context module? | `CONTEXT_MODULES` array in `src/contexts/contexts.module.ts` |
 
 ## Find-By-Criteria Filters (mandatory, every context)
 

@@ -8,7 +8,7 @@ The `core` directory provides cross-cutting infrastructure that all contexts dep
 
 ## What Core Provides to Other Modules
 
-Every module in the application benefits from what `core` exposes, loaded at bootstrap via `AppModule`:
+Every module in the application benefits from what `core` exposes, loaded at bootstrap via `CoreModule`:
 
 - **`postgresConfig`** — a `ConfigModule`-registered factory that reads database env vars and returns `TypeOrmModuleOptions`. Consumed by the test bootstrap to override DB settings.
 - **`authConfig`** — a `ConfigModule`-registered factory that exposes `JWT_SECRET` and `JWT_EXPIRES_IN` under the `'auth'` namespace. Consumed by `AuthModule`'s `JwtModule.registerAsync`.
@@ -33,7 +33,7 @@ Every module in the application benefits from what `core` exposes, loaded at boo
 
 ### `postgresConfig`
 
-Registered under the `'postgres'` namespace via `ConfigModule.forRoot({ load: [postgresConfig] })` in `AppModule`.
+Registered under the `'postgres'` namespace via `ConfigModule.forRoot({ load: [postgresConfig] })` in `CoreModule`.
 
 Reads the following environment variables:
 
@@ -103,7 +103,7 @@ app.useGlobalFilters(new BaseExceptionFilter());
 | `FilterOperator` | `FilterOperator` | Used in criteria filter inputs (e.g. `EQ`, `LIKE`, `IN`) |
 | `SortDirection` | `SortDirection` | Used in criteria sort inputs (`ASC`, `DESC`) |
 
-These enums come from `@sisques-labs/nestjs-kit` and must be registered before any schema-building happens. The import is a side-effect import in `AppModule`.
+These enums come from `@sisques-labs/nestjs-kit` and must be registered before any schema-building happens. The import is a side-effect import in `CoreModule`.
 
 ---
 
@@ -129,7 +129,7 @@ Spec files:
 |-------|---------|
 | `BaseException` | `BaseExceptionFilter` catches it |
 | `FilterOperator`, `SortDirection` | Registered as GraphQL enums |
-| `SharedGraphQLModule` | Imported in `AppModule`; provides shared GraphQL infrastructure |
+| `SharedGraphQLModule` | Imported in `CoreModule`; provides shared GraphQL infrastructure |
 
 ### External NestJS packages
 

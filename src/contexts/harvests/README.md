@@ -278,7 +278,7 @@ Migration: `src/database/migrations/1780000000015-CreateHarvests.ts`
 1. **No cross-context imports** — harvests must not import from `@contexts/plants`, `@contexts/users`, or any other bounded context. The static scan in `harvests-no-cross-context-import.spec.ts` enforces this.
 2. **`quantity` is a decimal stored as string** — TypeORM returns `decimal` columns as `string`. `HarvestTypeOrmMapper.toViewModel()` parses it with `parseFloat`. Always verify round-trip behaviour when touching the mapper.
 3. **`SpaceContext` is global** — never add it to `HarvestsModule.providers`. Import from `@shared/space-context/space-context.service` and rely on the `SharedModule` registration.
-4. **`SpaceGuard` is global** — registered via `APP_GUARD` in `AppModule`. No need for `@UseGuards(SpaceGuard)` on harvest controllers or resolvers.
+4. **`SpaceGuard` is global** — registered via `APP_GUARD` in `CoreModule`. No need for `@UseGuards(SpaceGuard)` on harvest controllers or resolvers.
 5. **`harvestedAt` is indexed** — the `IDX_harvests_harvested_at` index supports efficient date-range filtering. If adding new frequent filter fields, add matching indexes in a new migration.
 
 ## MCP Tools
