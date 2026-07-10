@@ -3,14 +3,14 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { UpdateSpaceCommand } from '@contexts/spaces/application/commands/update-space/update-space.command';
 import { SpaceEnvironmentEnum } from '@contexts/spaces/domain/enums/space-environment.enum';
 import { spaceUpdateSchema } from '../schemas/space-update.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceUpdateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class SpaceUpdateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(SpaceUpdateMcpTool.name);
 
   readonly name = 'space_update';
@@ -22,7 +22,7 @@ export class SpaceUpdateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const { spaceId, name, latitude, longitude, environment } = args as {
       spaceId: string;

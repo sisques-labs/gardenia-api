@@ -3,7 +3,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreateCareLogEntryCommand } from '@contexts/care-log/application/commands/create-care-log-entry/create-care-log-entry.command';
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
 import { CareLogUnitEnum } from '@contexts/care-log/domain/enums/care-log-unit.enum';
@@ -11,7 +11,7 @@ import { careLogCreateSchema } from '../schemas/care-log-create.schema';
 
 @McpTool()
 @Injectable()
-export class CareLogCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class CareLogCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(CareLogCreateMcpTool.name);
 
   readonly name = 'care_log_create';
@@ -24,7 +24,7 @@ export class CareLogCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const { plantId, activityType, performedAt, notes, quantity, unit } =
       args as {

@@ -3,13 +3,13 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { DeleteCareLogEntryCommand } from '@contexts/care-log/application/commands/delete-care-log-entry/delete-care-log-entry.command';
 import { careLogDeleteSchema } from '../schemas/care-log-delete.schema';
 
 @McpTool()
 @Injectable()
-export class CareLogDeleteMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class CareLogDeleteMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(CareLogDeleteMcpTool.name);
 
   readonly name = 'care_log_delete';
@@ -21,7 +21,7 @@ export class CareLogDeleteMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const { id } = args as { id: string };
     this.logger.log(`Deleting care log entry: ${id}`);

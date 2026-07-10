@@ -3,13 +3,13 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { RemoveMemberCommand } from '@contexts/spaces/application/commands/remove-member/remove-member.command';
 import { spaceRemoveMemberSchema } from '../schemas/space-remove-member.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceRemoveMemberMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class SpaceRemoveMemberMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(SpaceRemoveMemberMcpTool.name);
 
   readonly name = 'space_remove_member';
@@ -21,7 +21,7 @@ export class SpaceRemoveMemberMcpTool implements IMcpTool<IGardeniaMcpToolContex
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const { spaceId, targetUserId } = args as {
       spaceId: string;

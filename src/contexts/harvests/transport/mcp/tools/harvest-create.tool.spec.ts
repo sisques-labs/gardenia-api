@@ -2,10 +2,10 @@ import { CommandBus } from '@nestjs/cqrs';
 
 import { CreateHarvestCommand } from '@contexts/harvests/application/commands/create-harvest/create-harvest.command';
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { HarvestCreateMcpTool } from './harvest-create.tool';
 
-const CONTEXT: IGardeniaMcpToolContext = {
+const CONTEXT: IMcpToolContext = {
   userId: '33333333-3333-4333-8333-333333333333',
   email: 'gardener@example.com',
   spaceId: '44444444-4444-4444-8444-444444444444',

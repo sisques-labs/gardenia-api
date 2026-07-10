@@ -23,7 +23,7 @@ import { postgresConfig } from '@core/config/postgres.config';
 import { sentryConfig } from '@core/config/sentry.config';
 import { AGGREGATE_MODULE_MAP } from '@core/messaging/domain/topics/aggregate-module.map.generated';
 import { HealthModule } from '@core/health/health.module';
-import { GardeniaMcpContextBuilder } from '@core/mcp/gardenia-mcp-context.builder';
+import { McpContextBuilder } from '@core/mcp/mcp-context.builder';
 import '@core/metrics/exempt-metrics-from-space-guard';
 import { ObservabilityModule } from '@core/observability/observability.module';
 import '@core/transport/graphql/registered-enums.graphql';
@@ -77,7 +77,7 @@ import { SupportModule } from './support/support.module';
     McpModule.forRoot({
       name: 'gardenia-api',
       version: '1.0.0',
-      contextBuilder: GardeniaMcpContextBuilder,
+      contextBuilder: McpContextBuilder,
     }),
     WeatherModule,
     SpacesModule,

@@ -3,14 +3,14 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { plantingSpotUpdateSchema } from '../schemas/planting-spot-update.schema';
 
 @McpTool()
 @Injectable()
-export class PlantingSpotUpdateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class PlantingSpotUpdateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(PlantingSpotUpdateMcpTool.name);
 
   readonly name = 'planting_spot_update';
@@ -23,7 +23,7 @@ export class PlantingSpotUpdateMcpTool implements IMcpTool<IGardeniaMcpToolConte
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const {
       id,

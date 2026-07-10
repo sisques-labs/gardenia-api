@@ -3,13 +3,13 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { MarkPlantingSpotActiveCommand } from '@contexts/planting-spots/application/commands/mark-planting-spot-active/mark-planting-spot-active.command';
 import { plantingSpotMarkActiveSchema } from '../schemas/planting-spot-mark-active.schema';
 
 @McpTool()
 @Injectable()
-export class PlantingSpotMarkActiveMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class PlantingSpotMarkActiveMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(PlantingSpotMarkActiveMcpTool.name);
 
   readonly name = 'planting_spot_mark_active';
@@ -22,7 +22,7 @@ export class PlantingSpotMarkActiveMcpTool implements IMcpTool<IGardeniaMcpToolC
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const { id } = args as { id: string };
     this.logger.log(`Marking planting spot active: ${id}`);

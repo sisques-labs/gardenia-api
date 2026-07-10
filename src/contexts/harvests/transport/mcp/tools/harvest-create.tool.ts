@@ -3,14 +3,14 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreateHarvestCommand } from '@contexts/harvests/application/commands/create-harvest/create-harvest.command';
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
 import { harvestCreateSchema } from '../schemas/harvest-create.schema';
 
 @McpTool()
 @Injectable()
-export class HarvestCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class HarvestCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(HarvestCreateMcpTool.name);
 
   readonly name = 'harvest_create';
@@ -22,7 +22,7 @@ export class HarvestCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const { cropType, quantity, unit, harvestedAt } = args as {
       cropType: string;

@@ -3,14 +3,14 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { AddMemberCommand } from '@contexts/spaces/application/commands/add-member/add-member.command';
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { spaceAddMemberSchema } from '../schemas/space-add-member.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceAddMemberMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class SpaceAddMemberMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(SpaceAddMemberMcpTool.name);
 
   readonly name = 'space_add_member';
@@ -22,7 +22,7 @@ export class SpaceAddMemberMcpTool implements IMcpTool<IGardeniaMcpToolContext> 
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const { spaceId, targetUserId, role } = args as {
       spaceId: string;

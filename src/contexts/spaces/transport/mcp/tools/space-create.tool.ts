@@ -3,13 +3,13 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
 import { spaceCreateSchema } from '../schemas/space-create.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class SpaceCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(SpaceCreateMcpTool.name);
 
   readonly name = 'space_create';
@@ -21,7 +21,7 @@ export class SpaceCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const { name } = args as { name: string };
     this.logger.log(`Creating space for owner: ${context.userId}`);

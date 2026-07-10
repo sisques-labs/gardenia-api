@@ -3,13 +3,13 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreateQrCommand } from '@contexts/qr/application/commands/create-qr/create-qr.command';
 import { qrCreateSchema } from '../schemas/qr-create.schema';
 
 @McpTool()
 @Injectable()
-export class QrCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class QrCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(QrCreateMcpTool.name);
 
   readonly name = 'qr_create';
@@ -21,7 +21,7 @@ export class QrCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const { targetUrl, expiresAt } = args as {
       targetUrl: string;

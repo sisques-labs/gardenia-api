@@ -3,12 +3,12 @@ import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { SpacesFindByUserQuery } from '@contexts/spaces/application/queries/spaces-find-by-user/spaces-find-by-user.query';
 
 @McpTool()
 @Injectable()
-export class SpacesFindByUserMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class SpacesFindByUserMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(SpacesFindByUserMcpTool.name);
 
   readonly name = 'spaces_find_by_user';
@@ -21,7 +21,7 @@ export class SpacesFindByUserMcpTool implements IMcpTool<IGardeniaMcpToolContext
 
   async execute(
     _args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     this.logger.log(`Finding spaces for user: ${context.userId}`);
 

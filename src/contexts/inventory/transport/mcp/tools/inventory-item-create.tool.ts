@@ -3,7 +3,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
-import { IGardeniaMcpToolContext } from '@core/mcp/gardenia-mcp-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreateInventoryItemCommand } from '@contexts/inventory/application/commands/create-inventory-item/create-inventory-item.command';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
@@ -11,7 +11,7 @@ import { inventoryItemCreateSchema } from '../schemas/inventory-item-create.sche
 
 @McpTool()
 @Injectable()
-export class InventoryItemCreateMcpTool implements IMcpTool<IGardeniaMcpToolContext> {
+export class InventoryItemCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(InventoryItemCreateMcpTool.name);
 
   readonly name = 'inventory_item_create';
@@ -23,7 +23,7 @@ export class InventoryItemCreateMcpTool implements IMcpTool<IGardeniaMcpToolCont
 
   async execute(
     args: Record<string, unknown>,
-    context: IGardeniaMcpToolContext,
+    context: IMcpToolContext,
   ): Promise<CallToolResult> {
     const {
       itemType,
