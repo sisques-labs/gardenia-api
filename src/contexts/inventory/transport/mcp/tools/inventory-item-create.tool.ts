@@ -2,9 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreateInventoryItemCommand } from '@contexts/inventory/application/commands/create-inventory-item/create-inventory-item.command';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
@@ -12,7 +11,7 @@ import { inventoryItemCreateSchema } from '../schemas/inventory-item-create.sche
 
 @McpTool()
 @Injectable()
-export class InventoryItemCreateMcpTool implements IMcpTool {
+export class InventoryItemCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(InventoryItemCreateMcpTool.name);
 
   readonly name = 'inventory_item_create';

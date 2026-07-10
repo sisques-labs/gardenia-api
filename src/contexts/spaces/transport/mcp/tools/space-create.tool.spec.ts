@@ -1,7 +1,7 @@
 import { CommandBus } from '@nestjs/cqrs';
 
 import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { SpaceCreateMcpTool } from './space-create.tool';
 
 const CONTEXT: IMcpToolContext = {

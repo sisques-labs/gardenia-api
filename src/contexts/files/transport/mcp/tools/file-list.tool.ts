@@ -3,8 +3,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { Criteria, Filter, FilterOperator } from '@sisques-labs/nestjs-kit';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
 import { FileFindByCriteriaQuery } from '@contexts/files/application/queries/file-find-by-criteria/file-find-by-criteria.query';
 import { FileMimeTypeEnum } from '@contexts/files/domain/enums/file-mime-type.enum';
 import { fileListSchema } from '../schemas/file-list.schema';
