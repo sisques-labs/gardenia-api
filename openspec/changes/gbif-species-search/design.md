@@ -1,4 +1,4 @@
-# Design: Remove plant-species catalog, add live GBIF species search
+# Design: Trim plant-species, add live GBIF search + find-or-create link
 
 **Change**: `gbif-species-search`
 **Issue**: GDN-35
@@ -12,431 +12,350 @@
 
 | Context | Change |
 |---|---|
-| `plant-species` | **deleted entirely** — domain, application, infrastructure, transport, DB table, migrations' end-state (via a new forward migration; historical migration files are NOT rewritten) |
-| `plants` | `plantSpeciesId` (UUID FK VO) → `gbifSpeciesKey` (number, nullable) + `speciesScientificName` (string, nullable, max 300). Cross-context port/adapter/resolver/assert-service to the old catalog removed. |
-| `planting-spots` | `PlantingSpotPlant` read-model mirror: same field swap as `plants` |
-| `plant-species-search` (new) | One query (`GbifSpeciesSearchQuery`), one port, one GBIF adapter (`/species/suggest`), REST + GraphQL + MCP. No aggregate, no repository, no persistence. |
+| `plant-species` | Trim to `scientificName` + `gbifKey`; drop `description`/`imageUrl` + enrich/import; add `GbifSpeciesSearchQuery` (live, non-persisting) and `FindOrCreatePlantSpeciesByGbifKeyCommand` |
+| `plants` | No aggregate/schema change. `CreatePlantCommand`/`UpdatePlantCommand` accept `gbifSpeciesKey`+`speciesScientificName` instead of `plantSpeciesId`; handler resolves via the port's new `findOrCreateByGbifKey`. Resolved `species` field keeps its nested shape, trimmed content. |
+| `planting-spots` | No change. |
 
 ---
 
 ## 2. Architecture approach
 
-### 2.1 Why a new context instead of folding search into `plants`
-`plants` already imports zero external HTTP APIs. Bolting a GBIF HTTP adapter
-directly into it would mix "persist a plant" concerns with "proxy an external
-search API" concerns in one module. The codebase's existing granularity
-(`plant-photos`, `planting-spots`, `qr` are all separate single-purpose
-contexts) supports splitting this out. `plant-species-search` has no aggregate
-and no repository — it is a thin CQRS query slice, which is a deliberate,
-documented deviation from the full bounded-context template (see §5).
+### 2.1 Why the search query lives inside `plant-species`, not a new context
+The earlier draft split search into its own bounded context because
+`plant-species` was being deleted. Since it's being kept, the search query is
+just one more query slice inside an existing context that already owns
+everything species-related — no reason to fragment it. `GbifSpeciesSearchQuery`
+sits alongside `PlantSpeciesFindByIdQuery`/`PlantSpeciesFindByCriteriaQuery` in
+`application/queries/`.
 
-### 2.2 Layering for the new search query (the only new flow)
+### 2.2 Two different "GBIF adapters" with two different jobs
+- `GbifSpeciesSuggestAdapter` (new) — `/species/suggest`, read-only, used
+  **only** by `GbifSpeciesSearchQuery`. Never writes anything.
+- The old `GbifPlantSpeciesImportAdapter`/`GbifPlantSpeciesEnrichmentAdapter`
+  are deleted — bulk import and description/image enrichment no longer exist
+  as concepts.
+
+There is deliberately no adapter that resolves a `gbifKey` back to
+authoritative GBIF data at write time — `FindOrCreatePlantSpeciesByGbifKey`
+trusts the `gbifKey`/`scientificName` pair the client already got from a live
+search a moment earlier (same "don't re-validate against the source of truth
+on the write path" rationale the earlier draft used for `plants`, still
+correct here).
+
+### 2.3 Linking flow (the one genuinely new flow)
 
 ```
-GraphQL/REST/MCP entry point
-        │  QueryBus.execute(new GbifSpeciesSearchQuery({ name, limit }))
+Client (web) already has { gbifSpeciesKey, scientificName } from a live
+GbifSpeciesSearchQuery result
+        │
         ▼
-GbifSpeciesSearchQueryHandler        (application)
-        │  port.suggest(name, limit)
+CreatePlantCommand { name, gbifSpeciesKey?, speciesScientificName?, ... }
+        │
         ▼
-IGbifSpeciesSearchPort                (application/ports — interface + Symbol)
-        ▲ implemented by
-GbifSpeciesSuggestAdapter             (infrastructure/adapters)
-        │  HttpService (GET api.gbif.org/v1/species/suggest)
+CreatePlantCommandHandler (plants)
+        │  if gbifSpeciesKey present:
+        │    IPlantSpeciesPort.findOrCreateByGbifKey(gbifSpeciesKey, speciesScientificName)
         ▼
-   GBIF REST API
+PlantSpeciesAdapter (plants/infrastructure — existing file, gains one method)
+        │  CommandBus.execute(FindOrCreatePlantSpeciesByGbifKeyCommand)
+        ▼
+FindOrCreatePlantSpeciesByGbifKeyCommandHandler (plant-species)
+        │  1. read repo: findByGbifKey(gbifKey)
+        │  2. found?  → return { id }
+        │     not found? → build + save PlantSpeciesAggregate, emit PlantSpeciesCreated, return { id }
+        ▼
+back to CreatePlantCommandHandler: plant.plantSpeciesId = returned id
 ```
 
-The handler depends on the port Symbol + interface only, never on Axios or
-GBIF response shapes — matching the existing `PLANT_SPECIES_ENRICHMENT_PORT` /
-`GbifPlantSpeciesEnrichmentAdapter` precedent (that adapter is deleted along
-with the rest of `plant-species`, but the pattern it established is reused
-here).
-
-### 2.3 Layering for `Plant.gbifSpeciesKey` / `Plant.speciesScientificName`
-No new flow — these are two more plain fields on `PlantAggregate`, following
-the exact pattern already used for `Plant.imageUrl`: nullable `StringValueObject`
-(scientificName) / nullable `NumberValueObject` (gbifSpeciesKey) subclasses,
-constructed in `CreatePlantCommand`/`UpdatePlantCommand`, no cross-context call
-on write.
+This is a **cross-context command dispatch from an adapter**, same hexagonal
+shape the codebase already uses for `PlantSpeciesAdapter.findByPlantSpeciesId`
+→ `PlantSpeciesFindByIdQuery`. No new architectural pattern, just one more
+method on an existing port/adapter pair.
 
 ---
 
-## 3. ADR-001 — Delete `plant-species` outright (no deprecation window)
+## 3. ADR-001 — Keep the FK, upsert-on-link instead of denormalizing onto Plant
 
-**Decision**: Remove `src/contexts/plant-species/` entirely in this change,
-not behind a flag, not left-but-unwired.
+**Decision**: `Plant.plantSpeciesId` stays a FK into `plant_species`;
+linking a plant to a GBIF pick triggers a find-or-create on the catalog,
+not a copy of the species data onto the plant row.
 
-**Context**: The bounded context is fully merged (CRUD, import, enrich) and
-referenced by `plants` (species lookup) and, transitively, by
-`planting-spots` (mirrors `plantSpeciesId`). GDN-35's acceptance criteria are
-explicit that no species data is persisted locally — a "local species table"
-and "no local storage" cannot coexist.
+**Context**: reconsidered from the earlier draft (which denormalized
+`gbifSpeciesKey`/`speciesScientificName` directly onto `Plant` to avoid any
+"catalog" existing at all). The user has decided to keep a (trimmed) catalog
+table, which removes the motivation for denormalizing — once a catalog row
+exists per distinct species, the FK is the natural, already-built mechanism
+and requires zero changes to `plants`' schema, aggregate, or migrations.
 
-**Rejected alternatives**:
-- **Keep the module, stop wiring it**: leaves dead code, a live DB table, and
-  three unused transport surfaces (REST/GraphQL/MCP) that would need a comment
-  explaining why they're orphaned. Confirmed with the user as explicitly not
-  wanted (destructive removal is the chosen option).
-- **Feature-flag the switch**: unnecessary — there is no rollout population to
-  stage for; this is a pre-production catalog with no external consumers found
-  in-repo (proposal open question #3).
+**Consequence — must be found-or-created, not just found**: unlike the old
+`AssertPlantLinkedSpeciesExistsService` (which required the row to already
+exist, because the client used to pick from a browsable catalog), the client
+now only ever has a raw GBIF pick with no local id. The link step must
+therefore create the row on first use. Two plants linking the same species
+(same `gbifKey`) converge on the same catalog row after the first is created
+— this is the intended, natural deduplication `gbifKey` uniqueness gives us
+for free.
 
-**Consequence**: every cross-context reference enumerated in §6 must be
-removed in the same PR, or the build breaks. This is mechanical but wide.
-
----
-
-## 4. ADR-002 — `Plant` owns its species as two plain fields, not a re-fetched FK
-
-**Decision**: `Plant.gbifSpeciesKey: number | null` and
-`Plant.speciesScientificName: string | null` are stored directly on the
-`plants` table. No table joins, no live GBIF call on read.
-
-**Context**: GDN-35 AC2 says "no species name or metadata returned by GBIF is
-persisted/stored locally." Read literally, this would mean `Plant` shouldn't
-even remember which species it was linked to without re-querying GBIF on every
-read (list, detail). That would make every plant list render an N-call
-fan-out to a third-party API — fragile (a GBIF outage breaks the plant list)
-and slow.
-
-**Decision rationale**:
-- `speciesScientificName` is not a **catalog** — it's the plant's own chosen
-  label, exactly like `Plant.imageUrl` is the plant's own chosen image (also a
-  plain denormalized string, not a row in an `images` table). Nothing here is
-  *reusable* or *searchable as a catalog*; it's one plant's attribute.
-- `gbifSpeciesKey` is kept alongside the name so a future feature (e.g. "look
-  up more detail for this plant's species") has a stable external identifier
-  to call GBIF with on demand — again, on demand, not persisted-and-served.
-- This interpretation is flagged as an open question in the proposal so the
-  user can veto it; it is the recommended reading and the one implemented
-  here.
-
-**Rejected alternative**: store only `gbifSpeciesKey`, resolve
-`speciesScientificName` live on every read via a `/species/{key}` call.
-Rejected — turns every plant-list render into a live external dependency;
-violates "reasonable handling of GBIF errors/timeouts" (AC4) far more than
-storing a plain string ever could.
+**Rejected alternative**: keep `AssertPlantLinkedSpeciesExistsService`
+unchanged and require a separate explicit "register this species in the
+catalog" step before linking. Rejected — reintroduces exactly the manual
+catalog-browsing UX GDN-35 is replacing with live search.
 
 ---
 
-## 5. ADR-003 — No existence/validation call on `CreatePlant`/`UpdatePlant`
+## 4. ADR-002 — Uniqueness moves from `scientificName` to `gbifKey`
 
-**Decision**: `CreatePlantCommandHandler` and `UpdatePlantCommandHandler` do
-**not** call GBIF, and do not call any local "assert species exists" service,
-when a `gbifSpeciesKey`/`speciesScientificName` pair is submitted. They are
-stored as given.
+**Decision**: `plant_species.gbif_key` is unique (partial index, `WHERE
+gbif_key IS NOT NULL`, to tolerate legacy `NULL` rows); the old unique
+constraint on `scientific_name` is dropped.
 
-**Context**: The old flow validated `plantSpeciesId` against the local catalog
-before persisting (`AssertPlantLinkedSpeciesExistsService` → cross-context
-`IPlantSpeciesPort`). With the catalog gone, the only way to "validate" a
-submitted species would be to call GBIF synchronously on every plant write —
-reintroducing a mandatory external dependency on the write path.
+**Context**: with find-or-create keyed by `gbifKey`, that's the field whose
+uniqueness actually matters for correct deduplication.
+`scientificName` becomes purely descriptive.
 
-**Decision rationale**: the client only ever gets a `gbifSpeciesKey` +
-`scientificName` pair from the new `plant-species-search` query, which itself
-just talked to GBIF. Re-validating it a few seconds later on submit adds
-latency and a new failure mode (GBIF down → can't save a plant) without a
-correctness benefit worth the coupling. This mirrors how `Plant.imageUrl` is
-never validated as "a real reachable image" either.
+**Rejected alternative**: keep both unique. Rejected — no real invariant
+requires it, and GBIF taxonomy revisions occasionally produce edge cases
+where a canonical name could coincide across keys; not worth a hard
+constraint for this MVP.
 
-**Consequence**: `AssertPlantLinkedSpeciesExistsService`,
-`PlantLinkedSpeciesNotFoundException`, `IPlantSpeciesPort`,
-`PlantSpeciesAdapter`, and `PlantSpeciesResolvedFieldResolver` are all deleted,
-not adapted — they existed solely to serve this validation + the read-side
-`species` resolved field, both of which no longer apply.
+---
+
+## 5. ADR-003 — `gbif_key` is nullable at the DB level
+
+**Decision**: `gbif_key integer NULL`, not `NOT NULL`.
+
+**Context**: existing `plant_species` rows (created before this change, via
+the old create/import flow) have no GBIF key and cannot be backfilled — GBIF
+keys were never captured before. A `NOT NULL` constraint would require either
+a fabricated placeholder value (bad) or a data migration attempting to
+re-resolve every legacy row against `/species/match` during the migration
+itself (fragile, slow, out of scope).
+
+**Consequence**: application-level validation on `CreatePlantSpeciesCommand`
+and `FindOrCreatePlantSpeciesByGbifKeyCommand` still requires `gbifKey` for
+any *new* row (the VO itself is non-nullable in those write paths) — only
+pre-existing legacy rows can show `gbifKey: null` on read.
 
 ---
 
 ## 6. Component & file map
 
-### 6.1 Deleted outright
+### 6.1 `plant-species` — removed
 
-- `src/contexts/plant-species/` — entire directory (see the earlier repo scan
-  for the full ~110-file list; not re-enumerated here).
-- `test/integration/plant-species/`, `test/e2e/plant-species/` — entire dirs.
-- `src/contexts/plants/application/ports/plant-species.port.ts`
-- `src/contexts/plants/infrastructure/adapters/plant-species.adapter.ts` (+ spec)
-- `src/contexts/plants/domain/builders/plant-species.builder.ts` (+ spec) — the
-  `plants`-local mirror builder for the (now nonexistent) resolved species view.
-- `src/contexts/plants/domain/view-models/plant-species.view-model.ts`
-- `src/contexts/plants/domain/primitives/plant-species-view-model.primitives.ts`
-- `src/contexts/plants/application/services/read/enrich-plant-with-species/` (+ spec)
-- `src/contexts/plants/application/services/write/assert-plant-linked-species-exists/` (+ spec)
-- `src/contexts/plants/domain/exceptions/plant-linked-species-not-found.exception.ts`
-- `src/contexts/plants/domain/value-objects/plant-linked-species-id/` (+ spec)
-- `src/contexts/plants/domain/events/field-changed/plant-species-id-changed/`
-- `src/contexts/plants/transport/graphql/resolvers/plant/plant-species-resolved-field.resolver.ts` (+ spec)
-- `PlantLinkedSpeciesResponseDto` (in `plant.response.dto.ts`)
+- `domain/value-objects/plant-species-description/` (+ spec)
+- `domain/value-objects/plant-species-image-url/` (+ spec)
+- `domain/events/field-changed/plant-species-description-changed/`
+- `domain/events/field-changed/plant-species-image-url-changed/`
+- `application/commands/enrich-plant-species/` (+ spec)
+- `application/commands/import-plant-species/` (+ spec)
+- `application/ports/plant-species-import.port.ts`
+- (the enrichment port, if named separately from the import port — confirm
+  exact filename at apply time; both enrichment and import ports/adapters go)
+- `infrastructure/adapters/gbif-plant-species-import.adapter.ts` (+ spec, +
+  `gbif/types/gbif-api.types.ts` — replaced by a leaner suggest-only types
+  file)
+- Any enrich/import GraphQL mutations, REST endpoints, MCP tools, and their
+  DTOs/schemas.
 
-### 6.2 `plants` context — modified
+### 6.2 `plant-species` — modified
 
 **Domain**
-- New VOs: `domain/value-objects/plant-gbif-species-key/plant-gbif-species-key.value-object.ts`
-  (`PlantGbifSpeciesKeyValueObject`, extends `NumberValueObject`, nullable,
-  integer, positive) and
-  `domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object.ts`
-  (`PlantSpeciesScientificNameValueObject`, extends `StringValueObject`,
-  nullable, max 300, trimmed).
-- New events under `domain/events/field-changed/`:
-  `plant-gbif-species-key-changed/plant-gbif-species-key-changed.event.ts`
-  (`PlantGbifSpeciesKeyChangedEvent`) and
-  `plant-species-scientific-name-changed/plant-species-scientific-name-changed.event.ts`
-  (`PlantSpeciesScientificNameChangedEvent`) — replace
-  `plant-species-id-changed`.
-- `interfaces/plant.interface.ts`: remove `plantSpeciesId`; add
-  `gbifSpeciesKey: PlantGbifSpeciesKeyValueObject | null`,
-  `speciesScientificName: PlantSpeciesScientificNameValueObject | null`.
-- `primitives/plant.primitives.ts`: remove `plantSpeciesId: string | null`; add
-  `gbifSpeciesKey: number | null`, `speciesScientificName: string | null`.
-- `aggregates/plant.aggregate.ts`: remove `_plantSpeciesId` +
-  `changePlantSpeciesId()`; add `_gbifSpeciesKey`, `_speciesScientificName` +
-  `changeGbifSpeciesKey()`, `changeSpeciesScientificName()`; update
-  constructor, `update()`, `toPrimitives()`, getters.
-- `builders/plant.builder.ts`: `withPlantSpeciesId` → `withGbifSpeciesKey` +
-  `withSpeciesScientificName`.
-- `view-models/plant.view-model.ts`: remove `plantSpeciesId`/`species`; add
-  `gbifSpeciesKey: number | null`, `speciesScientificName: string | null`.
+- `domain/value-objects/plant-species-scientific-name/`: keep, drop
+  uniqueness semantics from its *usage* (uniqueness moves to gbifKey; the VO
+  itself stays a simple length-validated string).
+- New `domain/value-objects/plant-species-gbif-key/plant-species-gbif-key.value-object.ts`
+  (`PlantSpeciesGbifKeyValueObject`, extends `NumberValueObject`, required,
+  positive integer, in the aggregate's write paths — nullable only for
+  legacy read reconstruction, see ADR-003).
+- New `domain/events/field-changed/plant-species-gbif-key-changed/`
+  (`PlantSpeciesGbifKeyChangedEvent`).
+- `domain/interfaces/plant-species.interface.ts`,
+  `domain/primitives/plant-species.primitives.ts`,
+  `domain/aggregates/plant-species.aggregate.ts` (+ spec),
+  `domain/builders/plant-species.builder.ts` (+ spec),
+  `domain/view-models/plant-species.view-model.ts`: drop
+  `description`/`imageUrl`; add `gbifKey`.
+- `domain/exceptions/`: remove `plant-species-name-already-exists.exception.ts`
+  (or repurpose — see below); add
+  `plant-species-gbif-key-already-exists.exception.ts`
+  (`PlantSpeciesGbifKeyAlreadyExistsException`).
 
 **Application**
-- `commands/create-plant/create-plant.command.ts` /
-  `commands/update-plant/update-plant.command.ts`: replace `plantSpeciesId?`
-  with `gbifSpeciesKey?: number | null`, `speciesScientificName?: string | null`.
-- `commands/create-plant/create-plant.handler.ts`: remove the
-  `assertPlantLinkedSpeciesExistsService` call and DI; construct the two new
-  VOs directly onto the builder (per ADR-003).
-- `commands/update-plant/update-plant.handler.ts`: same shape update (verify
-  current content at apply time — not re-read in this design pass, same
-  mechanical pattern as create).
-- `services/read/enrich-plant-with-qr/enrich-plant-with-qr.service.ts`: no
-  behavior change, but its builder call site drops the
-  `withPlantSpeciesId`/`withSpecies` calls it currently makes when
-  reconstructing a `PlantViewModel` (replace with the two new `with*` calls,
-  passing through unchanged from the input view model).
+- `application/services/write/assert-plant-species-name-available/`: remove
+  (name is no longer unique); add
+  `application/services/write/assert-plant-species-gbif-key-available/`
+  (+ spec) — used only by `CreatePlantSpeciesCommand` (manual create path);
+  `FindOrCreatePlantSpeciesByGbifKeyCommand` does NOT use it (a hit on
+  `findByGbifKey` there means "reuse," not "conflict").
+- `application/commands/create-plant-species/`,
+  `update-plant-species/` (+ specs): field swap
+  (`description`/`imageUrl` → `gbifKey`).
+- New `application/commands/find-or-create-plant-species-by-gbif-key/`:
+  `find-or-create-plant-species-by-gbif-key.command.ts` (`{ gbifKey:
+  number; scientificName: string }`),
+  `.handler.ts` (`FindOrCreatePlantSpeciesByGbifKeyCommandHandler` — inject
+  read + write repositories; `findByGbifKey` first, build+save+publish if
+  absent, return `{ id }` either way), `.handler.spec.ts` (found path,
+  not-found-so-created path, concurrent-creation race — document as a known,
+  accepted small race window unless the tasks phase adds a DB-level
+  `ON CONFLICT` upsert instead of read-then-write; recommend `ON CONFLICT
+  (gbif_key) DO NOTHING RETURNING id` / fallback re-select at the repository
+  level to close the race cleanly).
+- New `application/ports/gbif-species-search.port.ts`
+  (`GBIF_SPECIES_SEARCH_PORT`, `IGbifSpeciesSearchPort.suggest(name, limit)`).
+- New `application/queries/gbif-species-search/gbif-species-search.query.ts`
+  + `.handler.ts` + `.handler.spec.ts` — same shape as the earlier draft's
+  design (unchanged: live passthrough, no persistence, `[]` on failure).
+- Read repository: add `findByGbifKey(gbifKey: number): Promise<ViewModel |
+  null>` alongside existing `findById`.
+- `domain/repositories/write/plant-species-write.repository.ts`: confirm
+  `save()` supports the upsert-ish find-or-create flow (likely already
+  generic enough via `IBaseWriteRepository`).
+- Update `transport/graphql/enums/plant-species-queryable-field.enum.ts` +
+  `transport/graphql/registries/plant-species-filterable-fields.registry.ts`
+  (+ spec): drop `description`/`imageUrl`, add `gbifKey`.
 
 **Infrastructure**
-- `entities/plant.entity.ts`: drop `plant_species_id` column (+ FK/index if
-  present); add `gbif_species_key int NULL`,
-  `species_scientific_name varchar(300) NULL`.
-- `mappers/plant-typeorm.mapper.ts`: field mapping swap, both directions.
-- New migration (see §7).
+- `infrastructure/persistence/typeorm/entities/plant-species.entity.ts`: drop
+  `description`, `imageUrl` columns; add `gbifKey` (`gbif_key`, `int`,
+  nullable, partial unique index); drop `@Unique` on `scientificName`.
+- `infrastructure/persistence/typeorm/mappers/plant-species-typeorm.mapper.ts`
+  (+ spec): field swap.
+- `infrastructure/persistence/typeorm/repositories/plant-species-typeorm-read.repository.ts`:
+  add `findByGbifKey`.
+- New `infrastructure/adapters/gbif-species-suggest.adapter.ts` (+ spec, +
+  `gbif/types/gbif-suggest-api.types.ts`): `/species/suggest`, 5s timeout,
+  try/catch → `[]` + warn log on failure, drop malformed entries (same
+  resilience contract as the earlier draft's design).
 
 **Transport**
-- GraphQL: `plant-create.request.dto.ts` / `plant-update.request.dto.ts`
-  replace `plantSpeciesId` with `gbifSpeciesKey?: number`,
-  `speciesScientificName?: string`. `plant.response.dto.ts`: remove
-  `plantSpeciesId`/`species` (and the now-unused
-  `PlantLinkedSpeciesResponseDto`), add `gbifSpeciesKey: number | null`,
-  `speciesScientificName: string | null` as plain scalar `@Field()`s (no
-  resolver needed — no more resolved/joined field). `plant.mapper.ts`
-  (GraphQL) + `plant.mapper.ts` (REST): field swap.
-- REST: `create-plant.dto.ts`, `update-plant.dto.ts`,
-  `plant-rest-response.dto.ts`: same field swap, `@ApiPropertyOptional`.
-- MCP: `plant-create.schema.ts`, `plant-update.schema.ts`: Zod field swap.
-- `transport/graphql/enums/plant/plant-queryable-field.enum.ts` +
-  `transport/graphql/registries/plant-filterable-fields.registry.ts` (+ spec):
-  remove `plantSpeciesId` from the queryable/filterable set. Adding
-  `gbifSpeciesKey`/`speciesScientificName` as filterable is **not required**
-  by GDN-35 — left out unless the tasks phase finds an existing UI need
-  (none identified).
+- GraphQL: trim `plant-species-create.request.dto.ts` /
+  `-update.request.dto.ts` / `plant-species.response.dto.ts` (drop
+  description/imageUrl, add gbifKey); remove `plant-species-enrich.request.dto.ts`
+  and the import request/response DTOs; remove `enrichPlantSpecies` /
+  `importPlantSpeciesFromGbif` mutations from
+  `plant-species-mutations.resolver.ts`. New
+  `transport/graphql/dtos/requests/gbif-species-search.request.dto.ts` +
+  `.../responses/gbif-species-suggestion.response.dto.ts` +
+  `transport/graphql/resolvers/gbif-species-search-queries.resolver.ts`
+  (sibling to the existing `plant-species-queries.resolver.ts`).
+- REST: trim `create-plant-species.dto.ts` / `update-plant-species.dto.ts` /
+  `plant-species-rest-response.dto.ts`; add a search endpoint on
+  `plant-species.controller.ts` (or a small sibling controller) — `GET
+  /plant-species/search?name=&limit=`.
+- MCP: trim `plant-species-create.schema.ts` / `-update.schema.ts`; remove
+  `plant-species-enrich.schema.ts`/`.tool.ts` and
+  `plant-species-import.schema.ts`/`.tool.ts`; add
+  `gbif-species-search.schema.ts` + `.tool.ts` (`plant_species_search` or
+  `gbif_species_search` — confirm final wire name at apply time, prefer
+  entity-prefixed per convention: `plant_species_search`).
+- `plant-species.module.ts`: remove enrichment/import port bindings and
+  handlers from provider arrays; add the new command handler, query handler,
+  adapter binding, and new transport providers.
 
-### 6.3 `planting-spots` context — modified
+### 6.3 `plants` — modified (small)
 
-`PlantingSpotPlant` is a read-model built by `PlantingSpotPlantsAdapter` from
-`PlantFindByCriteriaQuery` results, mirroring a subset of `Plant`'s fields for
-display inside a planting spot. Same field swap, no new concepts:
+- `application/commands/create-plant/create-plant.command.ts` /
+  `update-plant.command.ts`: replace `plantSpeciesId?: string` with
+  `gbifSpeciesKey?: number`, `speciesScientificName?: string` (both required
+  together — validate pairing in the command constructor or handler).
+- `application/ports/plant-species.port.ts`: add
+  `findOrCreateByGbifKey(gbifKey: number, scientificName: string):
+  Promise<{ id: string }>` to `IPlantSpeciesPort`.
+- `infrastructure/adapters/plant-species.adapter.ts` (+ spec): implement the
+  new method, dispatching `FindOrCreatePlantSpeciesByGbifKeyCommand` via
+  `CommandBus`.
+- Remove `application/services/write/assert-plant-linked-species-exists/`
+  (+ spec) — no longer "assert exists," now "ensure exists" via the port
+  call directly in the handler (or a small new
+  `application/services/write/resolve-plant-species-link/` wrapper service if
+  the handler would otherwise get cluttered — apply-time call).
+- `application/commands/create-plant/create-plant.handler.ts` /
+  `update-plant/update-plant.handler.ts`: replace the assert-exists call with
+  a call to `plantSpeciesPort.findOrCreateByGbifKey(...)` when both new
+  fields are present, then pass the returned `id` to
+  `withPlantSpeciesId(...)` exactly as before.
+- `domain/builders/plant-species.builder.ts` (plants-local mirror),
+  `domain/view-models/plant-species.view-model.ts`,
+  `domain/primitives/plant-species-view-model.primitives.ts`: drop
+  `description`/`imageUrl`, add `gbifKey`.
+- `transport/graphql/dtos/requests/plant/plant-create.request.dto.ts` /
+  `plant-update.request.dto.ts`: field swap (`plantSpeciesId` → the two new
+  fields). `transport/graphql/dtos/responses/plant/plant.response.dto.ts`'s
+  `PlantLinkedSpeciesResponseDto`: drop description/imageUrl, add `gbifKey`.
+  `transport/graphql/mappers/plant/plant.mapper.ts` (+ spec): field swap.
+- REST/MCP: same input/response field swap
+  (`create-plant.dto.ts`/`update-plant.dto.ts`/`plant-rest-response.dto.ts`,
+  `plant-create.schema.ts`/`plant-update.schema.ts`).
+- **Unchanged, confirm no edit needed**: `PlantAggregate`,
+  `plant.entity.ts`, `plant-typeorm.mapper.ts`, `PlantSpeciesResolvedFieldResolver`,
+  `EnrichPlantWithSpeciesService` (its shape stays — just carries trimmed
+  fields through), `plant.builder.ts`'s `withPlantSpeciesId` (still the
+  correct method name — Plant's own field didn't rename).
 
-- `domain/interfaces/planting-spot-plant.interface.ts`: `plantSpeciesId:
-  UuidValueObject | null` → `gbifSpeciesKey: NumberValueObject | null`,
-  `speciesScientificName: StringValueObject | null` (or reuse `plants`'
-  VOs if the cross-context boundary rule allows importing a VO type directly —
-  confirm at apply time; if not, define local equivalents, matching the
-  existing pattern where `planting-spot-plant` already re-declares plant
-  fields locally rather than importing `plants` domain types).
-- `domain/primitives/planting-spot-plant.primitives.ts`: same swap (primitive
-  types: `number | null`, `string | null`).
-- `domain/aggregates/planting-spot-plant.aggregate.ts`: same swap.
-- `domain/builders/planting-spot-plant.builder.ts`: `withPlantSpeciesId` →
-  `withGbifSpeciesKey` + `withSpeciesScientificName`.
-- `domain/view-models/planting-spot-plant.view-model.ts`: same swap.
-- `infrastructure/adapters/planting-spot-plants.adapter.ts`: update the
-  builder call site to pass `plant.gbifSpeciesKey ?? null` /
-  `plant.speciesScientificName ?? null` instead of `plant.plantSpeciesId`.
-- `transport/graphql/dtos/responses/planting-spot.response.dto.ts` +
-  `transport/graphql/mappers/planting-spot/planting-spot.mapper.ts`: same
-  field swap.
-
-### 6.4 `plant-species-search` context — new
-
-```
-src/contexts/plant-species-search/
-├── application/
-│   ├── ports/gbif-species-search.port.ts
-│   │     GBIF_SPECIES_SEARCH_PORT (Symbol)
-│   │     IGbifSpeciesSearchPort { suggest(name, limit): Promise<GbifSpeciesSuggestion[]> }
-│   └── queries/gbif-species-search/
-│         gbif-species-search.query.ts   (GbifSpeciesSearchQuery: { name: string; limit?: number })
-│         gbif-species-search.handler.ts (GbifSpeciesSearchQueryHandler)
-│         gbif-species-search.handler.spec.ts
-├── domain/
-│   └── view-models/gbif-species-suggestion.view-model.ts
-│         GbifSpeciesSuggestionViewModel { gbifKey: number; scientificName: string }
-│         (NOT a BaseViewModel subclass — no id/createdAt/updatedAt; this is
-│         an external passthrough shape, documented deviation, see §7 below)
-├── infrastructure/
-│   └── adapters/
-│         gbif-species-suggest.adapter.ts   (GbifSpeciesSuggestAdapter, HttpService)
-│         gbif-species-suggest.adapter.spec.ts
-│         gbif/types/gbif-suggest-api.types.ts  (raw GBIF response shape)
-├── transport/
-│   ├── graphql/
-│   │   ├── dtos/
-│   │   │   ├── requests/gbif-species-search.request.dto.ts
-│   │   │   └── responses/gbif-species-suggestion.response.dto.ts
-│   │   ├── mappers/gbif-species-suggestion.mapper.ts
-│   │   └── resolvers/gbif-species-search-queries.resolver.ts
-│   ├── rest/
-│   │   ├── controllers/gbif-species-search.controller.ts
-│   │   └── dtos/gbif-species-suggestion-rest-response.dto.ts
-│   └── mcp/
-│       ├── schemas/gbif-species-search.schema.ts
-│       └── tools/gbif-species-search.tool.ts
-├── README.md
-└── plant-species-search.module.ts
-```
-
-**No repository, no entity, no mapper-to-DB** — nothing here touches
-persistence. Registered in `CONTEXT_MODULES`
-(`src/contexts/contexts.module.ts`) like every other context.
-
-**Deviation from the standard template, called out explicitly** (per
-`architecture` skill's structure, which assumes an aggregate): no
-`domain/aggregates/`, no `domain/builders/`, no `domain/repositories/`, no
-`infrastructure/persistence/`. This context has no state to own — it is a
-stateless CQRS query slice over an external API, same shape as the
-enrichment/import adapters that already existed in the (now deleted)
-`plant-species` context, minus the write side.
-
-**Auth**: same `JwtAuthGuard` as every other authenticated query in this repo
-(confirm at apply time whether `SpaceContext`/`X-Space-ID` is required — this
-query is not tenant-scoped, so it should NOT require `X-Space-ID`, matching
-how the old `plant-species` catalog also required JWT-only, no space header).
+### 6.4 `planting-spots` — no change.
 
 ---
 
-## 7. ADR-004 — GBIF endpoint: `/species/suggest`, not `/species/search`
+## 7. Data flow summary
 
-**Decision**: Use `GET https://api.gbif.org/v1/species/suggest?q={name}&limit={limit}`.
+**Search (unchanged from earlier draft's design)**: client keystroke
+(debounced) → REST/GraphQL/MCP → `GbifSpeciesSearchQuery` →
+`IGbifSpeciesSearchPort.suggest()` → `GbifSpeciesSuggestAdapter` → GBIF
+`/species/suggest` → mapped suggestions. Nothing persisted.
 
-**Context**: The already-deleted `plant-species` import adapter used
-`/species/search` (heavier — full facet/filter support, pagination, richer
-per-result payload) for bulk catalog import. `/species/suggest` is GBIF's
-purpose-built lightweight typeahead endpoint: smaller payload, tuned for
-low-latency interactive search, and does not require the
-`highertaxon_key`/`status` filter dance the old import adapter needed.
-Confirmed with the user (recommended and accepted).
+**Create/update plant with a species (new)**: resolver/controller/tool →
+command with `gbifSpeciesKey?`, `speciesScientificName?` → handler → (if
+present) `plantSpeciesPort.findOrCreateByGbifKey()` → cross-context command
+dispatch → `plant_species` upsert-by-gbifKey → returned `id` → `Plant.plantSpeciesId`
+set exactly as the pre-existing FK mechanism already does → save → events.
 
-**Call shape**:
-```
-GET /v1/species/suggest?q={name}&limit={limit}&rank=SPECIES
-```
-Response: `Array<{ key: number; scientificName?: string; canonicalName?: string; rank?: string; status?: string; ... }>`
-(unauthenticated array response, not the paginated `{results: [...]}` envelope
-`/species/search` uses).
-
-Mapping: `gbifKey = item.key`, `scientificName = (item.canonicalName ??
-item.scientificName ?? '').trim()`; drop entries with no name or missing key
-(same defensive pattern the deleted import adapter used).
-
-**Error handling (AC4)**: adapter wraps the HTTP call in `try/catch` with a
-5s timeout (matching the existing `REQUEST_TIMEOUT_MS` convention from the
-deleted adapter); on any failure (timeout, 4xx/5xx, network error), log a
-warning and return `[]` — never throw out of the adapter. The query handler
-and resolver/controller/tool see an empty array, not an error, on GBIF
-failure — the client renders "no results" rather than a crash or 500.
-
-**Limit**: `limit` optional input, default 10, clamped server-side to a max
-of 20 (avoid a client asking for an unbounded result set from GBIF).
+**Read a plant (unchanged mechanism, trimmed content)**:
+`PlantSpeciesResolvedFieldResolver` → `IPlantSpeciesPort.findByPlantSpeciesId`
+→ `PlantSpeciesFindByIdQuery` → mapped into the plants-local
+`PlantSpeciesViewModel` (now just `{ gbifKey, scientificName }` plus
+timestamps/id) → `PlantLinkedSpeciesResponseDto`.
 
 ---
 
-## 8. Data flow summary
+## 8. Migration strategy
 
-**Search (new)**: client keystroke (debounced client-side) →
-REST/GraphQL/MCP entry point → `GbifSpeciesSearchQuery({ name, limit })` →
-`GbifSpeciesSearchQueryHandler` → `IGbifSpeciesSearchPort.suggest()` →
-`GbifSpeciesSuggestAdapter` → GBIF `/species/suggest` → mapped
-`GbifSpeciesSuggestionViewModel[]` → response DTOs. Nothing persisted at any
-step.
-
-**Create/update plant (modified)**: resolver/controller/tool → command with
-`gbifSpeciesKey?`, `speciesScientificName?` → handler constructs the two VOs
-directly (no external or cross-context call) → aggregate → save → events →
-mapper → DB columns `gbif_species_key`, `species_scientific_name`.
-
-**Planting-spot plant listing (modified)**: `PlantingSpotPlantsAdapter` →
-`PlantFindByCriteriaQuery` → maps `plant.gbifSpeciesKey` /
-`plant.speciesScientificName` straight through onto
-`PlantingSpotPlantViewModel` — no additional lookups (same as before, just
-different field names).
-
----
-
-## 9. Migration strategy
-
-Single new migration, `1780000000015-RemovePlantSpeciesCatalog.ts` (or next
-free sequential timestamp — confirm the actual next timestamp at apply time
-against `src/database/migrations/`):
+Single migration, `{next-timestamp}-TrimPlantSpeciesToGbif.ts`:
 
 ```sql
--- 1. Backfill the plant's own scientific-name column from the catalog
---    while both still exist, best-effort (NULL where no link existed).
-ALTER TABLE "plants" ADD COLUMN "species_scientific_name" character varying(300);
-ALTER TABLE "plants" ADD COLUMN "gbif_species_key" integer;
-
-UPDATE "plants" p
-SET "species_scientific_name" = ps."scientific_name"
-FROM "plant_species" ps
-WHERE p."plant_species_id" = ps."id";
-
--- 2. Drop the old FK column and the catalog table.
-ALTER TABLE "plants" DROP CONSTRAINT IF EXISTS "FK_plants_plant_species_id"; -- confirm real constraint name at apply time
-ALTER TABLE "plants" DROP COLUMN "plant_species_id";
-DROP TABLE "plant_species";
+ALTER TABLE "plant_species" DROP COLUMN "description";
+ALTER TABLE "plant_species" DROP COLUMN "image_url";
+ALTER TABLE "plant_species" DROP CONSTRAINT "UQ_plant_species_scientific_name";
+ALTER TABLE "plant_species" ADD COLUMN "gbif_key" integer;
+CREATE UNIQUE INDEX "UQ_plant_species_gbif_key" ON "plant_species" ("gbif_key") WHERE "gbif_key" IS NOT NULL;
 ```
 
-`down()`: re-creates an **empty** `plant_species` table matching its
-pre-drop shape (id, scientific_name, description, image_url, timestamps) and
-re-adds `plant_species_id uuid NULL` to `plants` (FK not restored — nothing to
-point to); drops `gbif_species_key`/`species_scientific_name`. Explicitly
-documented in the migration file's `down()` docstring that this restores
-**schema only**, not data (see proposal §3 rollback plan).
+`down()`: drops the partial index and `gbif_key`; re-adds
+`description`/`image_url` as nullable (data not restored — dropped columns
+are gone); re-adds the `scientific_name` unique constraint (may fail if
+duplicates accumulated in the meantime — documented risk, see proposal §3).
 
-**Risk carried over from the risk register of the original enrich change**:
-verify the actual FK/constraint name on `plants.plant_species_id` in the live
-schema before finalizing the `DROP CONSTRAINT` statement (same caution the
-`plant-species-enrich` design doc flagged for its own rename).
+**Confirm at apply time**: the live name of the existing unique constraint on
+`scientific_name` (established across the earlier `plant-species-module` and
+`plant-species-enrich` migrations) before writing the `DROP CONSTRAINT`
+statement — same caution flagged in prior migrations touching this table.
 
 ---
 
-## 10. Risks & assumptions
+## 9. Risks & assumptions
 
-1. **Data loss on `gbifSpeciesKey`** — cannot be backfilled (old catalog never
-   stored a GBIF key); all pre-existing plants start with `gbifSpeciesKey:
-   null` even if they had a linked species name. Accepted per proposal §3.
-2. **Destructive migration** — `DROP TABLE plant_species` is irreversible;
-   mitigated by recommending a backup immediately before running it (proposal
-   §3), not by the migration itself.
-3. **Wide mechanical blast radius** — three contexts touched
-   (`plant-species` deleted, `plants` + `planting-spots` modified) plus one
-   new context. Mechanical but not conceptually hard; the tasks phase should
-   phase it as two chained PRs (proposal §4) to keep review load sane.
-4. **GBIF `/species/suggest` shape** — confirm exact response fields against
-   a live call during implementation; the adapter must defensively handle
-   missing `canonicalName`/`scientificName`/`key` per §7.
-5. **`planting-spots` VO reuse question** (§6.3) — decide at apply time
-   whether to import `plants`' new VOs directly or re-declare local
-   equivalents; the existing code already re-declares rather than imports
-   (no cross-context domain import per the hexagonal boundary rule in
-   `openspec/config.yaml`), so re-declaring is the consistent choice unless
-   tasks phase finds a reason to deviate.
+1. **`description`/`imageUrl` data loss** — real data on any enriched catalog
+   row is gone once this migration runs. Accepted per proposal §3.
+2. **`gbif_key` can't be backfilled for legacy rows** — same category of gap
+   as the earlier draft, now scoped to one nullable column instead of an
+   entire dropped table.
+3. **Find-or-create race** — two concurrent plant creations picking the same
+   never-before-seen species could both miss on `findByGbifKey` and attempt
+   to create — mitigate with `ON CONFLICT (gbif_key) DO NOTHING` + re-select,
+   or accept the (rare, low-stakes) duplicate-row risk for the MVP; decide at
+   tasks/apply time.
+4. **`CreatePlantSpecies`/`UpdatePlantSpecies`/`DeletePlantSpecies` mutations'
+   continued relevance** — kept per proposal's open question #1; revisit if
+   product decides the manual path is dead weight.
+5. **GBIF `/species/suggest` response shape** — verify against a live call
+   during implementation, same as the earlier draft.

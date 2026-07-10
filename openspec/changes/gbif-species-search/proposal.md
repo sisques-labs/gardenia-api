@@ -1,175 +1,197 @@
-# Proposal: Live GBIF species search, remove the local plant-species catalog
+# Proposal: Trim plant-species to scientificName+gbifKey, add live GBIF search
 
 **Change**: `gbif-species-search`
 **Issue**: GDN-35 — https://sisqueslabs.atlassian.net/browse/GDN-35
 **Status**: proposed
 **Artifact store**: openspec
 
+> **Revision note**: this supersedes an earlier draft of this same change that
+> proposed deleting the `plant-species` bounded context entirely and moving
+> `Plant`'s species link onto two denormalized fields
+> (`gbifSpeciesKey`/`speciesScientificName`) with no FK. The user reviewed
+> that draft and asked for a smaller-footprint approach instead (see §6 for
+> what changed and why).
+
 ---
 
 ## 1. Intent
 
 ### What
-1. **Remove** the `plant-species` bounded context entirely — domain, application,
-   infrastructure, transport (REST/GraphQL/MCP), the `plant_species` table, and
-   every cross-context reference to it from `plants` and `planting-spots`.
-2. **Replace** `Plant.plantSpeciesId` (a UUID FK into the now-deleted catalog) with
-   two plain, denormalized fields owned by `Plant` itself: `gbifSpeciesKey` (GBIF's
-   numeric `usageKey`) and `speciesScientificName` (the scientific name as chosen
-   by the user at selection time).
-3. **Add** a new, read-only, non-persisting `plant-species-search` bounded context
-   that queries GBIF's `/species/suggest` endpoint live and returns candidates for
-   autocomplete. Nothing it returns is ever written to our database.
+1. **Keep** the `plant-species` bounded context, but trim it down to exactly
+   two content fields: `scientificName` (string) and `gbifKey` (GBIF's numeric
+   `usageKey`). Remove `description`, `imageUrl`, the `EnrichPlantSpecies`
+   command, and the `ImportPlantSpeciesFromGbif` bulk-import command — none of
+   these serve the trimmed shape.
+2. **Add** a live, non-persisting `GbifSpeciesSearch` query inside this same
+   context, proxying GBIF's `/species/suggest` endpoint for autocomplete.
+   Nothing this query returns is written to the database.
+3. **Add** a `FindOrCreatePlantSpeciesByGbifKey` command: given a `gbifKey` +
+   `scientificName` picked from a live search result, look up an existing
+   catalog row by `gbifKey`; create it on the spot if missing. This is how a
+   client's live-search pick becomes a linkable catalog id, without ever
+   requiring a manual "browse and create a catalog entry first" step.
+4. **`Plant.plantSpeciesId` (FK) is UNCHANGED** — `Plant` still links to
+   `plant_species` by id, exactly as it does today. What changes is *how that
+   id gets set*: `CreatePlant`/`UpdatePlant` now accept `gbifSpeciesKey` +
+   `speciesScientificName` (what a client actually has after a live search)
+   instead of a raw `plantSpeciesId` (a local catalog UUID the client has no
+   way to know without first browsing the catalog — which no longer makes
+   sense once catalog entries are created on demand from search picks). The
+   handler resolves this via `FindOrCreatePlantSpeciesByGbifKey` internally.
 
 ### Why now
-GDN-35 asks for live species autocomplete against GBIF with **zero local
-persistence** of species data. The repo already has a `plant-species` bounded
-context (catalog CRUD + `ImportPlantSpeciesFromGbif` + `EnrichPlantSpecies`,
-shipped and merged) that does the opposite: it imports and stores species rows
-locally, and `Plant` links to them via FK. The user has confirmed (decision
-recorded in conversation, not re-litigated here) that GDN-35 supersedes that
-catalog: the catalog is deleted outright, and a plant's species becomes an
-attribute of the plant itself (mirroring how `Plant.imageUrl` already works —
-a plain string owned by the plant, not a row in a shared table).
+GDN-35 wants live GBIF autocomplete during "add a plant." The existing
+`plant-species` catalog + `plants.plantSpeciesId` FK machinery (aggregate,
+cross-context port, resolved GraphQL field, in-use guard on delete) is
+already built, tested, and working — only its *content* (description/image
+enrichment, bulk import) doesn't fit the "live search, on-demand link"
+model GDN-35 asks for. Trimming the content and adding a search+link path
+reuses that machinery instead of discarding and rebuilding it.
 
 ### Success looks like
-- Typing a species name anywhere species search is exposed hits GBIF live
-  (`/species/suggest`) and returns candidates; nothing from that response is
-  persisted anywhere.
-- Creating/updating a `Plant` with a chosen `gbifSpeciesKey` +
-  `speciesScientificName` just stores those two values on the plant row — no
-  external call, no existence check against a local catalog (there isn't one).
-- The `plant_species` table, and every file under `src/contexts/plant-species/`,
-  is gone. No dangling imports, no orphaned migrations left un-run.
-- `plants` and `planting-spots` (which mirrors `plantSpeciesId` for its own
-  read model) compile and pass tests against the new fields.
+- Typing a species name anywhere search is exposed hits GBIF live
+  (`/species/suggest`); nothing from that response is persisted by the search
+  itself.
+- Picking a search result and creating/updating a `Plant` results in exactly
+  one `plant_species` row for that `gbifKey` (created on first use, reused on
+  every subsequent pick of the same species) and the plant's existing FK
+  mechanics apply unchanged.
+- `description`/`imageUrl` and the enrich/import commands are gone; nothing
+  references them.
+- `plants`, `planting-spots`, and all existing cross-context wiring keep
+  working with zero change to `plants`' own schema or aggregate.
 
 ---
 
 ## 2. Scope
 
 ### Bounded contexts impacted
-- **`plant-species`** — deleted entirely (domain/application/infrastructure/transport).
-- **`plants`** — `plantSpeciesId` (UUID VO, FK semantics) replaced by
-  `gbifSpeciesKey` (number, nullable) + `speciesScientificName` (string, nullable).
-  Cross-context port to `plant-species` (`IPlantSpeciesPort`), its adapter, the
-  `species`-resolved GraphQL field, and the linked-species-exists assertion are
-  all removed — there is nothing left to look up.
-- **`planting-spots`** — `PlantingSpotPlant` (a read-model mirror built from
-  `Plant` for planting-spot display) currently mirrors `plantSpeciesId`; it must
-  mirror the two new fields instead.
-- **`plant-species-search`** (new) — a small, stateless bounded context: one
-  query, one port, one GBIF-backed adapter. No aggregate, no repository, no
-  persistence of any kind.
+- **`plant-species`** — trimmed fields (drop `description`/`imageUrl`), drop
+  `EnrichPlantSpecies`/`ImportPlantSpeciesFromGbif`, add `gbifKey` field, add
+  `GbifSpeciesSearchQuery` and `FindOrCreatePlantSpeciesByGbifKeyCommand`.
+- **`plants`** — no aggregate/schema change. `CreatePlantCommand`/
+  `UpdatePlantCommand` input swaps `plantSpeciesId?` for `gbifSpeciesKey?` +
+  `speciesScientificName?`; the existing `IPlantSpeciesPort` gains a
+  `findOrCreateByGbifKey` method; `AssertPlantLinkedSpeciesExistsService` is
+  replaced by a resolve-and-link step (existence is no longer asserted, it's
+  ensured). The already-existing resolved `species` field on `PlantResponseDto`
+  keeps its shape (nested object), just with trimmed content
+  (`gbifSpeciesKey`, `scientificName` — no `description`/`imageUrl`).
+- **`planting-spots`** — **no change**. It only mirrors
+  `Plant.plantSpeciesId` as a raw id passthrough today; that field doesn't
+  move.
 
 ### In scope
-- DB migration: alter `plants` (drop `plant_species_id` column + FK, add
-  `gbif_species_key int NULL`, `species_scientific_name varchar(300) NULL`,
-  best-effort backfill of `species_scientific_name` from the current catalog
-  before it's dropped); drop `plant_species` table.
-- Full removal of `src/contexts/plant-species/` and its tests
-  (`test/integration/plant-species/`, `test/e2e/plant-species/`).
-- `plants` domain/application/infrastructure/transport updated for the field swap.
-- `planting-spots` read-model mirror updated for the field swap.
-- New `plant-species-search` context: `GbifSpeciesSearchQuery` +
-  handler, `IGbifSpeciesSearchPort`, `GbifSpeciesSuggestAdapter` (calls
-  `GET /v1/species/suggest`), GraphQL query + REST endpoint + MCP tool.
-- README updates for `plants`, `planting-spots`, and the new
-  `plant-species-search` context (per `openspec/config.yaml` apply rule).
+- DB migration on `plant_species`: drop `description`, `image_url` columns;
+  add nullable `gbif_key integer` (nullable at the DB level — existing rows
+  predate GBIF keys and can't be backfilled, same unavoidable gap as before,
+  scoped much smaller now); partial unique index on `gbif_key WHERE gbif_key
+  IS NOT NULL`; drop the old uniqueness constraint on `scientific_name`
+  (uniqueness moves to `gbif_key`, the real external identity).
+- Domain: new `PlantSpeciesGbifKeyValueObject`; remove
+  `PlantSpeciesDescriptionValueObject`/`PlantSpeciesImageUrlValueObject` and
+  their field-changed events; remove name-uniqueness assertion, add
+  gbifKey-uniqueness assertion.
+- Application: remove `EnrichPlantSpeciesCommand`/
+  `ImportPlantSpeciesFromGbifCommand` (+ their ports/adapters); add
+  `FindOrCreatePlantSpeciesByGbifKeyCommand` and `GbifSpeciesSearchQuery`.
+- Infrastructure: remove the enrichment/import GBIF adapters; add
+  `GbifSpeciesSuggestAdapter` (`/species/suggest`).
+- Transport: trim create/update/response DTOs (REST/GraphQL/MCP); remove
+  enrich/import mutations/tools; add the search query/endpoint/tool.
+- `plants`: command input field swap, port method addition, handler
+  resolve-and-link change. README updates for `plant-species` and `plants`.
 
 ### Out of scope
-- Any change to `gardenia-web` (separate proposal, drafted after this one is
-  approved).
-- Caching or storing GBIF search results anywhere, even transiently (no Redis,
-  no in-memory TTL cache) — every autocomplete keystroke that reaches the API
-  hits GBIF directly, per AC2.
-- Validating that a submitted `gbifSpeciesKey` actually exists in GBIF at
-  create/update-plant time (see Design §ADR — deliberately not done: it would
-  reintroduce a mandatory external dependency on the write path, which is
-  exactly what GDN-35 removes).
-- Re-adding taxonomy/description/image data — GDN-35 explicitly limits this to
-  name/autocomplete.
-- The `Criteria`/`findByCriteria` filter pattern for the new search — it's a
-  live external passthrough, not a persisted list (called out explicitly so
-  reviewers don't flag it as a missed convention).
+- Any change to `gardenia-web` beyond what the already-drafted, paired web
+  proposal covers (unaffected in its write-side shape; its read-side needs a
+  small adjustment — see that proposal's own revision).
+- Re-adding taxonomy/habitat/additional GBIF fields.
+- Backfilling `gbif_key` for pre-existing catalog rows — same accepted gap as
+  the previous draft, now limited to a nullable column rather than a data
+  migration for an entirely dropped table.
+- Making `CreatePlantSpecies`/`UpdatePlantSpecies`/`DeletePlantSpecies`
+  unreachable — they stay as a manual/admin-ish path alongside the new
+  find-or-create-on-link flow (flagged as an open question below: confirm
+  they're still wanted, since most links will now go through
+  find-or-create).
 
 ---
 
-## 3. Rollback plan (risky change)
+## 3. Rollback plan
 
-This change drops a table and a column that hold real data (per
-`openspec/config.yaml`: "Include rollback plan for risky changes" /
-"Warn before merging destructive deltas — this qualifies").
+Smaller-footprint than the previous draft, but still a schema change to a
+real table (per `openspec/config.yaml`'s "include rollback plan for risky
+changes"):
 
-- **Before the drop migration runs**, `species_scientific_name` on `plants` is
-  backfilled from the current `plant_species.scientific_name` via a plain SQL
-  `UPDATE ... FROM` in the same migration, so the human-readable species name
-  survives the cutover. `gbifSpeciesKey` CANNOT be backfilled — the old catalog
-  never stored a GBIF key, so it starts `NULL` for all pre-existing plants.
-  This is called out as an accepted, irreversible data gap.
-- **Migration `down()`**: recreates `plant_species` (empty — data is not
-  restorable, Postgres `DROP TABLE` is not reversible) and reverts `plants`
-  columns (`gbif_species_key`/`species_scientific_name` dropped,
-  `plant_species_id` re-added as `NULL`, FK not restored since the referenced
-  rows are gone). This down migration restores **schema shape only**, not data —
-  documented inline in the migration file.
-- **Code rollback**: reverting this PR/branch restores all deleted
-  `plant-species` source files via git; it does **not** restore dropped data.
-  If a real rollback is ever needed, it must happen before the drop migration
-  is applied to a database that matters (i.e., roll back code + DB together in
-  the same maintenance window, not independently).
-- **Recommendation**: take a full DB backup (or a `pg_dump` of `plant_species`
-  and `plants.plant_species_id` specifically) immediately before this migration
-  runs in any environment with real data, even though this is pre-production.
+- Dropping `description`/`image_url` **does lose data** for any catalog row
+  that had them set. `down()` re-adds both columns as nullable (schema only —
+  the actual text/URL values are not recoverable once dropped).
+- Adding `gbif_key` and its partial unique index is purely additive/reversible
+  (`down()` drops the index and column).
+- Dropping the `scientific_name` uniqueness constraint and not restoring it
+  in `down()`'s inverse is intentional — the previous constraint doesn't
+  apply to the new model; `down()` should recreate it anyway for a clean
+  schema-level reversal, understanding that if duplicate names accumulated
+  in the meantime, `down()` would fail until deduplicated (documented risk).
+- Code rollback (reverting the PR) restores all removed source files via git.
+  No plant/planting-spots data is touched at all — those two contexts have no
+  migration in this change.
 
 ---
 
 ## 4. Delivery
 
-**Recommendation: two chained PRs**, given the diff spans a full context
-deletion + two context modifications + one new context:
+**Recommendation: single PR.** Unlike the previous draft, this no longer
+touches `plants`' schema or `planting-spots` at all — the diff is now
+concentrated in one context (`plant-species`) plus a small, well-contained
+edit to `plants`' command handlers/DTOs. Estimate: comfortably within normal
+review size; no chaining needed unless the tasks phase finds otherwise.
 
-1. **PR 1 — removal + field swap**: delete `plant-species`, migrate `plants` +
-   `planting-spots`, update all cross-context wiring, update READMEs. This is
-   the destructive/risky half; keeping it isolated makes it easy to review and,
-   if needed, revert independently of PR 2.
-2. **PR 2 — new capability**: add `plant-species-search` (query, port, GBIF
-   adapter, all three transports, tests). Purely additive, no schema changes,
-   low risk, depends on PR 1 only for the removed `plant-species` module slot
-   being free (no hard code dependency).
-
-If the tasks phase forecasts either slice under ~400 lines comfortably, they
-may be delivered as a single PR instead — final call at tasks/apply time.
-
-**Risk assessment: MEDIUM-HIGH** — the only risk driver is the destructive
-migration (data loss on `gbifSpeciesKey` backfill, table drop). Everything else
-(new query context, field rename mechanics) is low-risk, following established
-patterns already used across `plants`/`plant-species`/`planting-spots`.
+**Risk assessment: MEDIUM** — the migration still drops columns with real
+data (`description`/`image_url`); no table is dropped, no cross-context
+schema is touched outside `plant-species`.
 
 ---
 
 ## 5. Open questions
 
-1. **GBIF `/species/suggest` result shape** — assumed fields: `key` (usageKey,
-   → `gbifSpeciesKey`), `canonicalName`/`scientificName` (→
-   `speciesScientificName`), optionally `rank`/`status`/`kingdom` (not
-   surfaced). *Assumed: only key + name are exposed to clients; confirm at
-   design/implementation if GBIF's actual response needs light filtering
-   (e.g. restrict to `rank=SPECIES` server-side).*
-2. **Suggest endpoint limit param** — GBIF's `/species/suggest` defaults to a
-   small page size. *Assumed: expose an optional `limit` input (default ~10,
-   cap ~20) matching typeahead UX needs; no offset/pagination since this isn't
-   a browsable list.*
-3. **Does anything else depend on the deleted REST/GraphQL/MCP surface of
-   `plant-species`?** — repo-wide search only found `plants` and
-   `planting-spots` as consumers (both covered above). *Assumed: no other
-   context or external consumer (e.g. a saved Postman collection, a mobile
-   client) depends on the old `plant-species` endpoints — flagged here in case
-   the user knows of one we can't see in this repo.*
-4. **`gbifSpeciesKey` validation depth** — no format validation beyond
-   "positive integer" (matches the "no existence check" decision above).
-   *Assumed: acceptable; GBIF is the source of truth for whether a key is
-   real, and we don't call it back to verify.*
+1. **Keep manual `CreatePlantSpecies`/`UpdatePlantSpecies`/`DeletePlantSpecies`
+   mutations?** *Assumed: yes, keep them* — trimmed to the new fields, as a
+   lower-traffic manual/admin path alongside `FindOrCreatePlantSpeciesByGbifKey`
+   (which is what the normal "search → pick → create/edit plant" flow uses).
+   Confirm at apply time if these should instead become internal-only
+   (unexposed via transport).
+2. **`gbif_key` uniqueness enforcement** — assumed a partial unique index
+   (`WHERE gbif_key IS NOT NULL`) so legacy `NULL` rows don't collide, while
+   new rows are strictly unique per GBIF key.
+3. **`scientificName` uniqueness dropped entirely** — assumed acceptable
+   since `gbifKey` is now the authoritative external identity; two catalog
+   rows could theoretically carry the same display name from GBIF taxonomy
+   quirks (rare). Flag if strict name-uniqueness is still wanted.
+4. **GBIF `/species/suggest` response shape** — same assumption as before:
+   `key` → `gbifKey`, `canonicalName`/`scientificName` → `scientificName`;
+   confirm exact fields against a live call at implementation time.
 
-These are low-stakes with working assumptions; none block starting the
-spec/design phases.
+---
+
+## 6. What changed from the earlier draft (for the record)
+
+| | Earlier draft | This revision |
+|---|---|---|
+| `plant-species` context | Deleted entirely | Kept, trimmed to `scientificName`+`gbifKey` |
+| `Plant.plantSpeciesId` | Removed (replaced by 2 denormalized fields) | **Unchanged** |
+| `plants` migration | Drop column + FK | **None** |
+| `planting-spots` | Field-swap migration/mirror update | **No change at all** |
+| New search capability | New bounded context `plant-species-search` | Lives inside the existing `plant-species` context |
+| Linking a plant to a search result | Plant stores gbifKey+name directly | `FindOrCreatePlantSpeciesByGbifKey` upserts a catalog row, Plant keeps its FK |
+| Blast radius | 3 contexts + 1 new context, ~900-1200 lines, 2 chained PRs | 1 context + small `plants` edit, single PR |
+
+This revision is deliberately less destructive at the user's request, while
+still satisfying GDN-35's AC1–AC4: search stays fully live/non-persisting,
+species selection still flows into the relevant plant, GBIF errors are still
+handled gracefully. The one trade-off: the catalog table itself persists
+`scientificName`+`gbifKey` per linked species (by design, per the user's
+explicit choice) — a stricter reading of AC2 ("no species metadata persisted
+locally") would call this a deviation; the user has confirmed this is
+intentional and acceptable.

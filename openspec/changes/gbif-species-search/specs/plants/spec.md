@@ -4,77 +4,101 @@
 **Issue**: GDN-35
 **Base spec**: `openspec/specs/plants/spec.md`
 
----
-
-## REMOVED Requirements
-
-### Requirement: IPlantSpeciesPort Contract
-**Reason**: the `plant-species` catalog this port looked up is deleted; there
-is nothing left to resolve via a cross-context call.
-
-### Requirement: EnrichPlantWithSpeciesService
-**Reason**: superseded — `speciesScientificName` is now a plain field already
-present on `PlantViewModel`, no read-side enrichment/lookup needed.
+> **Revision note**: an earlier draft of this delta removed
+> `Plant.plantSpeciesId` entirely. That is no longer the case — see
+> `proposal.md` §6. `Plant.plantSpeciesId` (the FK) and everything about how
+> it is read/resolved are UNCHANGED. Only how a client supplies the value
+> that becomes `plantSpeciesId` changes.
 
 ---
 
 ## MODIFIED Requirements
 
+### Requirement: IPlantSpeciesPort Contract
+
+The `plants` bounded context MUST define `IPlantSpeciesPort` in
+`plants/application/ports/` and `PlantSpeciesViewModel` in
+`plants/domain/view-models/`. No file under `plants/application/` or
+`plants/domain/` MAY import from `@contexts/plant-species/`.
+
+`IPlantSpeciesPort` MUST expose:
+- `findByPlantSpeciesId(plantSpeciesId: string): Promise<PlantSpeciesViewModel | null>`
+- `findOrCreateByGbifKey(gbifKey: number, scientificName: string): Promise<{ id: string }>`
+  (new)
+
+`PlantSpeciesViewModel` MUST carry: `id: string`, `scientificName: string`,
+`gbifKey: number | null`, `createdAt: Date`, `updatedAt: Date`.
+
+(Previously: `PlantSpeciesViewModel` carried `name: string` — later
+`scientificName`, `description`, `imageUrl` per `plant-species-enrich`; the
+port exposed only `findByPlantSpeciesId`.)
+
+#### Scenario: Resolve a species by id (unchanged)
+
+- GIVEN a plant with `plantSpeciesId` set
+- WHEN `IPlantSpeciesPort.findByPlantSpeciesId` is called
+- THEN it returns a `PlantSpeciesViewModel` with `scientificName`/`gbifKey`
+  populated
+
+#### Scenario: Find-or-create resolves a live search pick to a catalog id
+
+- GIVEN a client has `{ gbifKey: 2882337, scientificName: "Monstera
+  deliciosa" }` from a live GBIF search result (no local id)
+- WHEN `IPlantSpeciesPort.findOrCreateByGbifKey(2882337, "Monstera
+  deliciosa")` is called
+- THEN it returns a catalog `id` — created if this is the first pick of that
+  `gbifKey`, or reused if a catalog entry already exists for it
+
+---
+
 ### Requirement: Plant Species Link Fields
 
 The `PlantAggregate`, `IPlantPrimitives`, and plant persistence entity MUST
-support two optional, independent fields: `gbifSpeciesKey` (positive integer
-or null — GBIF's `usageKey`) and `speciesScientificName` (string, max 300
-chars, or null).
+continue to carry `plantSpeciesId` (UUID string or null) exactly as before —
+**this field and its persistence are unchanged by this delta**.
 
-Neither field references a local table. There MUST be no foreign key, no
-local "species" table, and no existence check against any catalog when either
-field is set.
+`PlantViewModel` MUST continue to expose `plantSpeciesId: string | null` and
+`species: PlantSpeciesViewModel | null` (the nested `species` object is
+enrichment-only, resolved at read time, and MUST NOT be persisted in
+primitives or the TypeORM entity — unchanged). `PlantSpeciesViewModel`'s
+shape is trimmed per the `plant-species` delta in this same change
+(`scientificName`/`gbifKey`, no `description`/`imageUrl`).
 
-`PlantViewModel` MUST expose `gbifSpeciesKey: number | null` and
-`speciesScientificName: string | null` as plain scalar fields — no nested
-resolved `species` object.
+Create and update plant commands MUST accept optional `gbifSpeciesKey`
+(number) and `speciesScientificName` (string) — **not** a raw
+`plantSpeciesId` — since the client only ever has a GBIF search pick, never a
+local catalog id. Both MUST be supplied together or neither.
 
-Plant REST and GraphQL read responses MUST include `gbifSpeciesKey` and
-`speciesScientificName` as plain fields (not a resolved/joined sub-object).
+When both are provided, the handler MUST resolve them to a `plantSpeciesId`
+via `IPlantSpeciesPort.findOrCreateByGbifKey` before persisting — this
+REPLACES the previous "verify the catalog entry exists" check, since the
+catalog entry may not exist yet and is now created on demand.
 
-Create and update plant commands MUST accept optional `gbifSpeciesKey` and
-`speciesScientificName` together or independently, and MUST NOT perform any
-lookup (local or external) to validate them before persisting.
+(Previously: commands accepted `plantSpeciesId` directly and verified it
+existed in the catalog before persisting, throwing
+`PlantLinkedSpeciesNotFoundException` if absent.)
 
-(Previously: a single `plantSpeciesId` UUID FK into the `plant-species`
-catalog, resolved at read time into a nested `species` object via
-`IPlantSpeciesPort`; existence was validated against the catalog on write.)
+#### Scenario: Create plant with a species pick
 
-#### Scenario: Create plant with species fields
+- GIVEN an authenticated user with a live search pick
+  `{ gbifSpeciesKey: 2882337, speciesScientificName: "Monstera deliciosa" }`
+- WHEN `CreatePlant` is dispatched with those two fields
+- THEN `plantSpeciesId` is set to the catalog id resolved (created or reused)
+  by `findOrCreateByGbifKey`, and `PlantViewModel.species` resolves to
+  `{ scientificName: "Monstera deliciosa", gbifKey: 2882337, ... }`
+
+#### Scenario: Create plant without a species pick
 
 - GIVEN an authenticated user
-- WHEN `CreatePlant` is dispatched with `gbifSpeciesKey: 3152358` and
-  `speciesScientificName: "Monstera deliciosa"`
-- THEN the plant is persisted with both fields set, with no external or
-  cross-context call made to validate them
+- WHEN `CreatePlant` is dispatched with `gbifSpeciesKey`/`speciesScientificName`
+  both omitted
+- THEN `plantSpeciesId` is `null` and `species` resolves to `null`
 
-#### Scenario: Create plant without species fields
+#### Scenario: Read plant with no species (unchanged)
 
-- GIVEN an authenticated user
-- WHEN `CreatePlant` is dispatched with `gbifSpeciesKey` and
-  `speciesScientificName` both omitted
-- THEN the plant is persisted with both fields `null`
-
-#### Scenario: Read plant exposes plain species fields
-
-- GIVEN a plant with `gbifSpeciesKey` and `speciesScientificName` set
-- WHEN the plant is fetched via REST or GraphQL
-- THEN the response includes `gbifSpeciesKey` and `speciesScientificName` as
-  top-level scalar fields, with no nested `species` object
-
-#### Scenario: Update plant species fields independently
-
-- GIVEN an existing plant with `speciesScientificName: "Ficus lyrata"` and no
-  `gbifSpeciesKey`
-- WHEN `UpdatePlant` is dispatched with `gbifSpeciesKey: 2882316` only
-- THEN the plant has both `gbifSpeciesKey: 2882316` and the unchanged
-  `speciesScientificName: "Ficus lyrata"`
+- GIVEN a plant with `plantSpeciesId` null
+- WHEN `PlantFindById` is dispatched
+- THEN `PlantViewModel.plantSpeciesId` is null and `species` is null
 
 ---
 
@@ -83,81 +107,24 @@ catalog, resolved at read time into a nested `species` object via
 The system MUST allow an authenticated user to create a plant.
 
 The command MUST accept `name` (required), `gbifSpeciesKey` (optional,
-positive integer), `speciesScientificName` (optional, string, max 300),
-`imageUrl` (optional), and `userId` (from `@CurrentUser`). `spaceId` MUST be
-sourced from `SpaceContext` ALS — never from the request payload.
+positive integer, paired with `speciesScientificName`),
+`speciesScientificName` (optional, paired with `gbifSpeciesKey`), `imageUrl`
+(optional), and `userId` (from `@CurrentUser`). `spaceId` MUST be sourced from
+`SpaceContext` ALS — never from the request payload.
 
-The handler MUST NOT perform any lookup to validate `gbifSpeciesKey` or
-`speciesScientificName` before persisting.
+When both species fields are provided, the handler MUST resolve them to a
+`plantSpeciesId` via `findOrCreateByGbifKey` before persisting (see above) —
+it MUST NOT throw a not-found error for an unrecognized `gbifSpeciesKey`,
+since find-or-create always succeeds.
 
-(Previously: accepted `plantSpeciesId` (optional) and verified it existed in
-the `plant-species` catalog before persisting.)
+(Previously: accepted `plantSpeciesId` (optional) and threw
+`PlantLinkedSpeciesNotFoundException` if it didn't already exist in the
+catalog.)
 
-#### Scenario: Create plant with a chosen species
+#### Scenario: Create plant with a never-before-seen species
 
 - GIVEN an authenticated user
-- WHEN `CreatePlant` is dispatched with `gbifSpeciesKey` and
-  `speciesScientificName` set
-- THEN the plant is created immediately, with no external validation call
-
----
-
-## ADDED Requirements
-
-### Requirement: Value Objects for Plant Species Fields
-
-The `plants` domain MUST expose two new value objects:
-`PlantGbifSpeciesKeyValueObject` (extends `NumberValueObject`, nullable,
-integer, positive) and `PlantSpeciesScientificNameValueObject` (extends
-`StringValueObject`, nullable, max 300 chars, trimmed).
-
-These are local to the `plants` context — they are NOT shared with, or
-imported from, any other context.
-
-#### Scenario: Valid gbifSpeciesKey VO
-
-- GIVEN a positive integer
-- WHEN `PlantGbifSpeciesKeyValueObject` is constructed
-- THEN it wraps the value successfully
-
-#### Scenario: Null gbifSpeciesKey VO
-
-- GIVEN a null value
-- WHEN `PlantGbifSpeciesKeyValueObject` is constructed
-- THEN it wraps null without throwing
-
-#### Scenario: scientificName exceeds 300 chars rejected
-
-- GIVEN a string longer than 300 characters
-- WHEN `PlantSpeciesScientificNameValueObject` is constructed
-- THEN a domain validation error is thrown
-
----
-
-### Requirement: Migration Backfills Species Name Before Dropping the Catalog
-
-A single migration MUST, in order: (1) add `plants.gbif_species_key` and
-`plants.species_scientific_name` as nullable columns, (2) backfill
-`species_scientific_name` from the current `plant_species.scientific_name`
-for every plant with a non-null `plant_species_id`, (3) drop the
-`plant_species_id` column (and its FK constraint) from `plants`, (4) drop the
-`plant_species` table.
-
-`gbif_species_key` MUST NOT be backfilled from any existing data (no source
-column exists for it) — it MUST start `null` for all pre-existing plants.
-
-#### Scenario: Backfill preserves the chosen species name
-
-- GIVEN a plant linked to a catalog entry with `scientific_name = "Monstera
-  deliciosa"`
-- WHEN the migration runs
-- THEN the plant's `species_scientific_name` is `"Monstera deliciosa"` and
-  `gbif_species_key` is `null`
-
-#### Scenario: Migration rollback restores schema only
-
-- GIVEN the migration has been applied
-- WHEN the migration is rolled back
-- THEN `plant_species` exists again as an empty table matching its pre-drop
-  shape, and `plants.plant_species_id` is re-added as nullable — but no
-  catalog data or FK linkage is restored
+- WHEN `CreatePlant` is dispatched with a `gbifSpeciesKey` that has never
+  been linked before
+- THEN the plant is created successfully, with a new catalog row created as
+  a side effect (not an error)
