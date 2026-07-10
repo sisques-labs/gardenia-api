@@ -8,7 +8,7 @@ import {
   IPlantSpeciesWriteRepository,
   PLANT_SPECIES_WRITE_REPOSITORY,
 } from '@contexts/plant-species/domain/repositories/write/plant-species-write.repository';
-import { AssertPlantSpeciesNameAvailableService } from '@contexts/plant-species/application/services/write/assert-plant-species-name-available/assert-plant-species-name-available.service';
+import { AssertPlantSpeciesGbifKeyAvailableService } from '@contexts/plant-species/application/services/write/assert-plant-species-gbif-key-available/assert-plant-species-gbif-key-available.service';
 
 import { CreatePlantSpeciesCommand } from './create-plant-species.command';
 
@@ -22,7 +22,7 @@ export class CreatePlantSpeciesCommandHandler
   constructor(
     @Inject(PLANT_SPECIES_WRITE_REPOSITORY)
     private readonly plantSpeciesWriteRepository: IPlantSpeciesWriteRepository,
-    private readonly assertPlantSpeciesNameAvailableService: AssertPlantSpeciesNameAvailableService,
+    private readonly assertPlantSpeciesGbifKeyAvailableService: AssertPlantSpeciesGbifKeyAvailableService,
     private readonly plantSpeciesBuilder: PlantSpeciesBuilder,
     eventBus: EventBus,
   ) {
@@ -30,14 +30,15 @@ export class CreatePlantSpeciesCommandHandler
   }
 
   async execute(command: CreatePlantSpeciesCommand): Promise<string> {
-    await this.assertPlantSpeciesNameAvailableService.execute(
-      command.scientificName,
+    await this.assertPlantSpeciesGbifKeyAvailableService.execute(
+      command.gbifKey,
     );
 
     const now = new Date();
     const plantSpecies = this.plantSpeciesBuilder
       .withId(UuidValueObject.generate().value)
       .withScientificName(command.scientificName.value)
+      .withGbifKey(command.gbifKey.value)
       .withCreatedAt(now)
       .withUpdatedAt(now)
       .build();

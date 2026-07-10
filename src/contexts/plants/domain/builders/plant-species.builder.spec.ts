@@ -15,23 +15,18 @@ const base = (): PlantSpeciesBuilder =>
 
 describe('PlantSpeciesBuilder (plants context view model)', () => {
   describe('buildViewModel()', () => {
-    it('builds a view model with required fields and null optionals', () => {
+    it('builds a view model with required fields and null gbifKey', () => {
       const vm = base().buildViewModel();
 
       expect(vm.id).toBe(ID);
       expect(vm.scientificName).toBe('Monstera deliciosa');
-      expect(vm.description).toBeNull();
-      expect(vm.imageUrl).toBeNull();
+      expect(vm.gbifKey).toBeNull();
     });
 
-    it('includes optional fields when provided', () => {
-      const vm = base()
-        .withDescription('A tropical plant')
-        .withImageUrl('https://example.com/m.png')
-        .buildViewModel();
+    it('includes gbifKey when provided', () => {
+      const vm = base().withGbifKey(2882337).buildViewModel();
 
-      expect(vm.description).toBe('A tropical plant');
-      expect(vm.imageUrl).toBe('https://example.com/m.png');
+      expect(vm.gbifKey).toBe(2882337);
     });
   });
 

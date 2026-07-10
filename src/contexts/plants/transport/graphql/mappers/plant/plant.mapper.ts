@@ -84,8 +84,7 @@ export class PlantGraphQLMapper {
     return {
       id: vm.id,
       scientificName: vm.scientificName,
-      description: vm.description,
-      imageUrl: vm.imageUrl,
+      gbifKey: vm.gbifKey,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
     };
@@ -97,8 +96,7 @@ export class PlantGraphQLMapper {
     return {
       id: species.id,
       scientificName: species.scientificName,
-      description: species.description,
-      imageUrl: species.imageUrl,
+      gbifKey: species.gbifKey,
       createdAt: species.createdAt,
       updatedAt: species.updatedAt,
     };

@@ -1,14 +1,16 @@
 import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { PlantGbifSpeciesKeyValueObject } from '@contexts/plants/domain/value-objects/plant-gbif-species-key/plant-gbif-species-key.value-object';
 import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
 import { PlantImageUrlValueObject } from '@contexts/plants/domain/value-objects/plant-image-url/plant-image-url.value-object';
-import { PlantLinkedSpeciesIdValueObject } from '@contexts/plants/domain/value-objects/plant-linked-species-id/plant-linked-species-id.value-object';
 import { PlantNameValueObject } from '@contexts/plants/domain/value-objects/plant-name/plant-name.value-object';
+import { PlantSpeciesScientificNameValueObject } from '@contexts/plants/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 
 export interface UpdatePlantCommandInput {
   plantId: string;
   name?: string;
-  plantSpeciesId?: string | null;
+  gbifSpeciesKey?: number | null;
+  speciesScientificName?: string | null;
   imageUrl?: string | null;
   plantingSpotId?: string | null;
   requestingUserId: string;
@@ -17,8 +19,12 @@ export interface UpdatePlantCommandInput {
 export class UpdatePlantCommand {
   public readonly plantId: PlantIdValueObject;
   public readonly name: PlantNameValueObject | undefined;
-  public readonly plantSpeciesId:
-    | PlantLinkedSpeciesIdValueObject
+  public readonly gbifSpeciesKey:
+    | PlantGbifSpeciesKeyValueObject
+    | null
+    | undefined;
+  public readonly speciesScientificName:
+    | PlantSpeciesScientificNameValueObject
     | null
     | undefined;
   public readonly imageUrl: PlantImageUrlValueObject | null | undefined;
@@ -28,10 +34,18 @@ export class UpdatePlantCommand {
   constructor(input: UpdatePlantCommandInput) {
     this.plantId = new PlantIdValueObject(input.plantId);
     this.name = input.name ? new PlantNameValueObject(input.name) : undefined;
-    this.plantSpeciesId =
-      input.plantSpeciesId !== undefined
-        ? input.plantSpeciesId != null
-          ? new PlantLinkedSpeciesIdValueObject(input.plantSpeciesId)
+    this.gbifSpeciesKey =
+      input.gbifSpeciesKey !== undefined
+        ? input.gbifSpeciesKey != null
+          ? new PlantGbifSpeciesKeyValueObject(input.gbifSpeciesKey)
+          : null
+        : undefined;
+    this.speciesScientificName =
+      input.speciesScientificName !== undefined
+        ? input.speciesScientificName != null
+          ? new PlantSpeciesScientificNameValueObject(
+              input.speciesScientificName,
+            )
           : null
         : undefined;
     this.imageUrl =

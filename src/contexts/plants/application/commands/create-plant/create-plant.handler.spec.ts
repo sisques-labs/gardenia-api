@@ -1,6 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 
 import { IPlantQrPort } from '@contexts/plants/application/ports/plant-qr.port';
+import { IPlantSpeciesPort } from '@contexts/plants/application/ports/plant-species.port';
 import { PlantBuilder } from '@contexts/plants/domain/builders/plant.builder';
 import { IPlantWriteRepository } from '@contexts/plants/domain/repositories/write/plant-write.repository';
 import { SpaceContext } from '../../../../../shared/space-context/space-context.service';
@@ -19,6 +20,7 @@ describe('CreatePlantCommandHandler', () => {
   let plantBuilder: PlantBuilder;
   let spaceContext: jest.Mocked<SpaceContext>;
   let plantQrPort: jest.Mocked<IPlantQrPort>;
+  let plantSpeciesPort: jest.Mocked<IPlantSpeciesPort>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -60,9 +62,10 @@ describe('CreatePlantCommandHandler', () => {
         ),
     };
 
-    const assertPlantLinkedSpeciesExistsService = {
-      execute: jest.fn().mockResolvedValue(undefined),
-    };
+    plantSpeciesPort = {
+      findByPlantSpeciesId: jest.fn(),
+      findOrCreateByGbifKey: jest.fn().mockResolvedValue({ id: SPECIES_ID }),
+    } as jest.Mocked<IPlantSpeciesPort>;
 
     handler = new CreatePlantCommandHandler(
       writeRepository,
@@ -70,7 +73,7 @@ describe('CreatePlantCommandHandler', () => {
       spaceContext,
       plantQrPort,
       plantQrTargetUrlBuilder as never,
-      assertPlantLinkedSpeciesExistsService as never,
+      plantSpeciesPort,
       eventBus,
     );
   });
@@ -123,17 +126,30 @@ describe('CreatePlantCommandHandler', () => {
       });
     });
 
-    it('should create plant with plantSpeciesId and imageUrl when provided', async () => {
+    it('should not call findOrCreateByGbifKey when no species fields are provided', async () => {
+      const command = new CreatePlantCommand({ name: 'Rose', userId: USER_ID });
+
+      await handler.execute(command);
+
+      expect(plantSpeciesPort.findOrCreateByGbifKey).not.toHaveBeenCalled();
+    });
+
+    it('should resolve plantSpeciesId via findOrCreateByGbifKey and create plant with imageUrl when provided', async () => {
       const command = new CreatePlantCommand({
         name: 'Rose',
         userId: USER_ID,
-        plantSpeciesId: SPECIES_ID,
+        gbifSpeciesKey: 2882337,
+        speciesScientificName: 'Monstera deliciosa',
         imageUrl: 'https://example.com/rose.jpg',
       });
 
       const plantId = await handler.execute(command);
 
       expect(plantId).toBeDefined();
+      expect(plantSpeciesPort.findOrCreateByGbifKey).toHaveBeenCalledWith(
+        2882337,
+        'Monstera deliciosa',
+      );
       expect(writeRepository.save).toHaveBeenCalledTimes(1);
     });
   });

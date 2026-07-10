@@ -6,9 +6,8 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 import { PlantSpeciesAggregate } from '@contexts/plant-species/domain/aggregates/plant-species.aggregate';
-import { PlantSpeciesDescriptionValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-description/plant-species-description.value-object';
+import { PlantSpeciesGbifKeyValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-gbif-key/plant-species-gbif-key.value-object';
 import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
-import { PlantSpeciesImageUrlValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-image-url/plant-species-image-url.value-object';
 import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 
@@ -18,21 +17,15 @@ export class PlantSpeciesBuilder extends BaseBuilder<
   PlantSpeciesViewModel
 > {
   private _scientificName!: string;
-  private _description: string | null = null;
-  private _imageUrl: string | null = null;
+  private _gbifKey: number | null = null;
 
   withScientificName(scientificName: string): this {
     this._scientificName = scientificName;
     return this;
   }
 
-  withDescription(description: string | null): this {
-    this._description = description;
-    return this;
-  }
-
-  withImageUrl(imageUrl: string | null): this {
-    this._imageUrl = imageUrl;
+  withGbifKey(gbifKey: number | null): this {
+    this._gbifKey = gbifKey;
     return this;
   }
 
@@ -43,13 +36,9 @@ export class PlantSpeciesBuilder extends BaseBuilder<
       scientificName: new PlantSpeciesScientificNameValueObject(
         this._scientificName,
       ),
-      description:
-        this._description != null
-          ? new PlantSpeciesDescriptionValueObject(this._description)
-          : null,
-      imageUrl:
-        this._imageUrl != null
-          ? new PlantSpeciesImageUrlValueObject(this._imageUrl)
+      gbifKey:
+        this._gbifKey != null
+          ? new PlantSpeciesGbifKeyValueObject(this._gbifKey)
           : null,
       createdAt: new DateValueObject(this._createdAt),
       updatedAt: new DateValueObject(this._updatedAt),
@@ -61,8 +50,7 @@ export class PlantSpeciesBuilder extends BaseBuilder<
     return new PlantSpeciesViewModel({
       id: this._id,
       scientificName: this._scientificName,
-      description: this._description,
-      imageUrl: this._imageUrl,
+      gbifKey: this._gbifKey,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });

@@ -6,4 +6,9 @@ export const plantSpeciesCreateSchema = {
     .string()
     .min(1)
     .describe('Scientific (botanical) name of the species'),
+  gbifKey: z
+    .number()
+    .int()
+    .positive()
+    .describe("GBIF's numeric usageKey identifying the species"),
 };

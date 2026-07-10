@@ -6,8 +6,7 @@ export const plantSpeciesFilterableFields: FilterFieldRegistry<PlantSpeciesQuery
   {
     [PlantSpeciesQueryableField.ID]: { type: 'uuid' },
     [PlantSpeciesQueryableField.SCIENTIFIC_NAME]: { type: 'string' },
-    [PlantSpeciesQueryableField.DESCRIPTION]: { type: 'string' },
-    [PlantSpeciesQueryableField.IMAGE_URL]: { type: 'string' },
+    [PlantSpeciesQueryableField.GBIF_KEY]: { type: 'number' },
     [PlantSpeciesQueryableField.CREATED_AT]: { type: 'date' },
     [PlantSpeciesQueryableField.UPDATED_AT]: { type: 'date' },
   };

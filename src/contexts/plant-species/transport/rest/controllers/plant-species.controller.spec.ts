@@ -4,6 +4,7 @@ import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 import { CreatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/create-plant-species/create-plant-species.command';
 import { DeletePlantSpeciesCommand } from '@contexts/plant-species/application/commands/delete-plant-species/delete-plant-species.command';
 import { UpdatePlantSpeciesCommand } from '@contexts/plant-species/application/commands/update-plant-species/update-plant-species.command';
+import { GbifSpeciesSearchQuery } from '@contexts/plant-species/application/queries/gbif-species-search/gbif-species-search.query';
 import { PlantSpeciesFindByCriteriaQuery } from '@contexts/plant-species/application/queries/plant-species-find-by-criteria/plant-species-find-by-criteria.query';
 import { PlantSpeciesFindByIdQuery } from '@contexts/plant-species/application/queries/plant-species-find-by-id/plant-species-find-by-id.query';
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
@@ -36,6 +37,7 @@ describe('PlantSpeciesController', () => {
 
       const result = await controller.createPlantSpecies({
         scientificName: 'Monstera deliciosa',
+        gbifKey: 2882337,
       } as never);
 
       expect(commandBus.execute).toHaveBeenCalledWith(
@@ -92,6 +94,33 @@ describe('PlantSpeciesController', () => {
 
       expect(commandBus.execute).toHaveBeenCalledWith(
         expect.any(DeletePlantSpeciesCommand),
+      );
+    });
+  });
+
+  describe('searchGbifSpecies()', () => {
+    it('dispatches GbifSpeciesSearchQuery with name and limit', async () => {
+      queryBus.execute.mockResolvedValue([
+        { gbifKey: 2882337, scientificName: 'Monstera deliciosa' },
+      ]);
+
+      const result = await controller.searchGbifSpecies('Monstera', '5');
+
+      expect(queryBus.execute).toHaveBeenCalledWith(
+        expect.any(GbifSpeciesSearchQuery),
+      );
+      expect(result).toEqual([
+        { gbifKey: 2882337, scientificName: 'Monstera deliciosa' },
+      ]);
+    });
+
+    it('dispatches with default limit when none provided', async () => {
+      queryBus.execute.mockResolvedValue([]);
+
+      await controller.searchGbifSpecies('Monstera');
+
+      expect(queryBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ limit: 10 }),
       );
     });
   });

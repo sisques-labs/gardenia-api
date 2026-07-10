@@ -11,8 +11,7 @@ const buildEntity = (overrides: Partial<PlantSpeciesTypeOrmEntity> = {}) => {
   const entity = new PlantSpeciesTypeOrmEntity();
   entity.id = ID;
   entity.scientificName = 'Monstera deliciosa';
-  entity.description = 'A tropical plant';
-  entity.imageUrl = 'https://example.com/m.png';
+  entity.gbifKey = 2882337;
   entity.createdAt = CREATED_AT;
   entity.updatedAt = UPDATED_AT;
   return Object.assign(entity, overrides);
@@ -32,17 +31,13 @@ describe('PlantSpeciesTypeOrmMapper', () => {
       expect(result).toBeInstanceOf(PlantSpeciesAggregate);
       expect(result.id.value).toBe(ID);
       expect(result.scientificName.value).toBe('Monstera deliciosa');
-      expect(result.description?.value).toBe('A tropical plant');
-      expect(result.imageUrl?.value).toBe('https://example.com/m.png');
+      expect(result.gbifKey?.value).toBe(2882337);
     });
 
-    it('maps null optional fields', () => {
-      const result = mapper.toDomain(
-        buildEntity({ description: null, imageUrl: null }),
-      );
+    it('maps a null gbifKey', () => {
+      const result = mapper.toDomain(buildEntity({ gbifKey: null }));
 
-      expect(result.description).toBeNull();
-      expect(result.imageUrl).toBeNull();
+      expect(result.gbifKey).toBeNull();
     });
   });
 
@@ -54,19 +49,15 @@ describe('PlantSpeciesTypeOrmMapper', () => {
 
       expect(result.id).toBe(ID);
       expect(result.scientificName).toBe('Monstera deliciosa');
-      expect(result.description).toBe('A tropical plant');
-      expect(result.imageUrl).toBe('https://example.com/m.png');
+      expect(result.gbifKey).toBe(2882337);
     });
 
-    it('serializes null optional fields as null', () => {
-      const aggregate = mapper.toDomain(
-        buildEntity({ description: null, imageUrl: null }),
-      );
+    it('serializes a null gbifKey as null', () => {
+      const aggregate = mapper.toDomain(buildEntity({ gbifKey: null }));
 
       const result = mapper.toPersistence(aggregate);
 
-      expect(result.description).toBeNull();
-      expect(result.imageUrl).toBeNull();
+      expect(result.gbifKey).toBeNull();
     });
   });
 });

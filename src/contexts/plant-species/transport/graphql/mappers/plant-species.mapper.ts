@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
+import { GbifSpeciesSuggestion } from '@contexts/plant-species/application/ports/gbif-species-search.port';
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 
+import { GbifSpeciesSuggestionResponseDto } from '@contexts/plant-species/transport/graphql/dtos/responses/gbif-species-suggestion.response.dto';
 import {
   PaginatedPlantSpeciesResultDto,
   PlantSpeciesResponseDto,
@@ -22,8 +24,7 @@ export class PlantSpeciesGraphQLMapper {
     return {
       id: vm.id,
       scientificName: vm.scientificName,
-      description: vm.description,
-      imageUrl: vm.imageUrl,
+      gbifKey: vm.gbifKey,
       createdAt: vm.createdAt,
       updatedAt: vm.updatedAt,
     };
@@ -40,6 +41,15 @@ export class PlantSpeciesGraphQLMapper {
       page: paginatedResult.page,
       perPage: paginatedResult.perPage,
       totalPages: paginatedResult.totalPages,
+    };
+  }
+
+  toSuggestionResponseDto(
+    suggestion: GbifSpeciesSuggestion,
+  ): GbifSpeciesSuggestionResponseDto {
+    return {
+      gbifKey: suggestion.gbifKey,
+      scientificName: suggestion.scientificName,
     };
   }
 }

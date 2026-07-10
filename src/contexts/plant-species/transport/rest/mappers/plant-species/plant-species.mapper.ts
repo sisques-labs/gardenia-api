@@ -10,8 +10,7 @@ export class PlantSpeciesRestMapper {
     const dto = new PlantSpeciesRestResponseDto();
     dto.id = vm.id;
     dto.scientificName = vm.scientificName;
-    dto.description = vm.description;
-    dto.imageUrl = vm.imageUrl;
+    dto.gbifKey = vm.gbifKey;
     dto.createdAt = vm.createdAt;
     dto.updatedAt = vm.updatedAt;
     return dto;
