@@ -15,11 +15,13 @@
 export const AGGREGATE_MODULE_MAP: Readonly<Record<string, string>> = {
   AccountAggregate: 'auth',
   AuthSessionAggregate: 'auth',
+  BridgeAggregate: 'nodes',
   CareLogEntryAggregate: 'care-log',
   CareScheduleAggregate: 'care-schedule',
   FileAggregate: 'files',
   HarvestAggregate: 'harvests',
   InventoryItemAggregate: 'inventory',
+  NodeAggregate: 'nodes',
   OAuthIdentityAggregate: 'auth',
   PlantAggregate: 'plants',
   PlantPhotoAggregate: 'plant-photos',
