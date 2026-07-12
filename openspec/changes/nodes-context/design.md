@@ -562,51 +562,44 @@ same service) do NOT go through `createTenantRepository` for the reason in
 used by the tenant-scoped HTTP-facing `SendNodeCommand` path. See §5.4 for
 how one repository class serves both.
 
-### 5.4 The Kafka-consumer-has-no-`SpaceContext`-ALS-frame problem
+### 5.4 The Kafka-consumer-has-no-`SpaceContext`-ALS-frame problem — RESOLVED
 
-`SpaceContext.require()` throws `SpaceContextMissingException` outside an
-HTTP request processed by `SpaceInterceptor` (ALS is request-scoped). The
-Kafka consumer path (`FindOrCreateNodeService`, heartbeat/telemetry/ack
-handlers) runs with NO such frame. `createTenantRepository`'s proxy calls
-`spaceContext.require()` on every `find`/`save` — so the SAME
-`NodeTypeOrmWriteRepository` instance, injected via `NODE_WRITE_REPOSITORY`,
-would throw if used naively from a Kafka-dispatched command handler.
+**T0 spike result: `SpaceContext` (`src/shared/space-context/space-context.service.ts`)
+already exposes `run<T>(spaceId, fn): T`** (an `AsyncLocalStorage.run()`
+wrapper), alongside `get()`/`require()`. No kit change, no dual repository
+tokens needed — the single tenant-wrapped `NODE_READ_REPOSITORY`/
+`NODE_WRITE_REPOSITORY` pair is reused everywhere.
 
-**Resolution:** `createTenantRepository` (from the kit) already supports an
-explicit `spaceId` override — no kit change needed for this, it accepts
-either an ALS-backed `SpaceContext` OR any object exposing `.require():
-string`/`.get(): string | null`. Internal command handlers construct a
-throwaway context via a tiny adapter: `{ require: () => resolvedSpaceId }`
-is **not** how the DI-bound repository works, though (`NODE_WRITE_REPOSITORY`
-is bound once, with the real `SpaceContext` singleton, at module-load time).
+**Resolution order (no circularity):** `spaceId` is NEVER derived from the
+node — it always comes from the node's **bridge**, looked up via the
+NOT-tenant-scoped `BRIDGE_READ_REPOSITORY` (§5.3). Every internal handler
+(telemetry, heartbeat, command-ack) follows the same three steps:
+1. `bridge = await bridgeReadRepository.findById(message.bridgeId)` — plain,
+   unscoped lookup. If absent or still `unclaimed`, log + drop the message
+   (no space to resolve into).
+2. `spaceContext.run(bridge.spaceId, () => ...)` — wraps the rest of the
+   handler's node/telemetry work in an ALS frame for that space. This works
+   identically whether the frame was opened by `SpaceInterceptor` (HTTP) or
+   manually here (Kafka) — `SpaceContext` doesn't care who calls `.run()`.
+3. Inside that closure, `nodeReadRepository.findById(nodeId)` /
+   `nodeWriteRepository.save(node)` work exactly like they do for
+   HTTP/GraphQL-facing handlers, because `createTenantRepository`'s proxy
+   only ever calls `ctx.require()`, and the frame is now set correctly.
 
-Concretely: `FindOrCreateNodeService` and the three internal command
-handlers do **not** inject `NODE_WRITE_REPOSITORY`/`NODE_READ_REPOSITORY`
-(the tenant-wrapped ones). They inject a second pair of tokens —
-`NODE_UNSCOPED_WRITE_REPOSITORY` / `NODE_UNSCOPED_READ_REPOSITORY` — bound
-to the **same** `NodeTypeOrmReadRepository`/`WriteRepository` classes but
-constructed with `rawRepo` directly (no `createTenantRepository` wrap), and
-every method call in the Kafka-consumer path passes `spaceId` explicitly in
-the `where` clause instead of relying on ALS. This means
-`NodeTypeOrmReadRepository`/`WriteRepository` take an OPTIONAL
-`spaceContext: SpaceContext | null` constructor param: when present, wrap
-with `createTenantRepository`; when `null`, the caller is responsible for
-scoping (`findById` still filters by `id` alone — a node id is globally
-unique across the whole system by construction, since it's the physical
-device's own UUID — so unscoped `findById` is safe; it's just `findByCriteria`
-that would be unsafe unscoped, and the Kafka path never calls that).
-`NodesModule` registers two provider entries for the same class with
-different tokens/constructor args.
+**Bonus simplification:** `createTenantRepository`'s proxy intercepts only
+`findOne`/`find`/`findAndCount`/`save`/`delete` — **not** TypeORM's
+`insert()`. Since `NodeTelemetryReading`/`NodeCommandAck` already carry
+`spaceId` as an explicit field on the record (resolved from the bridge in
+step 1 above, stamped onto the entity before calling `insert()`), their
+write repositories (§3.4) need **no tenant wrapping at all** — a plain
+`this.repo.insert(entity)` is correct and sufficient. Only `NodeAggregate`
+save/find (which go through the proxied `save`/`findOne`) need the
+`spaceContext.run()` wrapper.
 
-> This is the single most novel piece of plumbing in this change — flag it
-> for extra scrutiny in review. The alternative (spinning up a synthetic ALS
-> frame per Kafka message via `spaceContext.run(spaceId, () => ...)` if the
-> kit's `SpaceContext` exposes a `.run()`/`.enterWith()` escape hatch) may be
-> cleaner if `SpaceContext`'s actual implementation supports it — **verify
-> `SpaceContext`'s public API during Phase 1 of tasks.md before committing to
-> the dual-token approach**; if `.run(spaceId, fn)` exists, prefer it (it
-> reuses `NODE_WRITE_REPOSITORY` unmodified, no second token, no optional
-> constructor param — strictly simpler).
+> Note this REPLACES the earlier "unscoped variant" plan the proposal
+> originally sketched before this spike ran. `tasks.md` T0/T8/T20 reflect
+> the resolved (simpler) version — no `NODE_UNSCOPED_*` tokens exist in the
+> final design.
 
 ### 5.5 `NodesKafkaConsumerBootstrapService`
 
@@ -765,11 +758,10 @@ apply — do not hardcode a number that may have shifted):
 | Symbol token | Bound class | Notes |
 |---|---|---|
 | `BRIDGE_READ_REPOSITORY` / `BRIDGE_WRITE_REPOSITORY` | `BridgeTypeOrmRead/WriteRepository` | NOT tenant-wrapped (§5.3) |
-| `NODE_READ_REPOSITORY` / `NODE_WRITE_REPOSITORY` | `NodeTypeOrmRead/WriteRepository` (tenant-wrapped instance) | used by HTTP/GraphQL-facing handlers |
-| `NODE_UNSCOPED_READ_REPOSITORY` / `NODE_UNSCOPED_WRITE_REPOSITORY` | same classes, unscoped instance (§5.4) | used ONLY by the Kafka-consumer path — **pending validation, may collapse to the single tenant-wrapped token if `SpaceContext.run()` exists (§5.4)** |
-| `NODE_TELEMETRY_READING_READ_REPOSITORY` | tenant-wrapped | |
-| `NODE_TELEMETRY_READING_WRITE_REPOSITORY` | insert-only (§3.4) | |
-| `NODE_COMMAND_ACK_WRITE_REPOSITORY` | insert-only, unscoped (spaceId resolved manually, no ALS available) | |
+| `NODE_READ_REPOSITORY` / `NODE_WRITE_REPOSITORY` | `NodeTypeOrmRead/WriteRepository` (tenant-wrapped) | used by BOTH HTTP/GraphQL handlers AND the Kafka-consumer path (via `spaceContext.run()`, §5.4) — single token, no split |
+| `NODE_TELEMETRY_READING_READ_REPOSITORY` | tenant-wrapped (`findByCriteria` goes through the proxy) | |
+| `NODE_TELEMETRY_READING_WRITE_REPOSITORY` | plain, unwrapped — `insert()` isn't proxied, `spaceId` is stamped explicitly (§3.4/§5.4) | |
+| `NODE_COMMAND_ACK_WRITE_REPOSITORY` | plain, unwrapped, same reasoning | |
 | `EVENT_CONSUMER` (from `@sisques-labs/nestjs-kit`) | `KafkajsEventConsumerAdapter` | already bound by `MessagingModule.forRoot()` in `CoreModule` — `nodes` only injects it |
 
 ---

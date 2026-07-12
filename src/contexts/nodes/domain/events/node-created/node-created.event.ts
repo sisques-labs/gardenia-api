@@ -1,0 +1,9 @@
+import { BaseEvent, IEventMetadata } from '@sisques-labs/nestjs-kit';
+
+import { INodeEventData } from '../interfaces/node-event-data.interface';
+
+export class NodeCreatedEvent extends BaseEvent<INodeEventData> {
+  constructor(metadata: IEventMetadata, data: INodeEventData) {
+    super(metadata, data);
+  }
+}
