@@ -1,0 +1,33 @@
+change: notifications-module
+status: proposal
+created: 2026-07-13
+artifact_store: hybrid
+context: notifications
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending
+next_recommended:
+  - sdd-apply
+notes: |
+  Full proposal authored manually (the `openspec` CLI binary is not installed
+  in this environment, so artifacts were written by hand following the exact
+  structure/conventions of prior changes, e.g. inventory-module).
+
+  Key architectural decisions worth re-confirming with the team before apply:
+  - Polling-based reconciliation (cron, @nestjs/schedule) chosen over the
+    existing Kafka domain-event forwarder, which is opt-in and disabled by
+    default (KAFKA_ENABLED=false) in every environment today. See design.md
+    "Why polling instead of the Kafka forwarder".
+  - Fan-out to every active space member (not owner-only). See design.md
+    "Why fan-out to every space member".
+  - One small new query added to the existing `spaces` context
+    (SpaceFindAllIdsQuery, internal-only, no transport surface) — the only
+    change to a context other than `notifications` itself.
+  - v1 is in-app only; INotificationDispatcherPort ships with a no-op adapter
+    as the seam for a future push/email change.
