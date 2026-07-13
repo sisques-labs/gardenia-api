@@ -17,6 +17,7 @@ import { SPACE_QR_PORT } from './application/ports/space-qr.port';
 import { SPACE_WEATHER_PORT } from './application/ports/space-weather.port';
 import { GetSpaceWeatherQueryHandler } from './application/queries/get-space-weather/get-space-weather.handler';
 import { MembershipFindByUserAndSpaceQueryHandler } from './application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.handler';
+import { SpaceFindAllIdsQueryHandler } from './application/queries/space-find-all-ids/space-find-all-ids.handler';
 import { SpaceFindByIdQueryHandler } from './application/queries/space-find-by-id/space-find-by-id.handler';
 import { SpaceInvitationPreviewFindByCodeQueryHandler } from './application/queries/space-invitation-preview-find-by-code/space-invitation-preview-find-by-code.handler';
 import { SpacesFindByUserQueryHandler } from './application/queries/spaces-find-by-user/spaces-find-by-user.handler';
@@ -85,6 +86,7 @@ const COMMAND_HANDLERS = [
 
 const QUERY_HANDLERS = [
   SpaceFindByIdQueryHandler,
+  SpaceFindAllIdsQueryHandler,
   SpacesFindByUserQueryHandler,
   MembershipFindByUserAndSpaceQueryHandler,
   GetSpaceWeatherQueryHandler,

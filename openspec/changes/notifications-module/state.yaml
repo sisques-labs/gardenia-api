@@ -1,5 +1,5 @@
 change: notifications-module
-status: proposal
+status: apply
 created: 2026-07-13
 artifact_store: hybrid
 context: notifications
@@ -9,11 +9,11 @@ phases:
   spec: done
   design: done
   tasks: done
-  apply: pending
-  verify: pending
+  apply: done
+  verify: partial
   archive: pending
 next_recommended:
-  - sdd-apply
+  - sdd-verify
 notes: |
   Full proposal authored manually (the `openspec` CLI binary is not installed
   in this environment, so artifacts were written by hand following the exact
@@ -41,3 +41,37 @@ notes: |
     single-instance in v1 (in-process connection registry); multi-instance
     fan-out (Redis pub/sub or the existing Kafka forwarder/consumer) is a
     documented, not-yet-solved follow-up.
+
+  APPLY (2026-07-13): Implemented all six phases end-to-end — domain,
+  application (ports, reconciliation service, commands, queries), the
+  spaces addition (SpaceFindAllIdsQuery), infrastructure (TypeORM entity/
+  mapper/repos, 4 adapters, migration 1780000000025), transport (REST,
+  GraphQL with the typed Criteria pattern, MCP tools, module wiring,
+  ScheduleModule.forRoot() registered in core.module.ts), and SSE real-time
+  delivery (connection registry, EventBus forwarder, GET /notifications/
+  stream). New dependencies added: @nestjs/schedule, graphql-type-json (for
+  the payload JSON scalar). Regenerated
+  aggregate-module.map.generated.ts via `pnpm gen:topics` after adding
+  NotificationAggregate. Added src/contexts/notifications/README.md and a
+  short addition to spaces/README.md documenting SpaceFindAllIdsQuery.
+
+  Verified in this environment: `pnpm test` (1780/1780 tests green across
+  432 suites, including the repo-wide baseline), `pnpm lint` clean,
+  `tsc --noEmit` clean, `nest build` succeeds.
+
+  NOT verified in this environment (no Docker/Postgres available — see
+  tasks.md Phase 6 for the exact gap): integration tests (tenant isolation,
+  the partial unique index race guard, SpaceFindAllIdsQuery) and E2E tests
+  (full reconciliation round trip, REST/GraphQL flows, the SSE stream
+  itself). Also not written in this session: adapter-level unit tests
+  (care-schedule/inventory/user/space directory adapters) and a unit test
+  for NotificationsReconciliationJob's per-space error isolation — the
+  underlying logic is simple delegation/looping already exercised
+  indirectly by the reconciliation handler's own tests, but dedicated specs
+  are still owed per tasks.md 6.5/6.6.
+
+  Manual QA also not done: no way to run a live Postgres + browser in this
+  environment to confirm the SSE stream behaves as designed end-to-end
+  (heartbeat cadence, proxy buffering behavior, actual multi-tab delivery).
+  Recommend running `pnpm test:integration` and `pnpm test:e2e` (see
+  README's Database setup) plus a manual smoke test before merging.

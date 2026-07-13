@@ -299,6 +299,7 @@ Resolvers dispatch commands/queries via `CommandBus` / `QueryBus` only — never
 | `SpaceFindByIdQuery` | `SpaceViewModel` | Used by REST/GraphQL get-by-id |
 | `SpacesFindByUserQuery` | `PaginatedResult<SpaceViewModel>` | All spaces for a user |
 | `MembershipFindByUserAndSpaceQuery` | `SpaceMembership \| null` | Used by `SpaceGuard` |
+| `SpaceFindAllIdsQuery` | `string[]` | **Internal only — no REST/GraphQL/MCP surface.** Enumerates every space regardless of the active `SpaceContext` (a space enumeration is inherently cross-tenant). Consumed exclusively by `notifications`' `SpaceDirectoryAdapter` to drive its reconciliation job's per-space sweep. |
 
 ---
 

@@ -1,0 +1,24 @@
+import { z } from 'zod';
+
+import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
+import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
+
+/** Input schema for the `notification_find_by_criteria` MCP tool. */
+export const notificationFindByCriteriaSchema = {
+  status: z
+    .nativeEnum(NotificationStatusEnum)
+    .optional()
+    .describe('Filter by read state'),
+  type: z
+    .nativeEnum(NotificationTypeEnum)
+    .optional()
+    .describe('Filter by notification type'),
+  page: z.number().int().positive().optional().describe('1-based page number'),
+  perPage: z
+    .number()
+    .int()
+    .positive()
+    .max(100)
+    .optional()
+    .describe('Number of items per page (max 100)'),
+};

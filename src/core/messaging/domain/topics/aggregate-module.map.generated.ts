@@ -20,6 +20,7 @@ export const AGGREGATE_MODULE_MAP: Readonly<Record<string, string>> = {
   FileAggregate: 'files',
   HarvestAggregate: 'harvests',
   InventoryItemAggregate: 'inventory',
+  NotificationAggregate: 'notifications',
   OAuthIdentityAggregate: 'auth',
   PlantAggregate: 'plants',
   PlantPhotoAggregate: 'plant-photos',

@@ -5,6 +5,7 @@ import { appConfig } from '@core/config/app.config';
 import { authConfig } from '@core/config/auth.config';
 import { validateEnv } from '@core/config/env.validation';
 import { kafkaConfig } from '@core/config/kafka.config';
+import { notificationsConfig } from '@core/config/notifications.config';
 import { postgresConfig } from '@core/config/postgres.config';
 import { sentryConfig } from '@core/config/sentry.config';
 import { AGGREGATE_MODULE_MAP } from '@core/messaging/domain/topics/aggregate-module.map.generated';
@@ -19,6 +20,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit/graphql';
 import { McpModule } from '@sisques-labs/nestjs-kit/mcp';
@@ -39,9 +41,17 @@ const CORE_MODULES = [
   ConfigModule.forRoot({
     isGlobal: true,
     validate: validateEnv,
-    load: [postgresConfig, authConfig, appConfig, sentryConfig, kafkaConfig],
+    load: [
+      postgresConfig,
+      authConfig,
+      appConfig,
+      sentryConfig,
+      kafkaConfig,
+      notificationsConfig,
+    ],
     cache: true,
   }),
+  ScheduleModule.forRoot(),
   TypeOrmModule.forRootAsync({
     inject: [ConfigService],
     useFactory: (config: ConfigService) =>
