@@ -13,10 +13,22 @@ low" moment.
 This change introduces a **tenant-scoped `notifications` bounded context**
 that periodically reconciles the state of `care-schedule` and `inventory`
 into a persisted, per-user, in-app notification feed: unread/read state,
-list/count endpoints, and mark-as-read. It does **not** integrate a push or
+list/count endpoints, mark-as-read, and **real-time delivery to connected web
+clients via Server-Sent Events (SSE)**. It does **not** integrate a push or
 email provider yet — v1 is in-app only — but the notification-creation path
 is deliberately seamed behind a dispatcher port so a later change can add
 real channels without touching the domain or the reconciliation engine.
+
+Real-time delivery here means: the instant a notification row is created (or
+marked read/resolved), any tab the recipient has open receives it over an
+already-open connection — no client polling required to *learn about* a
+notification that already exists. This is a separate concern from the
+reconciliation cadence (below): SSE removes the "client has to ask" delay;
+it does not shorten how often `care-schedule`/`inventory` are checked for new
+due/low-stock conditions in the first place. Lowering that cadence, or
+triggering `INVENTORY_LOW_STOCK` instantly off the stock-adjustment command
+instead of the next sweep, is a separate, later decision — noted in Design as
+explicitly not changed here.
 
 Both source contexts stay completely unaware that `notifications` exists:
 `notifications` reads them exclusively through its own read-only ports over
@@ -58,6 +70,15 @@ whether the transport is polling or eventing).
   `NotificationsUnreadCountQuery`.
 - Dual transport (REST + GraphQL) for the public commands/queries, plus MCP
   tools per the repo convention.
+- **`GET /notifications/stream`** — a REST-only Server-Sent Events endpoint
+  (`@Sse()`, native NestJS/RxJS, no new dependency) that pushes a message the
+  instant a notification is created, marked read, marked all-read, or
+  resolved for the connected user, plus a periodic heartbeat comment to keep
+  the connection alive through proxies/load balancers. Backed by an
+  in-process connection registry and a `NotificationSseForwarderService` that
+  subscribes to the same in-process `EventBus` the domain aggregate already
+  publishes to — no new pub/sub infra, no Kafka, no GraphQL subscriptions
+  (see Design for why SSE over `graphql-ws`/WebSocket).
 - `INotificationDispatcherPort` with a `NoopNotificationDispatcherAdapter` in
   v1 (logs only) — the seam a phase-2 change plugs a push/email adapter into.
   No external provider is integrated in this change.
@@ -85,11 +106,23 @@ whether the transport is polling or eventing).
   — flagged in the original brainstorm as a good v2 candidate; needs its own
   design (weather forecasts aren't polled per-space today) and is left for a
   follow-up change.
-- **Kafka-based/event-driven cross-context wiring.** Explicitly rejected for
-  v1 — see Intent and Design's rejected alternatives.
-- Real-time delivery (WebSocket/SSE push to an open browser tab). v1 is
-  pull-based (the web client polls/queries on demand); real-time is a
-  reasonable phase-2 addition once a channel exists to justify it.
+- **Kafka-based/event-driven cross-context wiring** for how `notifications`
+  *reads* `care-schedule`/`inventory` state. Explicitly rejected for v1 — see
+  Intent and Design's rejected alternatives. (Unrelated to the SSE delivery
+  transport below, which is about pushing already-created rows to the
+  browser, not about detecting new conditions.)
+- **Multi-instance SSE fan-out.** The v1 connection registry is in-process —
+  a notification only reaches a client if the API instance holding that
+  client's SSE connection is the same instance that created/updated the
+  notification. Fine for a single API instance; horizontally scaling to N
+  instances needs a shared broker (Redis pub/sub, or the existing Kafka
+  forwarder/consumer) to fan events out across instances — flagged as a Risk,
+  not solved here.
+- **GraphQL subscriptions / WebSocket transport.** SSE only; see Design for
+  why.
+- Real-time delivery for **push notifications with the browser tab
+  closed/backgrounded** (Web Push API, service worker, VAPID) — SSE only
+  works while a tab is open. That remains phase-2, alongside real push/email.
 - Per-adjustment inventory ledger, sowing calendars, or any other
   already-deferred inventory/care-schedule scope — untouched by this change.
 
@@ -99,7 +132,7 @@ whether the transport is polling or eventing).
 
 - `notifications`: tenant-scoped, per-user in-app notification feed
   reconciled from `care-schedule` and `inventory` state; list, unread count,
-  mark-read, mark-all-read.
+  mark-read, mark-all-read, and real-time push to connected clients via SSE.
 
 ### Modified Capabilities
 
@@ -135,17 +168,25 @@ whether the transport is polling or eventing).
   (bad data, a transient query error) is logged and skipped; it must not
   abort the sweep for other spaces — mirrors the existing best-effort
   philosophy already documented on the Kafka forwarder.
+- **SSE reuses the in-process EventBus, not a new pub/sub.** The aggregate
+  already applies `NotificationCreatedEvent`/`NotificationReadEvent`/
+  `NotificationResolvedEvent` through `@nestjs/cqrs`'s `EventBus` (needed for
+  the aggregate pattern regardless of SSE). `NotificationSseForwarderService`
+  subscribes to that same stream — mirroring exactly how
+  `DomainEventForwarderService` already subscribes to it to forward events to
+  Kafka — filters for the current user's connection(s), and pushes. No
+  second event system.
 
 ## Affected Areas
 
 | Area | Impact | Description |
 |------|--------|--------------|
-| `src/contexts/notifications/` | New | Full bounded context |
+| `src/contexts/notifications/` | New | Full bounded context, including the SSE controller, connection registry, and forwarder service |
 | `src/contexts/spaces/application/queries/space-find-all-ids/` | New | Internal-only query, no transport |
 | `src/database/migrations/<next>-CreateNotifications.ts` | New | `notifications` table + indexes |
 | `src/core/core.module.ts` | Modified | Register `ScheduleModule.forRoot()` |
 | `src/app.module.ts` | Modified | Register `NotificationsModule` |
-| `package.json` | Modified | Add `@nestjs/schedule` |
+| `package.json` | Modified | Add `@nestjs/schedule` (SSE itself needs no new dependency — `@Sse()` and `EventBus` are already in `@nestjs/common`/`@nestjs/cqrs`) |
 
 ## Risks
 
@@ -156,6 +197,9 @@ whether the transport is polling or eventing).
 | Fan-out to every member is noisy for large spaces | Low | Product decision, documented as a rejected alternative (owner-only) in Design; acceptable for the household/allotment-sized spaces this product targets today |
 | New `@nestjs/schedule` dependency running in every environment (including tests) fires unwanted cron ticks | Low | Job is guarded by an env flag (`NOTIFICATIONS_RECONCILE_ENABLED`, default `true`, forced `false` in the test config) mirroring the `KAFKA_ENABLED` opt-in pattern |
 | Migration timestamp conflict | Low | Confirmed against current highest migration before implementation |
+| SSE connections silently drop behind a proxy/load balancer that buffers or times out idle HTTP responses | Med | Heartbeat comment every ~20s keeps the response non-idle; document the requirement (`X-Accel-Buffering: no` / disable proxy buffering for this route) for whoever configures the reverse proxy in front of the API; web side keeps a coarse polling fallback regardless (see `notifications-web`) |
+| A single API instance holds every SSE connection — doesn't horizontally scale | Med (future) | Explicitly out of scope for v1 (see Scope); documented migration path to Redis pub/sub or the existing Kafka forwarder/consumer when the app is deployed with >1 instance |
+| Long-lived SSE connections hold a Node HTTP request/socket open indefinitely, consuming server resources per connected user | Low | Bounded by realistic concurrent-user counts at current product scale; connection registry cleans up on `req.on('close')`; flagged as a scaling follow-up alongside the multi-instance risk above |
 
 ## Rollback Plan
 
@@ -193,5 +237,13 @@ with zero blast radius. No data migration in other tables.
       user's notification.
 - [ ] `care-schedule` and `inventory` have zero new imports from or
       references to `notifications`.
+- [ ] A client connected to `GET /notifications/stream` receives a message
+      within a couple seconds of a notification being created, marked read,
+      marked all-read, or resolved for that user — without polling.
+- [ ] A client with no active SSE connection is unaffected — notifications
+      are still created/queryable normally; SSE is additive delivery, not the
+      source of truth (the DB row is).
+- [ ] Disconnecting a client (closing the tab) cleans up its entry in the
+      connection registry — no unbounded growth from abandoned connections.
 - [ ] `pnpm test` / `pnpm test:integration` / `pnpm test:e2e` green;
       `pnpm lint` and `tsc --noEmit` clean.

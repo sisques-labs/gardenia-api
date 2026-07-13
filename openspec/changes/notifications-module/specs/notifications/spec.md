@@ -280,6 +280,67 @@ validated via `FilterValidationPipe(notificationFilterableFields)`).
 
 ---
 
+### Requirement: Real-Time Delivery via SSE
+
+The system MUST expose `GET /notifications/stream` as a Server-Sent Events
+endpoint (`@Sse()`), guarded by `JwtAuthGuard` + `SpaceGuard` identically to
+every other `/notifications` route. Once connected, a client MUST receive a
+message when a notification is created, marked read, marked all-read (one
+message per affected notification, or an equivalent batch message), or
+resolved — but only for notifications belonging to that connection's own
+`userId` within its active `spaceId`. The connection MUST NOT require the
+client to poll to receive these updates.
+
+The endpoint MUST emit a periodic heartbeat (a comment line, not a `data:`
+message) so intermediary proxies/load balancers do not treat the connection
+as idle. Disconnecting (closing the underlying HTTP connection) MUST release
+any server-side resources held for that connection — no unbounded growth
+from abandoned connections.
+
+SSE delivery MUST be strictly additive: a notification MUST be fully correct
+and retrievable via `NotificationFindByCriteriaQuery`/
+`NotificationsUnreadCountQuery` regardless of whether any client was
+connected to the stream when it was created — the database row, not the SSE
+message, is authoritative.
+
+#### Scenario: Connected client receives a newly created notification
+
+- GIVEN a user is connected to `GET /notifications/stream`
+- WHEN a notification is created for that user (via reconciliation or otherwise)
+- THEN a message is delivered on the open connection without the client making any further request
+
+#### Scenario: Connected client receives a read-state change
+
+- GIVEN a user is connected to `GET /notifications/stream` from tab A
+- WHEN the same user marks that notification read from tab B
+- THEN tab A's connection receives a message reflecting the read state change
+
+#### Scenario: A user's stream never receives another user's notifications
+
+- GIVEN user U is connected to `GET /notifications/stream` in space S
+- WHEN a notification is created for a different user V in the same space S
+- THEN U's connection receives nothing for that notification
+
+#### Scenario: Unauthenticated connection rejected
+
+- GIVEN no valid JWT
+- WHEN a client attempts to open `GET /notifications/stream`
+- THEN the connection is rejected with 401 before any event is ever sent
+
+#### Scenario: Disconnection cleans up server-side state
+
+- GIVEN a client is connected to `GET /notifications/stream`
+- WHEN the client disconnects (closes the tab/connection)
+- THEN the server releases its registration for that connection and no longer attempts to deliver to it
+
+#### Scenario: A notification created with no connected client is still fully queryable
+
+- GIVEN no client is currently connected to `GET /notifications/stream` for a user
+- WHEN a notification is created for that user
+- THEN it is absent from any real-time delivery but present and correct on the next `NotificationFindByCriteriaQuery` / `NotificationsUnreadCountQuery`
+
+---
+
 ### Requirement: Tenant and User Isolation
 
 All reads and writes MUST be scoped to the active `spaceId` via

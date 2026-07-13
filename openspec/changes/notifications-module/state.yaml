@@ -21,9 +21,10 @@ notes: |
 
   Key architectural decisions worth re-confirming with the team before apply:
   - Polling-based reconciliation (cron, @nestjs/schedule) chosen over the
-    existing Kafka domain-event forwarder, which is opt-in and disabled by
-    default (KAFKA_ENABLED=false) in every environment today. See design.md
-    "Why polling instead of the Kafka forwarder".
+    existing Kafka domain-event forwarder for *detecting* new due/low-stock
+    conditions — Kafka is opt-in and disabled by default (KAFKA_ENABLED=false)
+    in every environment today. See design.md "Why polling instead of the
+    Kafka forwarder".
   - Fan-out to every active space member (not owner-only). See design.md
     "Why fan-out to every space member".
   - One small new query added to the existing `spaces` context
@@ -31,3 +32,12 @@ notes: |
     change to a context other than `notifications` itself.
   - v1 is in-app only; INotificationDispatcherPort ships with a no-op adapter
     as the seam for a future push/email change.
+  - UPDATED per user request ("hay que hacerlo bien desde el principio con
+    SSE"): v1 now ships real-time delivery via Server-Sent Events
+    (GET /notifications/stream, @Sse(), no new dependency) instead of
+    deferring it to phase 2. Delivery (SSE) is a separate concern from
+    detection cadence (still the 15-min reconciliation cron) — see design.md
+    "Real-time delivery: SSE over the in-process EventBus". Explicitly
+    single-instance in v1 (in-process connection registry); multi-instance
+    fan-out (Redis pub/sub or the existing Kafka forwarder/consumer) is a
+    documented, not-yet-solved follow-up.

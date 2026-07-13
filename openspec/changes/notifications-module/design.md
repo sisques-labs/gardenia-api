@@ -71,8 +71,84 @@ instead of polling. Rejected for v1 because:
   a natural trigger event) too is simpler than running two different
   mechanisms.
 
-The Kafka path remains available and is the natural mechanism for a future
-real-time/push phase — noted as a follow-up, not built here.
+The Kafka path remains available and is a natural mechanism if this ever
+needs to fan out across multiple API instances (see the SSE section below) —
+noted as a follow-up, not built here.
+
+### Real-time delivery: SSE over the in-process EventBus
+
+Polling decides *when the server checks* if a condition is true. It says
+nothing about *when the browser finds out* a notification row now exists —
+without a delivery mechanism, the web client would have to poll on its own
+to notice. Rather than that, `notifications` pushes to connected clients over
+Server-Sent Events (SSE), so a client that has the app open sees a new
+notification (or a read/resolved state change from another of the user's own
+tabs/devices) within seconds, without asking.
+
+**Why SSE, not WebSocket or GraphQL subscriptions.** The data only ever flows
+server → client (no client-to-server messages beyond the initial HTTP
+request that opens the stream) — SSE is the right tool for a strictly
+unidirectional feed. It needs zero new infrastructure: `@Sse()` is built
+into `@nestjs/common` and streams an `Observable<MessageEvent>` over plain
+HTTP, reusing the exact same `JwtAuthGuard`/`SpaceGuard` as every other REST
+route. WebSocket would mean a new NestJS gateway, a new protocol to secure,
+and bidirectionality this feature has no use for. GraphQL subscriptions
+(`graphql-ws`) would mean adding a second GraphQL transport (the API is
+Apollo code-first over plain HTTP today) for the same one-directional need
+SSE already covers over REST.
+
+**How it's wired — reusing the aggregate's own event stream.** The
+`NotificationAggregate` already applies `NotificationCreatedEvent` /
+`NotificationReadEvent` / `NotificationResolvedEvent` through `@nestjs/cqrs`'s
+in-process `EventBus` — that's how any CQRS aggregate in this codebase
+communicates state changes, SSE or not. A new `NotificationSseForwarderService`
+subscribes to that same `EventBus` stream, exactly mirroring how
+`DomainEventForwarderService` (the existing Kafka forwarder) already
+subscribes to it — same `OnModuleInit`/`eventBus.subscribe()` shape, just a
+different sink. For each relevant event it looks up open connections for
+`(userId, spaceId)` in `NotificationSseConnectionRegistry` and pushes a
+`MessageEvent` to each.
+
+```
+NotificationAggregate.create()/markRead()/resolve()
+        │ applies event
+   EventBus (in-process, @nestjs/cqrs)
+        │
+        ├─→ (existing) DomainEventForwarderService ──(if KAFKA_ENABLED)──→ Kafka
+        │
+        └─→ (new) NotificationSseForwarderService
+                  │ filters: NotificationCreated | NotificationRead | NotificationResolved
+                  │ looks up NotificationSseConnectionRegistry.get(userId, spaceId)
+                  └─→ Subject.next(MessageEvent) ──→ every open GET /notifications/stream response for that user
+```
+
+`NotificationSseConnectionRegistry` is a per-process singleton:
+`Map<string /* "${userId}:${spaceId}" */, Set<Subject<MessageEvent>>>` — a
+`Set` (not a single `Subject`) because the same user can have multiple tabs
+or devices open at once, each with its own connection.
+`GET /notifications/stream` (`@Sse()`, guarded like every other route)
+creates a `Subject`, registers it, returns
+`merge(subject.asObservable(), heartbeat$)` where `heartbeat$` is an
+`interval(20_000)` emitting an SSE comment (`: heartbeat\n\n`, not a `data:`
+message — invisible to `EventSource`/`fetch-event-source` consumers) purely
+to keep intermediary proxies/load balancers from treating the connection as
+idle and closing it. On `req.on('close')` the handler removes its `Subject`
+from the registry.
+
+**What SSE is not, in v1.** It's an additive delivery channel for rows that
+already exist in Postgres — the database, not the SSE stream, is the source
+of truth. A client that was disconnected when a notification was created
+still sees it on its next `notificationsFindByCriteria` call; it just didn't
+get the instant push. This is why `NotificationFindByCriteriaQuery` /
+`NotificationsUnreadCountQuery` are not removed or deprecated by this
+addition — SSE and pull-on-demand coexist, and the web side keeps a coarse
+polling fallback for exactly this reason (see `notifications-web`'s design).
+
+It's also explicitly **single-instance**: the registry lives in one API
+process's memory. If `notifications` created by a reconciliation run on
+instance A need to reach a client connected to instance B, nothing forwards
+them today — see the "Multi-instance SSE fan-out" risk in the proposal for
+the documented (not built) follow-up.
 
 ### Why fan-out to every space member (not just the owner)
 
@@ -100,6 +176,10 @@ scale this product targets.
 | Enumerating all spaces | New `SpaceFindAllIdsQuery` in `spaces`, internal-only | Give `notifications` a direct repository read on the `spaces` table; have every space "self-register" for reconciliation via an event | Respects the boundary rule (all cross-context reads go through the owning context's `QueryBus` surface); a plain id-list query is the smallest possible addition and needs no transport surface since it has exactly one caller |
 | Duplicate-row race protection | Partial unique index `(dedupe_key, user_id) WHERE resolved_at IS NULL` | Row-level advisory lock per space during reconciliation; rely on application-level check only | Defense in depth against an overrunning job cycle overlapping the next; a partial index is cheap and Postgres-native |
 | Overlapping job runs | In-process re-entrancy guard (skip a tick if the previous sweep is still running) + the partial unique index as a backstop | Distributed lock (Redis/Postgres advisory lock) across instances | v1 runs a single API instance per environment; a cross-instance lock is a real follow-up the moment this is horizontally scaled, called out as a risk, not solved here |
+| Real-time transport | Server-Sent Events (`@Sse()`), REST-only | WebSocket gateway; GraphQL subscriptions (`graphql-ws`) | Delivery is strictly server→client, one-directional — SSE is the simplest tool that fits; zero new dependencies (`@Sse()` ships in `@nestjs/common`); avoids standing up a second GraphQL transport or a new WS protocol for a need that doesn't require bidirectionality |
+| SSE fan-out mechanism | In-process `NotificationSseConnectionRegistry` fed by a new subscriber (`NotificationSseForwarderService`) on the existing `@nestjs/cqrs` `EventBus` | A second Kafka consumer feeding SSE; Redis pub/sub from day one | Mirrors the already-proven `DomainEventForwarderService` pattern (subscribe to `EventBus`, no aggregate/handler changes); no new infra for the common single-instance case; multi-instance fan-out explicitly deferred (see Risks) rather than solved speculatively |
+| SSE keep-alive | `interval(20_000)` heartbeat comment merged into the response stream | Rely on TCP keep-alive alone; shorter/longer interval | 20s is comfortably under typical proxy/load-balancer idle-connection timeouts (commonly 60s+) without adding meaningful bandwidth; a plain SSE comment line is invisible to `EventSource`/`fetch-event-source` message handlers |
+| SSE is additive, not authoritative | DB row is the source of truth; SSE only pushes notice of a change that already happened | Make SSE delivery required for a notification to "count" | A disconnected client must still see everything correctly via `NotificationFindByCriteriaQuery` on reconnect/next visit — SSE failure must never lose data, only delay the client's awareness of it |
 
 ## Data Flow
 
@@ -110,6 +190,24 @@ REST/GraphQL/MCP ──(JwtAuthGuard + SpaceGuard)──> Query
         │
    QueryBus ──> NotificationFindByCriteriaQueryHandler ──> ReadRepo(tenant, WHERE space_id AND user_id = current) ──> ViewModel[]
    QueryBus ──> NotificationsUnreadCountQueryHandler    ──> ReadRepo(tenant, WHERE space_id AND user_id = current AND status = UNREAD AND resolved_at IS NULL) ──> count
+```
+
+### Real-time push path (SSE)
+
+```
+GET /notifications/stream ──(JwtAuthGuard + SpaceGuard)──>
+   NotificationsStreamController.stream()
+        │ subject = new Subject<MessageEvent>()
+        │ NotificationSseConnectionRegistry.register(userId, spaceId, subject)
+        │ req.on('close') → registry.deregister(userId, spaceId, subject)
+        └─> return merge(subject.asObservable(), heartbeat$)   // @Sse() streams this to the client
+
+ ... independently, any write happens (mark-read, mark-all-read, or the reconciliation job creating/resolving) ...
+
+NotificationAggregate applies event ──> EventBus
+        └─> NotificationSseForwarderService.onModuleInit() subscription
+              → for NotificationCreatedEvent / NotificationReadEvent / NotificationResolvedEvent:
+                  registry.get(event.userId, event.spaceId)?.forEach(subject => subject.next(toMessageEvent(event)))
 ```
 
 ### User-facing write path
@@ -207,6 +305,9 @@ infrastructure/
   adapters/user-directory.adapter.ts                # dispatches UsersFindByCriteriaQuery, paged
   adapters/space-directory.adapter.ts               # dispatches SpaceFindAllIdsQuery
   adapters/noop-notification-dispatcher.adapter.ts
+  realtime/notification-sse-connection.registry.ts  # in-process Map<"userId:spaceId", Set<Subject<MessageEvent>>>
+  realtime/notification-sse-forwarder.service.ts     # subscribes to EventBus, pushes into the registry's subjects
+  realtime/notification-sse-event.mapper.ts          # domain event -> MessageEvent (SSE `data:` payload)
   persistence/typeorm/entities/notification.entity.ts
   persistence/typeorm/mappers/notification-typeorm.mapper.ts
   persistence/typeorm/repositories/notification-typeorm-write.repository.ts
@@ -214,6 +315,7 @@ infrastructure/
 transport/
   jobs/notifications-reconciliation.job.ts          # @Cron; iterates spaces, dispatches ReconcileSpaceNotificationsCommand
   rest/controllers/notifications.controller.ts
+  rest/controllers/notifications-stream.controller.ts  # @Sse() GET /notifications/stream
   rest/dtos/notification-rest-response.dto.ts
   rest/mappers/notification/notification.mapper.ts
   graphql/resolvers/notification-queries.resolver.ts
@@ -251,7 +353,7 @@ src/contexts/spaces/application/queries/space-find-all-ids/space-find-all-ids.ha
 | `src/database/migrations/1780000000025-CreateNotifications.ts` | Create | `notifications` table, indexes, partial unique index |
 | `src/core/core.module.ts` | Modify | Add `ScheduleModule.forRoot()` to `CORE_MODULES` |
 | `src/app.module.ts` | Modify | Register `NotificationsModule` |
-| `src/core/config/notifications.config.ts` | Create | `NOTIFICATIONS_RECONCILE_ENABLED`, `NOTIFICATIONS_RECONCILE_CRON`, `NOTIFICATIONS_CARE_SCHEDULE_DUE_WINDOW_HOURS`, `NOTIFICATIONS_INVENTORY_EXPIRING_WINDOW_DAYS` |
+| `src/core/config/notifications.config.ts` | Create | `NOTIFICATIONS_RECONCILE_ENABLED`, `NOTIFICATIONS_RECONCILE_CRON`, `NOTIFICATIONS_CARE_SCHEDULE_DUE_WINDOW_HOURS`, `NOTIFICATIONS_INVENTORY_EXPIRING_WINDOW_DAYS`, `NOTIFICATIONS_SSE_HEARTBEAT_MS` (default `20000`) |
 | `src/contexts/spaces/spaces.module.ts` | Modify | Register `SpaceFindAllIdsQuery` handler |
 | `src/contexts/spaces/README.md` | Modify | Document the new internal-only query |
 | `package.json` | Modify | Add `@nestjs/schedule` |
@@ -329,6 +431,50 @@ export interface INotificationDispatcherPort {
   dispatch(notification: NotificationViewModel): Promise<void>;
 }
 
+// infrastructure/realtime/notification-sse-connection.registry.ts
+@Injectable()
+export class NotificationSseConnectionRegistry {
+  private readonly connections = new Map<string, Set<Subject<MessageEvent>>>();
+
+  private key(userId: string, spaceId: string): string {
+    return `${userId}:${spaceId}`;
+  }
+
+  register(userId: string, spaceId: string, subject: Subject<MessageEvent>): void {
+    const key = this.key(userId, spaceId);
+    if (!this.connections.has(key)) this.connections.set(key, new Set());
+    this.connections.get(key)!.add(subject);
+  }
+
+  deregister(userId: string, spaceId: string, subject: Subject<MessageEvent>): void {
+    const key = this.key(userId, spaceId);
+    this.connections.get(key)?.delete(subject);
+    if (this.connections.get(key)?.size === 0) this.connections.delete(key);
+  }
+
+  publish(userId: string, spaceId: string, event: MessageEvent): void {
+    this.connections.get(this.key(userId, spaceId))?.forEach((subject) => subject.next(event));
+  }
+}
+
+// infrastructure/realtime/notification-sse-forwarder.service.ts
+// Same OnModuleInit/eventBus.subscribe() shape as DomainEventForwarderService,
+// filtering for this context's three event types and delegating to the registry.
+@Injectable()
+export class NotificationSseForwarderService implements OnModuleInit {
+  constructor(
+    private readonly eventBus: EventBus,
+    private readonly registry: NotificationSseConnectionRegistry,
+  ) {}
+  onModuleInit(): void {
+    this.eventBus.subscribe((event: IEvent) => {
+      // narrow to NotificationCreatedEvent | NotificationReadEvent | NotificationResolvedEvent,
+      // map to a MessageEvent, then:
+      // this.registry.publish(event.data.userId, event.data.spaceId, messageEvent)
+    });
+  }
+}
+
 // application/services/notification-reconciliation/notification-reconciliation.service.ts
 export interface IReconciliationPlan {
   toCreate: {
@@ -383,9 +529,9 @@ just space-scoped) resources.
 
 | Layer | What | Approach |
 |-------|------|----------|
-| Unit | `NotificationReconciliationService.reconcile()` — the core branching logic: create-when-open-missing, no-op-when-still-open, resolve-when-condition-cleared, multi-member fan-out, multi-type mixing; aggregate `create`/`markRead` (idempotent)/`resolve` (idempotent) event emission; VOs (`dedupeKey` format, `payload` JSON validity); adapters (each dispatches the right query with the right args, maps the result shape) | Jest, `jest.Mocked<T>`, no DB |
+| Unit | `NotificationReconciliationService.reconcile()` — the core branching logic: create-when-open-missing, no-op-when-still-open, resolve-when-condition-cleared, multi-member fan-out, multi-type mixing; aggregate `create`/`markRead` (idempotent)/`resolve` (idempotent) event emission; VOs (`dedupeKey` format, `payload` JSON validity); adapters (each dispatches the right query with the right args, maps the result shape); `NotificationSseConnectionRegistry` — register/deregister/publish, multiple subjects for the same `(userId, spaceId)` all receive a publish, publishing to a key with no registered connections is a silent no-op; `NotificationSseForwarderService` — each of the three event types maps to the expected `MessageEvent` shape and calls `registry.publish` with the event's `userId`/`spaceId`, an unrelated event type is ignored | Jest, `jest.Mocked<T>`, no DB |
 | Integration | Tenant isolation (space A's notifications invisible under space B); `(dedupe_key, user_id) WHERE resolved_at IS NULL` partial unique index actually rejects a duplicate insert; `findOpenGroupedByDedupeKey` groups correctly; `countUnread` excludes resolved | Test DB + `SpaceContext` |
-| E2E | Full reconciliation round trip: seed a due `care-schedule` + a low-stock `inventory` item + two space members → dispatch `ReconcileSpaceNotificationsCommand` directly (not the cron, for determinism) → assert 2 notifications × 2 members = 4 rows; complete the schedule → re-run → assert the 2 `CARE_SCHEDULE_DUE` rows are resolved and the 2 `INVENTORY_LOW_STOCK` rows are untouched; REST + GraphQL list/unread-count/mark-read/mark-all-read behind guards; mark-read on another user's notification → 403; tenant isolation → 404 | supertest |
+| E2E | Full reconciliation round trip: seed a due `care-schedule` + a low-stock `inventory` item + two space members → dispatch `ReconcileSpaceNotificationsCommand` directly (not the cron, for determinism) → assert 2 notifications × 2 members = 4 rows; complete the schedule → re-run → assert the 2 `CARE_SCHEDULE_DUE` rows are resolved and the 2 `INVENTORY_LOW_STOCK` rows are untouched; REST + GraphQL list/unread-count/mark-read/mark-all-read behind guards; mark-read on another user's notification → 403; tenant isolation → 404; **SSE**: open `GET /notifications/stream` with supertest's raw HTTP client, dispatch `MarkNotificationReadCommand` for that user in parallel, assert the stream emits a matching `MessageEvent` within the test timeout; a second connection for a *different* user receives nothing from the first user's events | supertest |
 | Static | `notifications-no-cross-context-import.spec.ts`: no import from `@contexts/care-schedule/domain`, `@contexts/care-schedule/application`, `@contexts/inventory/domain`, `@contexts/inventory/application`, `@contexts/users/domain`, `@contexts/users/application`, `@contexts/spaces/domain`, `@contexts/spaces/application` outside `notifications/infrastructure/adapters/` | Jest source scan, mirrors existing boundary tests |
 
 The reconciliation job itself (`@Cron`) is intentionally kept as thin as
@@ -405,6 +551,13 @@ before the job starts creating rows.
 
 ## Open Questions
 
+- If/when the API is deployed with more than one instance, the SSE
+  connection registry needs a shared backend (Redis pub/sub is the
+  lighter-weight option; the existing Kafka forwarder/consumer is the other).
+  Not addressed here — flag if multi-instance deployment is already planned
+  before this ships, since it changes `NotificationSseConnectionRegistry`
+  from an in-process `Map` to a thin wrapper over that shared backend (the
+  `register`/`deregister`/`publish` interface can stay the same).
 - Configurable per-user windows/mute preferences are explicitly deferred
   (Out of Scope) — flag if product wants this pulled into v1 before
   implementation starts, since it would change the `notifications` table

@@ -4,10 +4,10 @@
 
 | Field | Value |
 |-------|-------|
-| Estimated changed lines | 2 200 – 2 800 |
+| Estimated changed lines | 2 500 – 3 150 |
 | 400-line budget risk | High |
 | Chained PRs recommended | Yes |
-| Suggested split | PR 1 → Domain + Application (incl. reconciliation service) · PR 2 → Infrastructure (persistence + ports/adapters) + migration · PR 3 → `spaces` addition (`SpaceFindAllIdsQuery`) · PR 4 → Transport (REST/GraphQL/MCP) + module wiring + scheduler · PR 5 → Tests |
+| Suggested split | PR 1 → Domain + Application (incl. reconciliation service) · PR 2 → Infrastructure (persistence + ports/adapters) + migration · PR 3 → `spaces` addition (`SpaceFindAllIdsQuery`) · PR 4 → Transport (REST/GraphQL/MCP) + module wiring + scheduler · PR 5 → Real-time (SSE connection registry + forwarder + stream controller) · PR 6 → Tests |
 | Delivery strategy | ask-on-risk |
 | Chain strategy | pending |
 
@@ -24,7 +24,8 @@ Chain strategy: pending
 | 2 | Infrastructure: persistence + ports/adapters + migration | PR 2 | TypeORM entity/mapper/repos (tenant), 4 outbound ports + adapters, no-op dispatcher, migration |
 | 3 | `spaces` addition | PR 3 | `SpaceFindAllIdsQuery` + handler, README update — small, isolated, safe to land independently |
 | 4 | Transport + wiring | PR 4 | REST controller, GraphQL resolvers/DTOs/criteria plumbing, MCP tools, cron job, `NotificationsModule`, `app.module.ts`, `core.module.ts` (`ScheduleModule`), config, `package.json` |
-| 5 | Tests | PR 5 | Unit, integration, e2e, static boundary test |
+| 5 | Real-time (SSE) | PR 5 | Connection registry, `NotificationSseForwarderService`, `GET /notifications/stream` controller — depends on PR 1 (events) and PR 4 (module wiring), kept separate since it's the one genuinely new mechanism in this change |
+| 6 | Tests | PR 6 | Unit, integration, e2e (incl. SSE stream assertions), static boundary test |
 
 ---
 
@@ -124,16 +125,30 @@ Chain strategy: pending
 
 ---
 
-## Phase 5: Tests
+## Phase 5: Real-time (SSE)
 
-- [ ] 5.1 Unit — `NotificationReconciliationService`: create-when-missing, no-op-when-open-exists, resolve-when-condition-cleared, multi-member fan-out, mixed types in one pass, empty-everything no-op
-- [ ] 5.2 Unit — `NotificationAggregate`: `create`/`markRead` (incl. idempotent no-op)/`resolve` (incl. idempotent no-op) event emission
-- [ ] 5.3 Unit — VOs: `NotificationDedupeKeyValueObject` format validation; `NotificationTypeValueObject`/`NotificationReferenceTypeValueObject` invalid-value rejection
-- [ ] 5.4 Unit — handlers: `MarkNotificationReadCommandHandler` happy path + not-found + not-owned (403); `MarkAllNotificationsReadCommandHandler`; `ReconcileSpaceNotificationsCommandHandler` (mocked ports) happy path + one port throwing doesn't corrupt partial state; query handlers happy path + empty list
-- [ ] 5.5 Unit — each adapter: dispatches the expected query with expected args (mocked `QueryBus`), maps the result shape correctly, pages through multiple pages
-- [ ] 5.6 Unit — `NotificationsReconciliationJob`: iterates all space ids from the port; one space throwing is logged and does not stop the loop; no-ops entirely when `NOTIFICATIONS_RECONCILE_ENABLED=false`
-- [ ] 5.7 Integration — tenant isolation (space A's notifications invisible under space B); partial unique index rejects a duplicate `(dedupe_key, user_id)` insert while `resolved_at IS NULL`, allows a new insert after the prior row is resolved; `findOpenGroupedByDedupeKey` grouping; `countUnread` excludes resolved and read rows correctly per their own axis
-- [ ] 5.8 Integration — `SpaceFindAllIdsQuery` returns all spaces regardless of active `SpaceContext`
-- [ ] 5.9 E2E — full reconciliation round trip via direct command dispatch: due schedule + low-stock item + 2 members → 4 notification rows; complete the schedule → re-run → `CARE_SCHEDULE_DUE` rows resolved, `INVENTORY_LOW_STOCK` rows untouched; restock the item above threshold → re-run → those rows resolved too
-- [ ] 5.10 E2E — REST + GraphQL: list with `status`/`type` filters, unread-count, mark-read (incl. 403 on another user's notification, 404 on unknown id), mark-all-read; all behind `JwtAuthGuard` + `SpaceGuard`
-- [ ] 5.11 Static — `notifications-no-cross-context-import.spec.ts`: no import from `@contexts/care-schedule/{domain,application}`, `@contexts/inventory/{domain,application}`, `@contexts/users/{domain,application}`, `@contexts/spaces/{domain,application}` outside `notifications/infrastructure/adapters/`
+- [ ] 5.1 Create `src/contexts/notifications/infrastructure/realtime/notification-sse-connection.registry.ts` — `NotificationSseConnectionRegistry`: `register(userId, spaceId, subject)`, `deregister(userId, spaceId, subject)`, `publish(userId, spaceId, event)`; `Map<"userId:spaceId", Set<Subject<MessageEvent>>>`; `@Injectable()` singleton (default NestJS provider scope — one instance per process)
+- [ ] 5.2 Create `src/contexts/notifications/infrastructure/realtime/notification-sse-event.mapper.ts` — maps `NotificationCreatedEvent | NotificationReadEvent | NotificationResolvedEvent` to a `MessageEvent` (`{ type: 'notification-created' | 'notification-read' | 'notification-resolved', data: {...} }`)
+- [ ] 5.3 Create `src/contexts/notifications/infrastructure/realtime/notification-sse-forwarder.service.ts` — `NotificationSseForwarderService implements OnModuleInit`; same `eventBus.subscribe()` shape as `DomainEventForwarderService` (nestjs-kit messaging), filters the three event types via the mapper, calls `registry.publish(event.data.userId, event.data.spaceId, mapped)`; logs a warning (not an error) if a mapped event has no `userId`/`spaceId` (should be unreachable, defensive)
+- [ ] 5.4 Create `src/contexts/notifications/transport/rest/controllers/notifications-stream.controller.ts` — `GET /notifications/stream`, `@Sse()`, guards `JwtAuthGuard` + `SpaceGuard`; creates a `Subject<MessageEvent>`, registers it with `(userId, spaceId)`, returns `merge(subject.asObservable(), interval(NOTIFICATIONS_SSE_HEARTBEAT_MS).pipe(map(() => ({ type: 'heartbeat', data: '' } as MessageEvent))))`; `req.on('close', () => registry.deregister(userId, spaceId, subject))`; logs connect/disconnect at entry
+- [ ] 5.5 Add `NOTIFICATIONS_SSE_HEARTBEAT_MS` (default `20000`) to `src/core/config/notifications.config.ts`
+- [ ] 5.6 Register `NotificationSseConnectionRegistry`, `NotificationSseForwarderService`, and the new controller in `notifications.module.ts`'s provider arrays
+
+---
+
+## Phase 6: Tests
+
+- [ ] 6.1 Unit — `NotificationReconciliationService`: create-when-missing, no-op-when-open-exists, resolve-when-condition-cleared, multi-member fan-out, mixed types in one pass, empty-everything no-op
+- [ ] 6.2 Unit — `NotificationAggregate`: `create`/`markRead` (incl. idempotent no-op)/`resolve` (incl. idempotent no-op) event emission
+- [ ] 6.3 Unit — VOs: `NotificationDedupeKeyValueObject` format validation; `NotificationTypeValueObject`/`NotificationReferenceTypeValueObject` invalid-value rejection
+- [ ] 6.4 Unit — handlers: `MarkNotificationReadCommandHandler` happy path + not-found + not-owned (403); `MarkAllNotificationsReadCommandHandler`; `ReconcileSpaceNotificationsCommandHandler` (mocked ports) happy path + one port throwing doesn't corrupt partial state; query handlers happy path + empty list
+- [ ] 6.5 Unit — each adapter: dispatches the expected query with expected args (mocked `QueryBus`), maps the result shape correctly, pages through multiple pages
+- [ ] 6.6 Unit — `NotificationsReconciliationJob`: iterates all space ids from the port; one space throwing is logged and does not stop the loop; no-ops entirely when `NOTIFICATIONS_RECONCILE_ENABLED=false`
+- [ ] 6.7 Unit — `NotificationSseConnectionRegistry`: register then publish delivers to that subject; multiple subjects for the same `(userId, spaceId)` all receive a publish; deregistering one subject leaves others receiving; publish to an unregistered key is a no-op (no throw); registry entry is removed once its subject set is empty
+- [ ] 6.8 Unit — `NotificationSseForwarderService`: each of `NotificationCreatedEvent`/`NotificationReadEvent`/`NotificationResolvedEvent` is mapped and published to the event's own `userId`/`spaceId`; an unrelated `EventBus` event (e.g. from another context) is ignored, not forwarded
+- [ ] 6.9 Integration — tenant isolation (space A's notifications invisible under space B); partial unique index rejects a duplicate `(dedupe_key, user_id)` insert while `resolved_at IS NULL`, allows a new insert after the prior row is resolved; `findOpenGroupedByDedupeKey` grouping; `countUnread` excludes resolved and read rows correctly per their own axis
+- [ ] 6.10 Integration — `SpaceFindAllIdsQuery` returns all spaces regardless of active `SpaceContext`
+- [ ] 6.11 E2E — full reconciliation round trip via direct command dispatch: due schedule + low-stock item + 2 members → 4 notification rows; complete the schedule → re-run → `CARE_SCHEDULE_DUE` rows resolved, `INVENTORY_LOW_STOCK` rows untouched; restock the item above threshold → re-run → those rows resolved too
+- [ ] 6.12 E2E — REST + GraphQL: list with `status`/`type` filters, unread-count, mark-read (incl. 403 on another user's notification, 404 on unknown id), mark-all-read; all behind `JwtAuthGuard` + `SpaceGuard`
+- [ ] 6.13 E2E — SSE: open `GET /notifications/stream` (raw HTTP client, e.g. `supertest`'s underlying agent or a raw `http.request`, since the Apollo/axios test clients aren't built for a streaming response); dispatch `MarkNotificationReadCommand` for the connected user concurrently; assert a `notification-read` `MessageEvent` arrives on the stream within the test timeout; a second connection authenticated as a *different* user does not receive it; unauthenticated connection attempt is rejected (401) before the stream opens
+- [ ] 6.14 Static — `notifications-no-cross-context-import.spec.ts`: no import from `@contexts/care-schedule/{domain,application}`, `@contexts/inventory/{domain,application}`, `@contexts/users/{domain,application}`, `@contexts/spaces/{domain,application}` outside `notifications/infrastructure/adapters/`
