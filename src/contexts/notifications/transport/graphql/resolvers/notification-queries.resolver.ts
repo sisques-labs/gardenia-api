@@ -1,6 +1,6 @@
 import { Logger, UseGuards } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
-import { Args, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { Criteria } from '@sisques-labs/nestjs-kit';
 import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
@@ -53,7 +53,7 @@ export class NotificationQueriesResolver {
     return this.notificationGraphQLMapper.toPaginatedResponseDto(result);
   }
 
-  @Query(() => Number)
+  @Query(() => Int)
   async notificationsUnreadCount(
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<number> {
