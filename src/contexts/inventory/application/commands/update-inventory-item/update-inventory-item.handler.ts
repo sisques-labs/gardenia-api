@@ -52,7 +52,9 @@ export class UpdateInventoryItemCommandHandler
 
     this.logger.log(`Inventory item updated: ${command.id.value}`);
 
-    await this.dispatchInventoryLowStockNotificationService.dispatch(item);
-    await this.dispatchInventoryExpiringSoonNotificationService.dispatch(item);
+    await this.dispatchInventoryLowStockNotificationService.execute({ item });
+    await this.dispatchInventoryExpiringSoonNotificationService.execute({
+      item,
+    });
   }
 }

@@ -60,7 +60,7 @@ describe('DispatchInventoryExpiringSoonNotificationService', () => {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const item = buildItem(expiresAt);
 
-    await service.dispatch(item);
+    await service.execute({ item });
 
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith({
       condition: InventoryNotificationConditionEnum.EXPIRING_SOON,
@@ -77,7 +77,7 @@ describe('DispatchInventoryExpiringSoonNotificationService', () => {
   it('dispatches active:false when the item has no expiresAt', async () => {
     const item = buildItem(null);
 
-    await service.dispatch(item);
+    await service.execute({ item });
 
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({ active: false }),
@@ -87,7 +87,7 @@ describe('DispatchInventoryExpiringSoonNotificationService', () => {
   it('uses the explicit active flag instead of computing it, when given', async () => {
     const item = buildItem(new Date(Date.now() + 24 * 60 * 60 * 1000));
 
-    await service.dispatch(item, false);
+    await service.execute({ item, active: false });
 
     expect(mockConfigService.getOrThrow).not.toHaveBeenCalled();
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(

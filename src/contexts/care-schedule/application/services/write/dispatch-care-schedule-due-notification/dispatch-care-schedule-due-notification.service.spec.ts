@@ -58,7 +58,7 @@ describe('DispatchCareScheduleDueNotificationService', () => {
   it('computes active from isDueWithin(dueWindowHours) when active is not given', async () => {
     const schedule = buildSchedule(new Date(Date.now() + 12 * 60 * 60 * 1000));
 
-    await service.dispatch(schedule);
+    await service.execute({ schedule });
 
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith({
       type: CareScheduleNotificationTypeEnum.DUE,
@@ -75,7 +75,7 @@ describe('DispatchCareScheduleDueNotificationService', () => {
   it('dispatches active:false when nextDueAt falls outside the window', async () => {
     const schedule = buildSchedule(new Date(Date.now() + 48 * 60 * 60 * 1000));
 
-    await service.dispatch(schedule);
+    await service.execute({ schedule });
 
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({ active: false }),
@@ -85,7 +85,7 @@ describe('DispatchCareScheduleDueNotificationService', () => {
   it('uses the explicit active flag instead of computing it, when given', async () => {
     const schedule = buildSchedule(new Date(Date.now() - 60_000));
 
-    await service.dispatch(schedule, false);
+    await service.execute({ schedule, active: false });
 
     expect(mockConfigService.getOrThrow).not.toHaveBeenCalled();
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(

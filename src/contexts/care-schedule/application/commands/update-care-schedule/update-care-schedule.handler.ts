@@ -48,6 +48,8 @@ export class UpdateCareScheduleCommandHandler
 
     this.logger.log(`Care schedule updated: ${command.id.value}`);
 
-    await this.dispatchCareScheduleDueNotificationService.dispatch(schedule);
+    await this.dispatchCareScheduleDueNotificationService.execute({
+      schedule,
+    });
   }
 }

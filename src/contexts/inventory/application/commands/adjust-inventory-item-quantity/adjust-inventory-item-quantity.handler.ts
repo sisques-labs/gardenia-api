@@ -48,6 +48,6 @@ export class AdjustInventoryItemQuantityCommandHandler
       `Inventory item quantity adjusted: ${command.id.value} delta: ${command.delta.value}`,
     );
 
-    await this.dispatchInventoryLowStockNotificationService.dispatch(item);
+    await this.dispatchInventoryLowStockNotificationService.execute({ item });
   }
 }

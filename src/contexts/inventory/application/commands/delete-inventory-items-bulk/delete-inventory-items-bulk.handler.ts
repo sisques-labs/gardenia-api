@@ -64,14 +64,14 @@ export class DeleteInventoryItemsBulkCommandHandler
       await this.publishEvents(item);
       deletedIds.push(item.id.value);
 
-      await this.dispatchInventoryLowStockNotificationService.dispatch(
+      await this.dispatchInventoryLowStockNotificationService.execute({
         item,
-        false,
-      );
-      await this.dispatchInventoryExpiringSoonNotificationService.dispatch(
+        active: false,
+      });
+      await this.dispatchInventoryExpiringSoonNotificationService.execute({
         item,
-        false,
-      );
+        active: false,
+      });
     }
 
     this.logger.log(

@@ -41,9 +41,9 @@ export class DeleteCareScheduleCommandHandler
 
     this.logger.log(`Care schedule deleted: ${command.id.value}`);
 
-    await this.dispatchCareScheduleDueNotificationService.dispatch(
+    await this.dispatchCareScheduleDueNotificationService.execute({
       schedule,
-      false,
-    );
+      active: false,
+    });
   }
 }

@@ -54,7 +54,7 @@ describe('CompleteCareScheduleCommandHandler', () => {
     } as jest.Mocked<ICareLogPort>;
 
     mockDispatchCareScheduleDueNotificationService = {
-      dispatch: jest.fn().mockResolvedValue(undefined),
+      execute: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<DispatchCareScheduleDueNotificationService>;
 
     handler = new CompleteCareScheduleCommandHandler(
@@ -152,7 +152,7 @@ describe('CompleteCareScheduleCommandHandler', () => {
     );
 
     expect(
-      mockDispatchCareScheduleDueNotificationService.dispatch,
-    ).toHaveBeenCalledWith(schedule);
+      mockDispatchCareScheduleDueNotificationService.execute,
+    ).toHaveBeenCalledWith({ schedule });
   });
 });

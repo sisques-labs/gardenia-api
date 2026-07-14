@@ -1,26 +1,14 @@
 import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import {
-  Criteria,
-  FilterOperator,
-  PaginatedResult,
-} from '@sisques-labs/nestjs-kit';
 
 import {
   NOTIFICATION_DISPATCHER_PORT,
   INotificationDispatcherPort,
 } from '@contexts/inventory/application/ports/notification-dispatcher.port';
+import { FindAllExpiringInventoryItemsService } from '@contexts/inventory/application/services/read/find-all-expiring-inventory-items/find-all-expiring-inventory-items.service';
 import { InventoryNotificationConditionEnum } from '@contexts/inventory/domain/enums/inventory-notification-condition.enum';
-import {
-  INVENTORY_ITEM_READ_REPOSITORY,
-  IInventoryItemReadRepository,
-} from '@contexts/inventory/domain/repositories/read/inventory-item-read.repository';
-import { InventoryItemViewModel } from '@contexts/inventory/domain/view-models/inventory-item.view-model';
-import { InventoryItemQueryableField } from '@contexts/inventory/transport/graphql/enums/inventory-item-queryable-field.enum';
 
 import { CheckExpiringInventoryItemsCommand } from './check-expiring-inventory-items.command';
-
-const PAGE_SIZE = 100;
 
 @CommandHandler(CheckExpiringInventoryItemsCommand)
 export class CheckExpiringInventoryItemsCommandHandler implements ICommandHandler<
@@ -32,8 +20,7 @@ export class CheckExpiringInventoryItemsCommandHandler implements ICommandHandle
   );
 
   constructor(
-    @Inject(INVENTORY_ITEM_READ_REPOSITORY)
-    private readonly inventoryItemReadRepository: IInventoryItemReadRepository,
+    private readonly findAllExpiringInventoryItemsService: FindAllExpiringInventoryItemsService,
     @Inject(NOTIFICATION_DISPATCHER_PORT)
     private readonly notificationDispatcherPort: INotificationDispatcherPort,
   ) {}
@@ -42,7 +29,9 @@ export class CheckExpiringInventoryItemsCommandHandler implements ICommandHandle
     const expiringBefore = new Date(
       Date.now() + command.windowDays.value * 24 * 60 * 60 * 1000,
     );
-    const items = await this.fetchAllExpiring(expiringBefore);
+    const items = await this.findAllExpiringInventoryItemsService.execute({
+      expiringBefore,
+    });
 
     for (const item of items) {
       await this.notificationDispatcherPort.dispatch({
@@ -60,35 +49,5 @@ export class CheckExpiringInventoryItemsCommandHandler implements ICommandHandle
     this.logger.log(
       `Checked expiring inventory items within ${command.windowDays.value}d: ${items.length} expiring`,
     );
-  }
-
-  private async fetchAllExpiring(
-    expiringBefore: Date,
-  ): Promise<InventoryItemViewModel[]> {
-    const results: InventoryItemViewModel[] = [];
-    let page = 1;
-
-    for (;;) {
-      const criteria = new Criteria(
-        [
-          {
-            field: InventoryItemQueryableField.EXPIRES_AT,
-            operator: FilterOperator.LESS_THAN_OR_EQUAL,
-            value: expiringBefore.toISOString(),
-          },
-        ],
-        undefined,
-        { page, perPage: PAGE_SIZE },
-      );
-
-      const result: PaginatedResult<InventoryItemViewModel> =
-        await this.inventoryItemReadRepository.findByCriteria(criteria);
-      results.push(...result.items);
-
-      if (result.items.length < PAGE_SIZE) break;
-      page += 1;
-    }
-
-    return results;
   }
 }

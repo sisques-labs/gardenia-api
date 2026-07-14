@@ -33,7 +33,7 @@ describe('DeleteCareScheduleCommandHandler', () => {
     } as unknown as jest.Mocked<AssertCareScheduleExistsService>;
 
     mockDispatchCareScheduleDueNotificationService = {
-      dispatch: jest.fn().mockResolvedValue(undefined),
+      execute: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<DispatchCareScheduleDueNotificationService>;
 
     handler = new DeleteCareScheduleCommandHandler(
@@ -92,7 +92,7 @@ describe('DeleteCareScheduleCommandHandler', () => {
     );
 
     expect(
-      mockDispatchCareScheduleDueNotificationService.dispatch,
-    ).toHaveBeenCalledWith(schedule, false);
+      mockDispatchCareScheduleDueNotificationService.execute,
+    ).toHaveBeenCalledWith({ schedule, active: false });
   });
 });

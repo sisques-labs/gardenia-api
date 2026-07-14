@@ -43,13 +43,13 @@ export class DeleteInventoryItemCommandHandler
 
     this.logger.log(`Inventory item deleted: ${command.id.value}`);
 
-    await this.dispatchInventoryLowStockNotificationService.dispatch(
+    await this.dispatchInventoryLowStockNotificationService.execute({
       item,
-      false,
-    );
-    await this.dispatchInventoryExpiringSoonNotificationService.dispatch(
+      active: false,
+    });
+    await this.dispatchInventoryExpiringSoonNotificationService.execute({
       item,
-      false,
-    );
+      active: false,
+    });
   }
 }

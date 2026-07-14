@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { IBaseService } from '@sisques-labs/nestjs-kit';
 
 import {
   NOTIFICATION_DISPATCHER_PORT,
@@ -7,6 +8,11 @@ import {
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import { InventoryNotificationConditionEnum } from '@contexts/inventory/domain/enums/inventory-notification-condition.enum';
 
+export interface DispatchInventoryLowStockNotificationServiceInput {
+  item: InventoryItemAggregate;
+  active?: boolean;
+}
+
 /**
  * Single place that knows how to tell notifications whether an item is
  * currently low on stock. Shared by every inventory mutation handler that
@@ -14,16 +20,20 @@ import { InventoryNotificationConditionEnum } from '@contexts/inventory/domain/e
  * payload shape lives in exactly one spot.
  */
 @Injectable()
-export class DispatchInventoryLowStockNotificationService {
+export class DispatchInventoryLowStockNotificationService implements IBaseService<
+  DispatchInventoryLowStockNotificationServiceInput,
+  void
+> {
   constructor(
     @Inject(NOTIFICATION_DISPATCHER_PORT)
     private readonly notificationDispatcherPort: INotificationDispatcherPort,
   ) {}
 
-  async dispatch(
-    item: InventoryItemAggregate,
-    active?: boolean,
+  async execute(
+    input: DispatchInventoryLowStockNotificationServiceInput,
   ): Promise<void> {
+    const { item } = input;
+
     await this.notificationDispatcherPort.dispatch({
       condition: InventoryNotificationConditionEnum.LOW_STOCK,
       referenceId: item.id.value,
@@ -34,7 +44,7 @@ export class DispatchInventoryLowStockNotificationService {
         unit: item.unit.value,
         lowStockThreshold: item.lowStockThreshold?.value ?? null,
       },
-      active: active ?? item.isLowStock(),
+      active: input.active ?? item.isLowStock(),
     });
   }
 }

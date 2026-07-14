@@ -66,7 +66,7 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
     } as unknown as jest.Mocked<AssertInventoryItemExistsService>;
 
     mockDispatchInventoryLowStockNotificationService = {
-      dispatch: jest.fn().mockResolvedValue(undefined),
+      execute: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<DispatchInventoryLowStockNotificationService>;
 
     mockEventBus = {
@@ -142,7 +142,7 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
     );
 
     expect(
-      mockDispatchInventoryLowStockNotificationService.dispatch,
-    ).toHaveBeenCalledWith(item);
+      mockDispatchInventoryLowStockNotificationService.execute,
+    ).toHaveBeenCalledWith({ item });
   });
 });

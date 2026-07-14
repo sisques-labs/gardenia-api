@@ -57,7 +57,7 @@ describe('DispatchInventoryLowStockNotificationService', () => {
   it('computes active from isLowStock() when active is not given', async () => {
     const item = buildItem(2, 5);
 
-    await service.dispatch(item);
+    await service.execute({ item });
 
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith({
       condition: InventoryNotificationConditionEnum.LOW_STOCK,
@@ -76,7 +76,7 @@ describe('DispatchInventoryLowStockNotificationService', () => {
   it('dispatches active:false when quantity is above the threshold', async () => {
     const item = buildItem(10, 5);
 
-    await service.dispatch(item);
+    await service.execute({ item });
 
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({ active: false }),
@@ -86,7 +86,7 @@ describe('DispatchInventoryLowStockNotificationService', () => {
   it('uses the explicit active flag instead of computing it, when given', async () => {
     const item = buildItem(2, 5);
 
-    await service.dispatch(item, false);
+    await service.execute({ item, active: false });
 
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({ active: false }),

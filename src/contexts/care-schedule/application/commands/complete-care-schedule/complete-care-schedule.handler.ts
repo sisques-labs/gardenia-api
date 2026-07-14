@@ -55,7 +55,9 @@ export class CompleteCareScheduleCommandHandler
     // care-log failure must not roll back the (authoritative) completion.
     await this.recordCareLogEntry(schedule, completedAt);
 
-    await this.dispatchCareScheduleDueNotificationService.dispatch(schedule);
+    await this.dispatchCareScheduleDueNotificationService.execute({
+      schedule,
+    });
   }
 
   private async recordCareLogEntry(

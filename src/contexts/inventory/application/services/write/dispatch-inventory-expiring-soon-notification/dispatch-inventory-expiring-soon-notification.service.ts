@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { IBaseService } from '@sisques-labs/nestjs-kit';
 
 import {
   NOTIFICATION_DISPATCHER_PORT,
@@ -9,6 +10,11 @@ import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/in
 import { InventoryNotificationConditionEnum } from '@contexts/inventory/domain/enums/inventory-notification-condition.enum';
 import { IInventoryConfig } from '@core/config/inventory.config';
 
+export interface DispatchInventoryExpiringSoonNotificationServiceInput {
+  item: InventoryItemAggregate;
+  active?: boolean;
+}
+
 /**
  * Single place that knows how to tell notifications whether an item is
  * currently expiring soon. Shared by every inventory mutation handler that
@@ -16,17 +22,21 @@ import { IInventoryConfig } from '@core/config/inventory.config';
  * payload shape and the expiringWindowDays lookup live in exactly one spot.
  */
 @Injectable()
-export class DispatchInventoryExpiringSoonNotificationService {
+export class DispatchInventoryExpiringSoonNotificationService implements IBaseService<
+  DispatchInventoryExpiringSoonNotificationServiceInput,
+  void
+> {
   constructor(
     @Inject(NOTIFICATION_DISPATCHER_PORT)
     private readonly notificationDispatcherPort: INotificationDispatcherPort,
     private readonly configService: ConfigService,
   ) {}
 
-  async dispatch(
-    item: InventoryItemAggregate,
-    active?: boolean,
+  async execute(
+    input: DispatchInventoryExpiringSoonNotificationServiceInput,
   ): Promise<void> {
+    const { item } = input;
+
     await this.notificationDispatcherPort.dispatch({
       condition: InventoryNotificationConditionEnum.EXPIRING_SOON,
       referenceId: item.id.value,
@@ -35,7 +45,7 @@ export class DispatchInventoryExpiringSoonNotificationService {
         itemType: item.itemType.value,
         expiresAt: item.expiresAt?.value ?? null,
       },
-      active: active ?? this.isExpiring(item),
+      active: input.active ?? this.isExpiring(item),
     });
   }
 

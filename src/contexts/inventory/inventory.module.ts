@@ -13,6 +13,7 @@ import { InventoryItemFindByIdQueryHandler } from '@contexts/inventory/applicati
 import { NOTIFICATION_DISPATCHER_PORT } from '@contexts/inventory/application/ports/notification-dispatcher.port';
 import { SPACE_DIRECTORY_PORT } from '@contexts/inventory/application/ports/space-directory.port';
 import { AssertInventoryItemViewModelExistsService } from '@contexts/inventory/application/services/read/assert-inventory-item-view-model-exists/assert-inventory-item-view-model-exists.service';
+import { FindAllExpiringInventoryItemsService } from '@contexts/inventory/application/services/read/find-all-expiring-inventory-items/find-all-expiring-inventory-items.service';
 import { AssertInventoryItemExistsService } from '@contexts/inventory/application/services/write/assert-inventory-item-exists/assert-inventory-item-exists.service';
 import { DispatchInventoryExpiringSoonNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-expiring-soon-notification/dispatch-inventory-expiring-soon-notification.service';
 import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
@@ -61,6 +62,7 @@ const APPLICATION_SERVICES = [
   AssertInventoryItemViewModelExistsService,
   DispatchInventoryLowStockNotificationService,
   DispatchInventoryExpiringSoonNotificationService,
+  FindAllExpiringInventoryItemsService,
 ];
 
 const INFRASTRUCTURE_MAPPERS = [InventoryItemTypeOrmMapper];

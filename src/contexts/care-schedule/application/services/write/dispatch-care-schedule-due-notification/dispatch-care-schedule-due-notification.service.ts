@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { IBaseService } from '@sisques-labs/nestjs-kit';
 
 import {
   NOTIFICATION_DISPATCHER_PORT,
@@ -9,6 +10,11 @@ import { CareScheduleAggregate } from '@contexts/care-schedule/domain/aggregates
 import { CareScheduleNotificationTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-notification-type.enum';
 import { ICareScheduleConfig } from '@core/config/care-schedule.config';
 
+export interface DispatchCareScheduleDueNotificationServiceInput {
+  schedule: CareScheduleAggregate;
+  active?: boolean;
+}
+
 /**
  * Single place that knows how to tell notifications whether a schedule is
  * currently due. Shared by every care-schedule mutation handler that can
@@ -16,17 +22,21 @@ import { ICareScheduleConfig } from '@core/config/care-schedule.config';
  * the dueWindowHours lookup live in exactly one spot.
  */
 @Injectable()
-export class DispatchCareScheduleDueNotificationService {
+export class DispatchCareScheduleDueNotificationService implements IBaseService<
+  DispatchCareScheduleDueNotificationServiceInput,
+  void
+> {
   constructor(
     @Inject(NOTIFICATION_DISPATCHER_PORT)
     private readonly notificationDispatcherPort: INotificationDispatcherPort,
     private readonly configService: ConfigService,
   ) {}
 
-  async dispatch(
-    schedule: CareScheduleAggregate,
-    active?: boolean,
+  async execute(
+    input: DispatchCareScheduleDueNotificationServiceInput,
   ): Promise<void> {
+    const { schedule } = input;
+
     await this.notificationDispatcherPort.dispatch({
       type: CareScheduleNotificationTypeEnum.DUE,
       referenceId: schedule.id.value,
@@ -35,7 +45,7 @@ export class DispatchCareScheduleDueNotificationService {
         activityType: schedule.activityType.value,
         nextDueAt: schedule.nextDueAt.value,
       },
-      active: active ?? this.isDue(schedule),
+      active: input.active ?? this.isDue(schedule),
     });
   }
 
