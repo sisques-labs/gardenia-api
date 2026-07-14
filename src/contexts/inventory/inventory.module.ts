@@ -11,7 +11,6 @@ import { UpdateInventoryItemCommandHandler } from '@contexts/inventory/applicati
 import { InventoryItemFindByCriteriaQueryHandler } from '@contexts/inventory/application/queries/inventory-item-find-by-criteria/inventory-item-find-by-criteria.handler';
 import { InventoryItemFindByIdQueryHandler } from '@contexts/inventory/application/queries/inventory-item-find-by-id/inventory-item-find-by-id.handler';
 import { NOTIFICATION_DISPATCHER_PORT } from '@contexts/inventory/application/ports/notification-dispatcher.port';
-import { SPACE_DIRECTORY_PORT } from '@contexts/inventory/application/ports/space-directory.port';
 import { AssertInventoryItemViewModelExistsService } from '@contexts/inventory/application/services/read/assert-inventory-item-view-model-exists/assert-inventory-item-view-model-exists.service';
 import { FindAllExpiringInventoryItemsService } from '@contexts/inventory/application/services/read/find-all-expiring-inventory-items/find-all-expiring-inventory-items.service';
 import { AssertInventoryItemExistsService } from '@contexts/inventory/application/services/write/assert-inventory-item-exists/assert-inventory-item-exists.service';
@@ -21,7 +20,6 @@ import { InventoryItemBuilder } from '@contexts/inventory/domain/builders/invent
 import { INVENTORY_ITEM_READ_REPOSITORY } from '@contexts/inventory/domain/repositories/read/inventory-item-read.repository';
 import { INVENTORY_ITEM_WRITE_REPOSITORY } from '@contexts/inventory/domain/repositories/write/inventory-item-write.repository';
 import { NotificationDispatcherAdapter } from '@contexts/inventory/infrastructure/adapters/notification-dispatcher.adapter';
-import { SpaceDirectoryAdapter } from '@contexts/inventory/infrastructure/adapters/space-directory.adapter';
 import { InventoryItemTypeOrmEntity } from '@contexts/inventory/infrastructure/persistence/typeorm/entities/inventory-item.entity';
 import { InventoryItemTypeOrmMapper } from '@contexts/inventory/infrastructure/persistence/typeorm/mappers/inventory-item-typeorm.mapper';
 import { InventoryItemTypeOrmReadRepository } from '@contexts/inventory/infrastructure/persistence/typeorm/repositories/inventory-item-typeorm-read.repository';
@@ -72,7 +70,6 @@ const INFRASTRUCTURE_ADAPTERS = [
     provide: NOTIFICATION_DISPATCHER_PORT,
     useClass: NotificationDispatcherAdapter,
   },
-  { provide: SPACE_DIRECTORY_PORT, useClass: SpaceDirectoryAdapter },
 ];
 
 const INFRASTRUCTURE_REPOSITORIES = [

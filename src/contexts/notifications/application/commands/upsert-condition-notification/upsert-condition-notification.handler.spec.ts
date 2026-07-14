@@ -1,51 +1,17 @@
-import { EventBus } from '@nestjs/cqrs';
-
-import { NotificationBuilder } from '@contexts/notifications/domain/builders/notification.builder';
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
-import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
-import { NotificationDedupeKeyValueObject } from '@contexts/notifications/domain/value-objects/notification-dedupe-key/notification-dedupe-key.value-object';
-import { NotificationViewModel } from '@contexts/notifications/domain/view-models/notification.view-model';
+import { OpenNotificationService } from '@contexts/notifications/application/services/write/open-notification/open-notification.service';
+import { ResolveNotificationsService } from '@contexts/notifications/application/services/write/resolve-notifications/resolve-notifications.service';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { UpsertConditionNotificationCommand } from './upsert-condition-notification.command';
 import { UpsertConditionNotificationCommandHandler } from './upsert-condition-notification.handler';
 
 const SPACE_ID = '880e8400-e29b-41d4-a716-446655440003';
-const USER_1 = '770e8400-e29b-41d4-a716-446655440001';
-const USER_2 = '770e8400-e29b-41d4-a716-446655440002';
 const REFERENCE_ID = '990e8400-e29b-41d4-a716-446655440010';
 const NOTIFICATION_ID = 'aa0e8400-e29b-41d4-a716-446655440011';
 
-const DEDUPE_KEY = NotificationDedupeKeyValueObject.compute(
-  NotificationTypeEnum.INVENTORY_LOW_STOCK,
-  REFERENCE_ID,
-);
-
-function makeOpenViewModel(): NotificationViewModel {
-  return new NotificationViewModel({
-    id: NOTIFICATION_ID,
-    type: NotificationTypeEnum.INVENTORY_LOW_STOCK,
-    referenceType: NotificationReferenceTypeEnum.INVENTORY_ITEM,
-    referenceId: REFERENCE_ID,
-    dedupeKey: DEDUPE_KEY,
-    payload: {},
-    status: NotificationStatusEnum.UNREAD,
-    readAt: null,
-    resolvedAt: null,
-    userId: USER_1,
-    spaceId: SPACE_ID,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-}
-
 describe('UpsertConditionNotificationCommandHandler', () => {
   let notificationReadRepository: { findOpenByDedupeKey: jest.Mock };
-  let notificationWriteRepository: {
-    saveMany: jest.Mock;
-    findById: jest.Mock;
-  };
-  let userDirectoryPort: { listActiveMemberUserIds: jest.Mock };
+  let mockOpenNotificationService: jest.Mocked<OpenNotificationService>;
+  let mockResolveNotificationsService: jest.Mocked<ResolveNotificationsService>;
   let spaceContext: { require: jest.Mock };
   let handler: UpsertConditionNotificationCommandHandler;
 
@@ -53,111 +19,94 @@ describe('UpsertConditionNotificationCommandHandler', () => {
     notificationReadRepository = {
       findOpenByDedupeKey: jest.fn().mockResolvedValue([]),
     };
-    notificationWriteRepository = {
-      saveMany: jest.fn().mockResolvedValue(undefined),
-      findById: jest.fn(),
-    };
-    userDirectoryPort = {
-      listActiveMemberUserIds: jest.fn().mockResolvedValue([USER_1, USER_2]),
-    };
+    mockOpenNotificationService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<OpenNotificationService>;
+    mockResolveNotificationsService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<ResolveNotificationsService>;
     spaceContext = { require: jest.fn().mockReturnValue(SPACE_ID) };
-
-    const eventBus = { publishAll: jest.fn() } as unknown as EventBus;
 
     handler = new UpsertConditionNotificationCommandHandler(
       notificationReadRepository as any,
-      notificationWriteRepository as any,
-      userDirectoryPort as any,
-      new NotificationBuilder(),
+      mockOpenNotificationService,
+      mockResolveNotificationsService,
       spaceContext as unknown as SpaceContext,
-      eventBus,
     );
   });
 
-  it('creates one notification per active member when active and none is open', async () => {
+  it('opens a notification when active and none is open for that dedupeKey', async () => {
     await handler.execute(
       new UpsertConditionNotificationCommand({
-        type: NotificationTypeEnum.INVENTORY_LOW_STOCK,
-        referenceType: NotificationReferenceTypeEnum.INVENTORY_ITEM,
+        type: 'INVENTORY_LOW_STOCK',
+        referenceType: 'INVENTORY_ITEM',
         referenceId: REFERENCE_ID,
         payload: { itemName: 'Compost' },
         active: true,
       }),
     );
 
-    expect(notificationWriteRepository.saveMany).toHaveBeenCalledTimes(1);
-    const saved = notificationWriteRepository.saveMany.mock.calls[0][0];
-    expect(saved).toHaveLength(2);
-    expect(saved.map((n: any) => n.userId.value).sort()).toEqual(
-      [USER_1, USER_2].sort(),
-    );
+    expect(mockOpenNotificationService.execute).toHaveBeenCalledWith({
+      type: 'INVENTORY_LOW_STOCK',
+      referenceType: 'INVENTORY_ITEM',
+      referenceId: REFERENCE_ID,
+      payload: { itemName: 'Compost' },
+      spaceId: SPACE_ID,
+    });
   });
 
   it('does nothing when active and a notification is already open for that dedupeKey', async () => {
     notificationReadRepository.findOpenByDedupeKey.mockResolvedValue([
-      makeOpenViewModel(),
+      { id: NOTIFICATION_ID },
     ]);
 
     await handler.execute(
       new UpsertConditionNotificationCommand({
-        type: NotificationTypeEnum.INVENTORY_LOW_STOCK,
-        referenceType: NotificationReferenceTypeEnum.INVENTORY_ITEM,
+        type: 'INVENTORY_LOW_STOCK',
+        referenceType: 'INVENTORY_ITEM',
         referenceId: REFERENCE_ID,
         payload: {},
         active: true,
       }),
     );
 
-    expect(userDirectoryPort.listActiveMemberUserIds).not.toHaveBeenCalled();
-    expect(notificationWriteRepository.saveMany).not.toHaveBeenCalled();
+    expect(mockOpenNotificationService.execute).not.toHaveBeenCalled();
   });
 
   it('resolves every open notification for that dedupeKey when inactive', async () => {
-    const openViewModel = makeOpenViewModel();
-    notificationReadRepository.findOpenByDedupeKey.mockResolvedValue([
-      openViewModel,
-    ]);
-
-    const aggregate = new NotificationBuilder()
-      .withId(NOTIFICATION_ID)
-      .withType(NotificationTypeEnum.INVENTORY_LOW_STOCK)
-      .withReferenceType(NotificationReferenceTypeEnum.INVENTORY_ITEM)
-      .withReferenceId(REFERENCE_ID)
-      .withUserId(USER_1)
-      .withSpaceId(SPACE_ID)
-      .withCreatedAt(new Date())
-      .withUpdatedAt(new Date())
-      .build();
-    notificationWriteRepository.findById.mockResolvedValue(aggregate);
+    const open = [{ id: NOTIFICATION_ID }];
+    notificationReadRepository.findOpenByDedupeKey.mockResolvedValue(open);
 
     await handler.execute(
       new UpsertConditionNotificationCommand({
-        type: NotificationTypeEnum.INVENTORY_LOW_STOCK,
-        referenceType: NotificationReferenceTypeEnum.INVENTORY_ITEM,
+        type: 'INVENTORY_LOW_STOCK',
+        referenceType: 'INVENTORY_ITEM',
         referenceId: REFERENCE_ID,
         payload: {},
         active: false,
       }),
     );
 
-    expect(aggregate.resolvedAt).not.toBeNull();
-    expect(notificationWriteRepository.saveMany).toHaveBeenCalledWith([
-      aggregate,
-    ]);
+    expect(mockResolveNotificationsService.execute).toHaveBeenCalledWith({
+      open,
+      dedupeKey: `INVENTORY_LOW_STOCK:${REFERENCE_ID}`,
+    });
   });
 
   it('does nothing when inactive and nothing is open for that dedupeKey', async () => {
     await handler.execute(
       new UpsertConditionNotificationCommand({
-        type: NotificationTypeEnum.INVENTORY_LOW_STOCK,
-        referenceType: NotificationReferenceTypeEnum.INVENTORY_ITEM,
+        type: 'INVENTORY_LOW_STOCK',
+        referenceType: 'INVENTORY_ITEM',
         referenceId: REFERENCE_ID,
         payload: {},
         active: false,
       }),
     );
 
-    expect(notificationWriteRepository.findById).not.toHaveBeenCalled();
-    expect(notificationWriteRepository.saveMany).not.toHaveBeenCalled();
+    expect(mockResolveNotificationsService.execute).toHaveBeenCalledWith({
+      open: [],
+      dedupeKey: `INVENTORY_LOW_STOCK:${REFERENCE_ID}`,
+    });
   });
 });

@@ -9,11 +9,10 @@ import { UpsertConditionNotificationCommand } from '@contexts/notifications/appl
 /**
  * Anti-corruption layer: translates care-schedule's own vocabulary
  * (CareScheduleNotificationTypeEnum) into the wire-level strings
- * notifications' public command expects. Deliberately does NOT import
- * notifications' domain enums (NotificationTypeEnum,
- * NotificationReferenceTypeEnum) — the command accepts plain strings
- * (Pick<INotificationPrimitives, 'type' | 'referenceType'> is `string`), so
- * care-schedule stays uncoupled from notifications' internal type shapes.
+ * notifications' public command expects. notifications' `type`/
+ * `referenceType` are plain strings with no closed enum on that side either
+ * — the set of possible values is defined by source contexts like this one,
+ * not by notifications.
  */
 const NOTIFICATION_TYPE_TO_WIRE: Record<
   CareScheduleNotificationTypeEnum,

@@ -1,8 +1,6 @@
 import { FieldIsRequiredException } from '@sisques-labs/nestjs-kit';
 
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { NotificationBuilder } from './notification.builder';
 
 const ID = '550e8400-e29b-41d4-a716-446655440000';
@@ -15,8 +13,8 @@ const UPDATED_AT = new Date('2026-01-02T00:00:00.000Z');
 const base = (): NotificationBuilder =>
   new NotificationBuilder()
     .withId(ID)
-    .withType(NotificationTypeEnum.CARE_SCHEDULE_DUE)
-    .withReferenceType(NotificationReferenceTypeEnum.CARE_SCHEDULE)
+    .withType('CARE_SCHEDULE_DUE')
+    .withReferenceType('CARE_SCHEDULE')
     .withReferenceId(REFERENCE_ID)
     .withUserId(USER_ID)
     .withSpaceId(SPACE_ID)
@@ -29,10 +27,10 @@ describe('NotificationBuilder', () => {
       const aggregate = base().build();
 
       expect(aggregate.id.value).toBe(ID);
-      expect(aggregate.type.value).toBe(NotificationTypeEnum.CARE_SCHEDULE_DUE);
+      expect(aggregate.type.value).toBe('CARE_SCHEDULE_DUE');
       expect(aggregate.referenceId.value).toBe(REFERENCE_ID);
       expect(aggregate.dedupeKey.value).toBe(
-        `${NotificationTypeEnum.CARE_SCHEDULE_DUE}:${REFERENCE_ID}`,
+        `CARE_SCHEDULE_DUE:${REFERENCE_ID}`,
       );
       expect(aggregate.status.value).toBe(NotificationStatusEnum.UNREAD);
       expect(aggregate.readAt).toBeNull();
@@ -54,9 +52,7 @@ describe('NotificationBuilder', () => {
       const vm = base().buildViewModel();
 
       expect(vm.id).toBe(ID);
-      expect(vm.dedupeKey).toBe(
-        `${NotificationTypeEnum.CARE_SCHEDULE_DUE}:${REFERENCE_ID}`,
-      );
+      expect(vm.dedupeKey).toBe(`CARE_SCHEDULE_DUE:${REFERENCE_ID}`);
       expect(vm.status).toBe(NotificationStatusEnum.UNREAD);
     });
   });

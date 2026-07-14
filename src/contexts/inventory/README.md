@@ -172,7 +172,8 @@ ids are de-duplicated before processing.
 - `NotificationDispatcherAdapter` (`infrastructure/adapters/notification-dispatcher.adapter.ts`)
   — dispatches `UpsertConditionNotificationCommand` on the Command bus, mapping
   a local `InventoryNotificationConditionEnum` (`LOW_STOCK`/`EXPIRING_SOON`) to
-  the target's `NotificationTypeEnum`.
+  the wire-level `type` string `notifications` expects (no shared enum —
+  `notifications` doesn't define one).
 - `ISpaceDirectoryPort` / `SpaceDirectoryAdapter` — wraps `spaces`'
   `SpaceFindAllIdsQuery`, used only by the expiring-item sweep below.
 

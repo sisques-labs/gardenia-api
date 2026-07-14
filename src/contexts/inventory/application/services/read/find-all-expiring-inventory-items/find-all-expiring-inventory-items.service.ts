@@ -3,7 +3,6 @@ import {
   Criteria,
   FilterOperator,
   IBaseService,
-  PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
 
 import {
@@ -12,8 +11,7 @@ import {
 } from '@contexts/inventory/domain/repositories/read/inventory-item-read.repository';
 import { InventoryItemViewModel } from '@contexts/inventory/domain/view-models/inventory-item.view-model';
 import { InventoryItemQueryableField } from '@contexts/inventory/transport/graphql/enums/inventory-item-queryable-field.enum';
-
-const PAGE_SIZE = 100;
+import { fetchAllPages } from '@shared/pagination/fetch-all-pages.util';
 
 export interface FindAllExpiringInventoryItemsServiceInput {
   expiringBefore: Date;
@@ -37,10 +35,7 @@ export class FindAllExpiringInventoryItemsService implements IBaseService<
   async execute(
     input: FindAllExpiringInventoryItemsServiceInput,
   ): Promise<InventoryItemViewModel[]> {
-    const results: InventoryItemViewModel[] = [];
-    let page = 1;
-
-    for (;;) {
+    return fetchAllPages((page, perPage) => {
       const criteria = new Criteria(
         [
           {
@@ -50,17 +45,9 @@ export class FindAllExpiringInventoryItemsService implements IBaseService<
           },
         ],
         undefined,
-        { page, perPage: PAGE_SIZE },
+        { page, perPage },
       );
-
-      const result: PaginatedResult<InventoryItemViewModel> =
-        await this.inventoryItemReadRepository.findByCriteria(criteria);
-      results.push(...result.items);
-
-      if (result.items.length < PAGE_SIZE) break;
-      page += 1;
-    }
-
-    return results;
+      return this.inventoryItemReadRepository.findByCriteria(criteria);
+    });
   }
 }

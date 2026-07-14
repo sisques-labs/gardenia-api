@@ -1,15 +1,12 @@
-import { EnumValueObject } from '@sisques-labs/nestjs-kit';
+import { StringValueObject } from '@sisques-labs/nestjs-kit';
 
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
-
-export class NotificationReferenceTypeValueObject extends EnumValueObject<
-  typeof NotificationReferenceTypeEnum
-> {
-  constructor(value: NotificationReferenceTypeEnum) {
-    super(value);
-  }
-
-  protected get enumObject(): typeof NotificationReferenceTypeEnum {
-    return NotificationReferenceTypeEnum as unknown as typeof NotificationReferenceTypeEnum;
+/**
+ * Deliberately NOT a closed enum: see NotificationTypeValueObject — the set
+ * of referenceable entity kinds is defined by whichever bounded context
+ * dispatches the notification, not by notifications itself.
+ */
+export class NotificationReferenceTypeValueObject extends StringValueObject {
+  constructor(value: string) {
+    super(value, { allowEmpty: false, maxLength: 50 });
   }
 }

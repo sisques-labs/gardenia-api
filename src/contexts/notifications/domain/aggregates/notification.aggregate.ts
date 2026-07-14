@@ -9,7 +9,6 @@ import { NotificationCreatedEvent } from '@contexts/notifications/domain/events/
 import { NotificationReadEvent } from '@contexts/notifications/domain/events/notification-read/notification-read.event';
 import { NotificationResolvedEvent } from '@contexts/notifications/domain/events/notification-resolved/notification-resolved.event';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { INotification } from '@contexts/notifications/domain/interfaces/notification.interface';
 import { INotificationPrimitives } from '@contexts/notifications/domain/primitives/notification.primitives';
 import { NotificationDedupeKeyValueObject } from '@contexts/notifications/domain/value-objects/notification-dedupe-key/notification-dedupe-key.value-object';
@@ -36,7 +35,7 @@ export class NotificationAggregate extends BaseAggregate {
     super(props.createdAt, props.updatedAt);
 
     const expectedDedupeKey = NotificationDedupeKeyValueObject.compute(
-      props.type.value as NotificationTypeEnum,
+      props.type.value,
       props.referenceId.value,
     );
     if (props.dedupeKey.value !== expectedDedupeKey) {

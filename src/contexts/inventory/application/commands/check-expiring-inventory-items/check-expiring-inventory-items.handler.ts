@@ -7,8 +7,12 @@ import {
 } from '@contexts/inventory/application/ports/notification-dispatcher.port';
 import { FindAllExpiringInventoryItemsService } from '@contexts/inventory/application/services/read/find-all-expiring-inventory-items/find-all-expiring-inventory-items.service';
 import { InventoryNotificationConditionEnum } from '@contexts/inventory/domain/enums/inventory-notification-condition.enum';
+import { runWithConcurrency } from '@shared/concurrency/run-with-concurrency.util';
+import { MS_PER_DAY } from '@shared/time/time.constants';
 
 import { CheckExpiringInventoryItemsCommand } from './check-expiring-inventory-items.command';
+
+const DISPATCH_CONCURRENCY = 10;
 
 @CommandHandler(CheckExpiringInventoryItemsCommand)
 export class CheckExpiringInventoryItemsCommandHandler implements ICommandHandler<
@@ -27,24 +31,27 @@ export class CheckExpiringInventoryItemsCommandHandler implements ICommandHandle
 
   async execute(command: CheckExpiringInventoryItemsCommand): Promise<void> {
     const expiringBefore = new Date(
-      Date.now() + command.windowDays.value * 24 * 60 * 60 * 1000,
+      Date.now() + command.windowDays.value * MS_PER_DAY,
     );
     const items = await this.findAllExpiringInventoryItemsService.execute({
       expiringBefore,
     });
 
-    for (const item of items) {
-      await this.notificationDispatcherPort.dispatch({
-        condition: InventoryNotificationConditionEnum.EXPIRING_SOON,
-        referenceId: item.id,
-        payload: {
-          itemName: item.name,
-          itemType: item.itemType,
-          expiresAt: item.expiresAt,
-        },
-        active: true,
-      });
-    }
+    await runWithConcurrency(
+      items,
+      (item) =>
+        this.notificationDispatcherPort.dispatch({
+          condition: InventoryNotificationConditionEnum.EXPIRING_SOON,
+          referenceId: item.id,
+          payload: {
+            itemName: item.name,
+            itemType: item.itemType,
+            expiresAt: item.expiresAt,
+          },
+          active: true,
+        }),
+      DISPATCH_CONCURRENCY,
+    );
 
     this.logger.log(
       `Checked expiring inventory items within ${command.windowDays.value}d: ${items.length} expiring`,

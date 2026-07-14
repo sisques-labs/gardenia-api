@@ -1,7 +1,5 @@
 import { BooleanValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { INotificationPrimitives } from '@contexts/notifications/domain/primitives/notification.primitives';
 import { NotificationPayloadValueObject } from '@contexts/notifications/domain/value-objects/notification-payload/notification-payload.value-object';
 import { NotificationReferenceTypeValueObject } from '@contexts/notifications/domain/value-objects/notification-reference-type/notification-reference-type.value-object';
@@ -30,11 +28,9 @@ export class UpsertConditionNotificationCommand {
   public readonly active: BooleanValueObject;
 
   constructor(input: UpsertConditionNotificationCommandInput) {
-    this.type = new NotificationTypeValueObject(
-      input.type as NotificationTypeEnum,
-    );
+    this.type = new NotificationTypeValueObject(input.type);
     this.referenceType = new NotificationReferenceTypeValueObject(
-      input.referenceType as NotificationReferenceTypeEnum,
+      input.referenceType,
     );
     this.referenceId = new UuidValueObject(input.referenceId);
     this.payload = new NotificationPayloadValueObject(input.payload);

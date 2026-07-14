@@ -12,6 +12,9 @@ import { USER_DIRECTORY_PORT } from '@contexts/notifications/application/ports/u
 import { NotificationFindByCriteriaQueryHandler } from '@contexts/notifications/application/queries/notification-find-by-criteria/notification-find-by-criteria.handler';
 import { NotificationsUnreadCountQueryHandler } from '@contexts/notifications/application/queries/notifications-unread-count/notifications-unread-count.handler';
 import { AssertNotificationExistsService } from '@contexts/notifications/application/services/write/assert-notification-exists/assert-notification-exists.service';
+import { AssertNotificationOwnedByUserService } from '@contexts/notifications/application/services/write/assert-notification-owned-by-user/assert-notification-owned-by-user.service';
+import { OpenNotificationService } from '@contexts/notifications/application/services/write/open-notification/open-notification.service';
+import { ResolveNotificationsService } from '@contexts/notifications/application/services/write/resolve-notifications/resolve-notifications.service';
 import { NotificationBuilder } from '@contexts/notifications/domain/builders/notification.builder';
 import { NOTIFICATION_READ_REPOSITORY } from '@contexts/notifications/domain/repositories/read/notification-read.repository';
 import { NOTIFICATION_WRITE_REPOSITORY } from '@contexts/notifications/domain/repositories/write/notification-write.repository';
@@ -47,7 +50,12 @@ const QUERY_HANDLERS = [
 
 const DOMAIN_BUILDERS = [NotificationBuilder];
 
-const APPLICATION_SERVICES = [AssertNotificationExistsService];
+const APPLICATION_SERVICES = [
+  AssertNotificationExistsService,
+  AssertNotificationOwnedByUserService,
+  OpenNotificationService,
+  ResolveNotificationsService,
+];
 
 const INFRASTRUCTURE_MAPPERS = [NotificationTypeOrmMapper];
 

@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { NotificationViewModel } from '@contexts/notifications/domain/view-models/notification.view-model';
 import {
   NotificationResponseDto,
@@ -20,8 +18,8 @@ export class NotificationGraphQLMapper {
     );
     return {
       id: vm.id,
-      type: vm.type as NotificationTypeEnum,
-      referenceType: vm.referenceType as NotificationReferenceTypeEnum,
+      type: vm.type,
+      referenceType: vm.referenceType,
       referenceId: vm.referenceId,
       payload: vm.payload,
       status: vm.status as NotificationStatusEnum,

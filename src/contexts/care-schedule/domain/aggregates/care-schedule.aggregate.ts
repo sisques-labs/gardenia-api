@@ -25,7 +25,8 @@ import { CareScheduleNotesValueObject } from '@contexts/care-schedule/domain/val
 import { CareScheduleQuantityValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-quantity/care-schedule-quantity.value-object';
 import { CareScheduleUnitValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-unit/care-schedule-unit.value-object';
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const MS_PER_HOUR = 60 * 60 * 1000;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
 
 export class CareScheduleAggregate extends BaseAggregate {
   private readonly _id: CareScheduleIdValueObject;
@@ -149,7 +150,7 @@ export class CareScheduleAggregate extends BaseAggregate {
   /** Whether this schedule is currently active and due within the given window. */
   public isDueWithin(windowHours: number): boolean {
     if (!this._active.value) return false;
-    const dueBefore = Date.now() + windowHours * 60 * 60 * 1000;
+    const dueBefore = Date.now() + windowHours * MS_PER_HOUR;
     return this._nextDueAt.value.getTime() <= dueBefore;
   }
 

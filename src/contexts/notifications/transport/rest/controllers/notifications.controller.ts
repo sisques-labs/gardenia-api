@@ -34,7 +34,6 @@ import { MarkNotificationReadCommand } from '@contexts/notifications/application
 import { NotificationFindByCriteriaQuery } from '@contexts/notifications/application/queries/notification-find-by-criteria/notification-find-by-criteria.query';
 import { NotificationsUnreadCountQuery } from '@contexts/notifications/application/queries/notifications-unread-count/notifications-unread-count.query';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { NotificationViewModel } from '@contexts/notifications/domain/view-models/notification.view-model';
 import { NotificationRestResponseDto } from '../dtos/notification-rest-response.dto';
 import { NotificationRestMapper } from '../mappers/notification/notification.mapper';
@@ -59,7 +58,7 @@ export class NotificationsController {
   async notificationsFindByCriteria(
     @CurrentUser() user: CurrentUserPayload,
     @Query('status') status?: NotificationStatusEnum,
-    @Query('type') type?: NotificationTypeEnum,
+    @Query('type') type?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ): Promise<PaginatedResult<NotificationRestResponseDto>> {

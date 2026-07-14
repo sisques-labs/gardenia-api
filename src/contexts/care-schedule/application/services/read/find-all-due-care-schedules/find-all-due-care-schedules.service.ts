@@ -3,7 +3,6 @@ import {
   Criteria,
   FilterOperator,
   IBaseService,
-  PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
 
 import {
@@ -12,8 +11,7 @@ import {
 } from '@contexts/care-schedule/domain/repositories/read/care-schedule-read.repository';
 import { CareScheduleViewModel } from '@contexts/care-schedule/domain/view-models/care-schedule.view-model';
 import { CareScheduleQueryableField } from '@contexts/care-schedule/transport/graphql/enums/care-schedule-queryable-field.enum';
-
-const PAGE_SIZE = 100;
+import { fetchAllPages } from '@shared/pagination/fetch-all-pages.util';
 
 export interface FindAllDueCareSchedulesServiceInput {
   dueBefore: Date;
@@ -37,10 +35,7 @@ export class FindAllDueCareSchedulesService implements IBaseService<
   async execute(
     input: FindAllDueCareSchedulesServiceInput,
   ): Promise<CareScheduleViewModel[]> {
-    const results: CareScheduleViewModel[] = [];
-    let page = 1;
-
-    for (;;) {
+    return fetchAllPages((page, perPage) => {
       const criteria = new Criteria(
         [
           {
@@ -55,17 +50,9 @@ export class FindAllDueCareSchedulesService implements IBaseService<
           },
         ],
         undefined,
-        { page, perPage: PAGE_SIZE },
+        { page, perPage },
       );
-
-      const result: PaginatedResult<CareScheduleViewModel> =
-        await this.careScheduleReadRepository.findByCriteria(criteria);
-      results.push(...result.items);
-
-      if (result.items.length < PAGE_SIZE) break;
-      page += 1;
-    }
-
-    return results;
+      return this.careScheduleReadRepository.findByCriteria(criteria);
+    });
   }
 }

@@ -12,7 +12,6 @@ import { CareScheduleFindByCriteriaQueryHandler } from '@contexts/care-schedule/
 import { CareScheduleFindByIdQueryHandler } from '@contexts/care-schedule/application/queries/care-schedule-find-by-id/care-schedule-find-by-id.handler';
 import { CARE_LOG_PORT } from '@contexts/care-schedule/application/ports/care-log.port';
 import { NOTIFICATION_DISPATCHER_PORT } from '@contexts/care-schedule/application/ports/notification-dispatcher.port';
-import { SPACE_DIRECTORY_PORT } from '@contexts/care-schedule/application/ports/space-directory.port';
 import { AssertCareScheduleViewModelExistsService } from '@contexts/care-schedule/application/services/read/assert-care-schedule-view-model-exists/assert-care-schedule-view-model-exists.service';
 import { FindAllDueCareSchedulesService } from '@contexts/care-schedule/application/services/read/find-all-due-care-schedules/find-all-due-care-schedules.service';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
@@ -20,7 +19,6 @@ import { DispatchCareScheduleDueNotificationService } from '@contexts/care-sched
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareLogAdapter } from '@contexts/care-schedule/infrastructure/adapters/care-log.adapter';
 import { NotificationDispatcherAdapter } from '@contexts/care-schedule/infrastructure/adapters/notification-dispatcher.adapter';
-import { SpaceDirectoryAdapter } from '@contexts/care-schedule/infrastructure/adapters/space-directory.adapter';
 import { CARE_SCHEDULE_READ_REPOSITORY } from '@contexts/care-schedule/domain/repositories/read/care-schedule-read.repository';
 import { CARE_SCHEDULE_WRITE_REPOSITORY } from '@contexts/care-schedule/domain/repositories/write/care-schedule-write.repository';
 import { CareScheduleTypeOrmEntity } from '@contexts/care-schedule/infrastructure/persistence/typeorm/entities/care-schedule.entity';
@@ -73,7 +71,6 @@ const INFRASTRUCTURE_ADAPTERS = [
     provide: NOTIFICATION_DISPATCHER_PORT,
     useClass: NotificationDispatcherAdapter,
   },
-  { provide: SPACE_DIRECTORY_PORT, useClass: SpaceDirectoryAdapter },
 ];
 
 const INFRASTRUCTURE_REPOSITORIES = [

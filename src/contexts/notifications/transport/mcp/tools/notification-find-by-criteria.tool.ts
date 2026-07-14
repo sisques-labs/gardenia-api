@@ -6,7 +6,6 @@ import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
 
 import { NotificationFindByCriteriaQuery } from '@contexts/notifications/application/queries/notification-find-by-criteria/notification-find-by-criteria.query';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { notificationFindByCriteriaSchema } from '../schemas/notification-find-by-criteria.schema';
 
@@ -29,7 +28,7 @@ export class NotificationFindByCriteriaMcpTool implements IMcpTool<IMcpToolConte
   ): Promise<CallToolResult> {
     const { status, type, page, perPage } = args as {
       status?: NotificationStatusEnum;
-      type?: NotificationTypeEnum;
+      type?: string;
       page?: number;
       perPage?: number;
     };

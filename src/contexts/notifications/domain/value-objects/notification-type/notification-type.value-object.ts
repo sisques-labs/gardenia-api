@@ -1,15 +1,15 @@
-import { EnumValueObject } from '@sisques-labs/nestjs-kit';
+import { StringValueObject } from '@sisques-labs/nestjs-kit';
 
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
-
-export class NotificationTypeValueObject extends EnumValueObject<
-  typeof NotificationTypeEnum
-> {
-  constructor(value: NotificationTypeEnum) {
-    super(value);
-  }
-
-  protected get enumObject(): typeof NotificationTypeEnum {
-    return NotificationTypeEnum as unknown as typeof NotificationTypeEnum;
+/**
+ * Deliberately NOT a closed enum: the set of notification types is defined
+ * by whichever bounded context dispatches UpsertConditionNotificationCommand
+ * (care-schedule, inventory, ...), not by notifications itself. A closed
+ * enum here would force notifications' domain to be edited every time a
+ * source context adds a new condition, re-coupling it to contexts it must
+ * stay ignorant of.
+ */
+export class NotificationTypeValueObject extends StringValueObject {
+  constructor(value: string) {
+    super(value, { allowEmpty: false, maxLength: 50 });
   }
 }

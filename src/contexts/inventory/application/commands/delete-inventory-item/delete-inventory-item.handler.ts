@@ -43,13 +43,15 @@ export class DeleteInventoryItemCommandHandler
 
     this.logger.log(`Inventory item deleted: ${command.id.value}`);
 
-    await this.dispatchInventoryLowStockNotificationService.execute({
-      item,
-      active: false,
-    });
-    await this.dispatchInventoryExpiringSoonNotificationService.execute({
-      item,
-      active: false,
-    });
+    await Promise.all([
+      this.dispatchInventoryLowStockNotificationService.execute({
+        item,
+        active: false,
+      }),
+      this.dispatchInventoryExpiringSoonNotificationService.execute({
+        item,
+        active: false,
+      }),
+    ]);
   }
 }

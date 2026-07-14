@@ -34,8 +34,9 @@ export class CreateNotifications1780000000025 implements MigrationInterface {
     `);
     // Partial unique index: at most one OPEN (unresolved) notification per
     // (dedupeKey, recipient) — the race guard on top of the application-level
-    // idempotency check in the reconciliation flow. See notifications-module
-    // design.md "Duplicate-row race protection".
+    // idempotency check in UpsertConditionNotificationCommandHandler /
+    // OpenNotificationService. See notifications-module design.md
+    // "Duplicate-row race protection".
     await queryRunner.query(`
       CREATE UNIQUE INDEX "UQ_notifications_dedupe_key_user_open"
       ON "notifications" ("dedupe_key", "user_id")

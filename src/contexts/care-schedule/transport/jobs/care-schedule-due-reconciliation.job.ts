@@ -3,16 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { CommandBus } from '@nestjs/cqrs';
 import { Cron } from '@nestjs/schedule';
 
+import { CheckDueCareSchedulesCommand } from '@contexts/care-schedule/application/commands/check-due-care-schedules/check-due-care-schedules.command';
+import { ICareScheduleConfig } from '@core/config/care-schedule.config';
+import { runWithConcurrency } from '@shared/concurrency/run-with-concurrency.util';
+import { SpaceContext } from '@shared/space-context/space-context.service';
 import {
   SPACE_DIRECTORY_PORT,
   ISpaceDirectoryPort,
-} from '@contexts/care-schedule/application/ports/space-directory.port';
-import { CheckDueCareSchedulesCommand } from '@contexts/care-schedule/application/commands/check-due-care-schedules/check-due-care-schedules.command';
-import { ICareScheduleConfig } from '@core/config/care-schedule.config';
-import { SpaceContext } from '@shared/space-context/space-context.service';
+} from '@shared/space-directory/space-directory.port';
 
 const DUE_RECONCILE_CRON =
   process.env.CARE_SCHEDULE_DUE_RECONCILE_CRON?.trim() || '*/15 * * * *';
+const SPACE_SWEEP_CONCURRENCY = 10;
 
 /**
  * Sweeps every space on a fixed interval, detecting newly-due care schedules
@@ -53,24 +55,28 @@ export class CareScheduleDueReconciliationJob {
       );
 
       let succeeded = 0;
-      for (const spaceId of spaceIds) {
-        try {
-          await this.spaceContext.run(spaceId, () =>
-            this.commandBus.execute(
-              new CheckDueCareSchedulesCommand({
-                windowHours: config.dueWindowHours,
-              }),
-            ),
-          );
-          succeeded += 1;
-        } catch (error) {
-          this.logger.error(
-            `Due-reconciliation failed for space ${spaceId}: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          );
-        }
-      }
+      await runWithConcurrency(
+        spaceIds,
+        async (spaceId) => {
+          try {
+            await this.spaceContext.run(spaceId, () =>
+              this.commandBus.execute(
+                new CheckDueCareSchedulesCommand({
+                  windowHours: config.dueWindowHours,
+                }),
+              ),
+            );
+            succeeded += 1;
+          } catch (error) {
+            this.logger.error(
+              `Due-reconciliation failed for space ${spaceId}: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+          }
+        },
+        SPACE_SWEEP_CONCURRENCY,
+      );
 
       this.logger.log(
         `Due-reconciliation sweep complete: ${succeeded}/${spaceIds.length} space(s) succeeded`,

@@ -2,9 +2,7 @@ import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { NotificationAggregate } from '@contexts/notifications/domain/aggregates/notification.aggregate';
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { NotificationDedupeKeyValueObject } from '@contexts/notifications/domain/value-objects/notification-dedupe-key/notification-dedupe-key.value-object';
 import { NotificationIdValueObject } from '@contexts/notifications/domain/value-objects/notification-id/notification-id.value-object';
 import { NotificationPayloadValueObject } from '@contexts/notifications/domain/value-objects/notification-payload/notification-payload.value-object';
@@ -20,16 +18,12 @@ function buildUnreadNotification(id: string): NotificationAggregate {
   const referenceId = '770e8400-e29b-41d4-a716-446655440002';
   return new NotificationAggregate({
     id: new NotificationIdValueObject(id),
-    type: new NotificationTypeValueObject(
-      NotificationTypeEnum.CARE_SCHEDULE_DUE,
-    ),
-    referenceType: new NotificationReferenceTypeValueObject(
-      NotificationReferenceTypeEnum.CARE_SCHEDULE,
-    ),
+    type: new NotificationTypeValueObject('CARE_SCHEDULE_DUE'),
+    referenceType: new NotificationReferenceTypeValueObject('CARE_SCHEDULE'),
     referenceId: new UuidValueObject(referenceId),
     dedupeKey: new NotificationDedupeKeyValueObject(
       NotificationDedupeKeyValueObject.compute(
-        NotificationTypeEnum.CARE_SCHEDULE_DUE,
+        'CARE_SCHEDULE_DUE',
         referenceId,
       ),
     ),

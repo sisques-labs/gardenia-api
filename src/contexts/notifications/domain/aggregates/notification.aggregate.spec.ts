@@ -4,9 +4,7 @@ import { NotificationDedupeKeyMismatchException } from '@contexts/notifications/
 import { NotificationCreatedEvent } from '@contexts/notifications/domain/events/notification-created/notification-created.event';
 import { NotificationReadEvent } from '@contexts/notifications/domain/events/notification-read/notification-read.event';
 import { NotificationResolvedEvent } from '@contexts/notifications/domain/events/notification-resolved/notification-resolved.event';
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { NotificationDedupeKeyValueObject } from '@contexts/notifications/domain/value-objects/notification-dedupe-key/notification-dedupe-key.value-object';
 import { NotificationIdValueObject } from '@contexts/notifications/domain/value-objects/notification-id/notification-id.value-object';
 import { NotificationPayloadValueObject } from '@contexts/notifications/domain/value-objects/notification-payload/notification-payload.value-object';
@@ -26,16 +24,12 @@ function buildNotification(overrides?: {
 }): NotificationAggregate {
   return new NotificationAggregate({
     id: new NotificationIdValueObject(ID),
-    type: new NotificationTypeValueObject(
-      NotificationTypeEnum.CARE_SCHEDULE_DUE,
-    ),
-    referenceType: new NotificationReferenceTypeValueObject(
-      NotificationReferenceTypeEnum.CARE_SCHEDULE,
-    ),
+    type: new NotificationTypeValueObject('CARE_SCHEDULE_DUE'),
+    referenceType: new NotificationReferenceTypeValueObject('CARE_SCHEDULE'),
     referenceId: new UuidValueObject(REFERENCE_ID),
     dedupeKey: new NotificationDedupeKeyValueObject(
       NotificationDedupeKeyValueObject.compute(
-        NotificationTypeEnum.CARE_SCHEDULE_DUE,
+        'CARE_SCHEDULE_DUE',
         REFERENCE_ID,
       ),
     ),
@@ -64,15 +58,13 @@ describe('NotificationAggregate', () => {
       () =>
         new NotificationAggregate({
           id: new NotificationIdValueObject(ID),
-          type: new NotificationTypeValueObject(
-            NotificationTypeEnum.INVENTORY_LOW_STOCK,
-          ),
+          type: new NotificationTypeValueObject('INVENTORY_LOW_STOCK'),
           referenceType: new NotificationReferenceTypeValueObject(
-            NotificationReferenceTypeEnum.INVENTORY_ITEM,
+            'INVENTORY_ITEM',
           ),
           referenceId: new UuidValueObject(REFERENCE_ID),
           dedupeKey: new NotificationDedupeKeyValueObject(
-            `${NotificationTypeEnum.INVENTORY_EXPIRING_SOON}:${REFERENCE_ID}`,
+            `INVENTORY_EXPIRING_SOON:${REFERENCE_ID}`,
           ),
           payload: new NotificationPayloadValueObject({}),
           status: new NotificationStatusValueObject(

@@ -25,6 +25,8 @@ import { InventoryLowStockThresholdValueObject } from '@contexts/inventory/domai
 import { InventoryQuantityValueObject } from '@contexts/inventory/domain/value-objects/inventory-quantity/inventory-quantity.value-object';
 import { InventoryUnitValueObject } from '@contexts/inventory/domain/value-objects/inventory-unit/inventory-unit.value-object';
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
 export class InventoryItemAggregate extends BaseAggregate {
   private readonly _id: InventoryItemIdValueObject;
   private _itemType: InventoryItemTypeValueObject;
@@ -129,7 +131,7 @@ export class InventoryItemAggregate extends BaseAggregate {
   /** Whether this item expires within the given window. */
   public isExpiringWithin(windowDays: number): boolean {
     if (this._expiresAt === null) return false;
-    const expiringBefore = Date.now() + windowDays * 24 * 60 * 60 * 1000;
+    const expiringBefore = Date.now() + windowDays * MS_PER_DAY;
     return this._expiresAt.value.getTime() <= expiringBefore;
   }
 

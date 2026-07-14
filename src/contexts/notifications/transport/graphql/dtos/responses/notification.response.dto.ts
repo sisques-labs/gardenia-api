@@ -2,22 +2,20 @@ import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql';
 import { BasePaginatedResultDto } from '@sisques-labs/nestjs-kit/graphql';
 import GraphQLJSON from 'graphql-type-json';
 
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 
 @ObjectType('NotificationResponseDto')
 export class NotificationResponseDto {
   @Field(() => ID, { description: 'UUID of the notification' })
   id!: string;
 
-  @Field(() => NotificationTypeEnum, { description: 'Notification type' })
-  type!: NotificationTypeEnum;
+  @Field(() => String, { description: 'Notification type' })
+  type!: string;
 
-  @Field(() => NotificationReferenceTypeEnum, {
+  @Field(() => String, {
     description: 'Referenced entity kind',
   })
-  referenceType!: NotificationReferenceTypeEnum;
+  referenceType!: string;
 
   @Field(() => ID, { description: 'UUID of the referenced entity' })
   referenceId!: string;

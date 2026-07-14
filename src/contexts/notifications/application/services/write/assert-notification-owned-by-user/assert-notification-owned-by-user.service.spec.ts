@@ -1,7 +1,5 @@
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
-import { AssertNotificationExistsService } from '@contexts/notifications/application/services/write/assert-notification-exists/assert-notification-exists.service';
-import { AssertNotificationOwnedByUserService } from '@contexts/notifications/application/services/write/assert-notification-owned-by-user/assert-notification-owned-by-user.service';
 import { NotificationAggregate } from '@contexts/notifications/domain/aggregates/notification.aggregate';
 import { NotificationNotOwnedException } from '@contexts/notifications/domain/exceptions/notification-not-owned.exception';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
@@ -11,24 +9,24 @@ import { NotificationPayloadValueObject } from '@contexts/notifications/domain/v
 import { NotificationReferenceTypeValueObject } from '@contexts/notifications/domain/value-objects/notification-reference-type/notification-reference-type.value-object';
 import { NotificationStatusValueObject } from '@contexts/notifications/domain/value-objects/notification-status/notification-status.value-object';
 import { NotificationTypeValueObject } from '@contexts/notifications/domain/value-objects/notification-type/notification-type.value-object';
-import { MarkNotificationReadCommand } from './mark-notification-read.command';
-import { MarkNotificationReadCommandHandler } from './mark-notification-read.handler';
+import { AssertNotificationOwnedByUserService } from './assert-notification-owned-by-user.service';
 
 const NOTIFICATION_ID = '550e8400-e29b-41d4-a716-446655440000';
+const REFERENCE_ID = '770e8400-e29b-41d4-a716-446655440002';
 const OWNER_ID = '660e8400-e29b-41d4-a716-446655440001';
 const OTHER_USER_ID = '660e8400-e29b-41d4-a716-446655440099';
 
 function buildOwnedNotification(): NotificationAggregate {
-  const referenceId = '770e8400-e29b-41d4-a716-446655440002';
+  const now = new Date();
   return new NotificationAggregate({
     id: new NotificationIdValueObject(NOTIFICATION_ID),
     type: new NotificationTypeValueObject('CARE_SCHEDULE_DUE'),
     referenceType: new NotificationReferenceTypeValueObject('CARE_SCHEDULE'),
-    referenceId: new UuidValueObject(referenceId),
+    referenceId: new UuidValueObject(REFERENCE_ID),
     dedupeKey: new NotificationDedupeKeyValueObject(
       NotificationDedupeKeyValueObject.compute(
         'CARE_SCHEDULE_DUE',
-        referenceId,
+        REFERENCE_ID,
       ),
     ),
     payload: new NotificationPayloadValueObject({}),
@@ -37,57 +35,27 @@ function buildOwnedNotification(): NotificationAggregate {
     resolvedAt: null,
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject('880e8400-e29b-41d4-a716-446655440003'),
-    createdAt: new DateValueObject(new Date()),
-    updatedAt: new DateValueObject(new Date()),
+    createdAt: new DateValueObject(now),
+    updatedAt: new DateValueObject(now),
   });
 }
 
-describe('MarkNotificationReadCommandHandler', () => {
-  let writeRepository: { save: jest.Mock };
-  let assertService: { execute: jest.Mock };
-  let handler: MarkNotificationReadCommandHandler;
+describe('AssertNotificationOwnedByUserService', () => {
+  const service = new AssertNotificationOwnedByUserService();
 
-  beforeEach(() => {
-    writeRepository = { save: jest.fn().mockResolvedValue(undefined) };
-    assertService = { execute: jest.fn() } as unknown as {
-      execute: jest.Mock;
-    };
-    const eventBus = { publishAll: jest.fn() };
-    handler = new MarkNotificationReadCommandHandler(
-      writeRepository as any,
-      assertService as unknown as AssertNotificationExistsService,
-      new AssertNotificationOwnedByUserService(),
-      eventBus as any,
-    );
+  it('does not throw when the requesting user owns the notification', () => {
+    const notification = buildOwnedNotification();
+
+    expect(() =>
+      service.execute(notification, new UuidValueObject(OWNER_ID)),
+    ).not.toThrow();
   });
 
-  it('marks the notification read when the requesting user owns it', async () => {
+  it('throws NotificationNotOwnedException when the requesting user does not own it', () => {
     const notification = buildOwnedNotification();
-    assertService.execute.mockResolvedValue(notification);
 
-    await handler.execute(
-      new MarkNotificationReadCommand({
-        id: NOTIFICATION_ID,
-        requestingUserId: OWNER_ID,
-      }),
-    );
-
-    expect(notification.status.value).toBe(NotificationStatusEnum.READ);
-    expect(writeRepository.save).toHaveBeenCalledWith(notification);
-  });
-
-  it('throws NotificationNotOwnedException when the requesting user does not own it', async () => {
-    const notification = buildOwnedNotification();
-    assertService.execute.mockResolvedValue(notification);
-
-    await expect(
-      handler.execute(
-        new MarkNotificationReadCommand({
-          id: NOTIFICATION_ID,
-          requestingUserId: OTHER_USER_ID,
-        }),
-      ),
-    ).rejects.toThrow(NotificationNotOwnedException);
-    expect(writeRepository.save).not.toHaveBeenCalled();
+    expect(() =>
+      service.execute(notification, new UuidValueObject(OTHER_USER_ID)),
+    ).toThrow(NotificationNotOwnedException);
   });
 });

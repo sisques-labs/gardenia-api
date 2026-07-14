@@ -1,19 +1,11 @@
 import { registerEnumType } from '@nestjs/graphql';
 
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { NotificationQueryableField } from '@contexts/notifications/transport/graphql/enums/notification-queryable-field.enum';
 
-registerEnumType(NotificationTypeEnum, {
-  name: 'NotificationTypeEnum',
-  description: 'The kind of condition a notification reports',
-});
-
-registerEnumType(NotificationReferenceTypeEnum, {
-  name: 'NotificationReferenceTypeEnum',
-  description: 'The kind of entity a notification references',
-});
+// type/referenceType are deliberately plain strings, not registered GraphQL
+// enums — their possible values are defined by whichever bounded context
+// dispatches the notification, not by notifications itself.
 
 registerEnumType(NotificationStatusEnum, {
   name: 'NotificationStatusEnum',

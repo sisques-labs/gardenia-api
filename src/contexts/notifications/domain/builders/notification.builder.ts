@@ -7,9 +7,7 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 import { NotificationAggregate } from '@contexts/notifications/domain/aggregates/notification.aggregate';
-import { NotificationReferenceTypeEnum } from '@contexts/notifications/domain/enums/notification-reference-type.enum';
 import { NotificationStatusEnum } from '@contexts/notifications/domain/enums/notification-status.enum';
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { NotificationDedupeKeyValueObject } from '@contexts/notifications/domain/value-objects/notification-dedupe-key/notification-dedupe-key.value-object';
 import { NotificationIdValueObject } from '@contexts/notifications/domain/value-objects/notification-id/notification-id.value-object';
 import { NotificationPayloadValueObject } from '@contexts/notifications/domain/value-objects/notification-payload/notification-payload.value-object';
@@ -81,14 +79,14 @@ export class NotificationBuilder extends BaseBuilder<
   public override build(): NotificationAggregate {
     this.validate();
     const dedupeKey = NotificationDedupeKeyValueObject.compute(
-      this._type as NotificationTypeEnum,
+      this._type,
       this._referenceId,
     );
     return new NotificationAggregate({
       id: new NotificationIdValueObject(this._id),
-      type: new NotificationTypeValueObject(this._type as NotificationTypeEnum),
+      type: new NotificationTypeValueObject(this._type),
       referenceType: new NotificationReferenceTypeValueObject(
-        this._referenceType as NotificationReferenceTypeEnum,
+        this._referenceType,
       ),
       referenceId: new UuidValueObject(this._referenceId),
       dedupeKey: new NotificationDedupeKeyValueObject(dedupeKey),
@@ -115,7 +113,7 @@ export class NotificationBuilder extends BaseBuilder<
       referenceType: this._referenceType,
       referenceId: this._referenceId,
       dedupeKey: NotificationDedupeKeyValueObject.compute(
-        this._type as NotificationTypeEnum,
+        this._type,
         this._referenceId,
       ),
       payload: this._payload,

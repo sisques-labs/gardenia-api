@@ -1,6 +1,5 @@
 import { InvalidStringException } from '@sisques-labs/nestjs-kit';
 
-import { NotificationTypeEnum } from '@contexts/notifications/domain/enums/notification-type.enum';
 import { NotificationDedupeKeyValueObject } from './notification-dedupe-key.value-object';
 
 describe('NotificationDedupeKeyValueObject', () => {
@@ -20,7 +19,7 @@ describe('NotificationDedupeKeyValueObject', () => {
     it('builds "{type}:{referenceId}"', () => {
       expect(
         NotificationDedupeKeyValueObject.compute(
-          NotificationTypeEnum.INVENTORY_LOW_STOCK,
+          'INVENTORY_LOW_STOCK',
           'item-123',
         ),
       ).toBe('INVENTORY_LOW_STOCK:item-123');

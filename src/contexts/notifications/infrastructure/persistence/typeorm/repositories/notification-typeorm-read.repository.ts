@@ -82,10 +82,4 @@ export class NotificationTypeOrmReadRepository
     });
     return entities.map((entity) => this.mapper.toViewModel(entity));
   }
-
-  async save(_vm: NotificationViewModel): Promise<void> {}
-
-  async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
-  }
 }
