@@ -1,5 +1,15 @@
 # Tasks: Notifications Module (`notifications-module`)
 
+> **Superseded after review, see Phase 7.** Phases 1–6 below are the
+> historical record of the first implementation, which had `notifications`
+> own `ICareScheduleAlertsPort`/`IInventoryAlertsPort` and poll both contexts
+> from one central `NotificationsReconciliationJob`. A review comment argued
+> the owning context should decide *when* to notify, with `notifications`
+> only deciding *how* — see `design.md`'s "Architecture: who decides 'when',
+> who decides 'how'". That's now the shipped design. Task items below that
+> reference the old ports/job/central-cron are kept as-is for history but no
+> longer describe what's in the codebase; **Phase 7 is the current state.**
+
 ## Review Workload Forecast
 
 | Field | Value |
@@ -152,3 +162,54 @@ Chain strategy: pending
 - [ ] 6.12 E2E — REST + GraphQL — **not run, no DB available**
 - [ ] 6.13 E2E — SSE stream — **not run, no DB available**
 - [x] 6.14 Static — `notifications-no-cross-context-import.spec.ts`: no import from another bounded context outside `infrastructure/adapters/` (mirrors `care-schedule`'s boundary test pattern)
+
+---
+
+## Phase 7: Push-based architecture revision (current state)
+
+Replaces the pull/reconciliation design from Phases 1–4 with the push design
+in `design.md`. See that file's "Architecture: who decides 'when', who
+decides 'how'" for the full rationale.
+
+### 7.1 `notifications`: shrink to dedupe + fan-out + delivery
+
+- [x] 7.1.1 Create `application/commands/upsert-condition-notification/upsert-condition-notification.command.ts` — `Pick<INotificationPrimitives, 'type'|'referenceType'|'referenceId'|'payload'> & { active: boolean }`; the one public entry point other contexts use
+- [x] 7.1.2 Create `application/commands/upsert-condition-notification/upsert-condition-notification.handler.ts` — computes `dedupeKey`, branches on `active` × `findOpenByDedupeKey` into create-and-fan-out / no-op / resolve / no-op
+- [x] 7.1.3 Add `findOpenByDedupeKey(dedupeKey)` to `INotificationReadRepository` + TypeORM impl; remove `findOpenGroupedByDedupeKey` (no longer needed without a batch diff)
+- [x] 7.1.4 Delete `ReconcileSpaceNotificationsCommand`/handler/spec, `NotificationReconciliationService`/spec, `ICareScheduleAlertsPort`, `IInventoryAlertsPort`, `IDueCareSchedule`/`ILowStockItem`/`IExpiringItem`, their adapters, `ISpaceDirectoryPort`/`SpaceDirectoryAdapter` (notifications no longer sweeps all spaces itself), `NotificationsReconciliationJob`
+- [x] 7.1.5 Shrink `src/core/config/notifications.config.ts` to `sseHeartbeatMs` only
+- [x] 7.1.6 Update `notifications.module.ts` wiring to match
+- [x] 7.1.7 Rewrite `notifications-no-cross-context-import.spec.ts` is unchanged (still excludes `infrastructure/adapters/`) — passes more cleanly now with fewer cross-context references to check
+- [x] 7.1.8 Rewrite `README.md` documenting the new architecture
+
+### 7.2 `care-schedule`: push side for `CARE_SCHEDULE_DUE`
+
+- [x] 7.2.1 Add `CareScheduleAggregate.isDueWithin(windowHours): boolean` + spec
+- [x] 7.2.2 Move `CareScheduleDueWindowHoursValueObject` here from `notifications` (it's care-schedule's own concept now)
+- [x] 7.2.3 Create `application/ports/notification-dispatcher.port.ts` (own `INotificationDispatcherPort`) + `application/ports/upsert-condition-notification.input.ts`
+- [x] 7.2.4 Create `infrastructure/adapters/notification-dispatcher.adapter.ts` — dispatches `UpsertConditionNotificationCommand` (from `notifications`) via `CommandBus`, hardcoding `type: CARE_SCHEDULE_DUE` / `referenceType: CARE_SCHEDULE`
+- [x] 7.2.5 Create `application/ports/space-directory.port.ts` + `infrastructure/adapters/space-directory.adapter.ts` (own copy, wraps `spaces`' `SpaceFindAllIdsQuery`) — needed for this context's own sweep
+- [x] 7.2.6 Create `application/commands/check-due-care-schedules/check-due-care-schedules.command.ts` + handler + spec — internal, no transport surface; queries this context's own read repository directly (`active: true`, `due_before`), dispatches `active: true` per match
+- [x] 7.2.7 Create `transport/jobs/care-schedule-due-reconciliation.job.ts` — `@Cron`, entering-the-window detection only
+- [x] 7.2.8 Create `src/core/config/care-schedule.config.ts` — `dueWindowHours` (`CARE_SCHEDULE_DUE_WINDOW_HOURS`, default 24); register in `core.module.ts`
+- [x] 7.2.9 Wire dispatch into `CompleteCareScheduleCommandHandler` / `UpdateCareScheduleCommandHandler` (recompute `isDueWithin`, dispatch) and `DeleteCareScheduleCommandHandler` (unconditional `active: false`) — `WaterPlantCommand` covered for free via its delegation to `CompleteCareScheduleCommand`
+- [x] 7.2.10 Update `care-schedule.module.ts` wiring, `care-schedule-no-cross-context-import.spec.ts` (add `@contexts/notifications` to forbidden list), `README.md`
+
+### 7.3 `inventory`: push side for `INVENTORY_LOW_STOCK` / `INVENTORY_EXPIRING_SOON`
+
+- [x] 7.3.1 Add `InventoryItemAggregate.isLowStock()` / `isExpiringWithin(windowDays)` + specs
+- [x] 7.3.2 Move `InventoryExpiringWindowDaysValueObject` here from `notifications`
+- [x] 7.3.3 Create `domain/enums/inventory-notification-condition.enum.ts` (`LOW_STOCK`/`EXPIRING_SOON`, local — not `notifications`' `NotificationTypeEnum`, since the port lives outside `infrastructure/adapters/`)
+- [x] 7.3.4 Create `application/ports/notification-dispatcher.port.ts` (own `INotificationDispatcherPort`, takes a `condition`) + `application/ports/upsert-condition-notification.input.ts`
+- [x] 7.3.5 Create `infrastructure/adapters/notification-dispatcher.adapter.ts` — maps `condition` → `notifications`' `NotificationTypeEnum`, dispatches `UpsertConditionNotificationCommand`
+- [x] 7.3.6 Create `application/ports/space-directory.port.ts` + `infrastructure/adapters/space-directory.adapter.ts` (own copy) — needed for the expiring-item sweep only (low-stock has no cron)
+- [x] 7.3.7 Create `application/commands/check-expiring-inventory-items/check-expiring-inventory-items.command.ts` + handler + spec — internal, no transport surface; queries this context's own read repository directly (`expiresAt <=`), dispatches `active: true` per match
+- [x] 7.3.8 Create `transport/jobs/inventory-expiring-reconciliation.job.ts` — `@Cron`, expiring-entering detection only; **no equivalent job for low-stock** (fully event-driven, see 7.3.9)
+- [x] 7.3.9 Create `src/core/config/inventory.config.ts` — `expiringWindowDays` (`INVENTORY_EXPIRING_WINDOW_DAYS`, default 7); register in `core.module.ts`
+- [x] 7.3.10 Wire dispatch into `AdjustInventoryItemQuantityCommandHandler` (low-stock only, recompute `isLowStock`), `UpdateInventoryItemCommandHandler` (both conditions, recompute both), `DeleteInventoryItemCommandHandler` / `DeleteInventoryItemsBulkCommandHandler` (both conditions, unconditional `active: false`)
+- [x] 7.3.11 Update `inventory.module.ts` wiring (new `INFRASTRUCTURE_ADAPTERS`/`TRANSPORT_PROVIDERS` arrays), rewrite `inventory-no-cross-context-import.spec.ts` to the adapters-excluded pattern (was previously narrower and didn't exclude `infrastructure/adapters/` at all, since inventory had none), `README.md`
+
+### 7.4 Verification
+
+- [x] 7.4.1 `pnpm test` (full suite), `pnpm lint`, `pnpm build` all green
+- [ ] 7.4.2 Integration/E2E re-run against a live Postgres — **not done in this session, no Docker/Postgres available**, same gap as Phase 6

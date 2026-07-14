@@ -22,5 +22,5 @@ export interface INotificationReadRepository {
     criteria: Criteria,
   ): Promise<PaginatedResult<NotificationViewModel>>;
   countUnread(userId: string): Promise<number>;
-  findOpenGroupedByDedupeKey(): Promise<Map<string, NotificationViewModel[]>>;
+  findOpenByDedupeKey(dedupeKey: string): Promise<NotificationViewModel[]>;
 }

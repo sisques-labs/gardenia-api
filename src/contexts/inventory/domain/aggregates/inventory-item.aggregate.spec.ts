@@ -10,6 +10,8 @@ import { InventoryItemUpdatedEvent } from '@contexts/inventory/domain/events/inv
 import { InventoryItemNameValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-name/inventory-item-name.value-object';
 import { InventoryItemTypeValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-type/inventory-item-type.value-object';
 import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
+import { InventoryExpiresAtValueObject } from '@contexts/inventory/domain/value-objects/inventory-expires-at/inventory-expires-at.value-object';
+import { InventoryLowStockThresholdValueObject } from '@contexts/inventory/domain/value-objects/inventory-low-stock-threshold/inventory-low-stock-threshold.value-object';
 import { InventoryQuantityValueObject } from '@contexts/inventory/domain/value-objects/inventory-quantity/inventory-quantity.value-object';
 import { InventoryUnitValueObject } from '@contexts/inventory/domain/value-objects/inventory-unit/inventory-unit.value-object';
 import { InventoryItemAggregate } from './inventory-item.aggregate';
@@ -94,5 +96,97 @@ describe('InventoryItemAggregate', () => {
     const events = item.getUncommittedEvents();
     expect(events).toHaveLength(1);
     expect(events[0]).toBeInstanceOf(InventoryItemDeletedEvent);
+  });
+
+  describe('isLowStock()', () => {
+    function buildItemWithThreshold(
+      quantity: number,
+      lowStockThreshold: number | null,
+    ): InventoryItemAggregate {
+      return new InventoryItemAggregate({
+        id: new InventoryItemIdValueObject(
+          '550e8400-e29b-41d4-a716-446655440000',
+        ),
+        itemType: new InventoryItemTypeValueObject(InventoryItemTypeEnum.SEEDS),
+        name: new InventoryItemNameValueObject('Lettuce seeds'),
+        brand: null,
+        notes: null,
+        quantity: new InventoryQuantityValueObject(quantity),
+        unit: new InventoryUnitValueObject(InventoryUnitEnum.PACKETS),
+        lowStockThreshold:
+          lowStockThreshold !== null
+            ? new InventoryLowStockThresholdValueObject(lowStockThreshold)
+            : null,
+        acquiredAt: null,
+        expiresAt: null,
+        userId: new UuidValueObject('660e8400-e29b-41d4-a716-446655440001'),
+        spaceId: new UuidValueObject('770e8400-e29b-41d4-a716-446655440002'),
+        createdAt: new DateValueObject(new Date()),
+        updatedAt: new DateValueObject(new Date()),
+      });
+    }
+
+    it('is low stock when quantity is at or below the threshold', () => {
+      expect(buildItemWithThreshold(2, 5).isLowStock()).toBe(true);
+      expect(buildItemWithThreshold(5, 5).isLowStock()).toBe(true);
+    });
+
+    it('is not low stock when quantity is above the threshold', () => {
+      expect(buildItemWithThreshold(10, 5).isLowStock()).toBe(false);
+    });
+
+    it('is never low stock when no threshold is configured', () => {
+      expect(buildItemWithThreshold(0, null).isLowStock()).toBe(false);
+    });
+  });
+
+  describe('isExpiringWithin()', () => {
+    function buildItemExpiringAt(
+      expiresAt: Date | null,
+    ): InventoryItemAggregate {
+      return new InventoryItemAggregate({
+        id: new InventoryItemIdValueObject(
+          '550e8400-e29b-41d4-a716-446655440000',
+        ),
+        itemType: new InventoryItemTypeValueObject(InventoryItemTypeEnum.SEEDS),
+        name: new InventoryItemNameValueObject('Lettuce seeds'),
+        brand: null,
+        notes: null,
+        quantity: new InventoryQuantityValueObject(10),
+        unit: new InventoryUnitValueObject(InventoryUnitEnum.PACKETS),
+        lowStockThreshold: null,
+        acquiredAt: null,
+        expiresAt: expiresAt
+          ? new InventoryExpiresAtValueObject(expiresAt)
+          : null,
+        userId: new UuidValueObject('660e8400-e29b-41d4-a716-446655440001'),
+        spaceId: new UuidValueObject('770e8400-e29b-41d4-a716-446655440002'),
+        createdAt: new DateValueObject(new Date()),
+        updatedAt: new DateValueObject(new Date()),
+      });
+    }
+
+    it('is expiring when expiresAt already passed', () => {
+      const item = buildItemExpiringAt(new Date(Date.now() - 60_000));
+      expect(item.isExpiringWithin(7)).toBe(true);
+    });
+
+    it('is expiring when expiresAt falls within the window', () => {
+      const item = buildItemExpiringAt(
+        new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      );
+      expect(item.isExpiringWithin(7)).toBe(true);
+    });
+
+    it('is not expiring when expiresAt falls outside the window', () => {
+      const item = buildItemExpiringAt(
+        new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      );
+      expect(item.isExpiringWithin(7)).toBe(false);
+    });
+
+    it('is never expiring when no expiresAt is set', () => {
+      expect(buildItemExpiringAt(null).isExpiringWithin(7)).toBe(false);
+    });
   });
 });

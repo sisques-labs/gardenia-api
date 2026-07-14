@@ -1,4 +1,5 @@
 import { Inject, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
@@ -6,12 +7,17 @@ import {
   CARE_LOG_PORT,
   ICareLogPort,
 } from '@contexts/care-schedule/application/ports/care-log.port';
+import {
+  NOTIFICATION_DISPATCHER_PORT,
+  INotificationDispatcherPort,
+} from '@contexts/care-schedule/application/ports/notification-dispatcher.port';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
 import { CareScheduleAggregate } from '@contexts/care-schedule/domain/aggregates/care-schedule.aggregate';
 import {
   CARE_SCHEDULE_WRITE_REPOSITORY,
   ICareScheduleWriteRepository,
 } from '@contexts/care-schedule/domain/repositories/write/care-schedule-write.repository';
+import { ICareScheduleConfig } from '@core/config/care-schedule.config';
 
 import { CompleteCareScheduleCommand } from './complete-care-schedule.command';
 
@@ -28,6 +34,9 @@ export class CompleteCareScheduleCommandHandler
     private readonly assertCareScheduleExistsService: AssertCareScheduleExistsService,
     @Inject(CARE_LOG_PORT)
     private readonly careLogPort: ICareLogPort,
+    @Inject(NOTIFICATION_DISPATCHER_PORT)
+    private readonly notificationDispatcherPort: INotificationDispatcherPort,
+    private readonly configService: ConfigService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -52,6 +61,25 @@ export class CompleteCareScheduleCommandHandler
     // activity, so mirror it into the plant's care journal. Best-effort — a
     // care-log failure must not roll back the (authoritative) completion.
     await this.recordCareLogEntry(schedule, completedAt);
+
+    await this.dispatchDueNotification(schedule);
+  }
+
+  private async dispatchDueNotification(
+    schedule: CareScheduleAggregate,
+  ): Promise<void> {
+    const { dueWindowHours } =
+      this.configService.getOrThrow<ICareScheduleConfig>('careSchedule');
+
+    await this.notificationDispatcherPort.dispatch({
+      referenceId: schedule.id.value,
+      payload: {
+        plantId: schedule.plantId.value,
+        activityType: schedule.activityType.value,
+        nextDueAt: schedule.nextDueAt.value,
+      },
+      active: schedule.isDueWithin(dueWindowHours),
+    });
   }
 
   private async recordCareLogEntry(

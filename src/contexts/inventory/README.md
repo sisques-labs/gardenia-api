@@ -8,9 +8,11 @@ anything else (`OTHER`). An **inventory item** tracks what it is (`itemType` +
 `name`), how much is in stock (`quantity` + `unit`), an optional per-item
 low-stock threshold, and optional acquisition / expiry dates.
 
-This is a standalone bounded context with **no cross-context dependencies** —
-in particular no link to the plant-species catalog. All data is tenant-scoped
-via `SpaceContext`.
+This is a standalone bounded context — in particular no link to the
+plant-species catalog. Its only outward dependency is a best-effort bridge
+into `notifications` (telling it when an item enters/exits low-stock or
+expiring-soon), confined to `infrastructure/adapters/` — see "Cross-context
+bridge: notifications" below. All data is tenant-scoped via `SpaceContext`.
 
 > Scope note: this context intentionally excludes the `POT` and `TOOL` item
 > types and the `plantSpeciesId` catalog link from the original proposal
@@ -44,6 +46,11 @@ Domain methods:
 - `update(fields)` — applies `InventoryItemUpdatedEvent` plus per-field change events for each modified field
 - `adjustQuantity(delta, reason)` — recomputes `quantity = max(0, quantity + delta)` and applies `InventoryItemQuantityAdjustedEvent`
 - `delete()` — applies `InventoryItemDeletedEvent`
+- `isLowStock()` — `true` when `lowStockThreshold` is set and `quantity <= lowStockThreshold`. Pure read, no event
+- `isExpiringWithin(windowDays)` — `true` when `expiresAt` is set and falls at or before `now + windowDays`. Pure read, no event
+
+The last two back every dispatch to `notifications` — see "Cross-context
+bridge: notifications" below.
 
 Business rules enforced in the domain:
 - `quantity` and `lowStockThreshold` must be ≥ 0 (`NumberValueObject` with `{ min: 0 }`)
@@ -135,6 +142,7 @@ ids are de-duplicated before processing.
 | `AdjustInventoryItemQuantityCommand` | Command | Consume/restock with a reason (clamps at 0) |
 | `DeleteInventoryItemCommand` | Command | Remove an item |
 | `DeleteInventoryItemsBulkCommand` | Command | Remove multiple items (best-effort, 1-100 ids) |
+| `CheckExpiringInventoryItemsCommand` | Command | **Internal only** — no REST/GraphQL/MCP surface. Dispatched exclusively by `InventoryExpiringReconciliationJob`, always within a `SpaceContext.run()` scope. Detects newly-expiring items and tells `notifications` about them |
 | `InventoryItemFindByIdQuery` | Query | Returns an `InventoryItemViewModel` by id |
 | `InventoryItemFindByCriteriaQuery` | Query | Returns `PaginatedResult<InventoryItemViewModel>` |
 
@@ -149,6 +157,51 @@ ids are de-duplicated before processing.
 | `InventoryItemQuantityAdjustedEvent` | On `adjustQuantity()` — carries `delta`, `reason`, resulting `quantity` |
 | `InventoryItemDeletedEvent` | On `delete()` |
 | `InventoryItem{Name,ItemType,Unit,Brand,Notes,LowStockThreshold,AcquiredAt,ExpiresAt}ChangedEvent` | When the corresponding field changes during `update()` |
+
+---
+
+## Cross-context bridge: notifications
+
+`inventory` decides *when* an `INVENTORY_LOW_STOCK` or
+`INVENTORY_EXPIRING_SOON` notification is warranted; `notifications` decides
+*how* (dedupe, fan-out, delivery) — see the `notifications` README's
+"Architecture: who decides what". This context never reads from
+`notifications`, only pushes into it:
+
+- `INotificationDispatcherPort` (`application/ports/notification-dispatcher.port.ts`)
+- `NotificationDispatcherAdapter` (`infrastructure/adapters/notification-dispatcher.adapter.ts`)
+  — dispatches `UpsertConditionNotificationCommand` on the Command bus, mapping
+  a local `InventoryNotificationConditionEnum` (`LOW_STOCK`/`EXPIRING_SOON`) to
+  the target's `NotificationTypeEnum`.
+- `ISpaceDirectoryPort` / `SpaceDirectoryAdapter` — wraps `spaces`'
+  `SpaceFindAllIdsQuery`, used only by the expiring-item sweep below.
+
+The two conditions have different triggers:
+
+- **`LOW_STOCK` is fully event-driven, both ways.** Quantity only changes via
+  `AdjustInventoryItemQuantityCommand`, and the threshold only via
+  `UpdateInventoryItemCommand` — both recompute `isLowStock()` after saving
+  and dispatch the current value. There is no cron for this condition; it
+  can't drift out of sync with real state since nothing else can change it.
+- **`EXPIRING_SOON` entering is calendar-based** (nothing mutates when a
+  date arrives), so it needs a sweep:
+  `InventoryExpiringReconciliationJob` (`@Cron`, default `*/15 * * * *`,
+  override via `INVENTORY_EXPIRING_RECONCILE_CRON`) enumerates every space and
+  dispatches `CheckExpiringInventoryItemsCommand`, which queries this
+  context's own read repository for items matching
+  `expiresAt <= now + expiringWindowDays` and reports each as `active: true`.
+  **Exiting** is mutation-triggered — `UpdateInventoryItemCommandHandler`
+  recomputes `isExpiringWithin` against the new `expiresAt`, and
+  `DeleteInventoryItemCommandHandler`/`DeleteInventoryItemsBulkCommandHandler`
+  unconditionally report `active: false` — so no sweep is needed for that
+  direction.
+
+Config (`src/core/config/inventory.config.ts`):
+
+| Env var | Default | Purpose |
+|---------|---------|---------|
+| `INVENTORY_EXPIRING_WINDOW_DAYS` | `7` | How far ahead an item counts as "expiring soon" |
+| `INVENTORY_EXPIRING_RECONCILE_CRON` | `*/15 * * * *` | Expiring-item sweep interval |
 
 ---
 
@@ -184,8 +237,9 @@ pnpm test:e2e --testPathPattern=inventory
 pnpm test src/contexts/inventory/inventory-no-cross-context-import.spec.ts
 ```
 
-Statically verifies no import from `@contexts/plants`, `@contexts/plant-species`
-or `@contexts/care-log`.
+Statically verifies no import from another bounded context outside
+`infrastructure/adapters/` (where the `notifications` and `spaces` bridges
+legitimately live).
 
 ---
 
@@ -230,7 +284,7 @@ active `spaceId` from `SpaceContext` ALS.
 
 ## Things to know before making changes
 
-1. **No cross-context imports** — enforced by `inventory-no-cross-context-import.spec.ts`.
+1. **Cross-context imports confined to `infrastructure/adapters/`** — enforced by `inventory-no-cross-context-import.spec.ts`. The only two are the `notifications` and `spaces` bridges (see "Cross-context bridge: notifications" above).
 2. **`quantity` / `low_stock_threshold` are decimals stored as strings** — the mapper parses them with `parseFloat`. Verify round-trip behaviour when touching the mapper.
 3. **`lowStock` is a cross-column filter** — handled as a special `low_stock` filter field in `InventoryItemTypeOrmReadRepository.findByCriteria` (`quantity <= low_stock_threshold`), not a plain column filter.
 4. **`adjustQuantity` clamps at 0** — consumption larger than stock leaves the quantity at `0`, never negative.

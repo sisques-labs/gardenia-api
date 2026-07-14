@@ -1,6 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { INotificationDispatcherPort } from '@contexts/inventory/application/ports/notification-dispatcher.port';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
@@ -39,6 +40,7 @@ function buildItem(id: string): InventoryItemAggregate {
 describe('DeleteInventoryItemsBulkCommandHandler', () => {
   let handler: DeleteInventoryItemsBulkCommandHandler;
   let mockWriteRepo: jest.Mocked<IInventoryItemWriteRepository>;
+  let mockNotificationDispatcherPort: jest.Mocked<INotificationDispatcherPort>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -49,6 +51,10 @@ describe('DeleteInventoryItemsBulkCommandHandler', () => {
       delete: jest.fn().mockResolvedValue(undefined),
     } as jest.Mocked<IInventoryItemWriteRepository>;
 
+    mockNotificationDispatcherPort = {
+      dispatch: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<INotificationDispatcherPort>;
+
     mockEventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -56,6 +62,7 @@ describe('DeleteInventoryItemsBulkCommandHandler', () => {
 
     handler = new DeleteInventoryItemsBulkCommandHandler(
       mockWriteRepo,
+      mockNotificationDispatcherPort,
       mockEventBus,
     );
   });
@@ -121,5 +128,23 @@ describe('DeleteInventoryItemsBulkCommandHandler', () => {
 
     expect(mockWriteRepo.findById).not.toHaveBeenCalled();
     expect(result).toEqual({ deletedIds: [], notFoundIds: [] });
+  });
+
+  it('resolves both notification conditions for each deleted item', async () => {
+    mockWriteRepo.findById
+      .mockResolvedValueOnce(buildItem(ID_A))
+      .mockResolvedValueOnce(buildItem(ID_B));
+
+    await handler.execute(
+      new DeleteInventoryItemsBulkCommand({ ids: [ID_A, ID_B] }),
+    );
+
+    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledTimes(4);
+    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ referenceId: ID_A, active: false }),
+    );
+    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ referenceId: ID_B, active: false }),
+    );
   });
 });

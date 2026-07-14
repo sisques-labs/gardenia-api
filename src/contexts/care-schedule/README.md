@@ -11,9 +11,12 @@ future). Each schedule tracks the next due date and can be marked complete:
 recurring schedules advance the next due date by the interval, while one-time
 schedules are deactivated. Both record the last completion.
 
-This is a **standalone, tenant-scoped** bounded context. It references a plant
-only by raw `plantId` and imports nothing from other bounded contexts. All data
-is scoped to the active `spaceId` via `SpaceContext`.
+This is a **tenant-scoped** bounded context. It references a plant only by raw
+`plantId`. All data is scoped to the active `spaceId` via `SpaceContext`. Its
+only outward dependencies are two best-effort bridges confined to
+`infrastructure/adapters/`: mirroring completions into `care-log`, and telling
+`notifications` when a schedule enters/exits its due window — see "Cross-context
+bridges" below.
 
 ---
 
@@ -49,6 +52,10 @@ Domain methods:
   one-time schedule (`intervalDays === null`), keeps `nextDueAt` and deactivates
   the schedule (`active = false`). Applies `CareScheduleCompletedEvent`
 - `delete()` — applies `CareScheduleDeletedEvent`
+- `isDueWithin(windowHours)` — `true` when `active` and `nextDueAt` falls at or
+  before `now + windowHours`. Pure read, no event. Used by both the due-schedule
+  cron and every mutation handler that needs to tell `notifications` the
+  schedule's current due status (see "Cross-context bridges")
 
 Business rules enforced in the domain:
 - `intervalDays` ≥ 1 when present (`CareScheduleIntervalDaysValueObject`, `min: 1`); `null` marks a one-time schedule
@@ -72,6 +79,7 @@ The aggregate is built exclusively through `CareScheduleBuilder` (extends
 | `CompleteCareScheduleCommand` | Mark complete; advances `nextDueAt` and mirrors the activity into `care-log` |
 | `DeleteCareScheduleCommand` | Delete a care schedule |
 | `WaterPlantCommand` | Water a single plant: completes its active `WATERING` schedule if one exists, otherwise records an ad-hoc `care-log` entry (hybrid mechanism) |
+| `CheckDueCareSchedulesCommand` | **Internal only** — no REST/GraphQL/MCP surface. Dispatched exclusively by `CareScheduleDueReconciliationJob`, always within a `SpaceContext.run()` scope. Detects newly-due schedules and tells `notifications` about them |
 
 ### Queries
 
@@ -137,11 +145,12 @@ isolated via `createTenantRepository`. Indexes on `space_id`,
 
 ---
 
-## Cross-context bridge: care-log
+## Cross-context bridges
+
+### care-log
 
 Completing a schedule is a performed care activity, so it is mirrored into the
-`care-log` context. This is the context's only outward dependency and lives
-entirely behind a port:
+`care-log` context:
 
 - `ICareLogPort` (`application/ports/care-log.port.ts`)
 - `CareLogAdapter` (`infrastructure/adapters/care-log.adapter.ts`) — dispatches
@@ -152,11 +161,47 @@ never on `care-log` directly. The bridge is **best-effort**: the schedule
 completion is authoritative and a care-log failure is logged but does not roll
 it back.
 
+### notifications
+
+`care-schedule` decides *when* a `CARE_SCHEDULE_DUE` notification is
+warranted; `notifications` decides *how* (dedupe, fan-out, delivery) — see
+the `notifications` README's "Architecture: who decides what". This context
+never reads from `notifications`, only pushes into it:
+
+- `INotificationDispatcherPort` (`application/ports/notification-dispatcher.port.ts`)
+- `NotificationDispatcherAdapter` (`infrastructure/adapters/notification-dispatcher.adapter.ts`)
+  — dispatches `UpsertConditionNotificationCommand` on the Command bus.
+- `ISpaceDirectoryPort` / `SpaceDirectoryAdapter` — wraps `spaces`'
+  `SpaceFindAllIdsQuery`, used only by the due-schedule sweep below.
+
+Two triggers keep `notifications` in sync, split by direction:
+
+- **Entering "due"** is calendar-based (nothing mutates when a deadline
+  arrives), so it needs a sweep: `CareScheduleDueReconciliationJob` (`@Cron`,
+  default `*/15 * * * *`, override via `CARE_SCHEDULE_DUE_RECONCILE_CRON`)
+  enumerates every space and dispatches `CheckDueCareSchedulesCommand`, which
+  queries this context's own read repository for schedules matching
+  `active: true` + `nextDueAt <= now + dueWindowHours` and reports each as
+  `active: true`.
+- **Exiting "due"** is always mutation-triggered — completing
+  (`CompleteCareScheduleCommandHandler`, which `WaterPlantCommand` reaches via
+  its delegation), updating (`UpdateCareScheduleCommandHandler`, recomputes
+  `isDueWithin` against the new state), or deleting
+  (`DeleteCareScheduleCommandHandler`, unconditionally reports `active: false`)
+  — so no sweep is needed for that direction.
+
+Config (`src/core/config/care-schedule.config.ts`):
+
+| Env var | Default | Purpose |
+|---------|---------|---------|
+| `CARE_SCHEDULE_DUE_WINDOW_HOURS` | `24` | How far ahead a schedule counts as "due" |
+| `CARE_SCHEDULE_DUE_RECONCILE_CRON` | `*/15 * * * *` | Due-schedule sweep interval |
+
 ## Layering
 
 Standard DDD + CQRS + Hexagonal: `domain / application / infrastructure /
 transport`. Repository interfaces live in `domain`; the only cross-layer
-dependency direction is inward. The only cross-context dependency is the
-care-log bridge, confined to `infrastructure/adapters/` (enforced by
-`care-schedule-no-cross-context-import.spec.ts`, which excludes the adapters
-directory).
+dependency direction is inward. Cross-context dependencies (care-log,
+notifications, spaces) are confined to `infrastructure/adapters/` (enforced
+by `care-schedule-no-cross-context-import.spec.ts`, which excludes the
+adapters directory).

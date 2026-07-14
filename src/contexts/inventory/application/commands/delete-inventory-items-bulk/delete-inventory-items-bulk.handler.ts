@@ -2,7 +2,12 @@ import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
+import {
+  NOTIFICATION_DISPATCHER_PORT,
+  INotificationDispatcherPort,
+} from '@contexts/inventory/application/ports/notification-dispatcher.port';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
+import { InventoryNotificationConditionEnum } from '@contexts/inventory/domain/enums/inventory-notification-condition.enum';
 import {
   INVENTORY_ITEM_WRITE_REPOSITORY,
   IInventoryItemWriteRepository,
@@ -34,6 +39,8 @@ export class DeleteInventoryItemsBulkCommandHandler
   constructor(
     @Inject(INVENTORY_ITEM_WRITE_REPOSITORY)
     private readonly inventoryItemWriteRepository: IInventoryItemWriteRepository,
+    @Inject(NOTIFICATION_DISPATCHER_PORT)
+    private readonly notificationDispatcherPort: INotificationDispatcherPort,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -59,6 +66,19 @@ export class DeleteInventoryItemsBulkCommandHandler
       await this.inventoryItemWriteRepository.delete(item.id.value);
       await this.publishEvents(item);
       deletedIds.push(item.id.value);
+
+      await this.notificationDispatcherPort.dispatch({
+        condition: InventoryNotificationConditionEnum.LOW_STOCK,
+        referenceId: item.id.value,
+        payload: {},
+        active: false,
+      });
+      await this.notificationDispatcherPort.dispatch({
+        condition: InventoryNotificationConditionEnum.EXPIRING_SOON,
+        referenceId: item.id.value,
+        payload: {},
+        active: false,
+      });
     }
 
     this.logger.log(

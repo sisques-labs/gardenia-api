@@ -1,5 +1,7 @@
+import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 
+import { INotificationDispatcherPort } from '@contexts/care-schedule/application/ports/notification-dispatcher.port';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
@@ -12,6 +14,8 @@ describe('UpdateCareScheduleCommandHandler', () => {
   let mockWriteRepo: jest.Mocked<ICareScheduleWriteRepository>;
   let mockEventBus: jest.Mocked<EventBus>;
   let mockAssert: jest.Mocked<AssertCareScheduleExistsService>;
+  let mockNotificationDispatcherPort: jest.Mocked<INotificationDispatcherPort>;
+  let mockConfigService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     mockWriteRepo = {
@@ -30,9 +34,19 @@ describe('UpdateCareScheduleCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertCareScheduleExistsService>;
 
+    mockNotificationDispatcherPort = {
+      dispatch: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<INotificationDispatcherPort>;
+
+    mockConfigService = {
+      getOrThrow: jest.fn().mockReturnValue({ dueWindowHours: 24 }),
+    } as unknown as jest.Mocked<ConfigService>;
+
     handler = new UpdateCareScheduleCommandHandler(
       mockWriteRepo,
       mockAssert,
+      mockNotificationDispatcherPort,
+      mockConfigService,
       mockEventBus,
     );
   });
@@ -87,5 +101,65 @@ describe('UpdateCareScheduleCommandHandler', () => {
 
     expect(schedule.intervalDays).toBeNull();
     expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('dispatches the current due status to notifications after updating', async () => {
+    const now = new Date();
+    const schedule = new CareScheduleBuilder()
+      .withId('550e8400-e29b-41d4-a716-446655440000')
+      .withPlantId('110e8400-e29b-41d4-a716-446655440010')
+      .withActivityType(CareScheduleActivityTypeEnum.WATERING)
+      .withIntervalDays(3)
+      .withNextDueAt(now)
+      .withUserId('660e8400-e29b-41d4-a716-446655440001')
+      .withSpaceId('770e8400-e29b-41d4-a716-446655440002')
+      .withCreatedAt(now)
+      .withUpdatedAt(now)
+      .build();
+    mockAssert.execute.mockResolvedValue(schedule);
+
+    await handler.execute(
+      new UpdateCareScheduleCommand({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        intervalDays: 7,
+      }),
+    );
+
+    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith({
+      referenceId: '550e8400-e29b-41d4-a716-446655440000',
+      payload: {
+        plantId: '110e8400-e29b-41d4-a716-446655440010',
+        activityType: CareScheduleActivityTypeEnum.WATERING,
+        nextDueAt: now,
+      },
+      active: true,
+    });
+  });
+
+  it('dispatches active:false when the update marks the schedule inactive', async () => {
+    const now = new Date();
+    const schedule = new CareScheduleBuilder()
+      .withId('550e8400-e29b-41d4-a716-446655440000')
+      .withPlantId('110e8400-e29b-41d4-a716-446655440010')
+      .withActivityType(CareScheduleActivityTypeEnum.WATERING)
+      .withIntervalDays(3)
+      .withNextDueAt(now)
+      .withUserId('660e8400-e29b-41d4-a716-446655440001')
+      .withSpaceId('770e8400-e29b-41d4-a716-446655440002')
+      .withCreatedAt(now)
+      .withUpdatedAt(now)
+      .build();
+    mockAssert.execute.mockResolvedValue(schedule);
+
+    await handler.execute(
+      new UpdateCareScheduleCommand({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        active: false,
+      }),
+    );
+
+    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ active: false }),
+    );
   });
 });

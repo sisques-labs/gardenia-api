@@ -1,6 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { INotificationDispatcherPort } from '@contexts/inventory/application/ports/notification-dispatcher.port';
 import { AssertInventoryItemExistsService } from '@contexts/inventory/application/services/write/assert-inventory-item-exists/assert-inventory-item-exists.service';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
@@ -40,6 +41,7 @@ describe('DeleteInventoryItemCommandHandler', () => {
   let handler: DeleteInventoryItemCommandHandler;
   let mockWriteRepo: jest.Mocked<IInventoryItemWriteRepository>;
   let mockAssert: jest.Mocked<AssertInventoryItemExistsService>;
+  let mockNotificationDispatcherPort: jest.Mocked<INotificationDispatcherPort>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -54,6 +56,10 @@ describe('DeleteInventoryItemCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertInventoryItemExistsService>;
 
+    mockNotificationDispatcherPort = {
+      dispatch: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<INotificationDispatcherPort>;
+
     mockEventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -62,6 +68,7 @@ describe('DeleteInventoryItemCommandHandler', () => {
     handler = new DeleteInventoryItemCommandHandler(
       mockWriteRepo,
       mockAssert,
+      mockNotificationDispatcherPort,
       mockEventBus,
     );
   });
@@ -82,5 +89,16 @@ describe('DeleteInventoryItemCommandHandler', () => {
     await expect(
       handler.execute(new DeleteInventoryItemCommand({ id: ID })),
     ).rejects.toBeInstanceOf(InventoryItemNotFoundException);
+  });
+
+  it('resolves both LOW_STOCK and EXPIRING_SOON notifications for the deleted item', async () => {
+    mockAssert.execute.mockResolvedValue(buildItem());
+
+    await handler.execute(new DeleteInventoryItemCommand({ id: ID }));
+
+    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ referenceId: ID, active: false }),
+    );
+    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledTimes(2);
   });
 });

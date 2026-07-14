@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
-import { ISpaceDirectoryPort } from '@contexts/notifications/application/ports/space-directory.port';
+import { ISpaceDirectoryPort } from '@contexts/care-schedule/application/ports/space-directory.port';
 import { SpaceFindAllIdsQuery } from '@contexts/spaces/application/queries/space-find-all-ids/space-find-all-ids.query';
 
 @Injectable()
@@ -14,7 +14,9 @@ export class SpaceDirectoryAdapter implements ISpaceDirectoryPort {
     const ids = await this.queryBus.execute<SpaceFindAllIdsQuery, string[]>(
       new SpaceFindAllIdsQuery(),
     );
-    this.logger.log(`Resolved ${ids.length} space(s) to sweep`);
+    this.logger.log(
+      `Resolved ${ids.length} space(s) to sweep for due schedules`,
+    );
     return ids;
   }
 }

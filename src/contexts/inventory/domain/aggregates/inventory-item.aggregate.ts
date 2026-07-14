@@ -120,6 +120,19 @@ export class InventoryItemAggregate extends BaseAggregate {
     );
   }
 
+  /** Whether current quantity has dropped to or below the configured threshold. */
+  public isLowStock(): boolean {
+    if (this._lowStockThreshold === null) return false;
+    return this._quantity.value <= this._lowStockThreshold.value;
+  }
+
+  /** Whether this item expires within the given window. */
+  public isExpiringWithin(windowDays: number): boolean {
+    if (this._expiresAt === null) return false;
+    const expiringBefore = Date.now() + windowDays * 24 * 60 * 60 * 1000;
+    return this._expiresAt.value.getTime() <= expiringBefore;
+  }
+
   public delete(): void {
     this.apply(
       new InventoryItemDeletedEvent(

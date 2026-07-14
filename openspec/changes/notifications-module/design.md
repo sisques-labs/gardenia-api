@@ -4,10 +4,10 @@
 
 `notifications` follows the standard context shape (domain → application →
 infrastructure → transport, CQRS, dual transport, tenant isolation via
-`createTenantRepository`) with one addition none of the other contexts have:
-a **reconciliation engine** driven by a cron job instead of a user command,
-and **three outbound ports** into other contexts (two read-only alert
-sources, one recipient directory) plus one **inbound addition** to `spaces`.
+`createTenantRepository`) with two things none of the other contexts have:
+a **push-based cross-context integration** (source contexts tell
+`notifications` when a condition is/isn't true, rather than `notifications`
+polling them) and **real-time delivery over SSE**.
 
 ### The core model: condition instances, not events
 
@@ -23,24 +23,21 @@ either open or resolved.
 dedupeKey = `${type}:${referenceId}`          // e.g. "CARE_SCHEDULE_DUE:8f3a...", "INVENTORY_LOW_STOCK:2c91..."
 ```
 
-On every reconciliation cycle, for a given space:
+`notifications` exposes exactly one command for this,
+`UpsertConditionNotificationCommand({ type, referenceType, referenceId,
+payload, active })`, dispatched by whichever context owns the underlying
+condition:
 
-1. Fetch the current set of condition-matching entities from the source
-   context (schedules due within the window; items low on stock; items
-   expiring within the window).
-2. Fetch the current set of **open** notifications (`resolvedAt IS NULL`) for
-   that space, grouped by `dedupeKey`.
-3. **Diff:**
-   - Condition matches, no open notification for that `dedupeKey` → create
-     one `NotificationAggregate` per active space member (fan-out), all
-     sharing the same `dedupeKey`.
-   - Open notification exists, condition still matches → no-op (this is what
-     makes the job idempotent and safe to run every 15 minutes without
-     spamming).
-   - Open notification exists, condition no longer matches (schedule
-     completed/deactivated, item restocked above threshold, item's
-     `expiresAt` pushed out or deleted) → `resolve()` every notification
-     sharing that `dedupeKey`.
+- `active: true` and no open notification for that `dedupeKey` → create one
+  `NotificationAggregate` per active space member (fan-out), all sharing the
+  same `dedupeKey`.
+- `active: true` and already open → no-op. This is what makes repeated
+  dispatches (a sweep re-affirming the same condition every cycle, or a
+  mutation handler re-checking after an unrelated field changed) safe and
+  idempotent.
+- `active: false` and an open notification exists → `resolve()` every
+  notification sharing that `dedupeKey`.
+- `active: false` and nothing open → no-op.
 
 This gives one mental model for all three types today and for any type added
 later: **"is this condition currently true, and if so, is there already an
@@ -50,40 +47,123 @@ reading a notification does not resolve it. A resolved-but-unread
 notification simply drops out of the "active alerts" view but stays in
 history.
 
-### Why polling instead of the Kafka forwarder
+### Architecture: who decides "when", who decides "how"
+
+**This is the one part of the design that changed after the first review
+round**, and it's worth spelling out why, since it reverses this document's
+original approach (see "Superseded: the old pull-based reconciliation
+engine" below for what was replaced and why it wasn't wrong so much as
+misplaced).
+
+The question a reviewer raised: *shouldn't the context that owns a condition
+(inventory owning "low stock", care-schedule owning "due") be the one that
+decides when to notify, with `notifications` only deciding how the
+notification is delivered?* Yes — and the project's own port/adapter
+convention already points that way: **the context that needs something from
+another context owns the port**, never the target. `notifications` needing
+"is this schedule due" is `notifications` reaching into `care-schedule`'s
+business rules, which is backwards — `care-schedule` should own the concept
+of "due" (it already does, as a domain method) and push the result out.
+
+So the design now is:
+
+```
+care-schedule / inventory (owns the business rule — decides WHEN)
+  │
+  │  "this condition is/isn't true right now, for this entity"
+  ▼
+UpsertConditionNotificationCommand { type, referenceType, referenceId, payload, active }
+  │
+  ▼
+notifications (owns dedupe, fan-out, delivery — decides HOW)
+```
+
+Each source context defines and owns its **own**
+`INotificationDispatcherPort` (application/ports/), backed by its own
+adapter that dispatches `UpsertConditionNotificationCommand` via the Command
+bus. `notifications` never imports or reaches into `care-schedule` or
+`inventory` — it has exactly one inbound command and no outbound ports into
+either of them.
+
+**Splitting "when" by direction, not just by type.** For each of the three
+notification types, entering and exiting the condition don't necessarily
+share a trigger:
+
+- **`INVENTORY_LOW_STOCK` is fully event-driven, both ways.** Quantity only
+  changes via `AdjustInventoryItemQuantityCommand`; the threshold only via
+  `UpdateInventoryItemCommand`. Both handlers recompute
+  `InventoryItemAggregate.isLowStock()` after saving and dispatch the result.
+  No cron exists for this type — nothing else can move it out of sync.
+- **`CARE_SCHEDULE_DUE` and `INVENTORY_EXPIRING_SOON` enter calendar-based**
+  — nothing mutates when a deadline arrives, so each owning context keeps a
+  periodic sweep for *entering* only (`CheckDueCareSchedulesCommand` /
+  `CheckExpiringInventoryItemsCommand`, each queried against that context's
+  own read repository — no cross-context read needed, since the "is this
+  due/expiring" filter already existed as a queryable field on that
+  context's own model).
+- **Both of those exit via a mutation**, so no sweep is needed for that
+  direction: completing/updating/deleting a care schedule
+  (`CompleteCareScheduleCommandHandler`, `UpdateCareScheduleCommandHandler`,
+  `DeleteCareScheduleCommandHandler`) or updating/deleting an inventory item
+  (`UpdateInventoryItemCommandHandler`,
+  `DeleteInventoryItemCommandHandler`/`DeleteInventoryItemsBulkCommandHandler`)
+  each recompute (or, for delete, unconditionally report `false`) and
+  dispatch the current status right after the mutation.
+
+Net effect: two small per-context crons (each doing strictly less than the
+old central one — detection only, no resolve-diffing) instead of one, and
+`notifications` shrinks to dedupe + fan-out + delivery with zero read
+dependencies on the domain contexts it used to poll.
+
+### Superseded: the old pull-based reconciliation engine
+
+The first implementation had `notifications` own `ICareScheduleAlertsPort`
+and `IInventoryAlertsPort`, poll both contexts on a single central cron
+(`NotificationsReconciliationJob` → `ReconcileSpaceNotificationsCommand`),
+and run a full diff itself (`NotificationReconciliationService`) comparing
+"current condition matches" against "currently open notifications" every
+cycle. That was replaced by the push-based design above. It wasn't
+*incorrect* — the reconcile diff correctly created/resolved notifications —
+but it put a decision (what counts as due/low-stock/expiring, and when that
+stops being true) inside `notifications`, which had to know both contexts'
+query shapes to make it. The push-based design moves that decision to where
+the business rule already lives, and `notifications` no longer needs to know
+either context exists.
+
+One consequence worth calling out: the old design's resolve path was a
+clean, single diff per cycle (compare current-true-set against
+previously-open-set). The new design achieves the same outcome by splitting
+resolve into "whichever mutation caused the exit, dispatch `false` right
+then" — more precise (resolution is instant, not up-to-15-minutes-late) but
+spread across more call sites (every mutation handler that can affect the
+condition). Reviewed case-by-case above to confirm every exit path is
+covered.
+
+### Why polling instead of the Kafka forwarder (for the two crons that remain)
 
 The codebase already has a general domain-event-to-Kafka forwarder
 (`MessagingModule` in `@sisques-labs/nestjs-kit/messaging`, wired in
-`core.module.ts`) with a symmetric consumer port (`EVENT_CONSUMER`,
-`run(groupId, topics, handler)`). It was tempting to have `notifications`
-consume `gardenia-api.care-schedule` / `gardenia-api.inventory` topics
-instead of polling. Rejected for v1 because:
-
-- `KAFKA_ENABLED=false` in every environment today (`.env.example`, no
-  broker in `docker-compose.yml`) — building the core reminder loop on it
-  would make a currently-optional piece of infra load-bearing.
-- The `harden-context-boundaries` change explicitly scoped "asynchronous
-  messaging / integration events" as a **later** step, not touched yet.
-- Neither `CARE_SCHEDULE_DUE` nor `INVENTORY_EXPIRING_SOON` has a triggering
-  event at all — they're time-based, so even with Kafka enabled we'd still
-  need a poller for those two of the three v1 types. Once a poller exists
-  for those, using it for the third (`INVENTORY_LOW_STOCK`, which *does* have
-  a natural trigger event) too is simpler than running two different
-  mechanisms.
-
-The Kafka path remains available and is a natural mechanism if this ever
-needs to fan out across multiple API instances (see the SSE section below) —
-noted as a follow-up, not built here.
+`core.module.ts`). It was tempting to have `care-schedule`/`inventory`
+publish Kafka events instead of running their own crons. Rejected because
+Kafka is a transport for events that already happened (something mutated) —
+it has no mechanism to "wake up" on its own when a calendar date arrives
+with no accompanying mutation. Some scheduler is unavoidable for
+`CARE_SCHEDULE_DUE`/`INVENTORY_EXPIRING_SOON`'s entering-the-window
+transition regardless of which message bus carries the result, so
+`@nestjs/schedule`'s `@Cron()` (already the standard, testable primitive in
+this codebase) is used directly rather than adding a Kafka round trip that
+still needs a poller behind it.
 
 ### Real-time delivery: SSE over the in-process EventBus
 
-Polling decides *when the server checks* if a condition is true. It says
-nothing about *when the browser finds out* a notification row now exists —
-without a delivery mechanism, the web client would have to poll on its own
-to notice. Rather than that, `notifications` pushes to connected clients over
-Server-Sent Events (SSE), so a client that has the app open sees a new
-notification (or a read/resolved state change from another of the user's own
-tabs/devices) within seconds, without asking.
+Detection (mutation-triggered or a small periodic sweep) decides *when the
+server learns* a condition changed. It says nothing about *when the browser
+finds out* a notification row now exists — without a delivery mechanism, the
+web client would have to poll on its own to notice. Rather than that,
+`notifications` pushes to connected clients over Server-Sent Events (SSE),
+so a client that has the app open sees a new notification (or a
+read/resolved state change from another of the user's own tabs/devices)
+within seconds, without asking.
 
 **Why SSE, not WebSocket or GraphQL subscriptions.** The data only ever flows
 server → client (no client-to-server messages beyond the initial HTTP
@@ -145,10 +225,10 @@ addition — SSE and pull-on-demand coexist, and the web side keeps a coarse
 polling fallback for exactly this reason (see `notifications-web`'s design).
 
 It's also explicitly **single-instance**: the registry lives in one API
-process's memory. If `notifications` created by a reconciliation run on
-instance A need to reach a client connected to instance B, nothing forwards
-them today — see the "Multi-instance SSE fan-out" risk in the proposal for
-the documented (not built) follow-up.
+process's memory. If a notification created on instance A needs to reach a
+client connected to instance B, nothing forwards them today — see the
+"Multi-instance SSE fan-out" risk in the proposal for the documented (not
+built) follow-up.
 
 ### Why fan-out to every space member (not just the owner)
 
@@ -166,16 +246,16 @@ scale this product targets.
 
 | Decision | Choice | Alternatives rejected | Rationale |
 |----------|--------|------------------------|-----------|
-| Cross-context read pattern | `notifications`-owned ports (`ICareScheduleAlertsPort`, `IInventoryAlertsPort`, `IUserDirectoryPort`, `ISpaceDirectoryPort`) + adapters dispatching existing `QueryBus` queries | Kafka event consumption | No new infra dependency; matches `spaces → weather` / `plants → qr` precedent; two of three v1 types have no event to consume anyway |
+| Cross-context integration direction | Each source context (`care-schedule`, `inventory`) owns its own `INotificationDispatcherPort` and pushes into `notifications`' one public `UpsertConditionNotificationCommand` | `notifications`-owned read ports polling both contexts on a central cron (superseded — see "Superseded" above) | Matches the project's port-ownership convention (the context that needs something owns the port); `notifications` ends up with zero read dependencies on domain contexts; resolution becomes instant instead of up-to-15-min-late for the mutation-triggered exit paths |
+| Detection split per type | `INVENTORY_LOW_STOCK`: fully event-driven, no cron. `CARE_SCHEDULE_DUE`/`INVENTORY_EXPIRING_SOON`: small per-context cron for entering, mutation-triggered dispatch for exiting | One shared cron in `notifications` for all three (superseded); a cron per type per context doing both directions | Low-stock has a natural mutation trigger for both directions — a cron would just be redundant polling. The other two only have a trigger for exiting; entering unavoidably needs a sweep since nothing mutates when a date arrives |
 | Notification granularity | One row per `(dedupeKey, recipient)`; fan-out to all active members | One row per space (shared read state); owner-only recipient | Per-user read state is the correct UX (a notification I read shouldn't still show unread badge to my spouse); fan-out matches the contexts' existing no-ownership-gate model |
-| Dedupe/lifecycle | `dedupeKey` + `resolvedAt`, reconciled every cycle (idempotent diff) | Event-sourced trigger key per notification instance; ad-hoc "don't renotify for N hours" cooldown | A reconcile-to-current-truth model is simpler to reason about and self-heals if a cycle is missed; a cooldown timer would still show a stale "low stock" after restocking |
-| Scheduling mechanism | `@nestjs/schedule` `@Cron()`, interval configurable via env, default 15 min | `setInterval` in a bootstrap service; external scheduler (e.g. k8s CronJob hitting an internal endpoint) | `@nestjs/schedule` is the standard, testable NestJS primitive; no new deployment topology needed for v1 |
-| Payload shape | `payload: JsonValueObject` (from `@sisques-labs/nestjs-kit`) carrying type-specific, display-ready data (`plantName`, `activityType`, `nextDueAt` / `itemName`, `quantity`, `unit`, `lowStockThreshold` / `itemName`, `expiresAt`) | Fully relational columns per type; no payload, web re-fetches the referenced entity | API stays framework-agnostic of *how* the web renders text (no server-side i18n); avoids an extra round trip per notification row to hydrate a plant/item name that may since have changed anyway (payload is a snapshot at creation time, which is desirable — a plant later renamed shouldn't rewrite history) |
+| Dedupe/lifecycle | `dedupeKey` + `resolvedAt`; idempotent upsert on every dispatch (create-if-missing / no-op-if-open / resolve-if-open / no-op-if-already-resolved) | Event-sourced trigger key per notification instance; ad-hoc "don't renotify for N hours" cooldown | An idempotent upsert per condition is simple to reason about and safe to call redundantly (a sweep re-affirming, or a handler dispatching on every save regardless of whether the relevant fields changed); a cooldown timer would still show a stale "low stock" after restocking |
+| Scheduling mechanism | `@nestjs/schedule` `@Cron()` in each owning context, interval configurable via that context's own env var, default 15 min | `setInterval` in a bootstrap service; external scheduler (e.g. k8s CronJob hitting an internal endpoint); one shared cron in `notifications` (superseded) | `@nestjs/schedule` is the standard, testable NestJS primitive; splitting the cron per context keeps detection logic next to the business rule it depends on |
+| Payload shape | `payload: JsonValueObject` (from `@sisques-labs/nestjs-kit`) carrying type-specific, display-ready data (`activityType`, `nextDueAt`, `plantId` / `itemName`, `quantity`, `unit`, `lowStockThreshold` / `itemName`, `expiresAt`) | Fully relational columns per type; no payload, web re-fetches the referenced entity | API stays framework-agnostic of *how* the web renders text (no server-side i18n); avoids an extra round trip per notification row to hydrate an item that may since have changed anyway (payload is a snapshot at creation time, which is desirable) |
 | Read/resolved as separate axes | `status: UNREAD \| READ` + `resolvedAt: Date \| null`, independent | Single `status` enum (`UNREAD \| READ \| RESOLVED \| RESOLVED_UNREAD`) | Two orthogonal booleans are simpler to query and reason about than a 4-state enum that conflates them |
-| Channel dispatch | `INotificationDispatcherPort`, `NoopNotificationDispatcherAdapter` in v1 | Skip the port entirely, add it when push/email actually lands | User explicitly asked for the seam to exist now; a no-op adapter costs nothing and documents the extension point directly in code |
-| Enumerating all spaces | New `SpaceFindAllIdsQuery` in `spaces`, internal-only | Give `notifications` a direct repository read on the `spaces` table; have every space "self-register" for reconciliation via an event | Respects the boundary rule (all cross-context reads go through the owning context's `QueryBus` surface); a plain id-list query is the smallest possible addition and needs no transport surface since it has exactly one caller |
-| Duplicate-row race protection | Partial unique index `(dedupe_key, user_id) WHERE resolved_at IS NULL` | Row-level advisory lock per space during reconciliation; rely on application-level check only | Defense in depth against an overrunning job cycle overlapping the next; a partial index is cheap and Postgres-native |
-| Overlapping job runs | In-process re-entrancy guard (skip a tick if the previous sweep is still running) + the partial unique index as a backstop | Distributed lock (Redis/Postgres advisory lock) across instances | v1 runs a single API instance per environment; a cross-instance lock is a real follow-up the moment this is horizontally scaled, called out as a risk, not solved here |
+| Channel dispatch | `INotificationDispatcherPort` (owned by `notifications`, for a future push/email channel), `NoopNotificationDispatcherAdapter` in v1 | Skip the port entirely, add it when push/email actually lands | User explicitly asked for the seam to exist now; a no-op adapter costs nothing and documents the extension point directly in code. Unrelated to the per-source-context `INotificationDispatcherPort`s described above — same name, opposite direction, easy to confuse, documented in each README |
+| Duplicate-row race protection | Partial unique index `(dedupe_key, user_id) WHERE resolved_at IS NULL` | Row-level advisory lock per space during dispatch; rely on application-level check only | Defense in depth against two concurrent dispatches for the same condition (e.g. a mutation and an overlapping sweep both firing `active: true`); a partial index is cheap and Postgres-native |
+| Overlapping job runs | In-process re-entrancy guard per cron (skip a tick if the previous sweep is still running) + the partial unique index as a backstop | Distributed lock (Redis/Postgres advisory lock) across instances | v1 runs a single API instance per environment; a cross-instance lock is a real follow-up the moment this is horizontally scaled, called out as a risk, not solved here |
 | Real-time transport | Server-Sent Events (`@Sse()`), REST-only | WebSocket gateway; GraphQL subscriptions (`graphql-ws`) | Delivery is strictly server→client, one-directional — SSE is the simplest tool that fits; zero new dependencies (`@Sse()` ships in `@nestjs/common`); avoids standing up a second GraphQL transport or a new WS protocol for a need that doesn't require bidirectionality |
 | SSE fan-out mechanism | In-process `NotificationSseConnectionRegistry` fed by a new subscriber (`NotificationSseForwarderService`) on the existing `@nestjs/cqrs` `EventBus` | A second Kafka consumer feeding SSE; Redis pub/sub from day one | Mirrors the already-proven `DomainEventForwarderService` pattern (subscribe to `EventBus`, no aggregate/handler changes); no new infra for the common single-instance case; multi-instance fan-out explicitly deferred (see Risks) rather than solved speculatively |
 | SSE keep-alive | `interval(20_000)` heartbeat comment merged into the response stream | Rely on TCP keep-alive alone; shorter/longer interval | 20s is comfortably under typical proxy/load-balancer idle-connection timeouts (commonly 60s+) without adding meaningful bandwidth; a plain SSE comment line is invisible to `EventSource`/`fetch-event-source` message handlers |
@@ -202,7 +282,8 @@ GET /notifications/stream ──(JwtAuthGuard + SpaceGuard)──>
         │ req.on('close') → registry.deregister(userId, spaceId, subject)
         └─> return merge(subject.asObservable(), heartbeat$)   // @Sse() streams this to the client
 
- ... independently, any write happens (mark-read, mark-all-read, or the reconciliation job creating/resolving) ...
+ ... independently, any write happens (mark-read, mark-all-read, or a source
+     context dispatching UpsertConditionNotificationCommand) ...
 
 NotificationAggregate applies event ──> EventBus
         └─> NotificationSseForwarderService.onModuleInit() subscription
@@ -213,50 +294,62 @@ NotificationAggregate applies event ──> EventBus
 ### User-facing write path
 
 ```
-REST/GraphQL/MCP ──> MarkNotificationReadCommand(notificationId)
+REST/GraphQL/MCP ──> MarkNotificationReadCommand(id, requestingUserId)
         │
    CommandBus ──> Handler ──> AssertNotificationExistsService (write repo)
-        │              ──> ownership check: aggregate.userId === @CurrentUser (else 403)
+        │              ──> ownership check: aggregate.userId === requestingUserId (else 403)
         │              ──> aggregate.markRead() ──> NotificationReadEvent
         │              ──> save via write repo
 ```
 
-### Reconciliation path (the new shape)
+### Condition dispatch path (push, from the owning context)
 
 ```
-@Cron(NOTIFICATIONS_RECONCILE_CRON)               // NotificationsReconciliationJob (transport/jobs/)
-   │
-   ├─ ISpaceDirectoryPort.listAllSpaceIds()        // → SpaceFindAllIdsQuery, no SpaceContext needed (cross-tenant by nature)
-   │
-   └─ for each spaceId (sequential, best-effort — one failure logged & skipped):
-        SpaceContext.run(spaceId, async () => {
-          CommandBus.execute(new ReconcileSpaceNotificationsCommand())
-        })
-
-ReconcileSpaceNotificationsCommandHandler (application/commands/reconcile-space-notifications/)
-   │
-   ├─ ICareScheduleAlertsPort.findDueWithin(windowHours)     // → CareScheduleFindByCriteriaQuery({ active: true, dueBefore })
-   ├─ IInventoryAlertsPort.findLowStock()                    // → InventoryItemFindByCriteriaQuery({ lowStock: true })
-   ├─ IInventoryAlertsPort.findExpiringWithin(windowDays)    // → InventoryItemFindByCriteriaQuery({ expiringBefore })
-   ├─ IUserDirectoryPort.listActiveMemberUserIds()           // → UsersFindByCriteriaQuery({}), paged
-   ├─ NotificationReadRepository.findOpenGroupedByDedupeKey() // current open notifications in this space
-   │
-   └─ NotificationReconciliationService.reconcile(...)        // pure diff logic, unit-testable without a DB
-        → { toCreate: {dedupeKey, type, referenceType, referenceId, payload}[], toResolve: dedupeKey[] }
-        → write repo: batch-create (fan-out × members) / batch-resolve
-        → each created notification → INotificationDispatcherPort.dispatch() (no-op in v1)
+care-schedule / inventory: a mutation handler saves, or a small per-context
+cron detects a newly-due/expiring entity
+        │
+        ├─ (care-schedule) CareScheduleAggregate.isDueWithin(dueWindowHours)
+        │  or (inventory) InventoryItemAggregate.isLowStock() / isExpiringWithin(expiringWindowDays)
+        │
+        └─ INotificationDispatcherPort.dispatch({ referenceId, payload, active })   // owned by the source context
+              │
+              ▼ (adapter maps to the target type/referenceType and dispatches on the Command bus)
+        UpsertConditionNotificationCommand { type, referenceType, referenceId, payload, active }
+              │
+   CommandBus ──> UpsertConditionNotificationCommandHandler (notifications)
+        │  dedupeKey = NotificationDedupeKeyValueObject.compute(type, referenceId)
+        │  open = NotificationReadRepository.findOpenByDedupeKey(dedupeKey)
+        │
+        ├─ active && open.length === 0  → IUserDirectoryPort.listActiveMemberUserIds() → build + save one NotificationAggregate per member → publish events
+        ├─ active && open.length > 0    → no-op
+        ├─ !active && open.length > 0   → load each via write repo → resolve() → save → publish events
+        └─ !active && open.length === 0 → no-op
 ```
 
-`NotificationReconciliationService` is a plain application service with no
-I/O — it takes the three "current condition" lists, the current open-notification
-groups, and the member list, and returns a creation/resolution plan. This is
-the one piece of this feature with real branching logic, so it's isolated and
-unit-tested in isolation from the ports/repos/cron plumbing.
+Per-context detection (for the two calendar-based types), entirely within
+the owning context, no cross-context read:
+
+```
+care-schedule: @Cron(CARE_SCHEDULE_DUE_RECONCILE_CRON)   // CareScheduleDueReconciliationJob
+   ISpaceDirectoryPort.listAllSpaceIds()                 // care-schedule's own copy, → SpaceFindAllIdsQuery
+   for each spaceId: SpaceContext.run(spaceId, () =>
+     CommandBus.execute(new CheckDueCareSchedulesCommand({ windowHours }))
+   )
+   → handler queries CareScheduleReadRepository directly (active: true, due_before <= now+window)
+     → for each: INotificationDispatcherPort.dispatch({ referenceId, payload, active: true })
+
+inventory: @Cron(INVENTORY_EXPIRING_RECONCILE_CRON)      // InventoryExpiringReconciliationJob
+   ISpaceDirectoryPort.listAllSpaceIds()                 // inventory's own copy, → SpaceFindAllIdsQuery
+   for each spaceId: SpaceContext.run(spaceId, () =>
+     CommandBus.execute(new CheckExpiringInventoryItemsCommand({ windowDays }))
+   )
+   → handler queries InventoryItemReadRepository directly (expiresAt <= now+window)
+     → for each: INotificationDispatcherPort.dispatch({ condition: EXPIRING_SOON, referenceId, payload, active: true })
+```
 
 ## File Changes
 
-New under `src/contexts/notifications/` (≈50 files, sized similarly to
-`inventory-module` plus the ports/adapters/job):
+New under `src/contexts/notifications/`:
 
 ```
 domain/
@@ -273,7 +366,7 @@ domain/
   exceptions/notification-not-owned.exception.ts              # 403
   interfaces/notification.interface.ts
   primitives/notification.primitives.ts
-  repositories/read/notification-read.repository.ts           # INotificationReadRepository + token; findOpenGroupedByDedupeKey
+  repositories/read/notification-read.repository.ts           # INotificationReadRepository + token; findOpenByDedupeKey
   repositories/write/notification-write.repository.ts         # INotificationWriteRepository + token; saveMany
   value-objects/notification-id/notification-id.value-object.ts
   value-objects/notification-dedupe-key/notification-dedupe-key.value-object.ts
@@ -282,28 +375,21 @@ domain/
   value-objects/notification-payload/notification-payload.value-object.ts    # extends JsonValueObject
   view-models/notification.view-model.ts
 application/
-  ports/care-schedule-alerts.port.ts               # ICareScheduleAlertsPort
-  ports/inventory-alerts.port.ts                    # IInventoryAlertsPort
   ports/user-directory.port.ts                      # IUserDirectoryPort
-  ports/space-directory.port.ts                     # ISpaceDirectoryPort
-  ports/notification-dispatcher.port.ts             # INotificationDispatcherPort
-  services/notification-reconciliation/notification-reconciliation.service.ts   # pure diff logic
+  ports/notification-dispatcher.port.ts             # INotificationDispatcherPort (v1 no-op push/email seam)
   services/write/assert-notification-exists/assert-notification-exists.service.ts
   commands/mark-notification-read/mark-notification-read.command.ts
   commands/mark-notification-read/mark-notification-read.handler.ts
   commands/mark-all-notifications-read/mark-all-notifications-read.command.ts
   commands/mark-all-notifications-read/mark-all-notifications-read.handler.ts
-  commands/reconcile-space-notifications/reconcile-space-notifications.command.ts   # no transport surface
-  commands/reconcile-space-notifications/reconcile-space-notifications.handler.ts
+  commands/upsert-condition-notification/upsert-condition-notification.command.ts   # the one public entry point for source contexts
+  commands/upsert-condition-notification/upsert-condition-notification.handler.ts
   queries/notification-find-by-criteria/notification-find-by-criteria.query.ts
   queries/notification-find-by-criteria/notification-find-by-criteria.handler.ts
   queries/notifications-unread-count/notifications-unread-count.query.ts
   queries/notifications-unread-count/notifications-unread-count.handler.ts
 infrastructure/
-  adapters/care-schedule-alerts.adapter.ts          # dispatches CareScheduleFindByCriteriaQuery
-  adapters/inventory-alerts.adapter.ts              # dispatches InventoryItemFindByCriteriaQuery (x2 uses)
   adapters/user-directory.adapter.ts                # dispatches UsersFindByCriteriaQuery, paged
-  adapters/space-directory.adapter.ts               # dispatches SpaceFindAllIdsQuery
   adapters/noop-notification-dispatcher.adapter.ts
   realtime/notification-sse-connection.registry.ts  # in-process Map<"userId:spaceId", Set<Subject<MessageEvent>>>
   realtime/notification-sse-forwarder.service.ts     # subscribes to EventBus, pushes into the registry's subjects
@@ -313,7 +399,6 @@ infrastructure/
   persistence/typeorm/repositories/notification-typeorm-write.repository.ts
   persistence/typeorm/repositories/notification-typeorm-read.repository.ts
 transport/
-  jobs/notifications-reconciliation.job.ts          # @Cron; iterates spaces, dispatches ReconcileSpaceNotificationsCommand
   rest/controllers/notifications.controller.ts
   rest/controllers/notifications-stream.controller.ts  # @Sse() GET /notifications/stream
   rest/dtos/notification-rest-response.dto.ts
@@ -338,6 +423,48 @@ notifications.module.ts
 README.md
 ```
 
+New under `src/contexts/care-schedule/` (the push side for `CARE_SCHEDULE_DUE`):
+
+```
+domain/value-objects/care-schedule-due-window-hours/care-schedule-due-window-hours.value-object.ts
+application/ports/notification-dispatcher.port.ts       # care-schedule's own INotificationDispatcherPort
+application/ports/space-directory.port.ts               # wraps spaces' SpaceFindAllIdsQuery for the sweep
+application/commands/check-due-care-schedules/check-due-care-schedules.command.ts   # no transport surface
+application/commands/check-due-care-schedules/check-due-care-schedules.handler.ts
+infrastructure/adapters/notification-dispatcher.adapter.ts   # dispatches UpsertConditionNotificationCommand
+infrastructure/adapters/space-directory.adapter.ts
+transport/jobs/care-schedule-due-reconciliation.job.ts   # @Cron; entering-the-window detection only
+```
+
+Plus `CareScheduleAggregate.isDueWithin(windowHours)` and a dispatch call
+added to `CompleteCareScheduleCommandHandler`,
+`UpdateCareScheduleCommandHandler`, `DeleteCareScheduleCommandHandler`
+(`WaterPlantCommand` gets this for free via its delegation to
+`CompleteCareScheduleCommand`).
+
+New under `src/contexts/inventory/` (the push side for `INVENTORY_LOW_STOCK` /
+`INVENTORY_EXPIRING_SOON`):
+
+```
+domain/enums/inventory-notification-condition.enum.ts   # LOW_STOCK | EXPIRING_SOON, local to inventory
+domain/value-objects/inventory-expiring-window-days/inventory-expiring-window-days.value-object.ts
+application/ports/notification-dispatcher.port.ts       # inventory's own INotificationDispatcherPort
+application/ports/space-directory.port.ts               # wraps spaces' SpaceFindAllIdsQuery for the sweep
+application/commands/check-expiring-inventory-items/check-expiring-inventory-items.command.ts   # no transport surface
+application/commands/check-expiring-inventory-items/check-expiring-inventory-items.handler.ts
+infrastructure/adapters/notification-dispatcher.adapter.ts   # dispatches UpsertConditionNotificationCommand
+infrastructure/adapters/space-directory.adapter.ts
+transport/jobs/inventory-expiring-reconciliation.job.ts  # @Cron; expiring-entering detection only, no cron for low-stock
+```
+
+Plus `InventoryItemAggregate.isLowStock()` /
+`isExpiringWithin(windowDays)` and a dispatch call added to
+`AdjustInventoryItemQuantityCommandHandler` (low-stock only),
+`UpdateInventoryItemCommandHandler` (both conditions),
+`DeleteInventoryItemCommandHandler` /
+`DeleteInventoryItemsBulkCommandHandler` (both conditions, unconditionally
+`false`).
+
 Plus one addition to the existing `spaces` context:
 
 ```
@@ -346,14 +473,17 @@ src/contexts/spaces/application/queries/space-find-all-ids/space-find-all-ids.ha
 ```
 
 (No transport files for this query — it is dispatched over `QueryBus` only by
-`notifications`' `SpaceDirectoryAdapter`.)
+each consuming context's own `SpaceDirectoryAdapter`: `notifications`
+originally, now `care-schedule` and `inventory`.)
 
 | File | Action | Description |
 |------|--------|--------------|
 | `src/database/migrations/1780000000025-CreateNotifications.ts` | Create | `notifications` table, indexes, partial unique index |
-| `src/core/core.module.ts` | Modify | Add `ScheduleModule.forRoot()` to `CORE_MODULES` |
+| `src/core/core.module.ts` | Modify | Add `ScheduleModule.forRoot()` to `CORE_MODULES`; register `careScheduleConfig`/`inventoryConfig` alongside `notificationsConfig` |
 | `src/app.module.ts` | Modify | Register `NotificationsModule` |
-| `src/core/config/notifications.config.ts` | Create | `NOTIFICATIONS_RECONCILE_ENABLED`, `NOTIFICATIONS_RECONCILE_CRON`, `NOTIFICATIONS_CARE_SCHEDULE_DUE_WINDOW_HOURS`, `NOTIFICATIONS_INVENTORY_EXPIRING_WINDOW_DAYS`, `NOTIFICATIONS_SSE_HEARTBEAT_MS` (default `20000`) |
+| `src/core/config/notifications.config.ts` | Create | `NOTIFICATIONS_SSE_HEARTBEAT_MS` (default `20000`) only — detection windows/cron moved to each owning context |
+| `src/core/config/care-schedule.config.ts` | Create | `CARE_SCHEDULE_DUE_WINDOW_HOURS` (default `24`) |
+| `src/core/config/inventory.config.ts` | Create | `INVENTORY_EXPIRING_WINDOW_DAYS` (default `7`) |
 | `src/contexts/spaces/spaces.module.ts` | Modify | Register `SpaceFindAllIdsQuery` handler |
 | `src/contexts/spaces/README.md` | Modify | Document the new internal-only query |
 | `package.json` | Modify | Add `@nestjs/schedule` |
@@ -380,37 +510,18 @@ export enum NotificationStatusEnum {
   READ = 'READ',
 }
 
-// application/ports/care-schedule-alerts.port.ts
-export const CARE_SCHEDULE_ALERTS_PORT = Symbol('CARE_SCHEDULE_ALERTS_PORT');
-export interface IDueCareSchedule {
-  scheduleId: string;
-  plantId: string;
-  activityType: string;
-  nextDueAt: Date;
-}
-export interface ICareScheduleAlertsPort {
-  findDueWithin(windowHours: number): Promise<IDueCareSchedule[]>;
-}
-
-// application/ports/inventory-alerts.port.ts
-export const INVENTORY_ALERTS_PORT = Symbol('INVENTORY_ALERTS_PORT');
-export interface ILowStockItem {
-  itemId: string;
-  name: string;
-  itemType: string;
-  quantity: number;
-  unit: string;
-  lowStockThreshold: number;
-}
-export interface IExpiringItem {
-  itemId: string;
-  name: string;
-  itemType: string;
-  expiresAt: Date;
-}
-export interface IInventoryAlertsPort {
-  findLowStock(): Promise<ILowStockItem[]>;
-  findExpiringWithin(windowDays: number): Promise<IExpiringItem[]>;
+// application/commands/upsert-condition-notification/upsert-condition-notification.command.ts
+export type UpsertConditionNotificationCommandInput = Pick<
+  INotificationPrimitives,
+  'type' | 'referenceType' | 'referenceId' | 'payload'
+> & { active: boolean };
+export class UpsertConditionNotificationCommand {
+  public readonly type: NotificationTypeValueObject;
+  public readonly referenceType: NotificationReferenceTypeValueObject;
+  public readonly referenceId: UuidValueObject;
+  public readonly payload: NotificationPayloadValueObject;
+  public readonly active: BooleanValueObject;
+  constructor(input: UpsertConditionNotificationCommandInput) { /* wraps each field in its VO */ }
 }
 
 // application/ports/user-directory.port.ts
@@ -419,16 +530,28 @@ export interface IUserDirectoryPort {
   listActiveMemberUserIds(): Promise<string[]>; // reads current SpaceContext
 }
 
-// application/ports/space-directory.port.ts
-export const SPACE_DIRECTORY_PORT = Symbol('SPACE_DIRECTORY_PORT');
-export interface ISpaceDirectoryPort {
-  listAllSpaceIds(): Promise<string[]>; // cross-tenant by nature, no SpaceContext required
-}
-
-// application/ports/notification-dispatcher.port.ts
+// application/ports/notification-dispatcher.port.ts (v1 no-op push/email seam — owned by notifications)
 export const NOTIFICATION_DISPATCHER_PORT = Symbol('NOTIFICATION_DISPATCHER_PORT');
 export interface INotificationDispatcherPort {
   dispatch(notification: NotificationViewModel): Promise<void>;
+}
+
+// care-schedule/application/ports/notification-dispatcher.port.ts (owned by care-schedule — different port, same name)
+export const NOTIFICATION_DISPATCHER_PORT = Symbol('NOTIFICATION_DISPATCHER_PORT');
+export interface INotificationDispatcherPort {
+  dispatch(input: { referenceId: string; payload: Record<string, unknown>; active: boolean }): Promise<void>;
+}
+
+// inventory/application/ports/notification-dispatcher.port.ts (owned by inventory — carries a condition discriminator)
+export enum InventoryNotificationConditionEnum { LOW_STOCK = 'LOW_STOCK', EXPIRING_SOON = 'EXPIRING_SOON' }
+export const NOTIFICATION_DISPATCHER_PORT = Symbol('NOTIFICATION_DISPATCHER_PORT');
+export interface INotificationDispatcherPort {
+  dispatch(input: {
+    condition: InventoryNotificationConditionEnum;
+    referenceId: string;
+    payload: Record<string, unknown>;
+    active: boolean;
+  }): Promise<void>;
 }
 
 // infrastructure/realtime/notification-sse-connection.registry.ts
@@ -475,30 +598,13 @@ export class NotificationSseForwarderService implements OnModuleInit {
   }
 }
 
-// application/services/notification-reconciliation/notification-reconciliation.service.ts
-export interface IReconciliationPlan {
-  toCreate: {
-    dedupeKey: string;
-    type: NotificationTypeEnum;
-    referenceType: NotificationReferenceTypeEnum;
-    referenceId: string;
-    payload: Record<string, unknown>;
-  }[];
-  toResolveDedupeKeys: string[];
-}
-
 // domain/repositories/read/notification-read.repository.ts
 export const NOTIFICATION_READ_REPOSITORY = Symbol('NOTIFICATION_READ_REPOSITORY');
-export type NotificationCriteria = {
-  status?: NotificationStatusEnum;
-  type?: NotificationTypeEnum;
-  page?: number;
-  limit?: number;
-};
-export interface INotificationReadRepository extends IBaseReadRepository<NotificationViewModel> {
-  findByCriteria(criteria: NotificationCriteria): Promise<NotificationViewModel[]>;
-  countUnread(): Promise<number>;
-  findOpenGroupedByDedupeKey(): Promise<Map<string, NotificationViewModel[]>>;
+export interface INotificationReadRepository {
+  findById(id: string): Promise<NotificationViewModel | null>;
+  findByCriteria(userId: string, criteria: Criteria): Promise<PaginatedResult<NotificationViewModel>>;
+  countUnread(userId: string): Promise<number>;
+  findOpenByDedupeKey(dedupeKey: string): Promise<NotificationViewModel[]>;
 }
 ```
 
@@ -508,7 +614,7 @@ NULL), `payload` (jsonb NOT NULL DEFAULT '{}'), `status` (varchar NOT NULL
 DEFAULT 'UNREAD'), `read_at` (timestamptz NULL), `resolved_at` (timestamptz
 NULL), `user_id` (uuid NOT NULL — the recipient), `space_id` (uuid NOT NULL),
 `created_at`, `updated_at`. Indexes: `(space_id, user_id, status)` for the
-list/count read path; `(space_id, dedupe_key)` for the reconciliation diff;
+list/count read path; `(space_id, dedupe_key)` for `findOpenByDedupeKey`;
 partial unique `(dedupe_key, user_id) WHERE resolved_at IS NULL` for the race
 guard.
 
@@ -521,33 +627,38 @@ instance (new `dedupeKey`) via resolve-then-recreate, not a mutation.
 
 **Ownership check**: `MarkNotificationReadCommandHandler` loads via
 `AssertNotificationExistsService`, then compares `aggregate.userId` against
-`@CurrentUser`; mismatch throws `NotificationNotOwnedException` (403). This
-mirrors the pattern REST/GraphQL already use elsewhere for user-scoped (not
-just space-scoped) resources.
+`command.requestingUserId`; mismatch throws `NotificationNotOwnedException`
+(403). This mirrors the pattern REST/GraphQL already use elsewhere for
+user-scoped (not just space-scoped) resources, and the same
+Pick-from-Primitives-plus-an-actor-field shape as `DeletePlantPhotoCommand`.
 
 ## Testing Strategy
 
 | Layer | What | Approach |
 |-------|------|----------|
-| Unit | `NotificationReconciliationService.reconcile()` — the core branching logic: create-when-open-missing, no-op-when-still-open, resolve-when-condition-cleared, multi-member fan-out, multi-type mixing; aggregate `create`/`markRead` (idempotent)/`resolve` (idempotent) event emission; VOs (`dedupeKey` format, `payload` JSON validity); adapters (each dispatches the right query with the right args, maps the result shape); `NotificationSseConnectionRegistry` — register/deregister/publish, multiple subjects for the same `(userId, spaceId)` all receive a publish, publishing to a key with no registered connections is a silent no-op; `NotificationSseForwarderService` — each of the three event types maps to the expected `MessageEvent` shape and calls `registry.publish` with the event's `userId`/`spaceId`, an unrelated event type is ignored | Jest, `jest.Mocked<T>`, no DB |
-| Integration | Tenant isolation (space A's notifications invisible under space B); `(dedupe_key, user_id) WHERE resolved_at IS NULL` partial unique index actually rejects a duplicate insert; `findOpenGroupedByDedupeKey` groups correctly; `countUnread` excludes resolved | Test DB + `SpaceContext` |
-| E2E | Full reconciliation round trip: seed a due `care-schedule` + a low-stock `inventory` item + two space members → dispatch `ReconcileSpaceNotificationsCommand` directly (not the cron, for determinism) → assert 2 notifications × 2 members = 4 rows; complete the schedule → re-run → assert the 2 `CARE_SCHEDULE_DUE` rows are resolved and the 2 `INVENTORY_LOW_STOCK` rows are untouched; REST + GraphQL list/unread-count/mark-read/mark-all-read behind guards; mark-read on another user's notification → 403; tenant isolation → 404; **SSE**: open `GET /notifications/stream` with supertest's raw HTTP client, dispatch `MarkNotificationReadCommand` for that user in parallel, assert the stream emits a matching `MessageEvent` within the test timeout; a second connection for a *different* user receives nothing from the first user's events | supertest |
-| Static | `notifications-no-cross-context-import.spec.ts`: no import from `@contexts/care-schedule/domain`, `@contexts/care-schedule/application`, `@contexts/inventory/domain`, `@contexts/inventory/application`, `@contexts/users/domain`, `@contexts/users/application`, `@contexts/spaces/domain`, `@contexts/spaces/application` outside `notifications/infrastructure/adapters/` | Jest source scan, mirrors existing boundary tests |
+| Unit (`notifications`) | `UpsertConditionNotificationCommandHandler` — all four transitions (create-when-missing + fan-out, no-op-when-already-open, resolve-when-open, no-op-when-nothing-open); aggregate `create`/`markRead` (idempotent)/`resolve` (idempotent) event emission; VOs (`dedupeKey` format, `payload` JSON validity); `NotificationSseConnectionRegistry` — register/deregister/publish, multiple subjects for the same `(userId, spaceId)` all receive a publish, publishing to a key with no registered connections is a silent no-op; `NotificationSseForwarderService` — each of the three event types maps to the expected `MessageEvent` shape and calls `registry.publish` with the event's `userId`/`spaceId`, an unrelated event type is ignored | Jest, `jest.Mocked<T>`, no DB |
+| Unit (`care-schedule`) | `CareScheduleAggregate.isDueWithin()` — due/not-due/inactive/window-edge cases; `CheckDueCareSchedulesCommandHandler` — dispatches `active: true` for every due schedule found, paginates, no-ops when none due; each of `Complete`/`Update`/`Delete`CareScheduleCommandHandler — dispatches the recomputed (or unconditional-`false`, for delete) status via the port | Jest, `jest.Mocked<T>`, no DB |
+| Unit (`inventory`) | `InventoryItemAggregate.isLowStock()`/`isExpiringWithin()` — threshold/window edge cases, "never true when unset"; `CheckExpiringInventoryItemsCommandHandler` — same shape as care-schedule's; `AdjustInventoryItemQuantityCommandHandler` (low-stock only), `UpdateInventoryItemCommandHandler` (both conditions), `Delete(Bulk)?InventoryItemCommandHandler` (both conditions, unconditional `false`) — each dispatches the recomputed status via the port | Jest, `jest.Mocked<T>`, no DB |
+| Integration | Tenant isolation (space A's notifications invisible under space B); `(dedupe_key, user_id) WHERE resolved_at IS NULL` partial unique index actually rejects a duplicate insert; `findOpenByDedupeKey` scopes correctly; `countUnread` excludes resolved | Test DB + `SpaceContext` |
+| E2E | Full condition round trip: dispatch `UpsertConditionNotificationCommand` for a due schedule + a low-stock item across two space members → assert 2 notifications × 2 members = 4 rows; dispatch `active: false` for the schedule → assert its 2 rows resolve and the inventory rows are untouched; REST + GraphQL list/unread-count/mark-read/mark-all-read behind guards; mark-read on another user's notification → 403; tenant isolation → 404; **SSE**: open `GET /notifications/stream` with supertest's raw HTTP client, dispatch `MarkNotificationReadCommand` for that user in parallel, assert the stream emits a matching `MessageEvent` within the test timeout; a second connection for a *different* user receives nothing from the first user's events | supertest |
+| Static | `notifications-no-cross-context-import.spec.ts`: no import from `@contexts/care-schedule`, `@contexts/inventory`, `@contexts/users`, `@contexts/spaces` outside `notifications/infrastructure/adapters/`. Mirror boundary tests in `care-schedule` and `inventory` now also forbid `@contexts/notifications` outside their own `infrastructure/adapters/` | Jest source scan, mirrors existing boundary tests |
 
-The reconciliation job itself (`@Cron`) is intentionally kept as thin as
+Each cron job (`CareScheduleDueReconciliationJob`,
+`InventoryExpiringReconciliationJob`) is intentionally kept as thin as
 possible — enumerate spaces, call the command per space, log and continue on
-error — so it needs no dedicated test beyond a unit test asserting the
-per-space isolation (one space throwing doesn't stop the loop) and that it's
-a no-op when `NOTIFICATIONS_RECONCILE_ENABLED=false`.
+error — so it needs no dedicated test beyond the per-space isolation
+behavior already covered by the pattern it mirrors from the superseded
+central job.
 
 ## Migration / Rollout
 
 Single additive migration `1780000000025`; `down()` drops the `notifications`
 table (including its partial unique index) and does not touch any other
 table. `spaces`' new `SpaceFindAllIdsQuery` needs no migration (no schema
-change). Rollout is safe to ship with `NOTIFICATIONS_RECONCILE_ENABLED=false`
-initially in production if the team wants the schema + read/write APIs live
-before the job starts creating rows.
+change). No feature flag gates the push dispatches — they're idempotent
+no-ops when nothing has changed, so there's no "cold start" risk from
+enabling them; the two per-context crons can be disabled independently via
+their own cron env vars if needed during rollout.
 
 ## Open Questions
 
@@ -565,3 +676,8 @@ before the job starts creating rows.
 - Retention/cleanup of old resolved+read notifications (e.g. a 90-day purge
   job) is not addressed — the table grows unbounded in v1. Acceptable at
   current scale; flagged as a v2 follow-up alongside real push/email.
+- The payload for `CARE_SCHEDULE_DUE` carries `plantId`, not a plant name —
+  discovered while building `notifications-web`'s message-rendering util.
+  Enriching it with a display name would need `care-schedule` to look up the
+  plant (a new cross-context read it doesn't have today) — flagged as a
+  possible v2 follow-up, not addressed here.

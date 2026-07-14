@@ -146,6 +146,13 @@ export class CareScheduleAggregate extends BaseAggregate {
     );
   }
 
+  /** Whether this schedule is currently active and due within the given window. */
+  public isDueWithin(windowHours: number): boolean {
+    if (!this._active.value) return false;
+    const dueBefore = Date.now() + windowHours * 60 * 60 * 1000;
+    return this._nextDueAt.value.getTime() <= dueBefore;
+  }
+
   public delete(): void {
     this.apply(
       new CareScheduleDeletedEvent(

@@ -74,21 +74,13 @@ export class NotificationTypeOrmReadRepository
     });
   }
 
-  async findOpenGroupedByDedupeKey(): Promise<
-    Map<string, NotificationViewModel[]>
-  > {
+  async findOpenByDedupeKey(
+    dedupeKey: string,
+  ): Promise<NotificationViewModel[]> {
     const entities = await this.repository.find({
-      where: { resolvedAt: IsNull() },
+      where: { dedupeKey, resolvedAt: IsNull() },
     });
-
-    const groups = new Map<string, NotificationViewModel[]>();
-    for (const entity of entities) {
-      const viewModel = this.mapper.toViewModel(entity);
-      const group = groups.get(entity.dedupeKey) ?? [];
-      group.push(viewModel);
-      groups.set(entity.dedupeKey, group);
-    }
-    return groups;
+    return entities.map((entity) => this.mapper.toViewModel(entity));
   }
 
   async save(_vm: NotificationViewModel): Promise<void> {}

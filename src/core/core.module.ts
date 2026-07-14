@@ -3,7 +3,9 @@ import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
 import { appConfig } from '@core/config/app.config';
 import { authConfig } from '@core/config/auth.config';
+import { careScheduleConfig } from '@core/config/care-schedule.config';
 import { validateEnv } from '@core/config/env.validation';
+import { inventoryConfig } from '@core/config/inventory.config';
 import { kafkaConfig } from '@core/config/kafka.config';
 import { notificationsConfig } from '@core/config/notifications.config';
 import { postgresConfig } from '@core/config/postgres.config';
@@ -48,6 +50,8 @@ const CORE_MODULES = [
       sentryConfig,
       kafkaConfig,
       notificationsConfig,
+      careScheduleConfig,
+      inventoryConfig,
     ],
     cache: true,
   }),

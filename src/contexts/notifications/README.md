@@ -3,43 +3,73 @@
 ## What this context owns
 
 The `notifications` context is a **tenant-scoped, per-user in-app notification
-feed**, reconciled from the state of `care-schedule` and `inventory`, with
-real-time delivery to connected web clients via Server-Sent Events (SSE).
+feed**, with real-time delivery to connected web clients via Server-Sent
+Events (SSE).
 
 It owns:
 
 - **Notifications** — one row per `(condition instance, recipient)`. A
   condition instance is a due care schedule, a low-stock inventory item, or
   an inventory item entering its expiry window.
-- **Reconciliation** — a scheduled job that periodically diffs the current
-  state of `care-schedule`/`inventory` against currently-open notifications,
-  creating new ones and resolving cleared ones.
+- **Dedupe + fan-out** — given a single "this condition is/isn't currently
+  true" signal, decides whether to open a new notification (one per active
+  space member) or resolve an already-open one.
 - **Real-time delivery** — `GET /notifications/stream` (SSE), pushing a
   message the instant a notification is created, marked read, or resolved.
 
-What it does **not** own: `care-schedule` and `inventory` themselves — this
-context never modifies them, only reads their state through its own
-read-only ports. It also owns no push/email delivery yet — see
-`INotificationDispatcherPort` below.
+What it does **not** own: detecting *when* a condition is worth notifying
+about. That decision belongs to the context that owns the underlying
+business rule (`care-schedule` decides what counts as "due"; `inventory`
+decides what counts as "low stock" or "expiring soon"). Those contexts push
+into `notifications` via their own port — `notifications` never reaches into
+them to ask. See "Architecture: who decides what" below.
 
 ---
 
-## The core model: condition instances, not events
+## Architecture: who decides what
 
-Every notification type maps a condition source to a `dedupeKey` of
-`{type}:{referenceId}`. On every reconciliation cycle, for a given space:
+Earlier revisions of this context pulled state from `care-schedule` and
+`inventory` on a central cron and diffed it against open notifications
+itself. That put a decision that belongs to those contexts — "is this
+condition currently true?" — inside `notifications`, and required
+`notifications` to own read ports into both of them.
 
-1. Fetch the current set of condition-matching entities (schedules due
-   within the window; items low on stock; items expiring within the
-   window).
-2. Fetch the current set of **open** notifications (`resolvedAt IS NULL`),
-   grouped by `dedupeKey`.
-3. **Diff:** condition matches with no open notification → create one per
-   active space member (fan-out); open notification with condition still
-   matching → no-op (idempotent); open notification whose condition no
-   longer matches → resolve it.
+The current design inverts that: **the owning context decides *when* to
+notify; `notifications` decides *how*.**
 
-`status` (`UNREAD`/`READ`) and `resolvedAt` are **independent axes**:
+```
+care-schedule/inventory (owns the business rule)
+  │
+  │  "this condition is/isn't true right now, for this entity"
+  ▼
+UpsertConditionNotificationCommand { type, referenceType, referenceId, payload, active }
+  │
+  ▼
+notifications (owns dedupe, fan-out, delivery)
+  - active: true  + no open notification for dedupeKey  → create one per active space member
+  - active: true  + already open                        → no-op (idempotent)
+  - active: false + an open notification exists          → resolve it
+  - active: false + nothing open                         → no-op (idempotent)
+```
+
+Each source context calls this through its **own** `INotificationDispatcherPort`
+(defined and owned by that context, per the project's port/adapter
+convention — the consumer owns the port, never the target). `notifications`
+exposes exactly one command for this: `UpsertConditionNotificationCommand`.
+It has no idea `care-schedule` or `inventory` exist.
+
+**Why not centralize the "when" too?** `INVENTORY_LOW_STOCK` is fully
+event-driven — quantity and threshold only change via a command in
+`inventory`, so both entering and exiting low-stock are triggered exactly at
+the mutation that causes them (see `inventory`'s README). `CARE_SCHEDULE_DUE`
+and `INVENTORY_EXPIRING_SOON` are calendar-based — nothing mutates when a
+deadline arrives, so *entering* that state still needs a periodic sweep, but
+it lives in the owning context's own cron now, not a shared one in
+`notifications`. *Exiting* those two is still mutation-triggered (completing
+a schedule, updating/deleting an item), so no sweep is needed for that
+direction either. See each context's README for its own detection logic.
+
+`status` (`UNREAD`/`READ`) and `resolvedAt` remain **independent axes**:
 resolving a notification does not change whether the user read it, and
 marking one read does not resolve it.
 
@@ -56,7 +86,7 @@ marking one read does not resolve it.
 | `referenceType` | `NotificationReferenceTypeValueObject` | `CARE_SCHEDULE`, `INVENTORY_ITEM` |
 | `referenceId` | `UuidValueObject` | The referenced entity's id |
 | `dedupeKey` | `NotificationDedupeKeyValueObject` | `{type}:{referenceId}`; the aggregate constructor rejects a mismatch against `type`/`referenceId` |
-| `payload` | `NotificationPayloadValueObject` | Display-ready snapshot data, shape depends on `type` (e.g. `plantName`, `activityType` for a due schedule) |
+| `payload` | `NotificationPayloadValueObject` | Display-ready snapshot data, shape depends on `type` (e.g. `activityType` for a due schedule, `itemName` for an inventory condition) |
 | `status` | `NotificationStatusValueObject` | `UNREAD` (default) or `READ` |
 | `readAt` | `DateValueObject \| null` | Set by `markRead()` |
 | `resolvedAt` | `DateValueObject \| null` | Set by `resolve()` |
@@ -83,7 +113,7 @@ it directly.
 |---------|---------|
 | `MarkNotificationReadCommand` | Mark a single notification read; rejects (403) if the requester doesn't own it |
 | `MarkAllNotificationsReadCommand` | Mark all of the requesting user's unread notifications read |
-| `ReconcileSpaceNotificationsCommand` | **Internal only** — no REST/GraphQL/MCP surface. Dispatched exclusively by `NotificationsReconciliationJob`, always within a `SpaceContext.run()` scope |
+| `UpsertConditionNotificationCommand` | The only entry point other contexts use. No REST/GraphQL/MCP surface — dispatched exclusively by `care-schedule`/`inventory` (via their own `INotificationDispatcherPort`), always within a `SpaceContext.run()` scope |
 
 ### Queries
 
@@ -102,20 +132,17 @@ it directly.
 
 `notifications` never imports another context's `domain`/`application`
 layers — only through its own ports, backed by adapters in
-`infrastructure/adapters/` that dispatch the target context's existing
-public `FindByCriteriaQuery`s over `QueryBus`:
+`infrastructure/adapters/`:
 
 | Port | Adapter | Backs onto |
 |------|---------|------------|
-| `ICareScheduleAlertsPort` | `CareScheduleAlertsAdapter` | `care-schedule`'s `CareScheduleFindByCriteriaQuery` (`active: true`, `due_before`) |
-| `IInventoryAlertsPort` | `InventoryAlertsAdapter` | `inventory`'s `InventoryItemFindByCriteriaQuery` (`low_stock: true`, `expiresAt <=`) |
 | `IUserDirectoryPort` | `UserDirectoryAdapter` | `users`' `UserFindByCriteriaQuery`, scoped by the ambient `SpaceContext` — resolves active space members for fan-out |
-| `ISpaceDirectoryPort` | `SpaceDirectoryAdapter` | `spaces`' `SpaceFindAllIdsQuery` (new, internal-only — see `spaces` README) — enumerates every space for the reconciliation sweep |
-| `INotificationDispatcherPort` | `NoopNotificationDispatcherAdapter` (v1) | Seam for a future push/email channel; v1 only logs |
+| `INotificationDispatcherPort` | `NoopNotificationDispatcherAdapter` (v1) | Seam for a future push/email channel; v1 only logs. (Unrelated to the `INotificationDispatcherPort` that `care-schedule`/`inventory` each define on their own side — same name, different port, different direction.) |
 
-`care-schedule`, `inventory`, `users`, and `spaces` have **zero** imports
-from or references to `notifications` — enforced by
-`notifications-no-cross-context-import.spec.ts`.
+`care-schedule` and `inventory` have **zero** imports from or references to
+`notifications` outside their own `infrastructure/adapters/` — enforced by
+`notifications-no-cross-context-import.spec.ts` (and the mirror boundary
+test in each of those contexts).
 
 ---
 
@@ -150,27 +177,14 @@ created on one API instance only reaches clients connected to that same
 instance. Multi-instance fan-out (Redis pub/sub, or the existing Kafka
 forwarder/consumer) is a documented, not-yet-built follow-up.
 
----
-
-## Reconciliation job
-
-`NotificationsReconciliationJob` (`@Cron`, default `*/15 * * * *`, override
-via `NOTIFICATIONS_RECONCILE_CRON`) enumerates every space
-(`ISpaceDirectoryPort.listAllSpaceIds()`) and dispatches
-`ReconcileSpaceNotificationsCommand` within each space's `SpaceContext.run()`
-scope. One space's failure is logged and skipped — it never aborts the
-sweep for other spaces. Guarded by `NOTIFICATIONS_RECONCILE_ENABLED`
-(default `true`), re-checked on every tick.
-
 Config (`src/core/config/notifications.config.ts`):
 
 | Env var | Default | Purpose |
 |---------|---------|---------|
-| `NOTIFICATIONS_RECONCILE_ENABLED` | `true` | Opt-out switch, mirrors `KAFKA_ENABLED` |
-| `NOTIFICATIONS_RECONCILE_CRON` | `*/15 * * * *` | Sweep interval |
-| `NOTIFICATIONS_CARE_SCHEDULE_DUE_WINDOW_HOURS` | `24` | How far ahead a schedule counts as "due" |
-| `NOTIFICATIONS_INVENTORY_EXPIRING_WINDOW_DAYS` | `7` | How far ahead an item counts as "expiring soon" |
 | `NOTIFICATIONS_SSE_HEARTBEAT_MS` | `20000` | SSE keep-alive interval |
+
+(Detection windows and reconciliation cron config now live in `care-schedule`
+and `inventory`'s own config — see their READMEs.)
 
 ---
 
@@ -215,7 +229,8 @@ All endpoints (including the SSE stream) are guarded by `JwtAuthGuard` +
 Table `notifications` (migration `CreateNotifications1780000000025`), tenant
 isolated via `createTenantRepository`. Indexes on `space_id`,
 `(space_id, user_id, status)` (list/count path), `(space_id, dedupe_key)`
-(reconciliation diff). A **partial unique index**
+(dedupe lookup via `findOpenByDedupeKey`). A **partial unique index**
 `(dedupe_key, user_id) WHERE resolved_at IS NULL` guards against duplicate
-open notifications from an overrunning reconciliation cycle. FKs to
-`users`/`spaces` (`ON DELETE CASCADE`).
+open notifications from a source context calling `UpsertConditionNotificationCommand`
+concurrently for the same condition. FKs to `users`/`spaces` (`ON DELETE
+CASCADE`).

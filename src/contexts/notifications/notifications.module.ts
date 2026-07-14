@@ -6,23 +6,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { MarkAllNotificationsReadCommandHandler } from '@contexts/notifications/application/commands/mark-all-notifications-read/mark-all-notifications-read.handler';
 import { MarkNotificationReadCommandHandler } from '@contexts/notifications/application/commands/mark-notification-read/mark-notification-read.handler';
-import { ReconcileSpaceNotificationsCommandHandler } from '@contexts/notifications/application/commands/reconcile-space-notifications/reconcile-space-notifications.handler';
-import { CARE_SCHEDULE_ALERTS_PORT } from '@contexts/notifications/application/ports/care-schedule-alerts.port';
-import { INVENTORY_ALERTS_PORT } from '@contexts/notifications/application/ports/inventory-alerts.port';
+import { UpsertConditionNotificationCommandHandler } from '@contexts/notifications/application/commands/upsert-condition-notification/upsert-condition-notification.handler';
 import { NOTIFICATION_DISPATCHER_PORT } from '@contexts/notifications/application/ports/notification-dispatcher.port';
-import { SPACE_DIRECTORY_PORT } from '@contexts/notifications/application/ports/space-directory.port';
 import { USER_DIRECTORY_PORT } from '@contexts/notifications/application/ports/user-directory.port';
 import { NotificationFindByCriteriaQueryHandler } from '@contexts/notifications/application/queries/notification-find-by-criteria/notification-find-by-criteria.handler';
 import { NotificationsUnreadCountQueryHandler } from '@contexts/notifications/application/queries/notifications-unread-count/notifications-unread-count.handler';
-import { NotificationReconciliationService } from '@contexts/notifications/application/services/notification-reconciliation/notification-reconciliation.service';
 import { AssertNotificationExistsService } from '@contexts/notifications/application/services/write/assert-notification-exists/assert-notification-exists.service';
 import { NotificationBuilder } from '@contexts/notifications/domain/builders/notification.builder';
 import { NOTIFICATION_READ_REPOSITORY } from '@contexts/notifications/domain/repositories/read/notification-read.repository';
 import { NOTIFICATION_WRITE_REPOSITORY } from '@contexts/notifications/domain/repositories/write/notification-write.repository';
-import { CareScheduleAlertsAdapter } from '@contexts/notifications/infrastructure/adapters/care-schedule-alerts.adapter';
-import { InventoryAlertsAdapter } from '@contexts/notifications/infrastructure/adapters/inventory-alerts.adapter';
 import { NoopNotificationDispatcherAdapter } from '@contexts/notifications/infrastructure/adapters/noop-notification-dispatcher.adapter';
-import { SpaceDirectoryAdapter } from '@contexts/notifications/infrastructure/adapters/space-directory.adapter';
 import { UserDirectoryAdapter } from '@contexts/notifications/infrastructure/adapters/user-directory.adapter';
 import { NotificationTypeOrmEntity } from '@contexts/notifications/infrastructure/persistence/typeorm/entities/notification.entity';
 import { NotificationTypeOrmMapper } from '@contexts/notifications/infrastructure/persistence/typeorm/mappers/notification-typeorm.mapper';
@@ -30,7 +23,6 @@ import { NotificationTypeOrmReadRepository } from '@contexts/notifications/infra
 import { NotificationTypeOrmWriteRepository } from '@contexts/notifications/infrastructure/persistence/typeorm/repositories/notification-typeorm-write.repository';
 import { NotificationSseConnectionRegistry } from '@contexts/notifications/infrastructure/realtime/notification-sse-connection.registry';
 import { NotificationSseForwarderService } from '@contexts/notifications/infrastructure/realtime/notification-sse-forwarder.service';
-import { NotificationsReconciliationJob } from '@contexts/notifications/transport/jobs/notifications-reconciliation.job';
 import { NotificationGraphQLMapper } from '@contexts/notifications/transport/graphql/mappers/notification.mapper';
 import { NotificationMutationsResolver } from '@contexts/notifications/transport/graphql/resolvers/notification-mutations.resolver';
 import { NotificationQueriesResolver } from '@contexts/notifications/transport/graphql/resolvers/notification-queries.resolver';
@@ -45,7 +37,7 @@ import { NotificationRestMapper } from '@contexts/notifications/transport/rest/m
 const COMMAND_HANDLERS = [
   MarkNotificationReadCommandHandler,
   MarkAllNotificationsReadCommandHandler,
-  ReconcileSpaceNotificationsCommandHandler,
+  UpsertConditionNotificationCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -55,10 +47,7 @@ const QUERY_HANDLERS = [
 
 const DOMAIN_BUILDERS = [NotificationBuilder];
 
-const APPLICATION_SERVICES = [
-  AssertNotificationExistsService,
-  NotificationReconciliationService,
-];
+const APPLICATION_SERVICES = [AssertNotificationExistsService];
 
 const INFRASTRUCTURE_MAPPERS = [NotificationTypeOrmMapper];
 
@@ -74,10 +63,7 @@ const INFRASTRUCTURE_REPOSITORIES = [
 ];
 
 const INFRASTRUCTURE_ADAPTERS = [
-  { provide: CARE_SCHEDULE_ALERTS_PORT, useClass: CareScheduleAlertsAdapter },
-  { provide: INVENTORY_ALERTS_PORT, useClass: InventoryAlertsAdapter },
   { provide: USER_DIRECTORY_PORT, useClass: UserDirectoryAdapter },
-  { provide: SPACE_DIRECTORY_PORT, useClass: SpaceDirectoryAdapter },
   {
     provide: NOTIFICATION_DISPATCHER_PORT,
     useClass: NoopNotificationDispatcherAdapter,
@@ -90,8 +76,6 @@ const REALTIME_PROVIDERS = [
   NotificationSseConnectionRegistry,
   NotificationSseForwarderService,
 ];
-
-const TRANSPORT_PROVIDERS = [NotificationsReconciliationJob];
 
 const REST_CONTROLLERS = [
   NotificationsController,
@@ -124,7 +108,6 @@ const MCP_TOOLS = [
     ...INFRASTRUCTURE_REPOSITORIES,
     ...INFRASTRUCTURE_ADAPTERS,
     ...REALTIME_PROVIDERS,
-    ...TRANSPORT_PROVIDERS,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
     ...MCP_TOOLS,
