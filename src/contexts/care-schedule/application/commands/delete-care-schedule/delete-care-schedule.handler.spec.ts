@@ -1,7 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 
-import { INotificationDispatcherPort } from '@contexts/care-schedule/application/ports/notification-dispatcher.port';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
+import { DispatchCareScheduleDueNotificationService } from '@contexts/care-schedule/application/services/write/dispatch-care-schedule-due-notification/dispatch-care-schedule-due-notification.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
 import { ICareScheduleWriteRepository } from '@contexts/care-schedule/domain/repositories/write/care-schedule-write.repository';
@@ -13,7 +13,7 @@ describe('DeleteCareScheduleCommandHandler', () => {
   let mockWriteRepo: jest.Mocked<ICareScheduleWriteRepository>;
   let mockEventBus: jest.Mocked<EventBus>;
   let mockAssert: jest.Mocked<AssertCareScheduleExistsService>;
-  let mockNotificationDispatcherPort: jest.Mocked<INotificationDispatcherPort>;
+  let mockDispatchCareScheduleDueNotificationService: jest.Mocked<DispatchCareScheduleDueNotificationService>;
 
   beforeEach(() => {
     mockWriteRepo = {
@@ -32,14 +32,14 @@ describe('DeleteCareScheduleCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertCareScheduleExistsService>;
 
-    mockNotificationDispatcherPort = {
+    mockDispatchCareScheduleDueNotificationService = {
       dispatch: jest.fn().mockResolvedValue(undefined),
-    } as jest.Mocked<INotificationDispatcherPort>;
+    } as unknown as jest.Mocked<DispatchCareScheduleDueNotificationService>;
 
     handler = new DeleteCareScheduleCommandHandler(
       mockWriteRepo,
       mockAssert,
-      mockNotificationDispatcherPort,
+      mockDispatchCareScheduleDueNotificationService,
       mockEventBus,
     );
   });
@@ -91,11 +91,8 @@ describe('DeleteCareScheduleCommandHandler', () => {
       }),
     );
 
-    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        referenceId: '550e8400-e29b-41d4-a716-446655440000',
-        active: false,
-      }),
-    );
+    expect(
+      mockDispatchCareScheduleDueNotificationService.dispatch,
+    ).toHaveBeenCalledWith(schedule, false);
   });
 });

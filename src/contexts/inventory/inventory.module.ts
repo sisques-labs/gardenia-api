@@ -14,6 +14,8 @@ import { NOTIFICATION_DISPATCHER_PORT } from '@contexts/inventory/application/po
 import { SPACE_DIRECTORY_PORT } from '@contexts/inventory/application/ports/space-directory.port';
 import { AssertInventoryItemViewModelExistsService } from '@contexts/inventory/application/services/read/assert-inventory-item-view-model-exists/assert-inventory-item-view-model-exists.service';
 import { AssertInventoryItemExistsService } from '@contexts/inventory/application/services/write/assert-inventory-item-exists/assert-inventory-item-exists.service';
+import { DispatchInventoryExpiringSoonNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-expiring-soon-notification/dispatch-inventory-expiring-soon-notification.service';
+import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
 import { InventoryItemBuilder } from '@contexts/inventory/domain/builders/inventory-item.builder';
 import { INVENTORY_ITEM_READ_REPOSITORY } from '@contexts/inventory/domain/repositories/read/inventory-item-read.repository';
 import { INVENTORY_ITEM_WRITE_REPOSITORY } from '@contexts/inventory/domain/repositories/write/inventory-item-write.repository';
@@ -57,6 +59,8 @@ const DOMAIN_BUILDERS = [InventoryItemBuilder];
 const APPLICATION_SERVICES = [
   AssertInventoryItemExistsService,
   AssertInventoryItemViewModelExistsService,
+  DispatchInventoryLowStockNotificationService,
+  DispatchInventoryExpiringSoonNotificationService,
 ];
 
 const INFRASTRUCTURE_MAPPERS = [InventoryItemTypeOrmMapper];

@@ -1,7 +1,8 @@
 import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
-import { INotificationDispatcherPort } from '@contexts/inventory/application/ports/notification-dispatcher.port';
+import { DispatchInventoryExpiringSoonNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-expiring-soon-notification/dispatch-inventory-expiring-soon-notification.service';
+import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
@@ -40,7 +41,8 @@ function buildItem(id: string): InventoryItemAggregate {
 describe('DeleteInventoryItemsBulkCommandHandler', () => {
   let handler: DeleteInventoryItemsBulkCommandHandler;
   let mockWriteRepo: jest.Mocked<IInventoryItemWriteRepository>;
-  let mockNotificationDispatcherPort: jest.Mocked<INotificationDispatcherPort>;
+  let mockDispatchInventoryLowStockNotificationService: jest.Mocked<DispatchInventoryLowStockNotificationService>;
+  let mockDispatchInventoryExpiringSoonNotificationService: jest.Mocked<DispatchInventoryExpiringSoonNotificationService>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -51,9 +53,13 @@ describe('DeleteInventoryItemsBulkCommandHandler', () => {
       delete: jest.fn().mockResolvedValue(undefined),
     } as jest.Mocked<IInventoryItemWriteRepository>;
 
-    mockNotificationDispatcherPort = {
+    mockDispatchInventoryLowStockNotificationService = {
       dispatch: jest.fn().mockResolvedValue(undefined),
-    } as jest.Mocked<INotificationDispatcherPort>;
+    } as unknown as jest.Mocked<DispatchInventoryLowStockNotificationService>;
+
+    mockDispatchInventoryExpiringSoonNotificationService = {
+      dispatch: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<DispatchInventoryExpiringSoonNotificationService>;
 
     mockEventBus = {
       publish: jest.fn(),
@@ -62,7 +68,8 @@ describe('DeleteInventoryItemsBulkCommandHandler', () => {
 
     handler = new DeleteInventoryItemsBulkCommandHandler(
       mockWriteRepo,
-      mockNotificationDispatcherPort,
+      mockDispatchInventoryLowStockNotificationService,
+      mockDispatchInventoryExpiringSoonNotificationService,
       mockEventBus,
     );
   });
@@ -131,20 +138,27 @@ describe('DeleteInventoryItemsBulkCommandHandler', () => {
   });
 
   it('resolves both notification conditions for each deleted item', async () => {
+    const itemA = buildItem(ID_A);
+    const itemB = buildItem(ID_B);
     mockWriteRepo.findById
-      .mockResolvedValueOnce(buildItem(ID_A))
-      .mockResolvedValueOnce(buildItem(ID_B));
+      .mockResolvedValueOnce(itemA)
+      .mockResolvedValueOnce(itemB);
 
     await handler.execute(
       new DeleteInventoryItemsBulkCommand({ ids: [ID_A, ID_B] }),
     );
 
-    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledTimes(4);
-    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ referenceId: ID_A, active: false }),
-    );
-    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ referenceId: ID_B, active: false }),
-    );
+    expect(
+      mockDispatchInventoryLowStockNotificationService.dispatch,
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      mockDispatchInventoryExpiringSoonNotificationService.dispatch,
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      mockDispatchInventoryLowStockNotificationService.dispatch,
+    ).toHaveBeenCalledWith(itemA, false);
+    expect(
+      mockDispatchInventoryExpiringSoonNotificationService.dispatch,
+    ).toHaveBeenCalledWith(itemB, false);
   });
 });

@@ -1,9 +1,8 @@
-import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 
 import { ICareLogPort } from '@contexts/care-schedule/application/ports/care-log.port';
-import { INotificationDispatcherPort } from '@contexts/care-schedule/application/ports/notification-dispatcher.port';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
+import { DispatchCareScheduleDueNotificationService } from '@contexts/care-schedule/application/services/write/dispatch-care-schedule-due-notification/dispatch-care-schedule-due-notification.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
 import { ICareScheduleWriteRepository } from '@contexts/care-schedule/domain/repositories/write/care-schedule-write.repository';
@@ -16,8 +15,7 @@ describe('CompleteCareScheduleCommandHandler', () => {
   let mockEventBus: jest.Mocked<EventBus>;
   let mockAssert: jest.Mocked<AssertCareScheduleExistsService>;
   let mockCareLogPort: jest.Mocked<ICareLogPort>;
-  let mockNotificationDispatcherPort: jest.Mocked<INotificationDispatcherPort>;
-  let mockConfigService: jest.Mocked<ConfigService>;
+  let mockDispatchCareScheduleDueNotificationService: jest.Mocked<DispatchCareScheduleDueNotificationService>;
 
   function buildSchedule(intervalDays: number | null = 3) {
     const now = new Date('2026-06-27T00:00:00.000Z');
@@ -55,20 +53,15 @@ describe('CompleteCareScheduleCommandHandler', () => {
       recordCareLogEntry: jest.fn().mockResolvedValue(undefined),
     } as jest.Mocked<ICareLogPort>;
 
-    mockNotificationDispatcherPort = {
+    mockDispatchCareScheduleDueNotificationService = {
       dispatch: jest.fn().mockResolvedValue(undefined),
-    } as jest.Mocked<INotificationDispatcherPort>;
-
-    mockConfigService = {
-      getOrThrow: jest.fn().mockReturnValue({ dueWindowHours: 24 }),
-    } as unknown as jest.Mocked<ConfigService>;
+    } as unknown as jest.Mocked<DispatchCareScheduleDueNotificationService>;
 
     handler = new CompleteCareScheduleCommandHandler(
       mockWriteRepo,
       mockAssert,
       mockCareLogPort,
-      mockNotificationDispatcherPort,
-      mockConfigService,
+      mockDispatchCareScheduleDueNotificationService,
       mockEventBus,
     );
   });
@@ -146,7 +139,7 @@ describe('CompleteCareScheduleCommandHandler', () => {
     expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
   });
 
-  it('dispatches active:false once completion pushes nextDueAt beyond the window', async () => {
+  it('dispatches the due status via DispatchCareScheduleDueNotificationService after completion', async () => {
     const schedule = buildSchedule();
     mockAssert.execute.mockResolvedValue(schedule);
     const completedAt = new Date();
@@ -158,13 +151,8 @@ describe('CompleteCareScheduleCommandHandler', () => {
       }),
     );
 
-    // intervalDays=3 pushes nextDueAt 3 days past `completedAt` (now), well
-    // beyond the 24h window used in this spec's mocked config.
-    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        referenceId: '550e8400-e29b-41d4-a716-446655440000',
-        active: false,
-      }),
-    );
+    expect(
+      mockDispatchCareScheduleDueNotificationService.dispatch,
+    ).toHaveBeenCalledWith(schedule);
   });
 });

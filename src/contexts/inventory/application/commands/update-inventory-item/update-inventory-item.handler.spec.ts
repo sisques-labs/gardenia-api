@@ -1,12 +1,11 @@
-import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
-import { INotificationDispatcherPort } from '@contexts/inventory/application/ports/notification-dispatcher.port';
 import { AssertInventoryItemExistsService } from '@contexts/inventory/application/services/write/assert-inventory-item-exists/assert-inventory-item-exists.service';
+import { DispatchInventoryExpiringSoonNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-expiring-soon-notification/dispatch-inventory-expiring-soon-notification.service';
+import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
-import { InventoryNotificationConditionEnum } from '@contexts/inventory/domain/enums/inventory-notification-condition.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
 import { InventoryItemNotFoundException } from '@contexts/inventory/domain/exceptions/inventory-item-not-found.exception';
 import { IInventoryItemWriteRepository } from '@contexts/inventory/domain/repositories/write/inventory-item-write.repository';
@@ -43,8 +42,8 @@ describe('UpdateInventoryItemCommandHandler', () => {
   let handler: UpdateInventoryItemCommandHandler;
   let mockWriteRepo: jest.Mocked<IInventoryItemWriteRepository>;
   let mockAssert: jest.Mocked<AssertInventoryItemExistsService>;
-  let mockNotificationDispatcherPort: jest.Mocked<INotificationDispatcherPort>;
-  let mockConfigService: jest.Mocked<ConfigService>;
+  let mockDispatchInventoryLowStockNotificationService: jest.Mocked<DispatchInventoryLowStockNotificationService>;
+  let mockDispatchInventoryExpiringSoonNotificationService: jest.Mocked<DispatchInventoryExpiringSoonNotificationService>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -59,13 +58,13 @@ describe('UpdateInventoryItemCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertInventoryItemExistsService>;
 
-    mockNotificationDispatcherPort = {
+    mockDispatchInventoryLowStockNotificationService = {
       dispatch: jest.fn().mockResolvedValue(undefined),
-    } as jest.Mocked<INotificationDispatcherPort>;
+    } as unknown as jest.Mocked<DispatchInventoryLowStockNotificationService>;
 
-    mockConfigService = {
-      getOrThrow: jest.fn().mockReturnValue({ expiringWindowDays: 7 }),
-    } as unknown as jest.Mocked<ConfigService>;
+    mockDispatchInventoryExpiringSoonNotificationService = {
+      dispatch: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<DispatchInventoryExpiringSoonNotificationService>;
 
     mockEventBus = {
       publish: jest.fn(),
@@ -75,8 +74,8 @@ describe('UpdateInventoryItemCommandHandler', () => {
     handler = new UpdateInventoryItemCommandHandler(
       mockWriteRepo,
       mockAssert,
-      mockNotificationDispatcherPort,
-      mockConfigService,
+      mockDispatchInventoryLowStockNotificationService,
+      mockDispatchInventoryExpiringSoonNotificationService,
       mockEventBus,
     );
   });
@@ -114,7 +113,7 @@ describe('UpdateInventoryItemCommandHandler', () => {
     ).rejects.toBeInstanceOf(InventoryItemNotFoundException);
   });
 
-  it('dispatches both LOW_STOCK and EXPIRING_SOON status after updating', async () => {
+  it('dispatches both LOW_STOCK and EXPIRING_SOON status via their services after updating', async () => {
     const item = buildItem();
     mockAssert.execute.mockResolvedValue(item);
 
@@ -126,17 +125,11 @@ describe('UpdateInventoryItemCommandHandler', () => {
       }),
     );
 
-    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        condition: InventoryNotificationConditionEnum.LOW_STOCK,
-        active: true,
-      }),
-    );
-    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        condition: InventoryNotificationConditionEnum.EXPIRING_SOON,
-        active: true,
-      }),
-    );
+    expect(
+      mockDispatchInventoryLowStockNotificationService.dispatch,
+    ).toHaveBeenCalledWith(item);
+    expect(
+      mockDispatchInventoryExpiringSoonNotificationService.dispatch,
+    ).toHaveBeenCalledWith(item);
   });
 });

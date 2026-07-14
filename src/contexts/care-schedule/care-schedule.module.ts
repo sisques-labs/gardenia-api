@@ -15,6 +15,7 @@ import { NOTIFICATION_DISPATCHER_PORT } from '@contexts/care-schedule/applicatio
 import { SPACE_DIRECTORY_PORT } from '@contexts/care-schedule/application/ports/space-directory.port';
 import { AssertCareScheduleViewModelExistsService } from '@contexts/care-schedule/application/services/read/assert-care-schedule-view-model-exists/assert-care-schedule-view-model-exists.service';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
+import { DispatchCareScheduleDueNotificationService } from '@contexts/care-schedule/application/services/write/dispatch-care-schedule-due-notification/dispatch-care-schedule-due-notification.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareLogAdapter } from '@contexts/care-schedule/infrastructure/adapters/care-log.adapter';
 import { NotificationDispatcherAdapter } from '@contexts/care-schedule/infrastructure/adapters/notification-dispatcher.adapter';
@@ -59,6 +60,7 @@ const DOMAIN_BUILDERS = [CareScheduleBuilder];
 const APPLICATION_SERVICES = [
   AssertCareScheduleExistsService,
   AssertCareScheduleViewModelExistsService,
+  DispatchCareScheduleDueNotificationService,
 ];
 
 const INFRASTRUCTURE_MAPPERS = [CareScheduleTypeOrmMapper];

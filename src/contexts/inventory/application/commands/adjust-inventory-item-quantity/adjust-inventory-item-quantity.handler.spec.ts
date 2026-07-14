@@ -1,11 +1,10 @@
 import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
-import { INotificationDispatcherPort } from '@contexts/inventory/application/ports/notification-dispatcher.port';
 import { AssertInventoryItemExistsService } from '@contexts/inventory/application/services/write/assert-inventory-item-exists/assert-inventory-item-exists.service';
+import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
-import { InventoryNotificationConditionEnum } from '@contexts/inventory/domain/enums/inventory-notification-condition.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
 import { InventoryItemNotFoundException } from '@contexts/inventory/domain/exceptions/inventory-item-not-found.exception';
 import { IInventoryItemWriteRepository } from '@contexts/inventory/domain/repositories/write/inventory-item-write.repository';
@@ -51,7 +50,7 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
   let handler: AdjustInventoryItemQuantityCommandHandler;
   let mockWriteRepo: jest.Mocked<IInventoryItemWriteRepository>;
   let mockAssert: jest.Mocked<AssertInventoryItemExistsService>;
-  let mockNotificationDispatcherPort: jest.Mocked<INotificationDispatcherPort>;
+  let mockDispatchInventoryLowStockNotificationService: jest.Mocked<DispatchInventoryLowStockNotificationService>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -66,9 +65,9 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertInventoryItemExistsService>;
 
-    mockNotificationDispatcherPort = {
+    mockDispatchInventoryLowStockNotificationService = {
       dispatch: jest.fn().mockResolvedValue(undefined),
-    } as jest.Mocked<INotificationDispatcherPort>;
+    } as unknown as jest.Mocked<DispatchInventoryLowStockNotificationService>;
 
     mockEventBus = {
       publish: jest.fn(),
@@ -78,7 +77,7 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
     handler = new AdjustInventoryItemQuantityCommandHandler(
       mockWriteRepo,
       mockAssert,
-      mockNotificationDispatcherPort,
+      mockDispatchInventoryLowStockNotificationService,
       mockEventBus,
     );
   });
@@ -130,7 +129,7 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
     ).rejects.toBeInstanceOf(InventoryItemNotFoundException);
   });
 
-  it('dispatches active:true when the adjustment drops quantity to or below the threshold', async () => {
+  it('dispatches the low-stock status via DispatchInventoryLowStockNotificationService after adjusting', async () => {
     const item = buildItem(10, 5);
     mockAssert.execute.mockResolvedValue(item);
 
@@ -142,32 +141,8 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
       }),
     );
 
-    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        condition: InventoryNotificationConditionEnum.LOW_STOCK,
-        referenceId: ID,
-        active: true,
-      }),
-    );
-  });
-
-  it('dispatches active:false when the adjustment restocks above the threshold', async () => {
-    const item = buildItem(2, 5);
-    mockAssert.execute.mockResolvedValue(item);
-
-    await handler.execute(
-      new AdjustInventoryItemQuantityCommand({
-        id: ID,
-        delta: 10,
-        reason: 'restocked',
-      }),
-    );
-
-    expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        condition: InventoryNotificationConditionEnum.LOW_STOCK,
-        active: false,
-      }),
-    );
+    expect(
+      mockDispatchInventoryLowStockNotificationService.dispatch,
+    ).toHaveBeenCalledWith(item);
   });
 });
