@@ -1,6 +1,7 @@
 import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
+import { CareScheduleNotificationTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-notification-type.enum';
 import { CareScheduleViewModel } from '@contexts/care-schedule/domain/view-models/care-schedule.view-model';
 import { CheckDueCareSchedulesCommand } from './check-due-care-schedules.command';
 import { CheckDueCareSchedulesCommandHandler } from './check-due-care-schedules.handler';
@@ -52,6 +53,7 @@ describe('CheckDueCareSchedulesCommandHandler', () => {
     );
 
     expect(notificationDispatcherPort.dispatch).toHaveBeenCalledWith({
+      type: CareScheduleNotificationTypeEnum.DUE,
       referenceId: schedule.id,
       payload: {
         plantId: schedule.plantId,

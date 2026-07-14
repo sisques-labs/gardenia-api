@@ -6,6 +6,7 @@ import {
   INotificationDispatcherPort,
 } from '@contexts/care-schedule/application/ports/notification-dispatcher.port';
 import { CareScheduleAggregate } from '@contexts/care-schedule/domain/aggregates/care-schedule.aggregate';
+import { CareScheduleNotificationTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-notification-type.enum';
 import { ICareScheduleConfig } from '@core/config/care-schedule.config';
 
 /**
@@ -27,6 +28,7 @@ export class DispatchCareScheduleDueNotificationService {
     active?: boolean,
   ): Promise<void> {
     await this.notificationDispatcherPort.dispatch({
+      type: CareScheduleNotificationTypeEnum.DUE,
       referenceId: schedule.id.value,
       payload: {
         plantId: schedule.plantId.value,

@@ -4,6 +4,7 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { INotificationDispatcherPort } from '@contexts/care-schedule/application/ports/notification-dispatcher.port';
 import { CareScheduleAggregate } from '@contexts/care-schedule/domain/aggregates/care-schedule.aggregate';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
+import { CareScheduleNotificationTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-notification-type.enum';
 import { CareScheduleActivityTypeValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-activity-type/care-schedule-activity-type.value-object';
 import { CareScheduleIdValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-id/care-schedule-id.value-object';
 import { CareScheduleIntervalDaysValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-interval-days/care-schedule-interval-days.value-object';
@@ -60,6 +61,7 @@ describe('DispatchCareScheduleDueNotificationService', () => {
     await service.dispatch(schedule);
 
     expect(mockNotificationDispatcherPort.dispatch).toHaveBeenCalledWith({
+      type: CareScheduleNotificationTypeEnum.DUE,
       referenceId: ID,
       payload: {
         plantId: '110e8400-e29b-41d4-a716-446655440010',

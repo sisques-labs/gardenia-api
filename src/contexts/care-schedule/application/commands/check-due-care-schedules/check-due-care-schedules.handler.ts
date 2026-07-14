@@ -10,6 +10,7 @@ import {
   NOTIFICATION_DISPATCHER_PORT,
   INotificationDispatcherPort,
 } from '@contexts/care-schedule/application/ports/notification-dispatcher.port';
+import { CareScheduleNotificationTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-notification-type.enum';
 import {
   CARE_SCHEDULE_READ_REPOSITORY,
   ICareScheduleReadRepository,
@@ -45,6 +46,7 @@ export class CheckDueCareSchedulesCommandHandler implements ICommandHandler<
 
     for (const schedule of schedules) {
       await this.notificationDispatcherPort.dispatch({
+        type: CareScheduleNotificationTypeEnum.DUE,
         referenceId: schedule.id,
         payload: {
           plantId: schedule.plantId,
