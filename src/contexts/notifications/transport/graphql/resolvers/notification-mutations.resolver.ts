@@ -35,8 +35,8 @@ export class NotificationMutationsResolver {
 
     await this.commandBus.execute(
       new MarkNotificationReadCommand({
-        notificationId: id,
-        userId: user.userId,
+        id,
+        requestingUserId: user.userId,
       }),
     );
 

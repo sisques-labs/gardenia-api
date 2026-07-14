@@ -71,8 +71,8 @@ describe('MarkNotificationReadCommandHandler', () => {
 
     await handler.execute(
       new MarkNotificationReadCommand({
-        notificationId: NOTIFICATION_ID,
-        userId: OWNER_ID,
+        id: NOTIFICATION_ID,
+        requestingUserId: OWNER_ID,
       }),
     );
 
@@ -87,8 +87,8 @@ describe('MarkNotificationReadCommandHandler', () => {
     await expect(
       handler.execute(
         new MarkNotificationReadCommand({
-          notificationId: NOTIFICATION_ID,
-          userId: OTHER_USER_ID,
+          id: NOTIFICATION_ID,
+          requestingUserId: OTHER_USER_ID,
         }),
       ),
     ).rejects.toThrow(NotificationNotOwnedException);

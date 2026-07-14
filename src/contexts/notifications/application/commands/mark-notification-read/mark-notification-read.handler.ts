@@ -30,11 +30,11 @@ export class MarkNotificationReadCommandHandler
 
   async execute(command: MarkNotificationReadCommand): Promise<void> {
     const notification = await this.assertNotificationExistsService.execute(
-      command.notificationId,
+      command.id,
     );
 
-    if (notification.userId.value !== command.userId.value) {
-      throw new NotificationNotOwnedException(command.notificationId.value);
+    if (notification.userId.value !== command.requestingUserId.value) {
+      throw new NotificationNotOwnedException(command.id.value);
     }
 
     notification.markRead();
@@ -42,8 +42,6 @@ export class MarkNotificationReadCommandHandler
     await this.notificationWriteRepository.save(notification);
     await this.publishEvents(notification);
 
-    this.logger.log(
-      `Notification marked read: ${command.notificationId.value}`,
-    );
+    this.logger.log(`Notification marked read: ${command.id.value}`);
   }
 }

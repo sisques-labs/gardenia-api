@@ -133,8 +133,8 @@ export class NotificationsController {
     this.logger.log(`PATCH /notifications/${id}/read by user: ${user.userId}`);
     await this.commandBus.execute(
       new MarkNotificationReadCommand({
-        notificationId: id,
-        userId: user.userId,
+        id,
+        requestingUserId: user.userId,
       }),
     );
     return { success: true };

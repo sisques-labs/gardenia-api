@@ -30,8 +30,8 @@ export class NotificationMarkReadMcpTool implements IMcpTool<IMcpToolContext> {
 
     await this.commandBus.execute(
       new MarkNotificationReadCommand({
-        notificationId: id,
-        userId: context.userId,
+        id,
+        requestingUserId: context.userId,
       }),
     );
 

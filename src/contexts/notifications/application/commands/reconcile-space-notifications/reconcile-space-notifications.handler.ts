@@ -78,11 +78,11 @@ export class ReconcileSpaceNotificationsCommandHandler
       openGroups,
     ] = await Promise.all([
       this.careScheduleAlertsPort.findDueWithin(
-        command.careScheduleDueWindowHours,
+        command.careScheduleDueWindowHours.value,
       ),
       this.inventoryAlertsPort.findLowStock(),
       this.inventoryAlertsPort.findExpiringWithin(
-        command.inventoryExpiringWindowDays,
+        command.inventoryExpiringWindowDays.value,
       ),
       this.userDirectoryPort.listActiveMemberUserIds(),
       this.notificationReadRepository.findOpenGroupedByDedupeKey(),
