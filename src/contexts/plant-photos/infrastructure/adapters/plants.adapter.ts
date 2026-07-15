@@ -17,10 +17,9 @@ export class PlantsAdapter implements IPlantsPort {
 
   async getImageUrl(plantId: string): Promise<string | null> {
     const plant = await this.queryBus
-      .execute<
-        PlantFindByIdQuery,
-        PlantViewModel | null
-      >(new PlantFindByIdQuery({ plantId }))
+      .execute<PlantFindByIdQuery, PlantViewModel | null>(
+        new PlantFindByIdQuery({ plantId }),
+      )
       .catch(() => null);
 
     return plant?.imageUrl ?? null;

@@ -47,10 +47,9 @@ export class PlantingSpotQrAdapter implements IPlantingSpotQrPort {
     this.logger.log(`Fetching QR data for qrId ${qrId}`);
 
     const qrViewModel = await this.queryBus
-      .execute<
-        QrFindByIdQuery,
-        QrViewModel | null
-      >(new QrFindByIdQuery({ qrId }))
+      .execute<QrFindByIdQuery, QrViewModel | null>(
+        new QrFindByIdQuery({ qrId }),
+      )
       .catch(() => null);
 
     if (!qrViewModel) {
@@ -59,10 +58,9 @@ export class PlantingSpotQrAdapter implements IPlantingSpotQrPort {
     }
 
     const pngBuffer = await this.queryBus
-      .execute<
-        QrFindPngByIdQuery,
-        Buffer | null
-      >(new QrFindPngByIdQuery({ qrId }))
+      .execute<QrFindPngByIdQuery, Buffer | null>(
+        new QrFindPngByIdQuery({ qrId }),
+      )
       .catch(() => null);
 
     if (!pngBuffer) {
