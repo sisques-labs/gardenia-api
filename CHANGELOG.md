@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.2] - 2026-07-15
+
+### Chore
+- **deps-dev:** Bump @typescript-eslint/eslint-plugin (3dbc3ea)
+- **deps-dev:** Bump @types/node from 26.1.0 to 26.1.1 (b129028)
+- **deps:** Bump @aws-sdk/client-s3 from 3.1080.0 to 3.1087.0 (a19bdc1)
 ## [0.27.1] - 2026-07-15
 
 ### Chore
