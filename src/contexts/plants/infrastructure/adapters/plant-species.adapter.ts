@@ -23,10 +23,9 @@ export class PlantSpeciesAdapter implements IPlantSpeciesPort {
     this.logger.log(`Fetching plant species data for id ${plantSpeciesId}`);
 
     const catalogViewModel = await this.queryBus
-      .execute<
-        PlantSpeciesFindByIdQuery,
-        PlantSpeciesCatalogViewModel | null
-      >(new PlantSpeciesFindByIdQuery({ plantSpeciesId }))
+      .execute<PlantSpeciesFindByIdQuery, PlantSpeciesCatalogViewModel | null>(
+        new PlantSpeciesFindByIdQuery({ plantSpeciesId }),
+      )
       .catch(() => null);
 
     if (!catalogViewModel) {

@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.2] - 2026-07-15
+
+### Chore
+- **deps-dev:** Bump @typescript-eslint/eslint-plugin (3dbc3ea)
+- **deps-dev:** Bump @types/node from 26.1.0 to 26.1.1 (b129028)
+- **deps:** Bump @aws-sdk/client-s3 from 3.1080.0 to 3.1087.0 (a19bdc1)
+## [0.27.1] - 2026-07-15
+
+### Chore
+- **deps:** Update @sisques-labs/nestjs-kit to version 1.2.1 and bump graphql-query-complexity to 1.1.1 (ca43b6b)
+- **deps:** Bump @sisques-labs/nestjs-kit from 1.2.1 to 1.3.1 (f5b887c)
 ## [0.27.0] - 2026-07-10
 
 ### Documentation
@@ -100,7 +111,11 @@ All notable changes to this project will be documented in this file.
 
 ### CI
 - Dispatch gardenia-e2e run after alpha/beta release (7de4c74)
-## [0.24.1] - 2026-07-02
+## [0.24.0] - 2026-06-28
+
+### Bug Fixes
+- **files:** Return raw MIME string in GraphQL file response (20e08c4)
+- **test:** Register care-schedule entity and migration in integration bootstrap (f7a355e)
 
 ### Build
 - **deps-dev:** Bump ts-loader from 9.5.7 to 9.6.2 (95ca2a2)
@@ -110,11 +125,15 @@ All notable changes to this project will be documented in this file.
 - **deps:** Bump axios from 1.17.0 to 1.18.1 (87886d4)
 - **deps-dev:** Bump @nestjs/cli from 10.4.9 to 11.0.23 (1cfef6a)
 - **deps-dev:** Bump @types/node from 20.19.41 to 26.1.0 (d634be0)
-## [0.24.0] - 2026-06-28
 
-### Bug Fixes
-- **files:** Return raw MIME string in GraphQL file response (20e08c4)
-- **test:** Register care-schedule entity and migration in integration bootstrap (f7a355e)
+### Chore
+- **deps-dev:** Bump @nestjs/cli from 11.0.23 to 11.0.24 (ddb3ae4)
+- **deps:** Bump graphql-query-complexity from 1.1.0 to 1.1.1 (5cec1de)
+- **deps-dev:** Bump @typescript-eslint/parser from 8.59.4 to 8.64.0 (90f9f5c)
+- **deps-dev:** Bump @types/supertest from 6.0.3 to 7.2.1 (637f0e5)
+- **deps:** Bump typeorm from 1.0.0 to 1.1.0 (4c2f9cb)
+- **deps-dev:** Bump eslint-plugin-boundaries from 6.0.2 to 7.0.2 (bb2f160)
+- **deps-dev:** Bump prettier from 3.8.3 to 3.9.5 (4888eac)
 
 ### Documentation
 - **files:** Propose files bounded context (storage port/adapter) (286453d)
