@@ -1,0 +1,116 @@
+change: notifications-module
+status: apply
+created: 2026-07-13
+artifact_store: hybrid
+context: notifications
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: done
+  verify: partial
+  archive: pending
+next_recommended:
+  - sdd-verify
+notes: |
+  Full proposal authored manually (the `openspec` CLI binary is not installed
+  in this environment, so artifacts were written by hand following the exact
+  structure/conventions of prior changes, e.g. inventory-module).
+
+  Key architectural decisions worth re-confirming with the team before apply:
+  - Polling-based reconciliation (cron, @nestjs/schedule) chosen over the
+    existing Kafka domain-event forwarder for *detecting* new due/low-stock
+    conditions — Kafka is opt-in and disabled by default (KAFKA_ENABLED=false)
+    in every environment today. See design.md "Why polling instead of the
+    Kafka forwarder".
+  - Fan-out to every active space member (not owner-only). See design.md
+    "Why fan-out to every space member".
+  - One small new query added to the existing `spaces` context
+    (SpaceFindAllIdsQuery, internal-only, no transport surface) — the only
+    change to a context other than `notifications` itself.
+  - v1 is in-app only; INotificationDispatcherPort ships with a no-op adapter
+    as the seam for a future push/email change.
+  - UPDATED per user request ("hay que hacerlo bien desde el principio con
+    SSE"): v1 now ships real-time delivery via Server-Sent Events
+    (GET /notifications/stream, @Sse(), no new dependency) instead of
+    deferring it to phase 2. Delivery (SSE) is a separate concern from
+    detection cadence (still the 15-min reconciliation cron) — see design.md
+    "Real-time delivery: SSE over the in-process EventBus". Explicitly
+    single-instance in v1 (in-process connection registry); multi-instance
+    fan-out (Redis pub/sub or the existing Kafka forwarder/consumer) is a
+    documented, not-yet-solved follow-up.
+
+  APPLY (2026-07-13): Implemented all six phases end-to-end — domain,
+  application (ports, reconciliation service, commands, queries), the
+  spaces addition (SpaceFindAllIdsQuery), infrastructure (TypeORM entity/
+  mapper/repos, 4 adapters, migration 1780000000025), transport (REST,
+  GraphQL with the typed Criteria pattern, MCP tools, module wiring,
+  ScheduleModule.forRoot() registered in core.module.ts), and SSE real-time
+  delivery (connection registry, EventBus forwarder, GET /notifications/
+  stream). New dependencies added: @nestjs/schedule, graphql-type-json (for
+  the payload JSON scalar). Regenerated
+  aggregate-module.map.generated.ts via `pnpm gen:topics` after adding
+  NotificationAggregate. Added src/contexts/notifications/README.md and a
+  short addition to spaces/README.md documenting SpaceFindAllIdsQuery.
+
+  Verified in this environment: `pnpm test` (1780/1780 tests green across
+  432 suites, including the repo-wide baseline), `pnpm lint` clean,
+  `tsc --noEmit` clean, `nest build` succeeds.
+
+  NOT verified in this environment (no Docker/Postgres available — see
+  tasks.md Phase 6 for the exact gap): integration tests (tenant isolation,
+  the partial unique index race guard, SpaceFindAllIdsQuery) and E2E tests
+  (full reconciliation round trip, REST/GraphQL flows, the SSE stream
+  itself). Also not written in this session: adapter-level unit tests
+  (care-schedule/inventory/user/space directory adapters) and a unit test
+  for NotificationsReconciliationJob's per-space error isolation — the
+  underlying logic is simple delegation/looping already exercised
+  indirectly by the reconciliation handler's own tests, but dedicated specs
+  are still owed per tasks.md 6.5/6.6.
+
+  Manual QA also not done: no way to run a live Postgres + browser in this
+  environment to confirm the SSE stream behaves as designed end-to-end
+  (heartbeat cadence, proxy buffering behavior, actual multi-tab delivery).
+  Recommend running `pnpm test:integration` and `pnpm test:e2e` (see
+  README's Database setup) plus a manual smoke test before merging.
+
+  ARCHITECTURE REVISION (2026-07-14, post-review): a reviewer asked "shouldn't
+  the owning context (inventory, care-schedule) decide *when* to notify, with
+  notifications only deciding *how*?" — correct, and it reverses the
+  pull/reconciliation design above. See design.md's "Architecture: who
+  decides 'when', who decides 'how'" and tasks.md's Phase 7 for the full
+  replacement. Summary:
+  - notifications shrinks to one public command
+    (UpsertConditionNotificationCommand: type/referenceType/referenceId/
+    payload/active) that does dedupe + fan-out + delivery only. Removed:
+    ReconcileSpaceNotificationsCommand, NotificationReconciliationService,
+    ICareScheduleAlertsPort, IInventoryAlertsPort, ISpaceDirectoryPort (and
+    their adapters), NotificationsReconciliationJob. notifications now has
+    ZERO read dependencies on care-schedule/inventory.
+  - care-schedule and inventory each own their own INotificationDispatcherPort
+    + adapter (dispatches the command above), their own ISpaceDirectoryPort
+    copy, and detection logic split by direction: entering a calendar-based
+    condition (CARE_SCHEDULE_DUE, INVENTORY_EXPIRING_SOON) needs a small
+    per-context cron since nothing mutates when a deadline arrives; exiting
+    is always mutation-triggered (complete/update/delete handlers recompute
+    and dispatch). INVENTORY_LOW_STOCK needed no cron at all — it's fully
+    event-driven both ways since quantity/threshold only change via commands.
+  - New aggregate methods: CareScheduleAggregate.isDueWithin(hours),
+    InventoryItemAggregate.isLowStock()/isExpiringWithin(days).
+  - New config: care-schedule.config.ts (dueWindowHours), inventory.config.ts
+    (expiringWindowDays). notifications.config.ts shrunk to sseHeartbeatMs
+    only.
+  - Verified again after the revision: pnpm test (full suite green), pnpm
+    lint clean, pnpm build clean. Same Postgres/Docker gap as before for
+    integration/E2E — not re-verified live.
+  - While fixing this, also addressed two review comments on
+    MarkNotificationReadCommand (now Pick<INotificationPrimitives,'id'> +
+    requestingUserId, matching DeletePlantPhotoCommand's pattern) and
+    ReconcileSpaceNotificationsCommand's window fields (now value objects,
+    per config.yaml's "Command class fields MUST be value objects" rule) —
+    both superseded by this same revision but the underlying convention fix
+    (Pick/Omit-from-Primitives, now documented in config.yaml) still stands
+    for UpsertConditionNotificationCommand and the two new per-context check
+    commands.

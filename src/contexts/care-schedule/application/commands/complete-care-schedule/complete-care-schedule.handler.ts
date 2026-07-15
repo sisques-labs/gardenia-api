@@ -7,6 +7,7 @@ import {
   ICareLogPort,
 } from '@contexts/care-schedule/application/ports/care-log.port';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
+import { DispatchCareScheduleDueNotificationService } from '@contexts/care-schedule/application/services/write/dispatch-care-schedule-due-notification/dispatch-care-schedule-due-notification.service';
 import { CareScheduleAggregate } from '@contexts/care-schedule/domain/aggregates/care-schedule.aggregate';
 import {
   CARE_SCHEDULE_WRITE_REPOSITORY,
@@ -28,6 +29,7 @@ export class CompleteCareScheduleCommandHandler
     private readonly assertCareScheduleExistsService: AssertCareScheduleExistsService,
     @Inject(CARE_LOG_PORT)
     private readonly careLogPort: ICareLogPort,
+    private readonly dispatchCareScheduleDueNotificationService: DispatchCareScheduleDueNotificationService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -52,6 +54,10 @@ export class CompleteCareScheduleCommandHandler
     // activity, so mirror it into the plant's care journal. Best-effort — a
     // care-log failure must not roll back the (authoritative) completion.
     await this.recordCareLogEntry(schedule, completedAt);
+
+    await this.dispatchCareScheduleDueNotificationService.execute({
+      schedule,
+    });
   }
 
   private async recordCareLogEntry(

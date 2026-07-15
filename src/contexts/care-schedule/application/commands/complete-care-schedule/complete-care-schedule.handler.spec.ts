@@ -2,6 +2,7 @@ import { EventBus } from '@nestjs/cqrs';
 
 import { ICareLogPort } from '@contexts/care-schedule/application/ports/care-log.port';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
+import { DispatchCareScheduleDueNotificationService } from '@contexts/care-schedule/application/services/write/dispatch-care-schedule-due-notification/dispatch-care-schedule-due-notification.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
 import { ICareScheduleWriteRepository } from '@contexts/care-schedule/domain/repositories/write/care-schedule-write.repository';
@@ -14,6 +15,7 @@ describe('CompleteCareScheduleCommandHandler', () => {
   let mockEventBus: jest.Mocked<EventBus>;
   let mockAssert: jest.Mocked<AssertCareScheduleExistsService>;
   let mockCareLogPort: jest.Mocked<ICareLogPort>;
+  let mockDispatchCareScheduleDueNotificationService: jest.Mocked<DispatchCareScheduleDueNotificationService>;
 
   function buildSchedule(intervalDays: number | null = 3) {
     const now = new Date('2026-06-27T00:00:00.000Z');
@@ -51,10 +53,15 @@ describe('CompleteCareScheduleCommandHandler', () => {
       recordCareLogEntry: jest.fn().mockResolvedValue(undefined),
     } as jest.Mocked<ICareLogPort>;
 
+    mockDispatchCareScheduleDueNotificationService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<DispatchCareScheduleDueNotificationService>;
+
     handler = new CompleteCareScheduleCommandHandler(
       mockWriteRepo,
       mockAssert,
       mockCareLogPort,
+      mockDispatchCareScheduleDueNotificationService,
       mockEventBus,
     );
   });
@@ -130,5 +137,22 @@ describe('CompleteCareScheduleCommandHandler', () => {
       ),
     ).resolves.toBeUndefined();
     expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('dispatches the due status via DispatchCareScheduleDueNotificationService after completion', async () => {
+    const schedule = buildSchedule();
+    mockAssert.execute.mockResolvedValue(schedule);
+    const completedAt = new Date();
+
+    await handler.execute(
+      new CompleteCareScheduleCommand({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        completedAt,
+      }),
+    );
+
+    expect(
+      mockDispatchCareScheduleDueNotificationService.execute,
+    ).toHaveBeenCalledWith({ schedule });
   });
 });

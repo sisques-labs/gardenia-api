@@ -16,8 +16,13 @@ export function createTenantRepository<E extends { spaceId: string }>(
           });
       }
       if (prop === 'save') {
-        return (entity: any) =>
-          target.save({ ...entity, spaceId: ctx.require() });
+        return (entityOrEntities: any) => {
+          const spaceId = ctx.require();
+          const withSpaceId = Array.isArray(entityOrEntities)
+            ? entityOrEntities.map((entity) => ({ ...entity, spaceId }))
+            : { ...entityOrEntities, spaceId };
+          return target.save(withSpaceId);
+        };
       }
       if (prop === 'delete') {
         return (criteria: any) => {

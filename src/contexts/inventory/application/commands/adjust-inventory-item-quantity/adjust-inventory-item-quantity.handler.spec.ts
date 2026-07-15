@@ -2,6 +2,7 @@ import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { AssertInventoryItemExistsService } from '@contexts/inventory/application/services/write/assert-inventory-item-exists/assert-inventory-item-exists.service';
+import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
@@ -10,6 +11,7 @@ import { IInventoryItemWriteRepository } from '@contexts/inventory/domain/reposi
 import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
 import { InventoryItemNameValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-name/inventory-item-name.value-object';
 import { InventoryItemTypeValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-type/inventory-item-type.value-object';
+import { InventoryLowStockThresholdValueObject } from '@contexts/inventory/domain/value-objects/inventory-low-stock-threshold/inventory-low-stock-threshold.value-object';
 import { InventoryQuantityValueObject } from '@contexts/inventory/domain/value-objects/inventory-quantity/inventory-quantity.value-object';
 import { InventoryUnitValueObject } from '@contexts/inventory/domain/value-objects/inventory-unit/inventory-unit.value-object';
 import { AdjustInventoryItemQuantityCommand } from './adjust-inventory-item-quantity.command';
@@ -17,7 +19,10 @@ import { AdjustInventoryItemQuantityCommandHandler } from './adjust-inventory-it
 
 const ID = '550e8400-e29b-41d4-a716-446655440000';
 
-function buildItem(quantity: number): InventoryItemAggregate {
+function buildItem(
+  quantity: number,
+  lowStockThreshold: number | null = null,
+): InventoryItemAggregate {
   return new InventoryItemAggregate({
     id: new InventoryItemIdValueObject(ID),
     itemType: new InventoryItemTypeValueObject(
@@ -28,7 +33,10 @@ function buildItem(quantity: number): InventoryItemAggregate {
     notes: null,
     quantity: new InventoryQuantityValueObject(quantity),
     unit: new InventoryUnitValueObject(InventoryUnitEnum.L),
-    lowStockThreshold: null,
+    lowStockThreshold:
+      lowStockThreshold !== null
+        ? new InventoryLowStockThresholdValueObject(lowStockThreshold)
+        : null,
     acquiredAt: null,
     expiresAt: null,
     userId: new UuidValueObject('660e8400-e29b-41d4-a716-446655440001'),
@@ -42,6 +50,7 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
   let handler: AdjustInventoryItemQuantityCommandHandler;
   let mockWriteRepo: jest.Mocked<IInventoryItemWriteRepository>;
   let mockAssert: jest.Mocked<AssertInventoryItemExistsService>;
+  let mockDispatchInventoryLowStockNotificationService: jest.Mocked<DispatchInventoryLowStockNotificationService>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -56,6 +65,10 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertInventoryItemExistsService>;
 
+    mockDispatchInventoryLowStockNotificationService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<DispatchInventoryLowStockNotificationService>;
+
     mockEventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -64,6 +77,7 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
     handler = new AdjustInventoryItemQuantityCommandHandler(
       mockWriteRepo,
       mockAssert,
+      mockDispatchInventoryLowStockNotificationService,
       mockEventBus,
     );
   });
@@ -113,5 +127,22 @@ describe('AdjustInventoryItemQuantityCommandHandler', () => {
         }),
       ),
     ).rejects.toBeInstanceOf(InventoryItemNotFoundException);
+  });
+
+  it('dispatches the low-stock status via DispatchInventoryLowStockNotificationService after adjusting', async () => {
+    const item = buildItem(10, 5);
+    mockAssert.execute.mockResolvedValue(item);
+
+    await handler.execute(
+      new AdjustInventoryItemQuantityCommand({
+        id: ID,
+        delta: -7,
+        reason: 'sowed',
+      }),
+    );
+
+    expect(
+      mockDispatchInventoryLowStockNotificationService.execute,
+    ).toHaveBeenCalledWith({ item });
   });
 });

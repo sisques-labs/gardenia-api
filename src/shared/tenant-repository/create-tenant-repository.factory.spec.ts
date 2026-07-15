@@ -135,6 +135,33 @@ describe('createTenantRepository', () => {
         SpaceContextMissingException,
       );
     });
+
+    it('should set spaceId on every entity when given an array', async () => {
+      const ctx = buildSpaceContext(SPACE_ID);
+      const tenantRepo = createTenantRepository(mockRepo, ctx);
+      const entities: TestEntity[] = [
+        { id: '1', spaceId: '', name: 'a' },
+        { id: '2', spaceId: '', name: 'b' },
+      ];
+      mockRepo.save.mockResolvedValue(entities as any);
+
+      await tenantRepo.save(entities as any);
+
+      expect(mockRepo.save).toHaveBeenCalledWith([
+        { id: '1', spaceId: SPACE_ID, name: 'a' },
+        { id: '2', spaceId: SPACE_ID, name: 'b' },
+      ]);
+    });
+
+    it('should throw SpaceContextMissingException for an array when context is empty', () => {
+      const ctx = buildSpaceContext(undefined);
+      const tenantRepo = createTenantRepository(mockRepo, ctx);
+      const entities: TestEntity[] = [{ id: '1', spaceId: '', name: 'a' }];
+
+      expect(() => tenantRepo.save(entities as any)).toThrow(
+        SpaceContextMissingException,
+      );
+    });
   });
 
   describe('delete()', () => {

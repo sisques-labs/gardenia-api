@@ -2,6 +2,8 @@ import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { AssertInventoryItemExistsService } from '@contexts/inventory/application/services/write/assert-inventory-item-exists/assert-inventory-item-exists.service';
+import { DispatchInventoryExpiringSoonNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-expiring-soon-notification/dispatch-inventory-expiring-soon-notification.service';
+import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
@@ -40,6 +42,8 @@ describe('UpdateInventoryItemCommandHandler', () => {
   let handler: UpdateInventoryItemCommandHandler;
   let mockWriteRepo: jest.Mocked<IInventoryItemWriteRepository>;
   let mockAssert: jest.Mocked<AssertInventoryItemExistsService>;
+  let mockDispatchInventoryLowStockNotificationService: jest.Mocked<DispatchInventoryLowStockNotificationService>;
+  let mockDispatchInventoryExpiringSoonNotificationService: jest.Mocked<DispatchInventoryExpiringSoonNotificationService>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -54,6 +58,14 @@ describe('UpdateInventoryItemCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertInventoryItemExistsService>;
 
+    mockDispatchInventoryLowStockNotificationService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<DispatchInventoryLowStockNotificationService>;
+
+    mockDispatchInventoryExpiringSoonNotificationService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<DispatchInventoryExpiringSoonNotificationService>;
+
     mockEventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -62,6 +74,8 @@ describe('UpdateInventoryItemCommandHandler', () => {
     handler = new UpdateInventoryItemCommandHandler(
       mockWriteRepo,
       mockAssert,
+      mockDispatchInventoryLowStockNotificationService,
+      mockDispatchInventoryExpiringSoonNotificationService,
       mockEventBus,
     );
   });
@@ -97,5 +111,25 @@ describe('UpdateInventoryItemCommandHandler', () => {
     await expect(
       handler.execute(new UpdateInventoryItemCommand({ id: ID, name: 'x' })),
     ).rejects.toBeInstanceOf(InventoryItemNotFoundException);
+  });
+
+  it('dispatches both LOW_STOCK and EXPIRING_SOON status via their services after updating', async () => {
+    const item = buildItem();
+    mockAssert.execute.mockResolvedValue(item);
+
+    await handler.execute(
+      new UpdateInventoryItemCommand({
+        id: ID,
+        lowStockThreshold: 10,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      }),
+    );
+
+    expect(
+      mockDispatchInventoryLowStockNotificationService.execute,
+    ).toHaveBeenCalledWith({ item });
+    expect(
+      mockDispatchInventoryExpiringSoonNotificationService.execute,
+    ).toHaveBeenCalledWith({ item });
   });
 });

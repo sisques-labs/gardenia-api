@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { CheckDueCareSchedulesCommandHandler } from '@contexts/care-schedule/application/commands/check-due-care-schedules/check-due-care-schedules.handler';
 import { CompleteCareScheduleCommandHandler } from '@contexts/care-schedule/application/commands/complete-care-schedule/complete-care-schedule.handler';
 import { CreateCareScheduleCommandHandler } from '@contexts/care-schedule/application/commands/create-care-schedule/create-care-schedule.handler';
 import { DeleteCareScheduleCommandHandler } from '@contexts/care-schedule/application/commands/delete-care-schedule/delete-care-schedule.handler';
@@ -10,16 +11,21 @@ import { WaterPlantCommandHandler } from '@contexts/care-schedule/application/co
 import { CareScheduleFindByCriteriaQueryHandler } from '@contexts/care-schedule/application/queries/care-schedule-find-by-criteria/care-schedule-find-by-criteria.handler';
 import { CareScheduleFindByIdQueryHandler } from '@contexts/care-schedule/application/queries/care-schedule-find-by-id/care-schedule-find-by-id.handler';
 import { CARE_LOG_PORT } from '@contexts/care-schedule/application/ports/care-log.port';
+import { NOTIFICATION_DISPATCHER_PORT } from '@contexts/care-schedule/application/ports/notification-dispatcher.port';
 import { AssertCareScheduleViewModelExistsService } from '@contexts/care-schedule/application/services/read/assert-care-schedule-view-model-exists/assert-care-schedule-view-model-exists.service';
+import { FindAllDueCareSchedulesService } from '@contexts/care-schedule/application/services/read/find-all-due-care-schedules/find-all-due-care-schedules.service';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
+import { DispatchCareScheduleDueNotificationService } from '@contexts/care-schedule/application/services/write/dispatch-care-schedule-due-notification/dispatch-care-schedule-due-notification.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareLogAdapter } from '@contexts/care-schedule/infrastructure/adapters/care-log.adapter';
+import { NotificationDispatcherAdapter } from '@contexts/care-schedule/infrastructure/adapters/notification-dispatcher.adapter';
 import { CARE_SCHEDULE_READ_REPOSITORY } from '@contexts/care-schedule/domain/repositories/read/care-schedule-read.repository';
 import { CARE_SCHEDULE_WRITE_REPOSITORY } from '@contexts/care-schedule/domain/repositories/write/care-schedule-write.repository';
 import { CareScheduleTypeOrmEntity } from '@contexts/care-schedule/infrastructure/persistence/typeorm/entities/care-schedule.entity';
 import { CareScheduleTypeOrmMapper } from '@contexts/care-schedule/infrastructure/persistence/typeorm/mappers/care-schedule-typeorm.mapper';
 import { CareScheduleTypeOrmReadRepository } from '@contexts/care-schedule/infrastructure/persistence/typeorm/repositories/care-schedule-typeorm-read.repository';
 import { CareScheduleTypeOrmWriteRepository } from '@contexts/care-schedule/infrastructure/persistence/typeorm/repositories/care-schedule-typeorm-write.repository';
+import { CareScheduleDueReconciliationJob } from '@contexts/care-schedule/transport/jobs/care-schedule-due-reconciliation.job';
 import { CareScheduleCompleteMcpTool } from '@contexts/care-schedule/transport/mcp/tools/care-schedule-complete.tool';
 import { CareScheduleCreateMcpTool } from '@contexts/care-schedule/transport/mcp/tools/care-schedule-create.tool';
 import { CareScheduleDeleteMcpTool } from '@contexts/care-schedule/transport/mcp/tools/care-schedule-delete.tool';
@@ -40,6 +46,7 @@ const COMMAND_HANDLERS = [
   CompleteCareScheduleCommandHandler,
   DeleteCareScheduleCommandHandler,
   WaterPlantCommandHandler,
+  CheckDueCareSchedulesCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -52,12 +59,18 @@ const DOMAIN_BUILDERS = [CareScheduleBuilder];
 const APPLICATION_SERVICES = [
   AssertCareScheduleExistsService,
   AssertCareScheduleViewModelExistsService,
+  DispatchCareScheduleDueNotificationService,
+  FindAllDueCareSchedulesService,
 ];
 
 const INFRASTRUCTURE_MAPPERS = [CareScheduleTypeOrmMapper];
 
 const INFRASTRUCTURE_ADAPTERS = [
   { provide: CARE_LOG_PORT, useClass: CareLogAdapter },
+  {
+    provide: NOTIFICATION_DISPATCHER_PORT,
+    useClass: NotificationDispatcherAdapter,
+  },
 ];
 
 const INFRASTRUCTURE_REPOSITORIES = [
@@ -72,6 +85,8 @@ const INFRASTRUCTURE_REPOSITORIES = [
 ];
 
 const INFRASTRUCTURE_ENTITIES = [CareScheduleTypeOrmEntity];
+
+const TRANSPORT_PROVIDERS = [CareScheduleDueReconciliationJob];
 
 const REST_CONTROLLERS = [CareSchedulesController];
 const REST_PROVIDERS = [CareScheduleRestMapper];
@@ -103,6 +118,7 @@ const MCP_TOOLS = [
     ...INFRASTRUCTURE_MAPPERS,
     ...INFRASTRUCTURE_ADAPTERS,
     ...INFRASTRUCTURE_REPOSITORIES,
+    ...TRANSPORT_PROVIDERS,
     ...REST_PROVIDERS,
     ...GRAPHQL_PROVIDERS,
     ...MCP_TOOLS,

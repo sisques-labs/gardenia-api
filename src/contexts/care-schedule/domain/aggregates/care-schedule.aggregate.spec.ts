@@ -156,4 +156,56 @@ describe('CareScheduleAggregate', () => {
     const primitives = buildSchedule(null).toPrimitives();
     expect(primitives.intervalDays).toBeNull();
   });
+
+  describe('isDueWithin()', () => {
+    function buildScheduleDueAt(
+      nextDueAt: Date,
+      active = true,
+    ): CareScheduleAggregate {
+      return new CareScheduleAggregate({
+        id: new CareScheduleIdValueObject(
+          '550e8400-e29b-41d4-a716-446655440000',
+        ),
+        plantId: new UuidValueObject('110e8400-e29b-41d4-a716-446655440010'),
+        activityType: new CareScheduleActivityTypeValueObject(
+          CareScheduleActivityTypeEnum.WATERING,
+        ),
+        intervalDays: new CareScheduleIntervalDaysValueObject(3),
+        quantity: null,
+        unit: null,
+        notes: null,
+        nextDueAt: new CareScheduleNextDueAtValueObject(nextDueAt),
+        lastCompletedAt: null,
+        active: new BooleanValueObject(active),
+        userId: new UuidValueObject('660e8400-e29b-41d4-a716-446655440001'),
+        spaceId: new UuidValueObject('770e8400-e29b-41d4-a716-446655440002'),
+        createdAt: new DateValueObject(new Date()),
+        updatedAt: new DateValueObject(new Date()),
+      });
+    }
+
+    it('is due when nextDueAt already passed', () => {
+      const schedule = buildScheduleDueAt(new Date(Date.now() - 60_000));
+      expect(schedule.isDueWithin(24)).toBe(true);
+    });
+
+    it('is due when nextDueAt falls within the window', () => {
+      const schedule = buildScheduleDueAt(
+        new Date(Date.now() + 12 * 60 * 60 * 1000),
+      );
+      expect(schedule.isDueWithin(24)).toBe(true);
+    });
+
+    it('is not due when nextDueAt falls outside the window', () => {
+      const schedule = buildScheduleDueAt(
+        new Date(Date.now() + 48 * 60 * 60 * 1000),
+      );
+      expect(schedule.isDueWithin(24)).toBe(false);
+    });
+
+    it('is never due when inactive, regardless of nextDueAt', () => {
+      const schedule = buildScheduleDueAt(new Date(Date.now() - 60_000), false);
+      expect(schedule.isDueWithin(24)).toBe(false);
+    });
+  });
 });

@@ -3,6 +3,8 @@ import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
 import { AssertInventoryItemExistsService } from '@contexts/inventory/application/services/write/assert-inventory-item-exists/assert-inventory-item-exists.service';
+import { DispatchInventoryExpiringSoonNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-expiring-soon-notification/dispatch-inventory-expiring-soon-notification.service';
+import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import {
   INVENTORY_ITEM_WRITE_REPOSITORY,
@@ -22,6 +24,8 @@ export class UpdateInventoryItemCommandHandler
     @Inject(INVENTORY_ITEM_WRITE_REPOSITORY)
     private readonly inventoryItemWriteRepository: IInventoryItemWriteRepository,
     private readonly assertInventoryItemExistsService: AssertInventoryItemExistsService,
+    private readonly dispatchInventoryLowStockNotificationService: DispatchInventoryLowStockNotificationService,
+    private readonly dispatchInventoryExpiringSoonNotificationService: DispatchInventoryExpiringSoonNotificationService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -47,5 +51,10 @@ export class UpdateInventoryItemCommandHandler
     await this.publishEvents(item);
 
     this.logger.log(`Inventory item updated: ${command.id.value}`);
+
+    await Promise.all([
+      this.dispatchInventoryLowStockNotificationService.execute({ item }),
+      this.dispatchInventoryExpiringSoonNotificationService.execute({ item }),
+    ]);
   }
 }

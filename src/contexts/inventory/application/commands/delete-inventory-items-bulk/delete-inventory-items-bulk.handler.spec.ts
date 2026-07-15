@@ -1,6 +1,8 @@
 import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { DispatchInventoryExpiringSoonNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-expiring-soon-notification/dispatch-inventory-expiring-soon-notification.service';
+import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventory-item-type.enum';
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
@@ -39,6 +41,8 @@ function buildItem(id: string): InventoryItemAggregate {
 describe('DeleteInventoryItemsBulkCommandHandler', () => {
   let handler: DeleteInventoryItemsBulkCommandHandler;
   let mockWriteRepo: jest.Mocked<IInventoryItemWriteRepository>;
+  let mockDispatchInventoryLowStockNotificationService: jest.Mocked<DispatchInventoryLowStockNotificationService>;
+  let mockDispatchInventoryExpiringSoonNotificationService: jest.Mocked<DispatchInventoryExpiringSoonNotificationService>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -49,6 +53,14 @@ describe('DeleteInventoryItemsBulkCommandHandler', () => {
       delete: jest.fn().mockResolvedValue(undefined),
     } as jest.Mocked<IInventoryItemWriteRepository>;
 
+    mockDispatchInventoryLowStockNotificationService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<DispatchInventoryLowStockNotificationService>;
+
+    mockDispatchInventoryExpiringSoonNotificationService = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<DispatchInventoryExpiringSoonNotificationService>;
+
     mockEventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -56,6 +68,8 @@ describe('DeleteInventoryItemsBulkCommandHandler', () => {
 
     handler = new DeleteInventoryItemsBulkCommandHandler(
       mockWriteRepo,
+      mockDispatchInventoryLowStockNotificationService,
+      mockDispatchInventoryExpiringSoonNotificationService,
       mockEventBus,
     );
   });
@@ -121,5 +135,30 @@ describe('DeleteInventoryItemsBulkCommandHandler', () => {
 
     expect(mockWriteRepo.findById).not.toHaveBeenCalled();
     expect(result).toEqual({ deletedIds: [], notFoundIds: [] });
+  });
+
+  it('resolves both notification conditions for each deleted item', async () => {
+    const itemA = buildItem(ID_A);
+    const itemB = buildItem(ID_B);
+    mockWriteRepo.findById
+      .mockResolvedValueOnce(itemA)
+      .mockResolvedValueOnce(itemB);
+
+    await handler.execute(
+      new DeleteInventoryItemsBulkCommand({ ids: [ID_A, ID_B] }),
+    );
+
+    expect(
+      mockDispatchInventoryLowStockNotificationService.execute,
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      mockDispatchInventoryExpiringSoonNotificationService.execute,
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      mockDispatchInventoryLowStockNotificationService.execute,
+    ).toHaveBeenCalledWith({ item: itemA, active: false });
+    expect(
+      mockDispatchInventoryExpiringSoonNotificationService.execute,
+    ).toHaveBeenCalledWith({ item: itemB, active: false });
   });
 });

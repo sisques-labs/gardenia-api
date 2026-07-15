@@ -21,7 +21,7 @@ describe('care-schedule bounded context — no cross-context imports', () => {
 
     const violations: string[] = [];
     const forbidden =
-      /from\s+['"](@contexts\/plants|@contexts\/plant-species|@contexts\/care-log|@contexts\/inventory|@contexts\/harvests|@contexts\/planting-spots|@contexts\/weather|@contexts\/spaces|@contexts\/files)[/'"]/;
+      /from\s+['"](@contexts\/plants|@contexts\/plant-species|@contexts\/care-log|@contexts\/inventory|@contexts\/harvests|@contexts\/planting-spots|@contexts\/weather|@contexts\/spaces|@contexts\/files|@contexts\/notifications)[/'"]/;
 
     for (const file of files) {
       const relativePath = file.replace(contextDir + '/', '');

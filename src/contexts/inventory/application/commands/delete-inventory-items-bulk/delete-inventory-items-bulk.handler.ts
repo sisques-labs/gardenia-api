@@ -2,6 +2,8 @@ import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
+import { DispatchInventoryExpiringSoonNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-expiring-soon-notification/dispatch-inventory-expiring-soon-notification.service';
+import { DispatchInventoryLowStockNotificationService } from '@contexts/inventory/application/services/write/dispatch-inventory-low-stock-notification/dispatch-inventory-low-stock-notification.service';
 import { InventoryItemAggregate } from '@contexts/inventory/domain/aggregates/inventory-item.aggregate';
 import {
   INVENTORY_ITEM_WRITE_REPOSITORY,
@@ -34,6 +36,8 @@ export class DeleteInventoryItemsBulkCommandHandler
   constructor(
     @Inject(INVENTORY_ITEM_WRITE_REPOSITORY)
     private readonly inventoryItemWriteRepository: IInventoryItemWriteRepository,
+    private readonly dispatchInventoryLowStockNotificationService: DispatchInventoryLowStockNotificationService,
+    private readonly dispatchInventoryExpiringSoonNotificationService: DispatchInventoryExpiringSoonNotificationService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -59,6 +63,17 @@ export class DeleteInventoryItemsBulkCommandHandler
       await this.inventoryItemWriteRepository.delete(item.id.value);
       await this.publishEvents(item);
       deletedIds.push(item.id.value);
+
+      await Promise.all([
+        this.dispatchInventoryLowStockNotificationService.execute({
+          item,
+          active: false,
+        }),
+        this.dispatchInventoryExpiringSoonNotificationService.execute({
+          item,
+          active: false,
+        }),
+      ]);
     }
 
     this.logger.log(
