@@ -10,8 +10,7 @@ const buildViewModel = (
   new PlantSpeciesViewModel({
     id: ID,
     scientificName: 'Monstera deliciosa',
-    description: 'A tropical plant',
-    imageUrl: 'https://example.com/m.png',
+    gbifKey: 2882337,
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
@@ -29,16 +28,12 @@ describe('PlantSpeciesRestMapper', () => {
 
     expect(dto.id).toBe(ID);
     expect(dto.scientificName).toBe('Monstera deliciosa');
-    expect(dto.description).toBe('A tropical plant');
-    expect(dto.imageUrl).toBe('https://example.com/m.png');
+    expect(dto.gbifKey).toBe(2882337);
   });
 
-  it('maps null optional fields', () => {
-    const dto = mapper.toResponse(
-      buildViewModel({ description: null, imageUrl: null }),
-    );
+  it('maps a null gbifKey', () => {
+    const dto = mapper.toResponse(buildViewModel({ gbifKey: null }));
 
-    expect(dto.description).toBeNull();
-    expect(dto.imageUrl).toBeNull();
+    expect(dto.gbifKey).toBeNull();
   });
 });

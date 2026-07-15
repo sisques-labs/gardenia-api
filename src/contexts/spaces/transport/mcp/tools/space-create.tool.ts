@@ -2,15 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreateSpaceCommand } from '@contexts/spaces/application/commands/create-space/create-space.command';
 import { spaceCreateSchema } from '../schemas/space-create.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceCreateMcpTool implements IMcpTool {
+export class SpaceCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(SpaceCreateMcpTool.name);
 
   readonly name = 'space_create';

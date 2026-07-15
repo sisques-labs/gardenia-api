@@ -1,0 +1,28 @@
+change: planting-spot-fallow-status
+status: apply
+created: 2026-07-03
+artifact_store: hybrid
+context: planting-spots
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: done
+  verify: partial
+  archive: pending
+next_recommended:
+  - sdd-verify
+  - sdd-archive
+notes: |
+  Adds a minimal fallow/active status to PlantingSpot via two dedicated
+  commands (MarkPlantingSpotFallow / MarkPlantingSpotActive), each deriving
+  fallowSince automatically. UpdatePlantingSpotCommand is unchanged. Web
+  (gardenia-web) use cases are an explicit follow-up, out of scope here.
+
+  Implemented in full (39/39 tasks). Unit tests, lint, and typecheck all
+  pass (388/388 suites, 1605/1605 tests). Integration/E2E tests were NOT
+  run — no Docker/Postgres available in this sandbox. Run
+  `pnpm test:integration` and `pnpm test:e2e` against a real Postgres
+  before merging.

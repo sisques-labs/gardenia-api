@@ -1,10 +1,11 @@
 import { IPlantSpeciesPort } from '@contexts/plants/application/ports/plant-species.port';
 import { PlantSpeciesBuilder } from '@contexts/plants/domain/builders/plant-species.builder';
 import { PlantSpeciesViewModel } from '@contexts/plants/domain/view-models/plant-species.view-model';
+import { FindOrCreatePlantSpeciesByGbifKeyCommand } from '@contexts/plant-species/application/commands/find-or-create-plant-species-by-gbif-key/find-or-create-plant-species-by-gbif-key.command';
 import { PlantSpeciesFindByIdQuery } from '@contexts/plant-species/application/queries/plant-species-find-by-id/plant-species-find-by-id.query';
 import { PlantSpeciesViewModel as PlantSpeciesCatalogViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 import { Injectable, Logger } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
 @Injectable()
 export class PlantSpeciesAdapter implements IPlantSpeciesPort {
@@ -12,6 +13,7 @@ export class PlantSpeciesAdapter implements IPlantSpeciesPort {
 
   constructor(
     private readonly queryBus: QueryBus,
+    private readonly commandBus: CommandBus,
     private readonly plantSpeciesBuilder: PlantSpeciesBuilder,
   ) {}
 
@@ -21,10 +23,9 @@ export class PlantSpeciesAdapter implements IPlantSpeciesPort {
     this.logger.log(`Fetching plant species data for id ${plantSpeciesId}`);
 
     const catalogViewModel = await this.queryBus
-      .execute<
-        PlantSpeciesFindByIdQuery,
-        PlantSpeciesCatalogViewModel | null
-      >(new PlantSpeciesFindByIdQuery({ plantSpeciesId }))
+      .execute<PlantSpeciesFindByIdQuery, PlantSpeciesCatalogViewModel | null>(
+        new PlantSpeciesFindByIdQuery({ plantSpeciesId }),
+      )
       .catch(() => null);
 
     if (!catalogViewModel) {
@@ -37,10 +38,25 @@ export class PlantSpeciesAdapter implements IPlantSpeciesPort {
     return this.plantSpeciesBuilder
       .withId(catalogViewModel.id)
       .withScientificName(catalogViewModel.scientificName)
-      .withDescription(catalogViewModel.description)
-      .withImageUrl(catalogViewModel.imageUrl)
+      .withGbifKey(catalogViewModel.gbifKey)
       .withCreatedAt(catalogViewModel.createdAt)
       .withUpdatedAt(catalogViewModel.updatedAt)
       .buildViewModel();
+  }
+
+  async findOrCreateByGbifKey(
+    gbifKey: number,
+    scientificName: string,
+  ): Promise<{ id: string }> {
+    this.logger.log(`Resolving plant species for gbifKey ${gbifKey}`);
+
+    const id = await this.commandBus.execute<
+      FindOrCreatePlantSpeciesByGbifKeyCommand,
+      string
+    >(
+      new FindOrCreatePlantSpeciesByGbifKeyCommand({ gbifKey, scientificName }),
+    );
+
+    return { id };
   }
 }

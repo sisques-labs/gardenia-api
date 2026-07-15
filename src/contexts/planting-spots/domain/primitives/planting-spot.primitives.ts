@@ -11,6 +11,9 @@ export type IPlantingSpotPrimitives = BasePrimitives & {
   dimensionsHeight: number | null;
   dimensionsLength: number | null;
   soilType: string | null;
+  status: string;
+  fallowSince: Date | null;
+  qrId: string | null;
   userId: string;
   spaceId: string;
 };

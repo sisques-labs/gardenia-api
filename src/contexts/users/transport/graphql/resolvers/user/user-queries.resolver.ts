@@ -7,10 +7,12 @@ import {
   UserResponseDto,
 } from '@contexts/users/transport/graphql/dtos/responses/user/user.response.dto';
 import { UserGraphQLMapper } from '@contexts/users/transport/graphql/mappers/user/user.mapper';
+import { userFilterableFields } from '@contexts/users/transport/graphql/registries/user-filterable-fields.registry';
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { Criteria } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 @Resolver()
 //@UseGuards(JwtAuthGuard)
@@ -24,7 +26,11 @@ export class UserQueriesResolver {
 
   @Query(() => PaginatedUserResultDto)
   async usersFindByCriteria(
-    @Args('input', { nullable: true })
+    @Args(
+      'input',
+      { nullable: true },
+      new FilterValidationPipe(userFilterableFields),
+    )
     input?: UserFindByCriteriaRequestDto,
   ): Promise<PaginatedUserResultDto> {
     this.logger.log(`Finding users by criteria: ${JSON.stringify(input)}`);

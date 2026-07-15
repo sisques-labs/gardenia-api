@@ -1,5 +1,12 @@
-import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Field, InputType, Int } from '@nestjs/graphql';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 @InputType('PlantUpdateRequestDto')
 export class PlantUpdateRequestDto {
@@ -16,13 +23,25 @@ export class PlantUpdateRequestDto {
   @IsString()
   name?: string;
 
-  @Field(() => String, {
+  @Field(() => Int, {
     nullable: true,
-    description: 'UUID of the plant species catalog entry; null to unlink',
+    description:
+      "GBIF's numeric usageKey of the species to link (from a live search result); null to unlink",
   })
   @IsOptional()
-  @IsUUID()
-  plantSpeciesId?: string | null;
+  @IsInt()
+  @Min(1)
+  gbifSpeciesKey?: number | null;
+
+  @Field(() => String, {
+    nullable: true,
+    description:
+      'Scientific name of the species to link, as chosen from a live search result; null to unlink',
+  })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  speciesScientificName?: string | null;
 
   @Field(() => String, {
     nullable: true,
@@ -31,4 +50,12 @@ export class PlantUpdateRequestDto {
   @IsOptional()
   @IsString()
   imageUrl?: string | null;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'UUID of the planting spot to assign; null to unassign',
+  })
+  @IsOptional()
+  @IsUUID()
+  plantingSpotId?: string | null;
 }

@@ -1,11 +1,10 @@
 import { CommandBus } from '@nestjs/cqrs';
 
 import { CreatePlantCommand } from '@contexts/plants/application/commands/create-plant/create-plant.command';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { PlantCreateMcpTool } from './plant-create.tool';
 
 const PLANT_ID = '11111111-1111-4111-8111-111111111111';
-const SPECIES_ID = '22222222-2222-4222-8222-222222222222';
 const CONTEXT: IMcpToolContext = {
   userId: '33333333-3333-4333-8333-333333333333',
   email: 'gardener@example.com',
@@ -25,7 +24,11 @@ describe('PlantCreateMcpTool', () => {
     commandBus.execute.mockResolvedValueOnce(PLANT_ID);
 
     const result = await tool.execute(
-      { name: 'Basil', plantSpeciesId: SPECIES_ID },
+      {
+        name: 'Basil',
+        gbifSpeciesKey: 2882337,
+        speciesScientificName: 'Monstera deliciosa',
+      },
       CONTEXT,
     );
 
@@ -34,6 +37,7 @@ describe('PlantCreateMcpTool', () => {
     );
     const command = commandBus.execute.mock.calls[0][0] as CreatePlantCommand;
     expect(command.name.value).toBe('Basil');
+    expect(command.gbifSpeciesKey?.value).toBe(2882337);
     expect(command.userId.value).toBe(CONTEXT.userId);
     expect(result.content[0]).toEqual({
       type: 'text',

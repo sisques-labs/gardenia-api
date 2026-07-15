@@ -1,5 +1,6 @@
 import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { IPlantingSpotPrimitives } from '@contexts/planting-spots/domain/primitives/planting-spot.primitives';
 import { PlantingSpotCapacityValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-capacity/planting-spot-capacity.value-object';
@@ -9,11 +10,12 @@ import { PlantingSpotDimensionsValueObject } from '@contexts/planting-spots/doma
 import { PlantingSpotNameValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-name/planting-spot-name.value-object';
 import { PlantingSpotRowValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-row/planting-spot-row.value-object';
 import { PlantingSpotSoilTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-soil-type/planting-spot-soil-type.value-object';
+import { PlantingSpotStatusValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-status/planting-spot-status.value-object';
 import { PlantingSpotTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-type/planting-spot-type.value-object';
 
 export type CreatePlantingSpotCommandInput = Omit<
   IPlantingSpotPrimitives,
-  'id' | 'createdAt' | 'updatedAt'
+  'id' | 'createdAt' | 'updatedAt' | 'status' | 'fallowSince' | 'qrId'
 >;
 
 export class CreatePlantingSpotCommand {
@@ -25,10 +27,16 @@ export class CreatePlantingSpotCommand {
   public readonly column: PlantingSpotColumnValueObject | null;
   public readonly dimensions: PlantingSpotDimensionsValueObject | null;
   public readonly soilType: PlantingSpotSoilTypeValueObject | null;
+  public readonly status: PlantingSpotStatusValueObject;
+  public readonly fallowSince: null;
   public readonly userId: UuidValueObject;
   public readonly spaceId: UuidValueObject;
 
   constructor(input: CreatePlantingSpotCommandInput) {
+    this.status = new PlantingSpotStatusValueObject(
+      PlantingSpotStatusEnum.ACTIVE,
+    );
+    this.fallowSince = null;
     this.name = new PlantingSpotNameValueObject(input.name);
     this.type = new PlantingSpotTypeValueObject(
       input.type as PlantingSpotTypeEnum,

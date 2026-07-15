@@ -15,6 +15,11 @@ export const TRUNCATE_TABLES = [
   'plants',
   'qrs',
   'planting_spots',
+  'files',
+  'harvests',
+  'care_schedules',
+  'care_log_entries',
+  'inventory_items',
 ] as const;
 
 /**

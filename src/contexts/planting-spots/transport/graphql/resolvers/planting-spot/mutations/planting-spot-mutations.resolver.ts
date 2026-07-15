@@ -5,10 +5,18 @@ import {
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { CreatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/create-planting-spot/create-planting-spot.command';
 import { DeletePlantingSpotCommand } from '@contexts/planting-spots/application/commands/delete-planting-spot/delete-planting-spot.command';
+import { MarkPlantingSpotActiveCommand } from '@contexts/planting-spots/application/commands/mark-planting-spot-active/mark-planting-spot-active.command';
+import { MarkPlantingSpotFallowCommand } from '@contexts/planting-spots/application/commands/mark-planting-spot-fallow/mark-planting-spot-fallow.command';
 import { UpdatePlantingSpotCommand } from '@contexts/planting-spots/application/commands/update-planting-spot/update-planting-spot.command';
+import { WaterPlantingSpotCommand } from '@contexts/planting-spots/application/commands/water-planting-spot/water-planting-spot.command';
+import { WaterPlantingSpotResult } from '@contexts/planting-spots/application/commands/water-planting-spot/water-planting-spot.result';
 import { PlantingSpotCreateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-create.request.dto';
 import { PlantingSpotDeleteRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-delete.request.dto';
+import { PlantingSpotMarkActiveRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-mark-active.request.dto';
+import { PlantingSpotMarkFallowRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-mark-fallow.request.dto';
 import { PlantingSpotUpdateRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-update.request.dto';
+import { PlantingSpotWaterRequestDto } from '@contexts/planting-spots/transport/graphql/dtos/requests/planting-spot/planting-spot-water.request.dto';
+import { PlantingSpotWaterResultObject } from '@contexts/planting-spots/transport/graphql/objects/planting-spot-water-result.object';
 import { Logger, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
@@ -16,7 +24,7 @@ import { SpaceContext } from '@shared/space-context/space-context.service';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 @UseGuards(JwtAuthGuard)
 @Resolver()
@@ -83,9 +91,18 @@ export class PlantingSpotMutationsResolver {
         capacity: input.capacity,
         row: input.row,
         column: input.column,
-        dimensionsWidth: input.dimensions !== undefined ? (input.dimensions?.width ?? null) : undefined,
-        dimensionsHeight: input.dimensions !== undefined ? (input.dimensions?.height ?? null) : undefined,
-        dimensionsLength: input.dimensions !== undefined ? (input.dimensions?.length ?? null) : undefined,
+        dimensionsWidth:
+          input.dimensions !== undefined
+            ? (input.dimensions?.width ?? null)
+            : undefined,
+        dimensionsHeight:
+          input.dimensions !== undefined
+            ? (input.dimensions?.height ?? null)
+            : undefined,
+        dimensionsLength:
+          input.dimensions !== undefined
+            ? (input.dimensions?.length ?? null)
+            : undefined,
         soilType: input.soilType,
         requestingUserId: user.userId,
         spaceId,
@@ -97,6 +114,31 @@ export class PlantingSpotMutationsResolver {
       message: 'Planting spot updated successfully',
       id: input.id,
     });
+  }
+
+  @Mutation(() => PlantingSpotWaterResultObject)
+  async plantingSpotWater(
+    @Args('input') input: PlantingSpotWaterRequestDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<PlantingSpotWaterResultObject> {
+    this.logger.log(
+      `Watering planting spot ${input.id} for user: ${user.userId}`,
+    );
+
+    const spaceId = this.spaceContext.require();
+    const result = await this.commandBus.execute<
+      WaterPlantingSpotCommand,
+      WaterPlantingSpotResult
+    >(
+      new WaterPlantingSpotCommand({
+        id: input.id,
+        userId: user.userId,
+        spaceId,
+        performedAt: input.performedAt,
+      }),
+    );
+
+    return result;
   }
 
   @Mutation(() => MutationResponseDto)
@@ -120,6 +162,56 @@ export class PlantingSpotMutationsResolver {
     return this.mutationResponseGraphQLMapper.toResponseDto({
       success: true,
       message: 'Planting spot deleted successfully',
+      id: input.id,
+    });
+  }
+
+  @Mutation(() => MutationResponseDto)
+  async plantingSpotMarkFallow(
+    @Args('input') input: PlantingSpotMarkFallowRequestDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<MutationResponseDto> {
+    this.logger.log(
+      `Marking planting spot ${input.id} fallow for user: ${user.userId}`,
+    );
+
+    const spaceId = this.spaceContext.require();
+    await this.commandBus.execute(
+      new MarkPlantingSpotFallowCommand({
+        id: input.id,
+        requestingUserId: user.userId,
+        spaceId,
+      }),
+    );
+
+    return this.mutationResponseGraphQLMapper.toResponseDto({
+      success: true,
+      message: 'Planting spot marked fallow successfully',
+      id: input.id,
+    });
+  }
+
+  @Mutation(() => MutationResponseDto)
+  async plantingSpotMarkActive(
+    @Args('input') input: PlantingSpotMarkActiveRequestDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<MutationResponseDto> {
+    this.logger.log(
+      `Marking planting spot ${input.id} active for user: ${user.userId}`,
+    );
+
+    const spaceId = this.spaceContext.require();
+    await this.commandBus.execute(
+      new MarkPlantingSpotActiveCommand({
+        id: input.id,
+        requestingUserId: user.userId,
+        spaceId,
+      }),
+    );
+
+    return this.mutationResponseGraphQLMapper.toResponseDto({
+      success: true,
+      message: 'Planting spot marked active successfully',
       id: input.id,
     });
   }

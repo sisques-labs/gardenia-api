@@ -2,8 +2,11 @@ import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
+import {
+  IPlantingSpotQrPort,
+  PLANTING_SPOT_QR_PORT,
+} from '@contexts/planting-spots/application/ports/planting-spot-qr.port';
 import { PlantingSpotAggregate } from '@contexts/planting-spots/domain/aggregates/planting-spot.aggregate';
-import { PlantingSpotForbiddenException } from '@contexts/planting-spots/domain/exceptions/planting-spot-forbidden.exception';
 import {
   IPlantingSpotWriteRepository,
   PLANTING_SPOT_WRITE_REPOSITORY,
@@ -25,6 +28,8 @@ export class DeletePlantingSpotCommandHandler
     private readonly plantingSpotWriteRepository: IPlantingSpotWriteRepository,
     private readonly assertPlantingSpotExistsService: AssertPlantingSpotExistsService,
     private readonly assertPlantingSpotNotInUseService: AssertPlantingSpotNotInUseService,
+    @Inject(PLANTING_SPOT_QR_PORT)
+    private readonly plantingSpotQrPort: IPlantingSpotQrPort,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -33,16 +38,13 @@ export class DeletePlantingSpotCommandHandler
   async execute(command: DeletePlantingSpotCommand): Promise<void> {
     const spot = await this.assertPlantingSpotExistsService.execute(command.id);
 
-    if (spot.userId.value !== command.requestingUserId.value) {
-      throw new PlantingSpotForbiddenException(
-        command.requestingUserId.value,
-        command.id.value,
-      );
-    }
-
     await this.assertPlantingSpotNotInUseService.execute(command.id);
 
     spot.delete();
+
+    if (spot.qrId) {
+      await this.plantingSpotQrPort.delete(spot.qrId.value);
+    }
 
     await this.plantingSpotWriteRepository.delete(spot.id.value);
     await this.publishEvents(spot);

@@ -3,9 +3,11 @@ import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 
+import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { SpaceViewModel } from '@contexts/spaces/domain/view-models/space.view-model';
 import { SKIP_SPACE_KEY } from '../../../../../../shared/decorators/skip-space.decorator';
 import { SpaceFindByIdRequestDto } from '../../dtos/requests/space/space-find-by-id.request.dto';
+import { SpaceInvitationGraphQLMapper } from '../../mappers/space-invitation/space-invitation.mapper';
 import { SpaceGraphQLMapper } from '../../mappers/space/space.mapper';
 import { SpaceQueriesResolver } from './space-queries.resolver';
 
@@ -17,6 +19,7 @@ describe('SpaceQueriesResolver', () => {
   let resolver: SpaceQueriesResolver;
   let queryBus: jest.Mocked<QueryBus>;
   let mapper: jest.Mocked<SpaceGraphQLMapper>;
+  let invitationMapper: jest.Mocked<SpaceInvitationGraphQLMapper>;
 
   const now = new Date('2024-01-01T00:00:00Z');
   const mockVm = new SpaceViewModel({
@@ -40,8 +43,12 @@ describe('SpaceQueriesResolver', () => {
       toResponseDtoFromViewModel: jest.fn(),
       toPaginatedResponseDto: jest.fn(),
     } as unknown as jest.Mocked<SpaceGraphQLMapper>;
+    invitationMapper = {
+      toResponse: jest.fn(),
+      toPreviewResponse: jest.fn(),
+    } as unknown as jest.Mocked<SpaceInvitationGraphQLMapper>;
 
-    resolver = new SpaceQueriesResolver(queryBus, mapper);
+    resolver = new SpaceQueriesResolver(queryBus, mapper, invitationMapper);
   });
 
   describe('spaceFindById', () => {
@@ -105,6 +112,41 @@ describe('SpaceQueriesResolver', () => {
       const method = SpaceQueriesResolver.prototype.spacesFindByUser;
       const metadata = Reflect.getMetadata(SKIP_SPACE_KEY, method);
       expect(metadata).toBe(true);
+    });
+  });
+
+  describe('spaceInvitationPreview', () => {
+    it('dispatches SpaceInvitationPreviewFindByCodeQuery and returns the mapped response', async () => {
+      const previewVm = {
+        spaceName: 'Greenhouse A',
+        role: MembershipRoleEnum.MEMBER,
+        expiresAt: now,
+        isExpired: false,
+      };
+      queryBus.execute.mockResolvedValueOnce(previewVm);
+      invitationMapper.toPreviewResponse.mockReturnValueOnce(previewVm);
+
+      const result = await resolver.spaceInvitationPreview('SECRETCODE');
+
+      expect(queryBus.execute).toHaveBeenCalledTimes(1);
+      expect(invitationMapper.toPreviewResponse).toHaveBeenCalledWith(
+        previewVm,
+      );
+      expect(result).toBe(previewVm);
+    });
+
+    it('has @SkipSpace metadata', () => {
+      const method = SpaceQueriesResolver.prototype.spaceInvitationPreview;
+      const metadata = Reflect.getMetadata(SKIP_SPACE_KEY, method);
+      expect(metadata).toBe(true);
+    });
+
+    it('does not have JwtAuthGuard — publicly accessible', () => {
+      const guards = Reflect.getMetadata(
+        '__guards__',
+        SpaceQueriesResolver.prototype.spaceInvitationPreview,
+      );
+      expect(guards ?? []).not.toContain(JwtAuthGuard);
     });
   });
 

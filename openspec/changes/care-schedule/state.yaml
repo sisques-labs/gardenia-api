@@ -1,0 +1,20 @@
+change: care-schedule
+status: apply
+created: 2026-06-27
+artifact_store: hybrid
+context: care-schedule
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: in-progress
+  verify: pending
+  archive: pending
+next_recommended:
+  - sdd-verify
+notes: |
+  New standalone tenant-scoped bounded context for recurring plant care plans.
+  Mirrors the inventory context shape. Integration and E2E suites authored;
+  run them where a Postgres database is available.

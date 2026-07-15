@@ -26,7 +26,7 @@ import { SkipSpace } from '../../../../../../shared/decorators/skip-space.decora
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 @Resolver()
 export class AuthMutationsResolver {
@@ -72,8 +72,7 @@ export class AuthMutationsResolver {
   @SkipSpace()
   async refreshToken(@Context() ctx: any): Promise<AuthPayloadObject> {
     const refreshToken = ctx.req.cookies?.[REFRESH_COOKIE_NAME] as
-      | string
-      | undefined;
+      string | undefined;
     if (!refreshToken) throw new UnauthorizedException();
     const result = await this.commandBus.execute<
       RefreshTokenCommand,
@@ -89,8 +88,7 @@ export class AuthMutationsResolver {
   @SkipSpace()
   async logout(@Context() ctx: any): Promise<boolean> {
     const refreshToken = ctx.req.cookies?.[REFRESH_COOKIE_NAME] as
-      | string
-      | undefined;
+      string | undefined;
     if (refreshToken) {
       await this.commandBus.execute(new LogoutCommand({ refreshToken }));
     }

@@ -1,11 +1,141 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.23.1-alpha.0] - 2026-06-23
+## [0.27.0] - 2026-07-10
+
+### Documentation
+- **openspec:** Propose gbif-species-search change (GDN-35) (b7d1a82)
+- **openspec:** Revise gbif-species-search to keep plant-species trimmed (e10cf93)
+
+### Features
+- **plant-species:** Trim catalog to gbifKey+scientificName, add live GBIF search (0381db1)
+## [0.26.1] - 2026-07-10
+
+### Chore
+- **deps:** Bump @sisques-labs/nestjs-kit to 1.2.1 (b6cb66a)
+
+### Documentation
+- Add docker/README.md for the Docker Hub repository page (b96e130)
+
+### Refactor
+- **mcp:** Consume @sisques-labs/nestjs-kit/mcp instead of a local copy (406146d)
+- **metrics,messaging:** Consume @sisques-labs/nestjs-kit instead of local copies (a236086)
+- **mcp:** Drop Gardenia prefix from context builder/interface names (09cbb6b)
+- Aggregate core/context wiring into CoreModule/ContextsModule (1f08a1a)
+## [0.26.0] - 2026-07-09
+
+### Bug Fixes
+- **users:** Resolve space members via memberships, not home space_id (f8b4e61)
+- **deps:** Finish @sisques-labs/nestjs-kit@1.0.0 migration (17d8fd3)
+- **deps:** Migrate remaining nestjs-kit import in integration test helper (5ddeb3a)
+- **planting-spots:** Delete linked qr via port before deleting spot (c2b7870)
+- **plant-photos:** Wire exception filter and fix integration test UUID (3b53271)
+- **plant-photos:** Seed a files row before integration-test inserts (39f39e8)
+- **plant-photos:** Migrate nestjs-kit imports to v1.0.0 subpath entrypoints (de9a82d)
+
+### Chore
+- **tsconfig:** Add tsBuildInfoFile option for incremental builds (17eeb6d)
+- **ci:** Run only changed tests on pre-push (6af4835)
+- **ci:** Remove notify-e2e job from release train (43bc865)
+- **deps:** Migrate to @sisques-labs/nestjs-kit GraphQL subpath export (2fdcf17)
+
+### Documentation
+- **openspec:** Add resolve-space-members-via-memberships change (354b805)
+- **planting-spots:** Add OpenSpec change docs for QR support (15bf2ce)
+
+### Features
+- **files:** Add S3 adapter to files storage port (a9c0797)
+- **env:** Add file storage configuration options to .env.example (414b66a)
+- **planting-spots:** Add QR code display and download support (a376c25)
+- **plant-photos:** Add photo upload and history for plants (ec814ba)
+
+### Refactor
+- **files:** Extract FILE_STORAGE_PORT factory into its own provider file (1fc600a)
+- **planting-spots:** Back PlantingSpotQrBuilder with a real aggregate (bcdc1f2)
+- **plant-photos:** Apply review feedback from PR #321 (fabfd9b)
+- **plant-photos:** Split SyncPlantImageUrlService into IBaseService-conforming services (c62fd8b)
+## [0.25.1] - 2026-07-05
+
+### Bug Fixes
+- **permissions:** Allow any space member to manage plants, care log entries and planting spots (d462f5f)
+
+### Chore
+- **gitignore:** Ignore tsbuildinfo build cache (413e489)
+## [0.25.0] - 2026-07-04
+
+### Bug Fixes
+- **build:** Disable webpack bundling so migrations glob resolves at runtime (66b66e4)
+
+### Chore
+- **deps:** Bump @sisques-labs/nestjs-kit to 0.11.1 (59a4e59)
+
+### Documentation
+- **openspec:** Propose space-invitation-preview change (6412e7e)
+- **openspec:** Propose type-safe criteria filters for plants (577af95)
+- Codify find-by-criteria filter pattern as mandatory convention (a444c36)
+
+### Features
+- **care-schedule:** Water a single plant via hybrid schedule/care-log mechanism (d02d0d4)
+- **planting-spots:** Water all plants in a planting spot in one action (0e9d846)
+- **spaces:** Add public space invitation preview and structured GraphQL errors (09a8960)
+- **plants:** Type-safe filters and sorts for plantsFindByCriteria (f903dc4)
+- **plants:** Expose every plant view-model column as queryable (e7034e4)
+- **users:** Type-safe filters/sorts for usersFindByCriteria (7f07241)
+- **plant-species:** Type-safe filters/sorts for plantSpeciesFindByCriteria (2b3a215)
+- **planting-spots:** Type-safe filters/sorts for plantingSpotsFindByCriteria (5debc45)
+- **harvests:** Type-safe filters/sorts for harvestsFindByCriteria (19cc5b1)
+- **care-schedule:** Type-safe filters/sorts for careSchedulesFindByCriteria (3e6a725)
+- **care-log:** Type-safe filters/sorts for careLogFindByCriteria (a7869ae)
+- **inventory:** Type-safe filters/sorts for inventoryItemsFindByCriteria (016d08e)
+- **inventory:** Add bulk delete for inventory items (e31a5d1)
+- **planting-spots:** Add fallow/active status to planting spots (dce9dd6)
+- **planting-spots:** Expose status/fallowSince as filterable/sortable (f858f39)
+- **plants:** Allow assigning and changing a plant's planting spot via update (8f1f196)
+
+### Refactor
+- **criteria:** Unify read repositories on nestjs-kit's applyCriteriaToQueryBuilder (18c60d9)
+- **watering:** Use value objects and camelCase Criteria fields (798eb95)
+- **watering:** Address review feedback on VOs and filter fields (478bbf9)
+## [0.24.2] - 2026-07-02
+
+### CI
+- Dispatch gardenia-e2e run after alpha/beta release (7de4c74)
+## [0.24.1] - 2026-07-02
+
+### Build
+- **deps-dev:** Bump ts-loader from 9.5.7 to 9.6.2 (95ca2a2)
+- **deps-dev:** Bump lint-staged from 17.0.5 to 17.0.8 (42a9105)
+- **deps:** Bump pg from 8.21.0 to 8.22.0 (fe709b3)
+- **deps-dev:** Bump @testcontainers/postgresql from 12.0.1 to 12.0.4 (28f8e79)
+- **deps:** Bump axios from 1.17.0 to 1.18.1 (87886d4)
+- **deps-dev:** Bump @nestjs/cli from 10.4.9 to 11.0.23 (1cfef6a)
+- **deps-dev:** Bump @types/node from 20.19.41 to 26.1.0 (d634be0)
+## [0.24.0] - 2026-06-28
+
+### Bug Fixes
+- **files:** Return raw MIME string in GraphQL file response (20e08c4)
+- **test:** Register care-schedule entity and migration in integration bootstrap (f7a355e)
+
+### Documentation
+- **files:** Propose files bounded context (storage port/adapter) (286453d)
+
+### Features
+- **messaging:** Forward domain events to Kafka (92cf760)
+- **files:** Image upload/serving with storage port/adapter (ec78923)
+- **care-schedule:** Recurring plant care schedules bounded context (0cdbbd3)
+- **care-schedule:** Bridge completion into care-log via port/adapter (f711de0)
+- **messaging:** Route CareScheduleAggregate events to the care-schedule topic (471e363)
+- **messaging:** Auto-generate Kafka aggregate->module topic map (cc35be5)
+- **care-schedule:** Make intervalDays optional for one-time schedules (af31944)
+
+### Refactor
+- **messaging:** Align module with project provider-array convention (6ff1753)
+- **test:** Auto-load entities in test bootstraps (drop hardcoded lists) (877b859)
+## [0.23.1] - 2026-06-23
 
 ### Refactor
 - **mcp:** Align core/mcp with DDD 4-layer structure (ec6e0b5)
-## [0.23.0-alpha.0] - 2026-06-22
+## [0.23.0] - 2026-06-22
 
 ### Documentation
 - **observability:** Propose Prometheus metrics change (91a1d34)
@@ -15,7 +145,7 @@ All notable changes to this project will be documented in this file.
 
 ### Refactor
 - **metrics:** Align module with DDD layer structure (7456b63)
-## [0.22.2-alpha.0] - 2026-06-22
+## [0.22.2] - 2026-06-22
 
 ### Testing
 - **domain:** Add unit tests for value objects, builders and aggregates (dcf5941)
@@ -27,11 +157,11 @@ All notable changes to this project will be documented in this file.
 - **transport:** Add unit tests for GraphQL resolvers (1a0a662)
 - **transport:** Add unit tests for REST and MCP controllers (89fb917)
 - **auth:** Add unit tests for guards and local strategy (5adde4f)
-## [0.22.1-alpha.0] - 2026-06-21
+## [0.22.1] - 2026-06-21
 
 ### Chore
 - **mcp:** Add Cursor MCP client config template (7ab4994)
-## [0.22.0-alpha.0] - 2026-06-21
+## [0.22.0] - 2026-06-21
 
 ### Documentation
 - **openspec:** Add MCP tools convention to code conventions (68c71b7)
@@ -46,7 +176,7 @@ All notable changes to this project will be documented in this file.
 
 ### Testing
 - **mcp:** Add e2e coverage and document MCP tools per context (1a6f7bf)
-## [0.21.0-alpha.0] - 2026-06-20
+## [0.21.0] - 2026-06-21
 
 ### Documentation
 - **inventory:** Add OpenSpec change for consumable supplies inventory (d1706ad)
@@ -59,7 +189,7 @@ All notable changes to this project will be documented in this file.
 
 ### Testing
 - **inventory:** Register inventory entity and migration in integration test harness (d0a66cb)
-## [0.20.1-alpha.0] - 2026-06-20
+## [0.20.1] - 2026-06-20
 
 ### Build
 - **eslint:** Enforce bounded-context boundaries (#258) (0f252ea)
@@ -73,28 +203,7 @@ All notable changes to this project will be documented in this file.
 - **plants:** Route QR writes through plant-qr port (#258) (7b732e8)
 - **auth:** Provision users/spaces through ports (#258) (d0ad681)
 - **plants,spaces:** One type per file for port input/forecast types (#258) (d67bb92)
-## [0.20.0-alpha.2] - 2026-06-19
-
-### Documentation
-- **agents:** Add code conventions section to AGENTS.md for project-wide standards (1b4e1ce)
-## [0.20.0-alpha.1] - 2026-06-19
-
-### Bug Fixes
-- **lint:** Remove unused Inject import from planting-spot-plants adapter (65ff57b)
-
-### Features
-- **planting-spots:** Add capacity, grid position, resolved plants, and extra fields (97f9e54)
-
-### Refactor
-- **planting-spots:** Address PR #255 review comments (6d2dc3e)
-- **planting-spots:** Use Pick/Omit on primitives for command inputs (ad71890)
-- **planting-spots:** Address PR #255 round 3 review comments (413eb92)
-- **planting-spots:** Flatten dimensions fields in GQL response DTO (89a3d3d)
-- **planting-spots:** Update pagination parameter naming in PlantingSpotPlantsAdapter (02ffab9)
-
-### Testing
-- **planting-spots:** Add optional field defaults to test fixtures (d683675)
-## [0.20.0-alpha.0] - 2026-06-18
+## [0.20.0] - 2026-06-19
 
 ### Bug Fixes
 - **spaces:** Add lat/lon/env value objects, domain event, and update aggregate/primitives/interface (a00a66b)
@@ -109,9 +218,13 @@ All notable changes to this project will be documented in this file.
 - Add missing latitude/longitude/environment to remaining spec fixtures (9279d24)
 - Correct migration timestamp for AddGeolocationToSpaces (d2e91f5)
 - Remove old migration with wrong timestamp (918ed8c)
+- **lint:** Remove unused Inject import from planting-spot-plants adapter (65ff57b)
 
 ### Chore
 - Delete old space-update-geolocation request DTO (replaced by generic space-update) (b24c738)
+
+### Documentation
+- **agents:** Add code conventions section to AGENTS.md for project-wide standards (1b4e1ce)
 
 ### Features
 - **openspec:** Add space-geolocation-weather change spec (ecd5351)
@@ -121,19 +234,28 @@ All notable changes to this project will be documented in this file.
 - **spaces:** Add domain events and refactor aggregate to update() + private change* pattern (82acd66)
 - **spaces:** Move VO construction into UpdateSpaceCommand and simplify handler (0f9e465)
 - **weather:** Add domain VOs, split forecast interface, update query/handler, refactor module (344e43c)
+- **planting-spots:** Add capacity, grid position, resolved plants, and extra fields (97f9e54)
 
 ### Refactor
 - Add validate() to lat/lon VOs, add SpaceNameChangedEvent, add name to aggregate update() (6191aad)
 - UpdateSpaceCommand with name VO + UuidValueObject for requestingUserId, handler and DTO aligned (3584d90)
-## [0.19.0-alpha.0] - 2026-06-17
+- **planting-spots:** Address PR #255 review comments (6d2dc3e)
+- **planting-spots:** Use Pick/Omit on primitives for command inputs (ad71890)
+- **planting-spots:** Address PR #255 round 3 review comments (413eb92)
+- **planting-spots:** Flatten dimensions fields in GQL response DTO (89a3d3d)
+- **planting-spots:** Update pagination parameter naming in PlantingSpotPlantsAdapter (02ffab9)
+
+### Testing
+- **planting-spots:** Add optional field defaults to test fixtures (d683675)
+## [0.19.0] - 2026-06-17
 
 ### Features
 - **observability:** Integrate Sentry error monitoring and tracing (a160b07)
-## [0.18.1-alpha.0] - 2026-06-14
+## [0.18.1] - 2026-06-14
 
 ### Refactor
 - **care-log:** Rename CareLogFindByCriteriaGraphQLDto to CareLogFindByCriteriaRequestDto and update imports (9d56b53)
-## [0.18.0-alpha.0] - 2026-06-14
+## [0.18.0] - 2026-06-14
 
 ### Bug Fixes
 - **test:** Cast query param in care-log adapter mock to avoid IQuery incompatibility (5a1b6cb)
@@ -141,11 +263,7 @@ All notable changes to this project will be documented in this file.
 - **test:** Add missing migrations 11-OAuth and both 15s, add missing entities to test helpers (c8d0b2a)
 - **test:** Reorder imports in test-data-source and remove unused migration import (73f8a41)
 - **care-log:** Add space_id tenant filter to findByCriteria query builder (46f5dc1)
-## [0.17.0-alpha.1] - 2026-06-13
-
-### Features
-- **harvests:** Make harvestedAt optional, default to now on create (e8ec3ae)
-## [0.17.0-alpha.0] - 2026-06-13
+## [0.17.0] - 2026-06-13
 
 ### Bug Fixes
 - **harvests:** Add spaceId filter to findByCriteria query builder for tenant isolation (8e7571d)
@@ -156,6 +274,7 @@ All notable changes to this project will be documented in this file.
 ### Features
 - **openspec:** Add harvest-module change proposal (5e580c3)
 - Implement harvests bounded context (phases 1-6) (1f2683b)
+- **harvests:** Make harvestedAt optional, default to now on create (e8ec3ae)
 
 ### Refactor
 - **harvests:** Address PR review comments (57ce465)
@@ -163,535 +282,6 @@ All notable changes to this project will be documented in this file.
 ### Testing
 - **harvests:** Add where mock and spaceId assertion to read repository spec (e505179)
 ## [0.15.2] - 2026-06-12
-
-### CI
-- **release-train:** Serialize release channels with a repo-wide concurrency group (#237) (2d74c92)
-## [0.15.2-beta.0] - 2026-06-12
-
-### Bug Fixes
-- **plant-species:** Restrict write mutations to admin role (885d3a0)
-- **ci:** Use valid 32-byte base64 OAUTH_TOKEN_ENC_KEY (edd2da8)
-- **security:** Whitelist CORS origins instead of reflecting any origin (c4a87e8)
-
-### Chore
-- Release v0.15.1-beta.3 (85c6616)
-
-### Documentation
-- **care-log:** Add README for the care log bounded context (8bae3e0)
-
-### Features
-- **openspec:** Add care-log change — full proposal, design, spec and tasks (b53a827)
-- **care-log:** Implement care journal bounded context (#216) (3e3769d)
-- **database:** Add tenant relationship indexes and FK constraints (610f362)
-- **security:** Validate critical secrets at startup with Zod (b8c0e12)
-
-### Refactor
-- **care-log:** Commands use Pick/Omit input types and full VO class fields (b35fc9a)
-- **care-log:** Per-field change events on update + FindByCriteria query (3cec1d0)
-- **care-log:** Address PR review comments (a7a452a)
-- **care-log:** Address remaining PR review comments (4694821)
-- **care-log:** Update CareLogFindLastByTypeQuery to use UuidValueObject for plantId (25dfcee)
-
-### Testing
-- **care-log:** Add unit, integration and e2e tests (374c62b)
-- **integration:** Seed FK parent rows for tenant constraints (fa41657)
-## [0.15.2-alpha.3] - 2026-06-11
-
-### CI
-- **release-train:** Freeze package.json version to 0.0.0-dev on develop (d43b56d)
-
-### Chore
-- Release v0.15.1-beta.2 (32f9ddd)
-## [0.15.1-beta.2] - 2026-06-11
-
-### Chore
-- Update version to 0.15.0-beta.0 (607f541)
-- Update version to 0.15.1-beta.0 (d55aaff)
-- Release v0.15.1-beta.1 (3b792fa)
-- Release v0.15.1 (6450dd7)
-## [0.15.1-beta.1] - 2026-06-11
-
-### Bug Fixes
-- **plant-species:** Add TODO comment to verify adapter correctness (269e303)
-- **spaces:** Update expired invitation test date to 2099 (5785988)
-- **auth:** Builder withAppRole accepts string primitive, not VO (0642316)
-- **auth:** Add appRole to CurrentUserPayload mocks in transport specs (744fa8d)
-- **auth:** Add appRole to CurrentUserPayload mocks in planting-spots and plants specs (9566ac3)
-- **spaces:** Update expiration date for space invitations (276bbde)
-
-### CI
-- **docker:** Trigger build only on pull requests (3a53a58)
-- Trigger CI workflow only on pull requests (80d1b8b)
-- Auto-open promotion PRs on merge to develop and staging (5a9f4e6)
-- Remove auto-promote workflow (e1e90d9)
-- Add PR template for promotion PRs (546bf64)
-
-### Chore
-- Release v0.15.0-alpha.0 (2e72c1a)
-- **migrations:** Add CHECK constraint to app_role column (59ef097)
-- Release v0.15.0-alpha.1 (d9c8d6d)
-- Release v0.15.0-alpha.2 (44afcf3)
-- Release v0.15.0-alpha.3 (9969c4e)
-- Add docker-compose for local PostgreSQL development (af6bd61)
-- Release v0.15.0-alpha.4 (38c23ad)
-- Release v0.15.0-alpha.5 (d56d0ee)
-- Release v0.15.0-alpha.6 (291328f)
-- Release v0.15.0-beta.0 (2390260)
-- Fix version back to alpha pre-release on develop (44b4583)
-- Release v0.15.0-alpha.7 (3eb5f96)
-- Release v0.15.0-beta.0 (ae1c3f5)
-- Merge staging into develop to align histories (037a28a)
-- Release v0.15.0-alpha.8 (52aa3ef)
-- Release v0.15.0 (654097e)
-
-### Documentation
-- **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
-
-### Features
-- **plant-species:** Enrich catalog and add bulk import from GBIF (81efc60)
-- **plant-species:** Add enrich command with GBIF validation gate (84b1e65)
-- **plants:** Align linked species view model with plant-species catalog (312f91c)
-- **auth:** Implement app-level RBAC with ADMIN and USER roles (28d5810)
-
-### Refactor
-- **plant-species:** Address PR review on import command and GBIF types (a392dcf)
-
-### Testing
-- **spaces:** Fix invitation expiry fixture past current date (397c16f)
-## [0.15.0-beta.0] - 2026-06-09
-
-### Bug Fixes
-- **spaces:** Address PR review feedback on invitations (425a085)
-- **spaces:** Return spaceId from accept invitation and make it idempotent (2a949f9)
-
-### Chore
-- Release v0.14.1-alpha.1 (746335c)
-- Release v0.14.1-alpha.2 (31a1340)
-- Release v0.14.1-beta.0 (52c7d40)
-- Release v0.14.1 (dc3cc74)
-
-### Documentation
-- **spaces:** Add module README for spaces and invitations (7a26a4d)
-
-### Features
-- **spaces:** Add QR and code space invitations (f8be488)
-
-### Refactor
-- **spaces:** Extract invitation assert services (4046af4)
-- **spaces:** Apply second round of PR review feedback (477b6f0)
-- **config:** Register spaces config namespace (5d03d05)
-- **spaces:** Move spaces config to bounded context infrastructure (c4f0dde)
-- **spaces:** Update date validation in SpaceCreateInvitationRequestDto (e04757e)
-- **spaces:** Remove unused SpaceContext from SpacesModule (df11e61)
-- **spaces:** Drop EnsureUserExists from invitation accept flow (0cdbde2)
-- **spaces:** Reorganize imports and add TODO for invitation handling (ddfd52c)
-## [0.14.1-beta.0] - 2026-06-08
-
-### Bug Fixes
-- **auth:** Reset AuthSessionBuilder state on each withId chain (56f7bff)
-
-### CI
-- Add release train workflow for develop/staging/main (5e012fd)
-## [0.14.1-alpha.0] - 2026-06-06
-
-### Bug Fixes
-- **graphql:** Enable fieldResolverEnhancers for tenant context (b94d795)
-
-### Chore
-- Release v0.14.1-alpha.0 (05b7077)
-
-### Documentation
-- **openspec:** Document graphql field resolver space context fix (c71ca8a)
-## [0.14.0-alpha.0] - 2026-06-05
-
-### Chore
-- Release v0.14.0-alpha.0 (8981480)
-
-### Documentation
-- **openspec:** Add qr-expires-at change proposal (c1f02ed)
-
-### Features
-- **qr:** Add expiresAt field with expiry enforcement (5cd6adf)
-
-### Refactor
-- **qr:** Move expiresAt validation to aggregate.checkExpiresAt() (826d20b)
-## [0.13.0-alpha.0] - 2026-06-04
-
-### Bug Fixes
-- **auth:** Clear refresh cookie on token rotation failure (f21df78)
-- **auth:** Fix logoutAll no-op, cookie clear, refresh rotation lock and ConfigService migration (96f24ea)
-- **auth:** Lazy-validate OAUTH_TOKEN_ENC_KEY to avoid startup failure when key is absent (d3001e0)
-- **auth:** Migrate OAuth strategies and controller from OAuthUserProfile to LoginWithOAuthCommandInput (21b5c5e)
-- **auth:** Update OAuthProviderName import to domain/enums (f1ef6d2)
-- **auth:** Use non-empty fallback for OAuth credentials to prevent startup failure in CI (b8d0246)
-- **auth:** Register OAuth strategies conditionally when credentials are configured (06f0caf)
-
-### Chore
-- **sdd:** Add auth-improvement openspec artifacts (b711faa)
-- **env:** Add OAuth environment variables to .env.example (1ac4062)
-- **sdd:** Archive auth-improvement openspec artifacts (c9b2bb2)
-- Release v0.13.0-alpha.0 (2d7418c)
-
-### Features
-- **auth:** Add OAuth foundation — domain model, persistence and command handlers (c8fd955)
-- **auth:** Add OAuth provider adapters — Google, GitHub and Apple (caea9ec)
-
-### Refactor
-- **auth:** Move RotateResult type to domain/interfaces (4d1aed0)
-- **auth:** Remove RotateResult re-export from repository; import from interfaces directly (f283c9b)
-- **auth:** Fix architectural violations per PR review (3ba2afb)
-- **auth:** Wrap all command fields as value objects in OAuth commands (c28e009)
-- **auth:** EmailVerified as BooleanValueObject; mapper uses toDomain/toPersistence with builder chaining (26e834f)
-- **auth:** Remaining aggregate VOs, OAuthIdentityViewModel, event interface, remove redundant re-exports (07030c1)
-- **auth:** Move IOAuthIdentityLinkedEventData to domain/events/interfaces (607ea3e)
-- **auth:** Move OAuth strategies to own subfolders; use OAuthProviderEnum in registry (3fd9136)
-## [0.12.0-alpha.0] - 2026-06-03
-
-### Chore
-- Release v0.12.0-alpha.0 (529e3ff)
-## [0.11.2-alpha.0] - 2026-06-03
-
-### Chore
-- Release v0.11.2-alpha.0 (3015c57)
-
-### Refactor
-- **filters:** Move exception-to-status mapping into per-context transport filters (c290b94)
-## [0.11.1-alpha.0] - 2026-06-03
-
-### Bug Fixes
-- **config:** Make synchronize and migrationsRun configurable via env vars (2ecd57e)
-- **config:** Default migrationsRun to true, synchronize to false (5a82f9e)
-
-### Chore
-- Release v0.11.1-alpha.0 (ac86668)
-
-### Testing
-- **config:** Update migrationsRun assertions for new default-true behavior (4f51703)
-## [0.11.0-alpha.0] - 2026-06-03
-
-### Bug Fixes
-- **planting-spots:** Add JwtAuthGuard to GraphQL resolvers (08d00d2)
-- **planting-spots:** Resolve merge conflict markers in SC-16 test (d721b73)
-- **planting-spots:** Register PlantingSpotBuilder as module provider (de92949)
-- **planting-spots:** Align enum values to lowercase and fix integration test signatures (9fe0ed5)
-- **planting-spots:** Remove extra spaceId arg from write repo integration test findById calls (a273b05)
-- **planting-spots:** Remove unnecessary spaceId argument from findById method in adapter and tests (fd4cfab)
-- **plants:** Pass PlantPlantingSpotBuilder to PlantingSpotAdapter in unit test (6846b91)
-- **plants:** Inject PlantGraphQLMapper in resolved-fields resolver unit test (8b460db)
-- **spaces:** Use fresh builder in joinedAt timing test to avoid flake (af7fb49)
-
-### Chore
-- Release v0.11.0-alpha.0 (6321458)
-
-### Features
-- **planting-spots:** Add domain and application layers (30698c8)
-- **planting-spots:** Add infrastructure layer (0e3566a)
-- **planting-spots:** Implement PlantingSpotInUseAdapter via QueryBus (278c639)
-- **planting-spots:** Add transport layer and module wiring (37fbd9f)
-- **planting-spots:** Wire PlantingSpotInUseAdapter in module (50c3b47)
-- **planting-spots:** Add e2e and integration tests (bc20a38)
-- **planting-spots:** Add e2e and integration tests (0bbeae7)
-- **plants:** Add plantingSpotId field and plantingSpot resolved field (80b46b5)
-- **planting-spots:** Add e2e and integration tests (8e504b0)
-
-### Refactor
-- **planting-spots:** Align domain+application with project conventions (81fc3dc)
-- **planting-spots:** Align infrastructure with base repository interfaces (c59eb79)
-- **planting-spots:** Use Criteria from nestjs-kit in transport layer (62296a8)
-- **plants:** Migrate qr and species to @ResolveField (bfa9065)
-- **planting-spots:** Update command inputs to use IPlantingSpotPrimitives (9f1c5f9)
-- **planting-spots:** Update UpdatePlantingSpotCommand to use 'id' consistently (ac21513)
-- **planting-spots:** Standardize DeletePlantingSpotCommand to use 'id' property (602a3c3)
-- **planting-spots:** Unify command handlers to use 'id' property (5b8b2ea)
-- **planting-spots:** Update PlantingSpotFindByIdQuery to use 'id' property (54f31f4)
-- **planting-spots:** Add TODO for enum implementation in PlantingSpotInUseAdapter (c702253)
-- **planting-spots:** Enhance PlantingSpotTypeOrmMapper and repository to use view models (a177696)
-- **planting-spots:** Align GraphQL transport with project conventions (29af759)
-- **base-exception-filter:** Reorganize exception imports and add new exceptions (adb3f0a)
-- **planting-spots:** Rename controller methods for consistency (cdc7ec2)
-- **planting-spots:** Update import paths for consistency (62ca558)
-- **planting-spots:** Rename DOMAIN_PROVIDERS to DOMAIN_BUILDERS for clarity (c134e5b)
-- **planting-spots:** Streamline GraphQL resolvers with JwtAuthGuard (faa2a00)
-- **planting-spots:** Remove JwtAuthGuard from PlantingSpotQueriesResolver (ab349f2)
-- **plants:** Address PR review — primitives, builder, and mapper for PlantPlantingSpotViewModel (6dbe8af)
-- **plants:** Split resolved fields into dedicated resolvers with mapper methods (970ab7e)
-- **plants:** Drop qr/species from REST response — GraphQL-only via ResolveField (bc6a4e6)
-
-### Testing
-- **planting-spots:** Relax SC-16 constraint to allow Phase 2 adapters (b964fc8)
-## [0.10.1-alpha.0] - 2026-06-02
-
-### Bug Fixes
-- **auth:** Set refresh_token cookie path to / for middleware visibility (00ee60d)
-
-### Chore
-- **dependabot:** Target dedicated updates branch (a43b3db)
-- **ci:** Validate multi-arch docker smoke build (cc9fe28)
-- Release v0.10.1-alpha.0 (d742d68)
-## [0.10.0-alpha.0] - 2026-06-01
-
-### Chore
-- **openspec:** Archive health-module change artifacts (d31f923)
-- Release v0.10.0-alpha.0 (654fbea)
-
-### Features
-- **health:** Add liveness health check endpoint (25c605c)
-## [0.9.1-alpha.0] - 2026-06-01
-
-### Bug Fixes
-- **auth:** Bypass SpaceGuard on identity-scoped endpoints without @UseGuards (c81e393)
-- **auth:** Bypass tenant isolation for identity-scoped account/user ops (6fd091c)
-
-### Chore
-- Release v0.9.1-alpha.0 (6a7896b)
-
-### Documentation
-- **openspec:** Document @IdentityOnly decorator and tenant bypass pattern (5a84898)
-## [0.9.0-alpha.0] - 2026-05-31
-
-### Bug Fixes
-- **app:** Resolve webpack bootstrap failure after plant-species (020017b)
-- **plant-species:** Address PR review comments (d1450c5)
-- **plant-species:** Rename graphql queries to match project naming convention (a12a5de)
-
-### Chore
-- **changelog:** Revert unreleased section (c20ab44)
-- Release v0.9.0-alpha.0 (2bd31e5)
-
-### Documentation
-- **qr:** Add module README for new contributors (2e5ba43)
-
-### Features
-- **plant-species:** Add global catalog and link plants via plantSpeciesId (252f355)
-
-### Refactor
-- **plant-species:** Use @contexts path aliases for all intra-module imports (06f53ab)
-
-### Testing
-- **plant-species:** Update aggregate spec for changeName() event order (d9117d4)
-## [0.8.0-alpha.0] - 2026-05-31
-
-### Bug Fixes
-- **plants:** Create QR before persisting plant to satisfy FK constraint (be7639f)
-
-### Chore
-- **openspec:** Archive plant-qr-generation change (8deb241)
-- **openspec:** Add logging convention to apply rules (ab4a63e)
-- **openspec:** Sync delta specs to main specs for plant-qr-generation (473009c)
-- Release v0.8.0-alpha.0 (78f7653)
-
-### Features
-- **qr:** Add plant-linked QR bounded context (d20756c)
-- **plant:** Add logging to PlantFindByIdQueryHandler (4cbd437)
-- **plant:** Enhance logging in EnrichPlantWithQrService (90ce75b)
-- **plant:** Add withTargetUrl method to PlantBuilder (d8af588)
-- **qr:** Add logging to query handlers, REST controller and PNG generator (bd2cb39)
-- **plants:** Add nested qr view model to plant read responses (bf274ce)
-- **plants:** Enhance QR integration with view model decoupling (3293816)
-
-### Refactor
-- **qr:** Generic QRs, plant-owned links, and DB cascade FKs (4a36aec)
-- **qr:** Consolidate migrations and dual plant-delete cascade (5ce20d4)
-- **plant:** Reorganize imports in plant-find-by-criteria handler (4c8eb2a)
-- **plant:** Streamline import statements in plant-find-by-id handler (7fabddf)
-- **plants:** Align PlantQrTargetUrlBuilder with IBaseService (72cac29)
-- **plant:** Update import statements in plant.builder.ts for consistency (203fbe1)
-- **tsconfig:** Add path alias for shared module (7ca9309)
-- **plant:** Utilize PlantBuilder in EnrichPlantWithQrService for improved object construction (5553e7e)
-- **qr:** Replace relative imports with @ path aliases (714e2f8)
-- **plant:** Update import statement in plant.view-model.ts to use absolute path alias (5cea65f)
-- **qr:** Use value objects in commands and queries (8855a52)
-- **qr:** Replace generation primitive with QrGenerationValueObject (d18f1d3)
-- **plants:** Extract IPlantQrPrimitives for PlantQrViewModel constructor (31347f2)
-
-### Testing
-- **qr:** Add unit and e2e coverage for plant QR module (c480680)
-- **qr:** Add missing test coverage for qr bounded context (f8e6c08)
-## [0.7.1-alpha.0] - 2026-05-31
-
-### Chore
-- Release v0.7.1-alpha.0 (8cb2acf)
-
-### Features
-- **spaces:** Add GraphQL transport layer (59389d1)
-## [0.7.0-alpha.0] - 2026-05-30
-
-### Bug Fixes
-- **plants:** Use value objects in commands, interface, and aggregate; add field-changed events (935ce7e)
-- **plants:** Extract repository bindings into INFRASTRUCTURE_REPOSITORIES constant (9f0b9c7)
-
-### Chore
-- Release v0.7.0-alpha.0 (5a18bb1)
-
-### Documentation
-- **integration-tests:** Update task documentation and add new convention for testing (83e8298)
-- **openspec:** Archive plant-context change — all 27 tasks complete (a664bea)
-
-### Features
-- **plants:** Add domain and application layer for plants bounded context (339e7eb)
-- **plants:** Add infrastructure layer and module wiring for plants context (558f27e)
-- **plants:** Add REST and GraphQL transport layer with E2E tests (8299611)
-
-### Testing
-- Add integration test infrastructure (phase 1) (287d558)
-- Add pilot integration specs for tenant isolation (phase 2) (66c8d88)
-- Use migrations in integration tests (phase 3) (bb8c871)
-- Add optional Testcontainers for local DB tests (phase 4) (9a4ce25)
-- Align E2E tests with migrations instead of synchronize (phase 5) (4852e48)
-- Harden integration test maintenance and archive change (phase 6) (44c7c84)
-## [0.6.1-alpha.0] - 2026-05-30
-
-### Bug Fixes
-- **spaces:** Address verify warnings and suggestions (48874f4)
-
-### Chore
-- Release v0.6.1-alpha.0 (0ee2e33)
-
-### Documentation
-- **openspec:** Add proposal, tasks, progress and verify report for spaces REST controller (18090c2)
-- **openspec:** Verify and archive spaces-rest-controller change (14de9bb)
-
-### Features
-- **spaces:** Application layer fixes for REST controller (PR1 of 2) (b98d6e1)
-- **spaces:** Add REST controller, DTOs, mapper and module wiring (PR2 of 2) (953aa05)
-## [0.6.0-alpha.0] - 2026-05-29
-
-### Bug Fixes
-- **spaces:** Use inclusive bounds in joinedAt timing test (f08e726)
-- **auth,users:** Register SpaceContext in module providers (d4cd2c3)
-- **auth,users:** Fix SpaceContext flow for register and login (b784c35)
-- **app:** Import SpacesModule in AppModule to register CreateSpaceCommandHandler (99a2146)
-- **e2e:** Add SpaceEntity and SpaceMembershipEntity to E2E bootstrap (7240e12)
-- **e2e:** Pass X-Space-ID in protected requests, update auth API (ec9b2cd)
-- **app,auth:** Replace global JwtAuthGuard with OptionalJwtAuthGuard, add @SkipSpace to public auth routes (fdbd3ac)
-- **auth:** Fix handleRequest generic signature in OptionalJwtAuthGuard (9478d50)
-- **auth:** Rewrite OptionalJwtAuthGuard to skip via Reflector instead of soft passport handling (989a228)
-- **tenant-repo:** Handle string/number id in delete proxy (bfe2aed)
-- **migrations:** Fold username and profile columns into InitialSchema (9f008bd)
-
-### Chore
-- Release v0.6.0-alpha.0 (2ffa360)
-
-### Documentation
-- **openspec:** Update config and skill registry with established conventions (6604370)
-- **openspec:** Mark PR #86 as merged in delivery state (5b74a43)
-- **openspec:** Note known E2E issues and update delivery state (f9b1809)
-- **openspec:** Verify and archive multitenant change (7526a14)
-
-### Features
-- **migrations:** Add spaces and tenant isolation schema (33f9645)
-- **spaces:** Add spaces bounded context — domain and application layers (b6996c0)
-- **spaces:** Add assert space exists services (c568bc9)
-- **spaces:** Add infrastructure layer and cross-cutting tenant utilities (1bdf667)
-- **spaces:** Add SpaceGuard, SpaceInterceptor and SpacesModule (dd0d06a)
-- **auth,users:** Adapt contexts for multitenant row-level isolation (7333c83)
-- **e2e:** Add Phase 7 space isolation E2E tests (7124f09)
-- **app:** Register SpaceGuard and SpaceInterceptor as global providers (8894244)
-
-### Refactor
-- **spaces:** Align domain and application to project conventions (056fd90)
-- **spaces:** Use assert services in handlers instead of raw findById (3b2692d)
-- **spaces:** Remove redundant @Inject on concrete assert service (4985922)
-- **users:** Reorder imports and add TODO for value objects in IUser interface (7407a42)
-- **spaces:** Extend SpaceNameValueObject from StringValueObject (7355a78)
-- **spaces:** Address PR #86 review comments (0b3279f)
-- **spaces:** Align SpacesModule with project module conventions (8a2cb7f)
-- **spaces:** Remove all exports from SpacesModule (0c2712a)
-- **shared:** Introduce global SharedModule for SpaceContext (4cbfda3)
-## [0.5.5-alpha.0] - 2026-05-29
-
-### Bug Fixes
-- **docker:** Create logs dir with node ownership before switching user (1827141)
-
-### Chore
-- Release v0.5.5-alpha.0 (1e7aa7f)
-## [0.5.4-alpha.0] - 2026-05-29
-
-### Bug Fixes
-- **docker:** Add prod-deps stage to include node_modules in runtime image (a4229c6)
-- **docker:** Skip prepare script in prod-deps stage to avoid missing husky (238175a)
-- **docker:** Prune devDeps from existing node_modules instead of reinstalling (c4cf5d3)
-- **husky:** Skip prepare script when HUSKY=0 to support Docker prod builds (92d02e7)
-
-### Chore
-- Integrate OpenSpec spec-driven workflow (418e3ff)
-- Release v0.5.4-alpha.0 (3a0a90a)
-## [0.5.3-alpha.0] - 2026-05-29
-
-### Chore
-- Release v0.5.3-alpha.0 (76b8701)
-
-### Features
-- **logging:** Implement Winston structured logging (5f1150f)
-## [0.5.2-alpha.0] - 2026-05-29
-
-### Chore
-- Release v0.5.2-alpha.0 (53edf20)
-
-### Features
-- **database:** Implement required environment variables for PostgreSQL configuration (f29c595)
-## [0.5.1-alpha.0] - 2026-05-29
-
-### Chore
-- Release v0.5.1-alpha.0 (5919b68)
-
-### Features
-- **app:** Integrate TypeORM with dynamic configuration for PostgreSQL (c98d593)
-## [0.5.0-alpha.0] - 2026-05-28
-
-### Chore
-- Release v0.5.0-alpha.0 (eac83ff)
-
-### Features
-- **auth:** Add GET /auth/me and me GraphQL query (04da7d2)
-
-### Refactor
-- **auth:** Extract account view model mapping to dedicated mappers (827d2db)
-- **auth:** Restructure transport layer per PR feedback (d4df9fd)
-- **auth:** Inject builders via constructor, use domain AccountBuilder in REST mapper (60207cd)
-- **auth:** Remove AccountObjectBuilder, use domain AccountBuilder in GQL mapper (ee117e0)
-## [0.4.0-alpha.0] - 2026-05-28
-
-### Bug Fixes
-- **e2e:** Register auth session entity in test bootstrap (e4d7762)
-
-### Chore
-- Release v0.4.0-alpha.0 (573949e)
-
-### Refactor
-- **auth:** Address PR review feedback for auth sessions (038415c)
-- **auth:** Split refresh token services by responsibility (e1dc67e)
-- **auth:** Place refresh token services in own folders (95fae3a)
-- **auth:** Use fromPrimitives in auth session builder (6689081)
-- **auth:** Update handlers and tests for injectable token services (cd7c974)
-- **auth:** Align refresh/logout commands with PR feedback (d5348da)
-- **auth:** Use value objects in refresh/logout commands (4ad6909)
-- **auth:** Remove active-session repo method and custom token error (1a45e55)
-## [0.3.0-alpha.0] - 2026-05-28
-
-### Chore
-- Release v0.3.0-alpha.0 (5630bf6)
-
-### Features
-- **auth:** Implement change password endpoint (8bd53a3)
-
-### Refactor
-- **auth:** Align change password command and domain validation (9ed4e4d)
-- **auth:** Move password validation flow to aggregate (179418d)
-## [0.2.0-alpha.0] - 2026-05-28
-
-### Chore
-- **deps:** Add express as direct dependency (8533b9c)
-- Update pnpm-store in .gitignore and upgrade @sisques-labs/nestjs-kit to v0.10.2 (13e3787)
-- Release v0.2.0-alpha.0 (9535451)
-
-### Features
-- **auth:** Add AuthSession domain, infra and migration for refresh tokens (a76c173)
-- **auth:** Implement refresh token rotation, logout, and cookie transport (0e422d3)
-
-### Tech
-- **auth:** Implement findByCriteria in AccountTypeOrmReadRepository (f2e7a78)
-## [0.1.0-alpha.0] - 2026-05-27
 
 ### Bug Fixes
 - **database:** Add collision guard to username backfill migration (f0cd6f5)
@@ -708,10 +298,76 @@ All notable changes to this project will be documented in this file.
 - **users:** Forward all fields from UserUpdateRequestDto to UpdateUserCommand (b97613c)
 - **auth:** Remove passwordHash from AccountViewModel (42bdda2)
 - **users:** Make DeleteUserCommandHandler idempotent (7c6cda9)
+- **e2e:** Register auth session entity in test bootstrap (e4d7762)
+- **docker:** Add prod-deps stage to include node_modules in runtime image (a4229c6)
+- **docker:** Skip prepare script in prod-deps stage to avoid missing husky (238175a)
+- **docker:** Prune devDeps from existing node_modules instead of reinstalling (c4cf5d3)
+- **husky:** Skip prepare script when HUSKY=0 to support Docker prod builds (92d02e7)
+- **docker:** Create logs dir with node ownership before switching user (1827141)
+- **spaces:** Use inclusive bounds in joinedAt timing test (f08e726)
+- **auth,users:** Register SpaceContext in module providers (d4cd2c3)
+- **auth,users:** Fix SpaceContext flow for register and login (b784c35)
+- **app:** Import SpacesModule in AppModule to register CreateSpaceCommandHandler (99a2146)
+- **e2e:** Add SpaceEntity and SpaceMembershipEntity to E2E bootstrap (7240e12)
+- **e2e:** Pass X-Space-ID in protected requests, update auth API (ec9b2cd)
+- **app,auth:** Replace global JwtAuthGuard with OptionalJwtAuthGuard, add @SkipSpace to public auth routes (fdbd3ac)
+- **auth:** Fix handleRequest generic signature in OptionalJwtAuthGuard (9478d50)
+- **auth:** Rewrite OptionalJwtAuthGuard to skip via Reflector instead of soft passport handling (989a228)
+- **tenant-repo:** Handle string/number id in delete proxy (bfe2aed)
+- **migrations:** Fold username and profile columns into InitialSchema (9f008bd)
+- **spaces:** Address verify warnings and suggestions (48874f4)
+- **plants:** Use value objects in commands, interface, and aggregate; add field-changed events (935ce7e)
+- **plants:** Extract repository bindings into INFRASTRUCTURE_REPOSITORIES constant (9f0b9c7)
+- **plants:** Create QR before persisting plant to satisfy FK constraint (be7639f)
+- **app:** Resolve webpack bootstrap failure after plant-species (020017b)
+- **plant-species:** Address PR review comments (d1450c5)
+- **plant-species:** Rename graphql queries to match project naming convention (a12a5de)
+- **auth:** Bypass SpaceGuard on identity-scoped endpoints without @UseGuards (c81e393)
+- **auth:** Bypass tenant isolation for identity-scoped account/user ops (6fd091c)
+- **auth:** Set refresh_token cookie path to / for middleware visibility (00ee60d)
+- **planting-spots:** Add JwtAuthGuard to GraphQL resolvers (08d00d2)
+- **planting-spots:** Resolve merge conflict markers in SC-16 test (d721b73)
+- **planting-spots:** Register PlantingSpotBuilder as module provider (de92949)
+- **planting-spots:** Align enum values to lowercase and fix integration test signatures (9fe0ed5)
+- **planting-spots:** Remove extra spaceId arg from write repo integration test findById calls (a273b05)
+- **planting-spots:** Remove unnecessary spaceId argument from findById method in adapter and tests (fd4cfab)
+- **plants:** Pass PlantPlantingSpotBuilder to PlantingSpotAdapter in unit test (6846b91)
+- **plants:** Inject PlantGraphQLMapper in resolved-fields resolver unit test (8b460db)
+- **spaces:** Use fresh builder in joinedAt timing test to avoid flake (af7fb49)
+- **config:** Make synchronize and migrationsRun configurable via env vars (2ecd57e)
+- **config:** Default migrationsRun to true, synchronize to false (5a82f9e)
+- **auth:** Clear refresh cookie on token rotation failure (f21df78)
+- **auth:** Fix logoutAll no-op, cookie clear, refresh rotation lock and ConfigService migration (96f24ea)
+- **auth:** Lazy-validate OAUTH_TOKEN_ENC_KEY to avoid startup failure when key is absent (d3001e0)
+- **auth:** Migrate OAuth strategies and controller from OAuthUserProfile to LoginWithOAuthCommandInput (21b5c5e)
+- **auth:** Update OAuthProviderName import to domain/enums (f1ef6d2)
+- **auth:** Use non-empty fallback for OAuth credentials to prevent startup failure in CI (b8d0246)
+- **auth:** Register OAuth strategies conditionally when credentials are configured (06f0caf)
+- **graphql:** Enable fieldResolverEnhancers for tenant context (b94d795)
+- **auth:** Reset AuthSessionBuilder state on each withId chain (56f7bff)
+- **spaces:** Address PR review feedback on invitations (425a085)
+- **spaces:** Return spaceId from accept invitation and make it idempotent (2a949f9)
+- **plant-species:** Add TODO comment to verify adapter correctness (269e303)
+- **spaces:** Update expired invitation test date to 2099 (5785988)
+- **auth:** Builder withAppRole accepts string primitive, not VO (0642316)
+- **auth:** Add appRole to CurrentUserPayload mocks in transport specs (744fa8d)
+- **auth:** Add appRole to CurrentUserPayload mocks in planting-spots and plants specs (9566ac3)
+- **spaces:** Update expiration date for space invitations (276bbde)
+- **plant-species:** Restrict write mutations to admin role (885d3a0)
+- **ci:** Use valid 32-byte base64 OAUTH_TOKEN_ENC_KEY (edd2da8)
+- **security:** Whitelist CORS origins instead of reflecting any origin (c4a87e8)
 
 ### CI
 - Add CI/CD workflows, Docker infrastructure and release automation (1abb71c)
 - **package:** Add packageManager field for pnpm/action-setup@v4 (ca38139)
+- Add release train workflow for develop/staging/main (5e012fd)
+- **docker:** Trigger build only on pull requests (3a53a58)
+- Trigger CI workflow only on pull requests (80d1b8b)
+- Auto-open promotion PRs on merge to develop and staging (5a9f4e6)
+- Remove auto-promote workflow (e1e90d9)
+- Add PR template for promotion PRs (546bf64)
+- **release-train:** Freeze package.json version to 0.0.0-dev on develop (d43b56d)
+- **release-train:** Serialize release channels with a repo-wide concurrency group (#237) (2d74c92)
 
 ### Chore
 - First commit (39ab79e)
@@ -726,9 +382,88 @@ All notable changes to this project will be documented in this file.
 - **package:** Update version to 0.0.0, add description and author information (8ddb747)
 - **package:** Update package name and add repository information (12f06b8)
 - Release v0.1.0-alpha.0 (2f914f7)
+- **deps:** Add express as direct dependency (8533b9c)
+- Update pnpm-store in .gitignore and upgrade @sisques-labs/nestjs-kit to v0.10.2 (13e3787)
+- Release v0.2.0-alpha.0 (9535451)
+- Release v0.3.0-alpha.0 (5630bf6)
+- Release v0.4.0-alpha.0 (573949e)
+- Release v0.5.0-alpha.0 (eac83ff)
+- Release v0.5.1-alpha.0 (5919b68)
+- Release v0.5.2-alpha.0 (53edf20)
+- Release v0.5.3-alpha.0 (76b8701)
+- Integrate OpenSpec spec-driven workflow (418e3ff)
+- Release v0.5.4-alpha.0 (3a0a90a)
+- Release v0.5.5-alpha.0 (1e7aa7f)
+- Release v0.6.0-alpha.0 (2ffa360)
+- Release v0.6.1-alpha.0 (0ee2e33)
+- Release v0.7.0-alpha.0 (5a18bb1)
+- Release v0.7.1-alpha.0 (8cb2acf)
+- **openspec:** Archive plant-qr-generation change (8deb241)
+- **openspec:** Add logging convention to apply rules (ab4a63e)
+- **openspec:** Sync delta specs to main specs for plant-qr-generation (473009c)
+- Release v0.8.0-alpha.0 (78f7653)
+- **changelog:** Revert unreleased section (c20ab44)
+- Release v0.9.0-alpha.0 (2bd31e5)
+- Release v0.9.1-alpha.0 (6a7896b)
+- **openspec:** Archive health-module change artifacts (d31f923)
+- Release v0.10.0-alpha.0 (654fbea)
+- **dependabot:** Target dedicated updates branch (a43b3db)
+- **ci:** Validate multi-arch docker smoke build (cc9fe28)
+- Release v0.10.1-alpha.0 (d742d68)
+- Release v0.11.0-alpha.0 (6321458)
+- Release v0.11.1-alpha.0 (ac86668)
+- Release v0.11.2-alpha.0 (3015c57)
+- Release v0.12.0-alpha.0 (529e3ff)
+- **sdd:** Add auth-improvement openspec artifacts (b711faa)
+- **env:** Add OAuth environment variables to .env.example (1ac4062)
+- **sdd:** Archive auth-improvement openspec artifacts (c9b2bb2)
+- Release v0.13.0-alpha.0 (2d7418c)
+- Release v0.14.0-alpha.0 (8981480)
+- Release v0.14.1-alpha.0 (05b7077)
+- Release v0.14.1-alpha.1 (746335c)
+- Release v0.14.1-alpha.2 (31a1340)
+- Release v0.14.1-beta.0 (52c7d40)
+- Release v0.14.1 (dc3cc74)
+- Release v0.15.0-alpha.0 (2e72c1a)
+- **migrations:** Add CHECK constraint to app_role column (59ef097)
+- Release v0.15.0-alpha.1 (d9c8d6d)
+- Release v0.15.0-alpha.2 (44afcf3)
+- Release v0.15.0-alpha.3 (9969c4e)
+- Add docker-compose for local PostgreSQL development (af6bd61)
+- Release v0.15.0-alpha.4 (38c23ad)
+- Release v0.15.0-alpha.5 (d56d0ee)
+- Release v0.15.0-alpha.6 (291328f)
+- Release v0.15.0-beta.0 (2390260)
+- Fix version back to alpha pre-release on develop (44b4583)
+- Release v0.15.0-alpha.7 (3eb5f96)
+- Release v0.15.0-beta.0 (ae1c3f5)
+- Merge staging into develop to align histories (037a28a)
+- Release v0.15.0-alpha.8 (52aa3ef)
+- Release v0.15.0 (654097e)
+- Update version to 0.15.0-beta.0 (607f541)
+- Update version to 0.15.1-beta.0 (d55aaff)
+- Release v0.15.1-beta.1 (3b792fa)
+- Release v0.15.1 (6450dd7)
+- Release v0.15.1-beta.2 (32f9ddd)
+- Release v0.15.1-beta.3 (85c6616)
 
 ### Documentation
 - **readme:** Add auth, users, and core module documentation (86ed6fe)
+- **openspec:** Update config and skill registry with established conventions (6604370)
+- **openspec:** Mark PR #86 as merged in delivery state (5b74a43)
+- **openspec:** Note known E2E issues and update delivery state (f9b1809)
+- **openspec:** Verify and archive multitenant change (7526a14)
+- **openspec:** Add proposal, tasks, progress and verify report for spaces REST controller (18090c2)
+- **openspec:** Verify and archive spaces-rest-controller change (14de9bb)
+- **integration-tests:** Update task documentation and add new convention for testing (83e8298)
+- **openspec:** Archive plant-context change — all 27 tasks complete (a664bea)
+- **qr:** Add module README for new contributors (2e5ba43)
+- **openspec:** Document @IdentityOnly decorator and tenant bypass pattern (5a84898)
+- **openspec:** Add qr-expires-at change proposal (c1f02ed)
+- **openspec:** Document graphql field resolver space context fix (c71ca8a)
+- **spaces:** Add module README for spaces and invitations (7a26a4d)
+- **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
+- **care-log:** Add README for the care log bounded context (8bae3e0)
 
 ### Features
 - **core:** Add config factories, exception filter and AppModule wiring (aa27b10)
@@ -755,6 +490,57 @@ All notable changes to this project will be documented in this file.
 - **user:** Implement user creation logic and update tests (664e968)
 - **users:** Implement findByCriteria with TypeORM pagination and no-op read-side save/delete (fc3eb32)
 - **auth:** Implement DELETE /auth/account endpoint (df1a59f)
+- **auth:** Add AuthSession domain, infra and migration for refresh tokens (a76c173)
+- **auth:** Implement refresh token rotation, logout, and cookie transport (0e422d3)
+- **auth:** Implement change password endpoint (8bd53a3)
+- **auth:** Add GET /auth/me and me GraphQL query (04da7d2)
+- **app:** Integrate TypeORM with dynamic configuration for PostgreSQL (c98d593)
+- **database:** Implement required environment variables for PostgreSQL configuration (f29c595)
+- **logging:** Implement Winston structured logging (5f1150f)
+- **migrations:** Add spaces and tenant isolation schema (33f9645)
+- **spaces:** Add spaces bounded context — domain and application layers (b6996c0)
+- **spaces:** Add assert space exists services (c568bc9)
+- **spaces:** Add infrastructure layer and cross-cutting tenant utilities (1bdf667)
+- **spaces:** Add SpaceGuard, SpaceInterceptor and SpacesModule (dd0d06a)
+- **auth,users:** Adapt contexts for multitenant row-level isolation (7333c83)
+- **e2e:** Add Phase 7 space isolation E2E tests (7124f09)
+- **app:** Register SpaceGuard and SpaceInterceptor as global providers (8894244)
+- **spaces:** Application layer fixes for REST controller (PR1 of 2) (b98d6e1)
+- **spaces:** Add REST controller, DTOs, mapper and module wiring (PR2 of 2) (953aa05)
+- **plants:** Add domain and application layer for plants bounded context (339e7eb)
+- **plants:** Add infrastructure layer and module wiring for plants context (558f27e)
+- **plants:** Add REST and GraphQL transport layer with E2E tests (8299611)
+- **spaces:** Add GraphQL transport layer (59389d1)
+- **qr:** Add plant-linked QR bounded context (d20756c)
+- **plant:** Add logging to PlantFindByIdQueryHandler (4cbd437)
+- **plant:** Enhance logging in EnrichPlantWithQrService (90ce75b)
+- **plant:** Add withTargetUrl method to PlantBuilder (d8af588)
+- **qr:** Add logging to query handlers, REST controller and PNG generator (bd2cb39)
+- **plants:** Add nested qr view model to plant read responses (bf274ce)
+- **plants:** Enhance QR integration with view model decoupling (3293816)
+- **plant-species:** Add global catalog and link plants via plantSpeciesId (252f355)
+- **health:** Add liveness health check endpoint (25c605c)
+- **planting-spots:** Add domain and application layers (30698c8)
+- **planting-spots:** Add infrastructure layer (0e3566a)
+- **planting-spots:** Implement PlantingSpotInUseAdapter via QueryBus (278c639)
+- **planting-spots:** Add transport layer and module wiring (37fbd9f)
+- **planting-spots:** Wire PlantingSpotInUseAdapter in module (50c3b47)
+- **planting-spots:** Add e2e and integration tests (bc20a38)
+- **planting-spots:** Add e2e and integration tests (0bbeae7)
+- **plants:** Add plantingSpotId field and plantingSpot resolved field (80b46b5)
+- **planting-spots:** Add e2e and integration tests (8e504b0)
+- **auth:** Add OAuth foundation — domain model, persistence and command handlers (c8fd955)
+- **auth:** Add OAuth provider adapters — Google, GitHub and Apple (caea9ec)
+- **qr:** Add expiresAt field with expiry enforcement (5cd6adf)
+- **spaces:** Add QR and code space invitations (f8be488)
+- **plant-species:** Enrich catalog and add bulk import from GBIF (81efc60)
+- **plant-species:** Add enrich command with GBIF validation gate (84b1e65)
+- **plants:** Align linked species view model with plant-species catalog (312f91c)
+- **auth:** Implement app-level RBAC with ADMIN and USER roles (28d5810)
+- **openspec:** Add care-log change — full proposal, design, spec and tasks (b53a827)
+- **care-log:** Implement care journal bounded context (#216) (3e3769d)
+- **database:** Add tenant relationship indexes and FK constraints (610f362)
+- **security:** Validate critical secrets at startup with Zod (b8c0e12)
 
 ### Refactor
 - **users:** Replace static factories with builder pattern and add toPrimitives (f527be2)
@@ -776,10 +562,109 @@ All notable changes to this project will be documented in this file.
 - **auth:** Extract AssertAccountEmailAvailableService from RegisterAccountCommandHandler (31740b0)
 - **package:** Rename start scripts for consistency and clarity (540a402)
 - Remove MongoDB, use TypeORM for read and write (abbf4d4)
+- **auth:** Align change password command and domain validation (9ed4e4d)
+- **auth:** Move password validation flow to aggregate (179418d)
+- **auth:** Address PR review feedback for auth sessions (038415c)
+- **auth:** Split refresh token services by responsibility (e1dc67e)
+- **auth:** Place refresh token services in own folders (95fae3a)
+- **auth:** Use fromPrimitives in auth session builder (6689081)
+- **auth:** Update handlers and tests for injectable token services (cd7c974)
+- **auth:** Align refresh/logout commands with PR feedback (d5348da)
+- **auth:** Use value objects in refresh/logout commands (4ad6909)
+- **auth:** Remove active-session repo method and custom token error (1a45e55)
+- **auth:** Extract account view model mapping to dedicated mappers (827d2db)
+- **auth:** Restructure transport layer per PR feedback (d4df9fd)
+- **auth:** Inject builders via constructor, use domain AccountBuilder in REST mapper (60207cd)
+- **auth:** Remove AccountObjectBuilder, use domain AccountBuilder in GQL mapper (ee117e0)
+- **spaces:** Align domain and application to project conventions (056fd90)
+- **spaces:** Use assert services in handlers instead of raw findById (3b2692d)
+- **spaces:** Remove redundant @Inject on concrete assert service (4985922)
+- **users:** Reorder imports and add TODO for value objects in IUser interface (7407a42)
+- **spaces:** Extend SpaceNameValueObject from StringValueObject (7355a78)
+- **spaces:** Address PR #86 review comments (0b3279f)
+- **spaces:** Align SpacesModule with project module conventions (8a2cb7f)
+- **spaces:** Remove all exports from SpacesModule (0c2712a)
+- **shared:** Introduce global SharedModule for SpaceContext (4cbfda3)
+- **qr:** Generic QRs, plant-owned links, and DB cascade FKs (4a36aec)
+- **qr:** Consolidate migrations and dual plant-delete cascade (5ce20d4)
+- **plant:** Reorganize imports in plant-find-by-criteria handler (4c8eb2a)
+- **plant:** Streamline import statements in plant-find-by-id handler (7fabddf)
+- **plants:** Align PlantQrTargetUrlBuilder with IBaseService (72cac29)
+- **plant:** Update import statements in plant.builder.ts for consistency (203fbe1)
+- **tsconfig:** Add path alias for shared module (7ca9309)
+- **plant:** Utilize PlantBuilder in EnrichPlantWithQrService for improved object construction (5553e7e)
+- **qr:** Replace relative imports with @ path aliases (714e2f8)
+- **plant:** Update import statement in plant.view-model.ts to use absolute path alias (5cea65f)
+- **qr:** Use value objects in commands and queries (8855a52)
+- **qr:** Replace generation primitive with QrGenerationValueObject (d18f1d3)
+- **plants:** Extract IPlantQrPrimitives for PlantQrViewModel constructor (31347f2)
+- **plant-species:** Use @contexts path aliases for all intra-module imports (06f53ab)
+- **planting-spots:** Align domain+application with project conventions (81fc3dc)
+- **planting-spots:** Align infrastructure with base repository interfaces (c59eb79)
+- **planting-spots:** Use Criteria from nestjs-kit in transport layer (62296a8)
+- **plants:** Migrate qr and species to @ResolveField (bfa9065)
+- **planting-spots:** Update command inputs to use IPlantingSpotPrimitives (9f1c5f9)
+- **planting-spots:** Update UpdatePlantingSpotCommand to use 'id' consistently (ac21513)
+- **planting-spots:** Standardize DeletePlantingSpotCommand to use 'id' property (602a3c3)
+- **planting-spots:** Unify command handlers to use 'id' property (5b8b2ea)
+- **planting-spots:** Update PlantingSpotFindByIdQuery to use 'id' property (54f31f4)
+- **planting-spots:** Add TODO for enum implementation in PlantingSpotInUseAdapter (c702253)
+- **planting-spots:** Enhance PlantingSpotTypeOrmMapper and repository to use view models (a177696)
+- **planting-spots:** Align GraphQL transport with project conventions (29af759)
+- **base-exception-filter:** Reorganize exception imports and add new exceptions (adb3f0a)
+- **planting-spots:** Rename controller methods for consistency (cdc7ec2)
+- **planting-spots:** Update import paths for consistency (62ca558)
+- **planting-spots:** Rename DOMAIN_PROVIDERS to DOMAIN_BUILDERS for clarity (c134e5b)
+- **planting-spots:** Streamline GraphQL resolvers with JwtAuthGuard (faa2a00)
+- **planting-spots:** Remove JwtAuthGuard from PlantingSpotQueriesResolver (ab349f2)
+- **plants:** Address PR review — primitives, builder, and mapper for PlantPlantingSpotViewModel (6dbe8af)
+- **plants:** Split resolved fields into dedicated resolvers with mapper methods (970ab7e)
+- **plants:** Drop qr/species from REST response — GraphQL-only via ResolveField (bc6a4e6)
+- **filters:** Move exception-to-status mapping into per-context transport filters (c290b94)
+- **auth:** Move RotateResult type to domain/interfaces (4d1aed0)
+- **auth:** Remove RotateResult re-export from repository; import from interfaces directly (f283c9b)
+- **auth:** Fix architectural violations per PR review (3ba2afb)
+- **auth:** Wrap all command fields as value objects in OAuth commands (c28e009)
+- **auth:** EmailVerified as BooleanValueObject; mapper uses toDomain/toPersistence with builder chaining (26e834f)
+- **auth:** Remaining aggregate VOs, OAuthIdentityViewModel, event interface, remove redundant re-exports (07030c1)
+- **auth:** Move IOAuthIdentityLinkedEventData to domain/events/interfaces (607ea3e)
+- **auth:** Move OAuth strategies to own subfolders; use OAuthProviderEnum in registry (3fd9136)
+- **qr:** Move expiresAt validation to aggregate.checkExpiresAt() (826d20b)
+- **spaces:** Extract invitation assert services (4046af4)
+- **spaces:** Apply second round of PR review feedback (477b6f0)
+- **config:** Register spaces config namespace (5d03d05)
+- **spaces:** Move spaces config to bounded context infrastructure (c4f0dde)
+- **spaces:** Update date validation in SpaceCreateInvitationRequestDto (e04757e)
+- **spaces:** Remove unused SpaceContext from SpacesModule (df11e61)
+- **spaces:** Drop EnsureUserExists from invitation accept flow (0cdbde2)
+- **spaces:** Reorganize imports and add TODO for invitation handling (ddfd52c)
+- **plant-species:** Address PR review on import command and GBIF types (a392dcf)
+- **care-log:** Commands use Pick/Omit input types and full VO class fields (b35fc9a)
+- **care-log:** Per-field change events on update + FindByCriteria query (3cec1d0)
+- **care-log:** Address PR review comments (a7a452a)
+- **care-log:** Address remaining PR review comments (4694821)
+- **care-log:** Update CareLogFindLastByTypeQuery to use UuidValueObject for plantId (25dfcee)
 
 ### Testing
 - **users:** Unit tests for UserAggregate (f46657e)
 - **users:** Expand test coverage for all profile fields (736eccc)
 - **transport:** Add unit tests for auth/user resolvers, controller, and users module (32894a8)
 - **e2e:** Add auth and users E2E tests with real Postgres, Docker, and CI job (bc2d47f)
+- Add integration test infrastructure (phase 1) (287d558)
+- Add pilot integration specs for tenant isolation (phase 2) (66c8d88)
+- Use migrations in integration tests (phase 3) (bb8c871)
+- Add optional Testcontainers for local DB tests (phase 4) (9a4ce25)
+- Align E2E tests with migrations instead of synchronize (phase 5) (4852e48)
+- Harden integration test maintenance and archive change (phase 6) (44c7c84)
+- **qr:** Add unit and e2e coverage for plant QR module (c480680)
+- **qr:** Add missing test coverage for qr bounded context (f8e6c08)
+- **plant-species:** Update aggregate spec for changeName() event order (d9117d4)
+- **planting-spots:** Relax SC-16 constraint to allow Phase 2 adapters (b964fc8)
+- **config:** Update migrationsRun assertions for new default-true behavior (4f51703)
+- **spaces:** Fix invitation expiry fixture past current date (397c16f)
+- **care-log:** Add unit, integration and e2e tests (374c62b)
+- **integration:** Seed FK parent rows for tenant constraints (fa41657)
+
+### Tech
+- **auth:** Implement findByCriteria in AccountTypeOrmReadRepository (f2e7a78)
 

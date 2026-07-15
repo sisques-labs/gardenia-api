@@ -205,7 +205,6 @@ Mapped in `transport/exceptions/care-log-exception.filter.ts` and wired globally
 | Exception | HTTP |
 |-----------|------|
 | `CareLogEntryNotFoundException` | 404 Not Found |
-| `CareLogEntryForbiddenException` | 403 Forbidden |
 | `CareLogQuantityUnitMismatchException` | 422 Unprocessable Entity |
 
 ---
@@ -255,7 +254,7 @@ Migration: `src/database/migrations/1780000000016-CreateCareLog.ts`
 
 ## MCP Tools
 
-Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the acting user and active space come from the authenticated MCP request context.
+Exposed under `transport/mcp/` for AI clients (see the `@sisques-labs/nestjs-kit/mcp` module docs). Each tool dispatches through the Command/Query bus; the acting user and active space come from the authenticated MCP request context.
 
 | Tool | Action |
 |------|--------|

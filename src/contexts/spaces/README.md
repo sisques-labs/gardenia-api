@@ -38,13 +38,13 @@ src/contexts/spaces/
 │       ├── mappers/
 │       └── repositories/
 └── transport/
-    ├── guards/            # SpaceGuard (global APP_GUARD in AppModule)
+    ├── guards/            # SpaceGuard (global APP_GUARD in CoreModule)
     ├── interceptors/      # SpaceInterceptor (global APP_INTERCEPTOR)
     ├── rest/              # SpacesController, InvitationsController
     └── graphql/           # SpaceQueriesResolver, SpaceMutationsResolver
 ```
 
-`SpaceGuard` and `SpaceInterceptor` are registered **globally** in `AppModule`. Their source files live here, but they apply to every bounded context that needs tenant scoping.
+`SpaceGuard` and `SpaceInterceptor` are registered **globally** in `CoreModule`. Their source files live here, but they apply to every bounded context that needs tenant scoping.
 
 ---
 
@@ -411,7 +411,7 @@ E2E invitation tests use REST. GraphQL accept/create mirror the same command han
 
 ## MCP Tools
 
-Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the acting user comes from the authenticated MCP request context.
+Exposed under `transport/mcp/` for AI clients (see the `@sisques-labs/nestjs-kit/mcp` module docs). Each tool dispatches through the Command/Query bus; the acting user comes from the authenticated MCP request context.
 
 | Tool | Action |
 |------|--------|

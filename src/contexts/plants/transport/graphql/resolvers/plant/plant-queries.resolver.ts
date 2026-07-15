@@ -2,9 +2,11 @@ import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { Criteria } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 import { PlantFindByCriteriaQuery } from '@contexts/plants/application/queries/plant-find-by-criteria/plant-find-by-criteria.query';
 import { PlantFindByIdQuery } from '@contexts/plants/application/queries/plant-find-by-id/plant-find-by-id.query';
+import { plantFilterableFields } from '@contexts/plants/transport/graphql/registries/plant-filterable-fields.registry';
 import { PlantFindByIdRequestDto } from '../../dtos/requests/plant/plant-find-by-id.request.dto';
 import { PlantFindByCriteriaRequestDto } from '../../dtos/requests/plant/plant-find-by-criteria.request.dto';
 import {
@@ -39,7 +41,11 @@ export class PlantQueriesResolver {
 
   @Query(() => PaginatedPlantResultDto)
   async plantsFindByCriteria(
-    @Args('input', { nullable: true })
+    @Args(
+      'input',
+      { nullable: true },
+      new FilterValidationPipe(plantFilterableFields),
+    )
     input?: PlantFindByCriteriaRequestDto,
   ): Promise<PaginatedPlantResultDto> {
     this.logger.log(`Finding plants by criteria: ${JSON.stringify(input)}`);

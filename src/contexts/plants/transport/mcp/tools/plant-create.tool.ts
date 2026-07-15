@@ -2,15 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { CreatePlantCommand } from '@contexts/plants/application/commands/create-plant/create-plant.command';
 import { plantCreateSchema } from '../schemas/plant-create.schema';
 
 @McpTool()
 @Injectable()
-export class PlantCreateMcpTool implements IMcpTool {
+export class PlantCreateMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(PlantCreateMcpTool.name);
 
   readonly name = 'plant_create';
@@ -25,9 +24,10 @@ export class PlantCreateMcpTool implements IMcpTool {
     args: Record<string, unknown>,
     context: IMcpToolContext,
   ): Promise<CallToolResult> {
-    const { name, plantSpeciesId, imageUrl } = args as {
+    const { name, gbifSpeciesKey, speciesScientificName, imageUrl } = args as {
       name: string;
-      plantSpeciesId?: string;
+      gbifSpeciesKey?: number;
+      speciesScientificName?: string;
       imageUrl?: string;
     };
     this.logger.log(`Creating plant for user: ${context.userId}`);
@@ -35,7 +35,8 @@ export class PlantCreateMcpTool implements IMcpTool {
     const plantId = await this.commandBus.execute<CreatePlantCommand, string>(
       new CreatePlantCommand({
         name,
-        plantSpeciesId: plantSpeciesId ?? undefined,
+        gbifSpeciesKey,
+        speciesScientificName,
         imageUrl: imageUrl ?? undefined,
         userId: context.userId,
       }),

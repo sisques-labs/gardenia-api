@@ -2,9 +2,11 @@ import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { Criteria } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 import { HarvestFindByCriteriaQuery } from '@contexts/harvests/application/queries/harvest-find-by-criteria/harvest-find-by-criteria.query';
 import { HarvestFindByIdQuery } from '@contexts/harvests/application/queries/harvest-find-by-id/harvest-find-by-id.query';
+import { harvestFilterableFields } from '@contexts/harvests/transport/graphql/registries/harvest-filterable-fields.registry';
 import { HarvestFindByCriteriaRequestDto } from '@contexts/harvests/transport/graphql/dtos/requests/harvest/harvest-find-by-criteria.request.dto';
 import { HarvestFindByIdRequestDto } from '@contexts/harvests/transport/graphql/dtos/requests/harvest/harvest-find-by-id.request.dto';
 import {
@@ -24,7 +26,11 @@ export class HarvestQueriesResolver {
 
   @Query(() => PaginatedHarvestResultDto)
   async harvestsFindByCriteria(
-    @Args('input', { nullable: true })
+    @Args(
+      'input',
+      { nullable: true },
+      new FilterValidationPipe(harvestFilterableFields),
+    )
     input?: HarvestFindByCriteriaRequestDto,
   ): Promise<PaginatedHarvestResultDto> {
     this.logger.log(`Finding harvests by criteria: ${JSON.stringify(input)}`);

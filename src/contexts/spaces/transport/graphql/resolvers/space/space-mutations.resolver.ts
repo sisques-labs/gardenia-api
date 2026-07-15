@@ -4,7 +4,7 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 import {
   CurrentUser,
@@ -168,9 +168,7 @@ export class SpaceMutationsResolver {
     @CurrentUser() user: CurrentUserPayload,
     @Args('input') input: SpaceUpdateRequestDto,
   ): Promise<MutationResponseDto> {
-    this.logger.log(
-      `Updating space ${input.spaceId} by user: ${user.userId}`,
-    );
+    this.logger.log(`Updating space ${input.spaceId} by user: ${user.userId}`);
 
     await this.commandBus.execute(
       new UpdateSpaceCommand({

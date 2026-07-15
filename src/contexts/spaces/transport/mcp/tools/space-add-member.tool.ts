@@ -2,16 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { McpTool } from '@core/mcp/domain/decorators/mcp-tool.decorator';
-import { IMcpTool } from '@core/mcp/domain/interfaces/mcp-tool.interface';
-import { IMcpToolContext } from '@core/mcp/domain/interfaces/mcp-tool-context.interface';
+import { IMcpTool, McpTool } from '@sisques-labs/nestjs-kit/mcp';
+import { IMcpToolContext } from '@core/mcp/mcp-context.interface';
 import { AddMemberCommand } from '@contexts/spaces/application/commands/add-member/add-member.command';
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
 import { spaceAddMemberSchema } from '../schemas/space-add-member.schema';
 
 @McpTool()
 @Injectable()
-export class SpaceAddMemberMcpTool implements IMcpTool {
+export class SpaceAddMemberMcpTool implements IMcpTool<IMcpToolContext> {
   private readonly logger = new Logger(SpaceAddMemberMcpTool.name);
 
   readonly name = 'space_add_member';

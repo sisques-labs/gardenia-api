@@ -2,10 +2,12 @@ import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Args, ID, Query, Resolver } from '@nestjs/graphql';
 import { Criteria, PaginatedResult } from '@sisques-labs/nestjs-kit';
+import { FilterValidationPipe } from '@sisques-labs/nestjs-kit/graphql';
 
 import { CareLogFindByCriteriaQuery } from '@contexts/care-log/application/queries/care-log-find-by-criteria/care-log-find-by-criteria.query';
 import { CareLogEntryViewModel } from '@contexts/care-log/domain/view-models/care-log-entry.view-model';
 import { AssertCareLogEntryViewModelExistsService } from '@contexts/care-log/application/services/read/assert-care-log-entry-view-model-exists/assert-care-log-entry-view-model-exists.service';
+import { careLogFilterableFields } from '@contexts/care-log/transport/graphql/registries/care-log-filterable-fields.registry';
 
 import { CareLogFindByCriteriaRequestDto } from '../dtos/requests/care-log-find-by-criteria-graphql.dto';
 import {
@@ -36,7 +38,12 @@ export class CareLogQueriesResolver {
 
   @Query(() => PaginatedCareLogEntryResultDto)
   async careLogFindByCriteria(
-    @Args('input', { nullable: true }) input?: CareLogFindByCriteriaRequestDto,
+    @Args(
+      'input',
+      { nullable: true },
+      new FilterValidationPipe(careLogFilterableFields),
+    )
+    input?: CareLogFindByCriteriaRequestDto,
   ): Promise<PaginatedCareLogEntryResultDto> {
     this.logger.log('Finding care log entries by criteria');
 

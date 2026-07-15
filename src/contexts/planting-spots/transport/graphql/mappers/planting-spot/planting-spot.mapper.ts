@@ -1,12 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PaginatedResult } from '@sisques-labs/nestjs-kit';
 
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotPlantViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot-plant.view-model';
+import { PlantingSpotQrViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot-qr.view-model';
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
 import {
   PaginatedPlantingSpotResultDto,
   PlantInSpotResponseDto,
+  PlantingSpotQrResponseDto,
   PlantingSpotResponseDto,
 } from '@contexts/planting-spots/transport/graphql/dtos/responses/planting-spot.response.dto';
 
@@ -14,8 +17,12 @@ import {
 export class PlantingSpotGraphQLMapper {
   private readonly logger = new Logger(PlantingSpotGraphQLMapper.name);
 
-  toResponseDtoFromViewModel(vm: PlantingSpotViewModel): PlantingSpotResponseDto {
-    this.logger.log(`Mapping planting spot view model to response dto: ${vm.id}`);
+  toResponseDtoFromViewModel(
+    vm: PlantingSpotViewModel,
+  ): PlantingSpotResponseDto {
+    this.logger.log(
+      `Mapping planting spot view model to response dto: ${vm.id}`,
+    );
 
     return {
       id: vm.id,
@@ -29,6 +36,10 @@ export class PlantingSpotGraphQLMapper {
       dimensionsHeight: vm.dimensionsHeight,
       dimensionsLength: vm.dimensionsLength,
       soilType: vm.soilType,
+      status: vm.status as PlantingSpotStatusEnum,
+      fallowSince: vm.fallowSince,
+      qrId: vm.qrId ?? null,
+      qr: vm.qr ?? null,
       userId: vm.userId,
       spaceId: vm.spaceId,
       resolvedPlants: [],
@@ -37,7 +48,21 @@ export class PlantingSpotGraphQLMapper {
     };
   }
 
-  toPlantInSpotResponseDto(p: PlantingSpotPlantViewModel): PlantInSpotResponseDto {
+  toQrResponseDto(vm: PlantingSpotQrViewModel): PlantingSpotQrResponseDto {
+    return {
+      id: vm.id,
+      spaceId: vm.spaceId,
+      targetUrl: vm.targetUrl,
+      generation: vm.generation,
+      image: vm.image,
+      createdAt: vm.createdAt,
+      updatedAt: vm.updatedAt,
+    };
+  }
+
+  toPlantInSpotResponseDto(
+    p: PlantingSpotPlantViewModel,
+  ): PlantInSpotResponseDto {
     return {
       id: p.id,
       name: p.name,
@@ -54,7 +79,9 @@ export class PlantingSpotGraphQLMapper {
     paginatedResult: PaginatedResult<PlantingSpotViewModel>,
   ): PaginatedPlantingSpotResultDto {
     return {
-      items: paginatedResult.items.map((vm) => this.toResponseDtoFromViewModel(vm)),
+      items: paginatedResult.items.map((vm) =>
+        this.toResponseDtoFromViewModel(vm),
+      ),
       total: paginatedResult.total,
       page: paginatedResult.page,
       perPage: paginatedResult.perPage,

@@ -3,7 +3,6 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { CareLogEntryAggregate } from '@contexts/care-log/domain/aggregates/care-log-entry.aggregate';
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
-import { CareLogEntryForbiddenException } from '@contexts/care-log/domain/exceptions/care-log-entry-forbidden.exception';
 import { CareLogEntryNotFoundException } from '@contexts/care-log/domain/exceptions/care-log-entry-not-found.exception';
 import { ICareLogEntryWriteRepository } from '@contexts/care-log/domain/repositories/write/care-log-entry-write.repository';
 import { CareLogIdValueObject } from '@contexts/care-log/domain/value-objects/care-log-id/care-log-id.value-object';
@@ -27,7 +26,9 @@ const buildAggregate = (): CareLogEntryAggregate =>
     plantId: new UuidValueObject(PLANT_ID),
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
-    activityType: new CareLogActivityTypeValueObject(CareLogActivityTypeEnum.WATERING),
+    activityType: new CareLogActivityTypeValueObject(
+      CareLogActivityTypeEnum.WATERING,
+    ),
     performedAt: new CareLogPerformedAtValueObject(NOW),
     notes: null,
     quantity: null,
@@ -86,8 +87,8 @@ describe('DeleteCareLogEntryCommandHandler', () => {
     });
   });
 
-  describe('non-owner — throws CareLogEntryForbiddenException', () => {
-    it('should throw when requesting user is not the owner', async () => {
+  describe('space member deletes an entry they did not create', () => {
+    it('should allow any requesting user to delete the entry', async () => {
       const aggregate = buildAggregate();
       assertExists.execute.mockResolvedValue(aggregate);
 
@@ -96,10 +97,10 @@ describe('DeleteCareLogEntryCommandHandler', () => {
         requestingUserId: OTHER_USER_ID,
       });
 
-      await expect(handler.execute(command)).rejects.toThrow(
-        CareLogEntryForbiddenException,
-      );
-      expect(writeRepository.delete).not.toHaveBeenCalled();
+      await handler.execute(command);
+
+      expect(writeRepository.delete).toHaveBeenCalledTimes(1);
+      expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
   });
 

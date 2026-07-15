@@ -39,7 +39,7 @@ describe('Plant Species REST API (e2e)', () => {
         .http()
         .post('/api/plant-species')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ scientificName: 'Monstera deliciosa' })
+        .send({ scientificName: 'Monstera deliciosa', gbifKey: 2882337 })
         .expect(403);
     });
 
@@ -48,26 +48,29 @@ describe('Plant Species REST API (e2e)', () => {
         .http()
         .post('/api/plant-species')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ scientificName: 'Monstera deliciosa' })
+        .send({ scientificName: 'Monstera deliciosa', gbifKey: 2882337 })
         .expect(201);
 
-      expect(res.body).toMatchObject({ scientificName: 'Monstera deliciosa' });
+      expect(res.body).toMatchObject({
+        scientificName: 'Monstera deliciosa',
+        gbifKey: 2882337,
+      });
       expect(res.body.id).toBeDefined();
     });
 
-    it('POST /api/plant-species — 409 on duplicate name (case-insensitive) for admin', async () => {
+    it('POST /api/plant-species — 409 on duplicate gbifKey for admin', async () => {
       await ctx
         .http()
         .post('/api/plant-species')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ scientificName: 'monstera' })
+        .send({ scientificName: 'Monstera', gbifKey: 2882337 })
         .expect(201);
 
       await ctx
         .http()
         .post('/api/plant-species')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ scientificName: 'Monstera' })
+        .send({ scientificName: 'Monstera deliciosa', gbifKey: 2882337 })
         .expect(409);
     });
 
@@ -76,7 +79,7 @@ describe('Plant Species REST API (e2e)', () => {
         .http()
         .post('/api/plant-species')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ scientificName: 'Basil' })
+        .send({ scientificName: 'Basil', gbifKey: 3086357 })
         .expect(201);
 
       const { id } = createRes.body as { id: string };
@@ -85,7 +88,7 @@ describe('Plant Species REST API (e2e)', () => {
         .http()
         .patch(`/api/plant-species/${id}`)
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ description: 'Updated' })
+        .send({ scientificName: 'Updated' })
         .expect(403);
     });
 
@@ -94,7 +97,7 @@ describe('Plant Species REST API (e2e)', () => {
         .http()
         .post('/api/plant-species')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ scientificName: 'Thyme' })
+        .send({ scientificName: 'Thyme', gbifKey: 5361918 })
         .expect(201);
 
       const { id } = createRes.body as { id: string };
@@ -113,7 +116,7 @@ describe('Plant Species REST API (e2e)', () => {
         .http()
         .post('/api/plant-species')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ scientificName: 'Basil' })
+        .send({ scientificName: 'Basil', gbifKey: 3086357 })
         .expect(201);
 
       const res = await ctx
@@ -125,6 +128,25 @@ describe('Plant Species REST API (e2e)', () => {
       expect(res.body.items).toHaveLength(1);
       expect(res.body.items[0].scientificName).toBe('Basil');
     });
+
+    it('GET /api/plant-species/search — live GBIF search, no persistence', async () => {
+      const res = await ctx
+        .http()
+        .get('/api/plant-species/search')
+        .query({ name: 'Monstera' })
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+
+      const listRes = await ctx
+        .http()
+        .get('/api/plant-species')
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(200);
+
+      expect(listRes.body.items).toHaveLength(0);
+    });
   });
 
   describe('promoted admin — fresh login required', () => {
@@ -135,7 +157,7 @@ describe('Plant Species REST API (e2e)', () => {
         .http()
         .post('/api/plant-species')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ scientificName: 'Stale Token Species' })
+        .send({ scientificName: 'Stale Token Species', gbifKey: 9999999 })
         .expect(403);
     });
   });

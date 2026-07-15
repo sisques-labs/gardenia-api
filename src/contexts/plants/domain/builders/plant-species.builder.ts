@@ -7,8 +7,7 @@ import { PlantSpeciesViewModel } from '@contexts/plants/domain/view-models/plant
 export class PlantSpeciesBuilder {
   private _id!: string;
   private _scientificName!: string;
-  private _description: string | null = null;
-  private _imageUrl: string | null = null;
+  private _gbifKey: number | null = null;
   private _createdAt!: Date;
   private _updatedAt!: Date;
 
@@ -22,13 +21,8 @@ export class PlantSpeciesBuilder {
     return this;
   }
 
-  withDescription(description: string | null): this {
-    this._description = description;
-    return this;
-  }
-
-  withImageUrl(imageUrl: string | null): this {
-    this._imageUrl = imageUrl;
+  withGbifKey(gbifKey: number | null): this {
+    this._gbifKey = gbifKey;
     return this;
   }
 
@@ -47,8 +41,7 @@ export class PlantSpeciesBuilder {
     return new PlantSpeciesViewModel({
       id: this._id,
       scientificName: this._scientificName,
-      description: this._description,
-      imageUrl: this._imageUrl,
+      gbifKey: this._gbifKey,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });

@@ -15,10 +15,11 @@ import { truncateAll } from '../../helpers/db-reset';
 
 const NOW = new Date('2024-06-01T00:00:00.000Z');
 
-function buildSpecies(scientificName: string) {
+function buildSpecies(scientificName: string, gbifKey: number) {
   return new PlantSpeciesBuilder()
     .withId(randomUUID())
     .withScientificName(scientificName)
+    .withGbifKey(gbifKey)
     .withCreatedAt(NOW)
     .withUpdatedAt(NOW)
     .build();
@@ -42,7 +43,7 @@ describe('PlantSpeciesTypeOrmWriteRepository (integration)', () => {
   });
 
   it('save() persists and findById() returns the aggregate', async () => {
-    const species = buildSpecies('Monstera');
+    const species = buildSpecies('Monstera', 2882337);
     species.create();
 
     const saved = await writeRepo.save(species);
@@ -50,20 +51,26 @@ describe('PlantSpeciesTypeOrmWriteRepository (integration)', () => {
 
     expect(found).not.toBeNull();
     expect(found!.scientificName.value).toBe('Monstera');
+    expect(found!.gbifKey?.value).toBe(2882337);
   });
 
-  it('findByScientificName() is case-insensitive', async () => {
-    const species = buildSpecies('Basil');
+  it('findByGbifKey() returns the matching entry', async () => {
+    const species = buildSpecies('Basil', 3086357);
     species.create();
     await writeRepo.save(species);
 
-    const found = await writeRepo.findByScientificName('basil');
+    const found = await writeRepo.findByGbifKey(3086357);
     expect(found).not.toBeNull();
     expect(found!.scientificName.value).toBe('Basil');
   });
 
+  it('findByGbifKey() returns null when no entry matches', async () => {
+    const found = await writeRepo.findByGbifKey(999999999);
+    expect(found).toBeNull();
+  });
+
   it('delete() removes the record', async () => {
-    const species = buildSpecies('Tulip');
+    const species = buildSpecies('Tulip', 3033842);
     species.create();
     const saved = await writeRepo.save(species);
 

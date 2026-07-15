@@ -57,6 +57,17 @@ const DELETE_MUTATION = `
   }
 `;
 
+const DELETE_BULK_MUTATION = `
+  mutation InventoryItemsDeleteBulk($input: DeleteInventoryItemsBulkInput!) {
+    inventoryItemsDeleteBulk(input: $input) {
+      deletedIds
+      notFoundIds
+      deletedCount
+      requestedCount
+    }
+  }
+`;
+
 const FIND_BY_ID_QUERY = `
   query InventoryItemFindById($input: InventoryItemFindByIdInput!) {
     inventoryItemFindById(input: $input) {
@@ -321,6 +332,103 @@ describe('Inventory GraphQL API (e2e)', () => {
         ctx.app,
         DELETE_MUTATION,
         { id: 'f47ac10b-58cc-4372-a567-000000000099' },
+        userA.token,
+        userA.spaceId,
+      ).expect(200);
+
+      expect(res.body.errors).toBeDefined();
+    });
+  });
+
+  describe('mutation inventoryItemsDeleteBulk', () => {
+    it('deletes all ids and reports counts', async () => {
+      const idA = (
+        await gql(
+          ctx.app,
+          CREATE_MUTATION,
+          { input: VALID_INPUT },
+          userA.token,
+          userA.spaceId,
+        )
+      ).body.data.inventoryItemCreate.id as string;
+
+      const idB = (
+        await gql(
+          ctx.app,
+          CREATE_MUTATION,
+          { input: { ...VALID_INPUT, name: 'Tomato seeds' } },
+          userA.token,
+          userA.spaceId,
+        )
+      ).body.data.inventoryItemCreate.id as string;
+
+      const res = await gql(
+        ctx.app,
+        DELETE_BULK_MUTATION,
+        { input: { ids: [idA, idB] } },
+        userA.token,
+        userA.spaceId,
+      ).expect(200);
+
+      expect(res.body.errors).toBeUndefined();
+      expect(res.body.data.inventoryItemsDeleteBulk).toMatchObject({
+        deletedCount: 2,
+        requestedCount: 2,
+        notFoundIds: [],
+      });
+      expect(
+        [...res.body.data.inventoryItemsDeleteBulk.deletedIds].sort(),
+      ).toEqual([idA, idB].sort());
+    });
+
+    it('reports a cross-tenant id as not found without deleting it', async () => {
+      const idA = (
+        await gql(
+          ctx.app,
+          CREATE_MUTATION,
+          { input: VALID_INPUT },
+          userA.token,
+          userA.spaceId,
+        )
+      ).body.data.inventoryItemCreate.id as string;
+
+      const res = await gql(
+        ctx.app,
+        DELETE_BULK_MUTATION,
+        { input: { ids: [idA] } },
+        userB.token,
+        userB.spaceId,
+      ).expect(200);
+
+      expect(res.body.errors).toBeUndefined();
+      expect(res.body.data.inventoryItemsDeleteBulk).toMatchObject({
+        deletedIds: [],
+        notFoundIds: [idA],
+        deletedCount: 0,
+      });
+
+      const findRes = await gql(
+        ctx.app,
+        FIND_BY_ID_QUERY,
+        { input: { id: idA } },
+        userA.token,
+        userA.spaceId,
+      ).expect(200);
+      expect(findRes.body.data.inventoryItemFindById).toMatchObject({
+        id: idA,
+      });
+    });
+
+    it('rejects a batch over 100 ids', async () => {
+      const ids = Array.from(
+        { length: 101 },
+        () => 'f47ac10b-58cc-4372-a567-000000000099',
+      );
+
+      const res = await gql(
+        ctx.app,
+        DELETE_BULK_MUTATION,
+        { input: { ids } },
         userA.token,
         userA.spaceId,
       ).expect(200);

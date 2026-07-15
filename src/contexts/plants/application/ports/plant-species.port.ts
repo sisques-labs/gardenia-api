@@ -6,4 +6,9 @@ export interface IPlantSpeciesPort {
   findByPlantSpeciesId(
     plantSpeciesId: string,
   ): Promise<PlantSpeciesViewModel | null>;
+
+  findOrCreateByGbifKey(
+    gbifKey: number,
+    scientificName: string,
+  ): Promise<{ id: string }>;
 }

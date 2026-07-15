@@ -1,14 +1,16 @@
 import { EventBus } from '@nestjs/cqrs';
 import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
+import { IPlantingSpotQrPort } from '@contexts/planting-spots/application/ports/planting-spot-qr.port';
 import { PlantingSpotAggregate } from '@contexts/planting-spots/domain/aggregates/planting-spot.aggregate';
+import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/planting-spot-status.enum';
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
-import { PlantingSpotForbiddenException } from '@contexts/planting-spots/domain/exceptions/planting-spot-forbidden.exception';
 import { PlantingSpotInUseException } from '@contexts/planting-spots/domain/exceptions/planting-spot-in-use.exception';
 import { PlantingSpotNotFoundException } from '@contexts/planting-spots/domain/exceptions/planting-spot-not-found.exception';
 import { IPlantingSpotWriteRepository } from '@contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
 import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
 import { PlantingSpotNameValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-name/planting-spot-name.value-object';
+import { PlantingSpotStatusValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-status/planting-spot-status.value-object';
 import { PlantingSpotTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-type/planting-spot-type.value-object';
 import { AssertPlantingSpotExistsService } from '../../services/write/assert-planting-spot-exists/assert-planting-spot-exists.service';
 import { AssertPlantingSpotNotInUseService } from '../../services/write/assert-planting-spot-not-in-use/assert-planting-spot-not-in-use.service';
@@ -22,7 +24,9 @@ const OTHER_USER_ID = '550e8400-e29b-41d4-a716-446655440099';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';
 const NOW = new Date('2024-01-01');
 
-const buildAggregate = (): PlantingSpotAggregate =>
+const QR_ID = '660e8400-e29b-41d4-a716-446655440099';
+
+const buildAggregate = (qrId: string | null = null): PlantingSpotAggregate =>
   new PlantingSpotAggregate({
     id: new PlantingSpotIdValueObject(SPOT_ID),
     name: new PlantingSpotNameValueObject('Bancal Norte'),
@@ -33,6 +37,9 @@ const buildAggregate = (): PlantingSpotAggregate =>
     column: null,
     dimensions: null,
     soilType: null,
+    status: new PlantingSpotStatusValueObject(PlantingSpotStatusEnum.ACTIVE),
+    fallowSince: null,
+    qrId: qrId ? new UuidValueObject(qrId) : null,
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     createdAt: new DateValueObject(NOW),
@@ -44,6 +51,7 @@ describe('DeletePlantingSpotCommandHandler', () => {
   let writeRepository: jest.Mocked<IPlantingSpotWriteRepository>;
   let assertExistsService: jest.Mocked<AssertPlantingSpotExistsService>;
   let assertNotInUseService: jest.Mocked<AssertPlantingSpotNotInUseService>;
+  let plantingSpotQrPort: jest.Mocked<IPlantingSpotQrPort>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -64,6 +72,12 @@ describe('DeletePlantingSpotCommandHandler', () => {
       execute: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<AssertPlantingSpotNotInUseService>;
 
+    plantingSpotQrPort = {
+      findByQrId: jest.fn(),
+      createForPlantingSpot: jest.fn(),
+      delete: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<IPlantingSpotQrPort>;
+
     eventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -73,6 +87,7 @@ describe('DeletePlantingSpotCommandHandler', () => {
       writeRepository,
       assertExistsService,
       assertNotInUseService,
+      plantingSpotQrPort,
       eventBus,
     );
   });
@@ -90,13 +105,32 @@ describe('DeletePlantingSpotCommandHandler', () => {
 
       await handler.execute(command);
 
+      expect(plantingSpotQrPort.delete).not.toHaveBeenCalled();
+      expect(writeRepository.delete).toHaveBeenCalledWith(SPOT_ID);
+      expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should delete the linked qr when the spot has one', async () => {
+      const aggregate = buildAggregate(QR_ID);
+      assertExistsService.execute.mockResolvedValue(aggregate);
+
+      const command = new DeletePlantingSpotCommand({
+        id: SPOT_ID,
+        requestingUserId: OWNER_ID,
+        spaceId: SPACE_ID,
+      });
+
+      await handler.execute(command);
+
+      expect(plantingSpotQrPort.delete).toHaveBeenCalledTimes(1);
+      expect(plantingSpotQrPort.delete).toHaveBeenCalledWith(QR_ID);
       expect(writeRepository.delete).toHaveBeenCalledWith(SPOT_ID);
       expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('owner mismatch — throws PlantingSpotForbiddenException', () => {
-    it('should throw PlantingSpotForbiddenException when not the owner', async () => {
+  describe('space member deletes a spot they did not create', () => {
+    it('should allow any requesting user to delete the spot', async () => {
       const aggregate = buildAggregate();
       assertExistsService.execute.mockResolvedValue(aggregate);
 
@@ -106,10 +140,10 @@ describe('DeletePlantingSpotCommandHandler', () => {
         spaceId: SPACE_ID,
       });
 
-      await expect(handler.execute(command)).rejects.toThrow(
-        PlantingSpotForbiddenException,
-      );
-      expect(writeRepository.delete).not.toHaveBeenCalled();
+      await handler.execute(command);
+
+      expect(writeRepository.delete).toHaveBeenCalledWith(SPOT_ID);
+      expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
   });
 

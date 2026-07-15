@@ -4,13 +4,17 @@ import {
   BaseDatabaseRepository,
   Criteria,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
+import { applyCriteriaToQueryBuilder } from '@sisques-labs/nestjs-kit/typeorm';
 import { Repository } from 'typeorm';
 
 import { IPlantSpeciesReadRepository } from '@contexts/plant-species/domain/repositories/read/plant-species-read.repository';
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 import { PlantSpeciesTypeOrmEntity } from '@contexts/plant-species/infrastructure/persistence/typeorm/entities/plant-species.entity';
 import { PlantSpeciesTypeOrmMapper } from '@contexts/plant-species/infrastructure/persistence/typeorm/mappers/plant-species-typeorm.mapper';
+
+const ALIAS = 'species';
 
 @Injectable()
 export class PlantSpeciesTypeOrmReadRepository
@@ -38,14 +42,14 @@ export class PlantSpeciesTypeOrmReadRepository
   ): Promise<PaginatedResult<PlantSpeciesViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    const [entities, total] = await this.plantSpeciesRepo.findAndCount({
-      skip,
-      take: limit,
-      order: criteria.sorts?.reduce(
-        (acc, s) => ({ ...acc, [s.field]: s.direction }),
-        { scientificName: 'ASC' },
-      ),
+    const qb = this.plantSpeciesRepo.createQueryBuilder(ALIAS);
+
+    applyCriteriaToQueryBuilder(qb, criteria, {
+      alias: ALIAS,
+      defaultSort: { field: 'scientificName', direction: SortDirection.ASC },
     });
+
+    const [entities, total] = await qb.skip(skip).take(limit).getManyAndCount();
 
     const items = entities.map((entity) => {
       const aggregate = this.plantSpeciesMapper.toDomain(entity);

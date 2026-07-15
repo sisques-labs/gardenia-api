@@ -1,0 +1,35 @@
+change: resolve-space-members-via-memberships
+status: apply
+created: 2026-07-08
+artifact_store: hybrid
+context: users
+phases:
+  explore: skipped
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: done
+  verify: partial
+  archive: pending
+next_recommended:
+  - sdd-verify
+  - sdd-archive
+notes: |
+  Fixes GDN-9 / GitHub issue #167: UserTypeOrmReadRepository scoped
+  findById/findByUsername/findByCriteria by the users table's own home
+  space_id (via createTenantRepository), so members who joined a space
+  only through an invitation (space_memberships row, no matching
+  users.space_id) never appeared in that space's user listings. All three
+  methods now resolve through an explicit INNER JOIN space_memberships via
+  QueryBuilder, scoped by the active X-Space-ID. Write repository and the
+  users.space_id column are untouched.
+
+  Superseded PR #246 (open, unmerged), which only proposed this change
+  without implementing it, for the same issue #167.
+
+  Implemented in full. Shipped as PR #320 (claude/gdn-9-ticket-yhpwlw ->
+  develop). Unit tests, lint, and typecheck all pass (402/402 suites,
+  1696/1696 tests). Integration/E2E tests were written but NOT run — no
+  Docker/Postgres available in this sandbox. Run `pnpm test:integration`
+  and `pnpm test:e2e` against a real Postgres before merging.

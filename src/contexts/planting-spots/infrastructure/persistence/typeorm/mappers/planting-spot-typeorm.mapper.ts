@@ -18,10 +18,23 @@ export class PlantingSpotTypeOrmMapper {
       .withCapacity(entity.capacity)
       .withRow(entity.row)
       .withColumn(entity.column)
-      .withDimensionsWidth(entity.dimensionsWidth != null ? Number(entity.dimensionsWidth) : null)
-      .withDimensionsHeight(entity.dimensionsHeight != null ? Number(entity.dimensionsHeight) : null)
-      .withDimensionsLength(entity.dimensionsLength != null ? Number(entity.dimensionsLength) : null)
+      .withDimensionsWidth(
+        entity.dimensionsWidth != null ? Number(entity.dimensionsWidth) : null,
+      )
+      .withDimensionsHeight(
+        entity.dimensionsHeight != null
+          ? Number(entity.dimensionsHeight)
+          : null,
+      )
+      .withDimensionsLength(
+        entity.dimensionsLength != null
+          ? Number(entity.dimensionsLength)
+          : null,
+      )
       .withSoilType(entity.soilType)
+      .withStatus(entity.status)
+      .withFallowSince(entity.fallowSince)
+      .withQrId(entity.qrId ?? null)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
       .withCreatedAt(entity.createdAt)
@@ -46,6 +59,9 @@ export class PlantingSpotTypeOrmMapper {
     entity.dimensionsHeight = primitives.dimensionsHeight;
     entity.dimensionsLength = primitives.dimensionsLength;
     entity.soilType = primitives.soilType;
+    entity.status = primitives.status;
+    entity.fallowSince = primitives.fallowSince;
+    entity.qrId = primitives.qrId;
     entity.userId = primitives.userId;
     entity.spaceId = primitives.spaceId;
     entity.createdAt = primitives.createdAt;
@@ -63,10 +79,23 @@ export class PlantingSpotTypeOrmMapper {
       .withCapacity(entity.capacity)
       .withRow(entity.row)
       .withColumn(entity.column)
-      .withDimensionsWidth(entity.dimensionsWidth != null ? Number(entity.dimensionsWidth) : null)
-      .withDimensionsHeight(entity.dimensionsHeight != null ? Number(entity.dimensionsHeight) : null)
-      .withDimensionsLength(entity.dimensionsLength != null ? Number(entity.dimensionsLength) : null)
+      .withDimensionsWidth(
+        entity.dimensionsWidth != null ? Number(entity.dimensionsWidth) : null,
+      )
+      .withDimensionsHeight(
+        entity.dimensionsHeight != null
+          ? Number(entity.dimensionsHeight)
+          : null,
+      )
+      .withDimensionsLength(
+        entity.dimensionsLength != null
+          ? Number(entity.dimensionsLength)
+          : null,
+      )
       .withSoilType(entity.soilType)
+      .withStatus(entity.status)
+      .withFallowSince(entity.fallowSince)
+      .withQrId(entity.qrId ?? null)
       .withUserId(entity.userId)
       .withSpaceId(entity.spaceId)
       .withCreatedAt(entity.createdAt)

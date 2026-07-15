@@ -4,7 +4,9 @@ import {
   BaseDatabaseRepository,
   Criteria,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
+import { applyCriteriaToQueryBuilder } from '@sisques-labs/nestjs-kit/typeorm';
 import { Repository } from 'typeorm';
 
 import { IPlantingSpotReadRepository } from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
@@ -13,6 +15,8 @@ import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
 import { PlantingSpotTypeOrmEntity } from '../entities/planting-spot.entity';
 import { PlantingSpotTypeOrmMapper } from '../mappers/planting-spot-typeorm.mapper';
+
+const ALIAS = 'spot';
 
 @Injectable()
 export class PlantingSpotTypeOrmReadRepository
@@ -33,7 +37,7 @@ export class PlantingSpotTypeOrmReadRepository
 
   async findById(id: string): Promise<PlantingSpotViewModel | null> {
     const entity = await this.repository.findOne({ where: { id } });
-    return entity ? this.toViewModel(entity) : null;
+    return entity ? this.mapper.toViewModel(entity) : null;
   }
 
   async findByCriteria(
@@ -41,10 +45,20 @@ export class PlantingSpotTypeOrmReadRepository
   ): Promise<PaginatedResult<PlantingSpotViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    const [entities, total] = await this.repository.findAndCount({
-      skip,
-      take: limit,
+    // createQueryBuilder bypasses createTenantRepository's find/findOne
+    // proxy interception, so the space scope must be applied explicitly here.
+    const qb = this.repository
+      .createQueryBuilder(ALIAS)
+      .where(`${ALIAS}.spaceId = :spaceId`, {
+        spaceId: this.spaceContext.require(),
+      });
+
+    applyCriteriaToQueryBuilder(qb, criteria, {
+      alias: ALIAS,
+      defaultSort: { field: 'createdAt', direction: SortDirection.DESC },
     });
+
+    const [entities, total] = await qb.skip(skip).take(limit).getManyAndCount();
 
     const items = entities.map((e) => this.mapper.toViewModel(e));
     return new PaginatedResult(items, total, page, limit);
@@ -54,11 +68,5 @@ export class PlantingSpotTypeOrmReadRepository
 
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
-  }
-
-  private toViewModel(
-    entity: PlantingSpotTypeOrmEntity,
-  ): PlantingSpotViewModel {
-    return this.mapper.toViewModel(entity);
   }
 }

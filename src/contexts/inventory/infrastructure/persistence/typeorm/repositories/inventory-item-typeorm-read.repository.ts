@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   BaseDatabaseRepository,
   Criteria,
-  FilterOperator,
   PaginatedResult,
+  SortDirection,
 } from '@sisques-labs/nestjs-kit';
+import { applyCriteriaToQueryBuilder } from '@sisques-labs/nestjs-kit/typeorm';
 import { Repository } from 'typeorm';
 
 import { IInventoryItemReadRepository } from '@contexts/inventory/domain/repositories/read/inventory-item-read.repository';
@@ -14,6 +15,8 @@ import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
 import { InventoryItemTypeOrmEntity } from '../entities/inventory-item.entity';
 import { InventoryItemTypeOrmMapper } from '../mappers/inventory-item-typeorm.mapper';
+
+const ALIAS = 'item';
 
 @Injectable()
 export class InventoryItemTypeOrmReadRepository
@@ -42,45 +45,25 @@ export class InventoryItemTypeOrmReadRepository
   ): Promise<PaginatedResult<InventoryItemViewModel>> {
     const { page, limit, skip } = await this.calculatePagination(criteria);
 
-    const qb = this.repository.createQueryBuilder('item');
-    qb.where('item.space_id = :spaceId', {
+    const qb = this.repository.createQueryBuilder(ALIAS);
+    qb.where(`${ALIAS}.space_id = :spaceId`, {
       spaceId: this.spaceContext.require(),
     });
 
-    for (const filter of criteria.filters) {
-      // Cross-column low-stock filter: quantity at or below a defined threshold.
-      if (filter.field === 'low_stock') {
+    applyCriteriaToQueryBuilder(qb, criteria, {
+      alias: ALIAS,
+      defaultSort: { field: 'createdAt', direction: SortDirection.DESC },
+      onCustomFilter: (builder, filter) => {
+        // Cross-column low-stock filter: quantity at or below a defined threshold.
+        if (filter.field !== 'low_stock') return false;
         if (filter.value) {
-          qb.andWhere(
-            'item.low_stock_threshold IS NOT NULL AND item.quantity <= item.low_stock_threshold',
+          builder.andWhere(
+            `${ALIAS}.low_stock_threshold IS NOT NULL AND ${ALIAS}.quantity <= ${ALIAS}.low_stock_threshold`,
           );
         }
-        continue;
-      }
-
-      switch (filter.operator) {
-        case FilterOperator.LIKE:
-          qb.andWhere(`LOWER(item.${filter.field}) LIKE :${filter.field}`, {
-            [filter.field]: `%${String(filter.value).toLowerCase()}%`,
-          });
-          break;
-        case FilterOperator.EQUALS:
-          qb.andWhere(`item.${filter.field} = :${filter.field}`, {
-            [filter.field]: filter.value,
-          });
-          break;
-        case FilterOperator.GREATER_THAN_OR_EQUAL:
-          qb.andWhere(`item.${filter.field} >= :${filter.field}From`, {
-            [`${filter.field}From`]: filter.value,
-          });
-          break;
-        case FilterOperator.LESS_THAN_OR_EQUAL:
-          qb.andWhere(`item.${filter.field} <= :${filter.field}To`, {
-            [`${filter.field}To`]: filter.value,
-          });
-          break;
-      }
-    }
+        return true;
+      },
+    });
 
     qb.skip(skip).take(limit);
 

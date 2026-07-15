@@ -188,7 +188,7 @@ All repository queries are scoped to the active space via `SpaceContext` (tenant
 
 ## MCP Tools
 
-Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the active space comes from the authenticated MCP request context.
+Exposed under `transport/mcp/` for AI clients (see the `@sisques-labs/nestjs-kit/mcp` module docs). Each tool dispatches through the Command/Query bus; the active space comes from the authenticated MCP request context.
 
 | Tool | Action |
 |------|--------|

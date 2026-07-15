@@ -3,12 +3,10 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('plant_species')
-@Unique(['scientificName'])
 export class PlantSpeciesTypeOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -21,11 +19,8 @@ export class PlantSpeciesTypeOrmEntity {
   })
   scientificName!: string;
 
-  @Column({ type: 'varchar', length: 2000, nullable: true })
-  description!: string | null;
-
-  @Column({ name: 'image_url', type: 'varchar', length: 500, nullable: true })
-  imageUrl!: string | null;
+  @Column({ name: 'gbif_key', type: 'int', nullable: true })
+  gbifKey!: number | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt!: Date;

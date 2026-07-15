@@ -4,7 +4,7 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import {
   MutationResponseDto,
   MutationResponseGraphQLMapper,
-} from '@sisques-labs/nestjs-kit';
+} from '@sisques-labs/nestjs-kit/graphql';
 
 import {
   CurrentUser,
@@ -14,10 +14,14 @@ import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guar
 import { AdjustInventoryItemQuantityCommand } from '@contexts/inventory/application/commands/adjust-inventory-item-quantity/adjust-inventory-item-quantity.command';
 import { CreateInventoryItemCommand } from '@contexts/inventory/application/commands/create-inventory-item/create-inventory-item.command';
 import { DeleteInventoryItemCommand } from '@contexts/inventory/application/commands/delete-inventory-item/delete-inventory-item.command';
+import { DeleteInventoryItemsBulkCommand } from '@contexts/inventory/application/commands/delete-inventory-items-bulk/delete-inventory-items-bulk.command';
+import { DeleteInventoryItemsBulkResult } from '@contexts/inventory/application/commands/delete-inventory-items-bulk/delete-inventory-items-bulk.handler';
 import { UpdateInventoryItemCommand } from '@contexts/inventory/application/commands/update-inventory-item/update-inventory-item.command';
 import { AdjustInventoryItemQuantityGraphQLDto } from '@contexts/inventory/transport/graphql/dtos/requests/adjust-inventory-item-quantity-graphql.dto';
 import { CreateInventoryItemGraphQLDto } from '@contexts/inventory/transport/graphql/dtos/requests/create-inventory-item-graphql.dto';
+import { DeleteInventoryItemsBulkGraphQLDto } from '@contexts/inventory/transport/graphql/dtos/requests/delete-inventory-items-bulk-graphql.dto';
 import { UpdateInventoryItemGraphQLDto } from '@contexts/inventory/transport/graphql/dtos/requests/update-inventory-item-graphql.dto';
+import { BulkDeleteResultDto } from '@contexts/inventory/transport/graphql/dtos/responses/bulk-delete-result.response.dto';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 
 @UseGuards(JwtAuthGuard)
@@ -126,5 +130,24 @@ export class InventoryItemMutationsResolver {
       message: 'Inventory item deleted successfully',
       id,
     });
+  }
+
+  @Mutation(() => BulkDeleteResultDto)
+  async inventoryItemsDeleteBulk(
+    @Args('input') input: DeleteInventoryItemsBulkGraphQLDto,
+  ): Promise<BulkDeleteResultDto> {
+    this.logger.log(`Bulk deleting ${input.ids.length} inventory items`);
+
+    const result = await this.commandBus.execute<
+      DeleteInventoryItemsBulkCommand,
+      DeleteInventoryItemsBulkResult
+    >(new DeleteInventoryItemsBulkCommand({ ids: input.ids }));
+
+    return {
+      deletedIds: result.deletedIds,
+      notFoundIds: result.notFoundIds,
+      deletedCount: result.deletedIds.length,
+      requestedCount: result.deletedIds.length + result.notFoundIds.length,
+    };
   }
 }

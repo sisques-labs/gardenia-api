@@ -82,6 +82,7 @@ Base path: `/inventory-items`
 | `PATCH` | `/inventory-items/:id` | 200 | Update an item (not the quantity) |
 | `POST` | `/inventory-items/:id/adjust` | 200 | Consume / restock the quantity |
 | `DELETE` | `/inventory-items/:id` | 200 | Delete an item |
+| `POST` | `/inventory-items/bulk-delete` | 200 | Delete multiple items in one request (1-100 ids, best-effort) |
 
 **GET `/inventory-items` query parameters:**
 
@@ -100,6 +101,17 @@ Base path: `/inventory-items`
 { "delta": -3, "reason": "sowed lettuce" }
 ```
 
+**POST `/inventory-items/bulk-delete` body:**
+
+```json
+{ "ids": ["550e8400-e29b-41d4-a716-446655440000", "..."] }
+```
+
+Returns `{ deletedIds, notFoundIds, deletedCount, requestedCount }`. Best-effort:
+ids that don't exist or belong to another space land in `notFoundIds` without
+failing the rest of the batch. Capped at 100 ids (400 if exceeded); duplicate
+ids are de-duplicated before processing.
+
 ### GraphQL Operations
 
 | Name | Type | Description |
@@ -110,6 +122,7 @@ Base path: `/inventory-items`
 | `inventoryItemUpdate(input)` | Mutation | Update an item. Returns `MutationResponseDto` |
 | `inventoryItemAdjustQuantity(input)` | Mutation | Consume / restock. Returns `MutationResponseDto` |
 | `inventoryItemDelete(id)` | Mutation | Delete an item. Returns `MutationResponseDto` |
+| `inventoryItemsDeleteBulk(input)` | Mutation | Delete multiple items (1-100 ids). Returns `BulkDeleteResultDto` |
 
 ---
 
@@ -121,6 +134,7 @@ Base path: `/inventory-items`
 | `UpdateInventoryItemCommand` | Command | Update fields (excluding quantity) |
 | `AdjustInventoryItemQuantityCommand` | Command | Consume/restock with a reason (clamps at 0) |
 | `DeleteInventoryItemCommand` | Command | Remove an item |
+| `DeleteInventoryItemsBulkCommand` | Command | Remove multiple items (best-effort, 1-100 ids) |
 | `InventoryItemFindByIdQuery` | Query | Returns an `InventoryItemViewModel` by id |
 | `InventoryItemFindByCriteriaQuery` | Query | Returns `PaginatedResult<InventoryItemViewModel>` |
 
@@ -224,7 +238,7 @@ active `spaceId` from `SpaceContext` ALS.
 
 ## MCP Tools
 
-Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Each tool dispatches through the Command/Query bus; the acting user and active space come from the authenticated MCP request context.
+Exposed under `transport/mcp/` for AI clients (see the `@sisques-labs/nestjs-kit/mcp` module docs). Each tool dispatches through the Command/Query bus; the acting user and active space come from the authenticated MCP request context.
 
 | Tool | Action |
 |------|--------|
@@ -232,5 +246,6 @@ Exposed under `transport/mcp/` for AI clients (see `src/core/mcp/README.md`). Ea
 | `inventory_item_update` | Update an inventory item |
 | `inventory_item_adjust_quantity` | Apply a signed quantity delta |
 | `inventory_item_delete` | Delete an inventory item |
+| `inventory_item_delete_bulk` | Delete multiple inventory items (1-100 ids) |
 | `inventory_item_find_by_id` | Get an item by id |
 | `inventory_item_find_by_criteria` | Paginated list of items |

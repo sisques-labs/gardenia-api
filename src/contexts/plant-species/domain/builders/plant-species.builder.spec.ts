@@ -15,34 +15,34 @@ const base = (): PlantSpeciesBuilder =>
 
 describe('PlantSpeciesBuilder', () => {
   describe('build()', () => {
-    it('builds an aggregate with required fields and null optionals', () => {
+    it('builds an aggregate with required fields and null gbifKey', () => {
       const aggregate = base().build();
 
       expect(aggregate.id.value).toBe(ID);
       expect(aggregate.scientificName.value).toBe('Monstera deliciosa');
-      expect(aggregate.description).toBeNull();
-      expect(aggregate.imageUrl).toBeNull();
+      expect(aggregate.gbifKey).toBeNull();
     });
 
-    it('wraps optional fields when provided', () => {
-      const aggregate = base()
-        .withDescription('A tropical plant')
-        .withImageUrl('https://example.com/m.png')
-        .build();
+    it('wraps gbifKey when provided', () => {
+      const aggregate = base().withGbifKey(2882337).build();
 
-      expect(aggregate.description?.value).toBe('A tropical plant');
-      expect(aggregate.imageUrl?.value).toBe('https://example.com/m.png');
+      expect(aggregate.gbifKey?.value).toBe(2882337);
     });
   });
 
   describe('buildViewModel()', () => {
     it('builds a view model with primitive values', () => {
-      const vm = base().withDescription('desc').buildViewModel();
+      const vm = base().withGbifKey(2882337).buildViewModel();
 
       expect(vm.id).toBe(ID);
       expect(vm.scientificName).toBe('Monstera deliciosa');
-      expect(vm.description).toBe('desc');
-      expect(vm.imageUrl).toBeNull();
+      expect(vm.gbifKey).toBe(2882337);
+    });
+
+    it('builds a view model with null gbifKey when absent', () => {
+      const vm = base().buildViewModel();
+
+      expect(vm.gbifKey).toBeNull();
     });
   });
 

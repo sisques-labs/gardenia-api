@@ -3,7 +3,6 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { IPlantQrPort } from '@contexts/plants/application/ports/plant-qr.port';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
-import { NotPlantOwnerException } from '@contexts/plants/domain/exceptions/not-plant-owner.exception';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
 import { IPlantWriteRepository } from '@contexts/plants/domain/repositories/write/plant-write.repository';
 import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
@@ -109,8 +108,8 @@ describe('DeletePlantCommandHandler', () => {
     });
   });
 
-  describe('owner mismatch — throws NotPlantOwnerException', () => {
-    it('should throw NotPlantOwnerException when not the owner', async () => {
+  describe('space member deletes a plant they did not create', () => {
+    it('should allow any requesting user to delete the plant', async () => {
       const aggregate = buildAggregate();
       assertPlantExistsService.execute.mockResolvedValue(aggregate);
 
@@ -119,10 +118,10 @@ describe('DeletePlantCommandHandler', () => {
         requestingUserId: OTHER_USER_ID,
       });
 
-      await expect(handler.execute(command)).rejects.toThrow(
-        NotPlantOwnerException,
-      );
-      expect(writeRepository.delete).not.toHaveBeenCalled();
+      await handler.execute(command);
+
+      expect(writeRepository.delete).toHaveBeenCalledWith(PLANT_ID);
+      expect(eventBus.publishAll).toHaveBeenCalledTimes(1);
     });
   });
 

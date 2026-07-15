@@ -44,7 +44,7 @@ describe('Plant Species GraphQL mutations (e2e)', () => {
     const res = await gql(
       ctx.app,
       CREATE_PLANT_SPECIES,
-      { input: { scientificName: 'Rosa canina' } },
+      { input: { scientificName: 'Rosa canina', gbifKey: 3033874 } },
       userToken,
     ).expect(200);
 
@@ -58,7 +58,7 @@ describe('Plant Species GraphQL mutations (e2e)', () => {
     const res = await gql(
       ctx.app,
       CREATE_PLANT_SPECIES,
-      { input: { scientificName: 'Rosa canina' } },
+      { input: { scientificName: 'Rosa canina', gbifKey: 3033874 } },
       adminToken,
     ).expect(200);
 

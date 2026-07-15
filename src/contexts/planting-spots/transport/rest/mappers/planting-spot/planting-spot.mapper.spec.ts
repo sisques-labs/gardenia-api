@@ -22,6 +22,9 @@ const buildViewModel = (
     dimensionsHeight: 50,
     dimensionsLength: 200,
     soilType: 'Loamy',
+    status: 'active',
+    fallowSince: null,
+    qrId: null,
     userId: USER_ID,
     spaceId: SPACE_ID,
     createdAt: NOW,
@@ -43,6 +46,8 @@ describe('PlantingSpotRestMapper', () => {
     expect(dto.name).toBe('Bed A');
     expect(dto.type).toBe(PlantingSpotTypeEnum.RAISED_BED);
     expect(dto.dimensions).toEqual({ width: 100, height: 50, length: 200 });
+    expect(dto.status).toBe('active');
+    expect(dto.fallowSince).toBeNull();
   });
 
   it('builds a partial dimensions object when only one value is present', () => {

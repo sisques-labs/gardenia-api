@@ -31,8 +31,7 @@ const speciesData = (): PlantSpeciesViewModel =>
   new PlantSpeciesViewModel({
     id: SPECIES_ID,
     scientificName: 'Aloe vera',
-    description: 'Succulent',
-    imageUrl: 'https://example.com/aloe.png',
+    gbifKey: 2977863,
     createdAt: NOW,
     updatedAt: NOW,
   });
@@ -45,6 +44,7 @@ describe('EnrichPlantWithSpeciesService', () => {
     jest.clearAllMocks();
     speciesPort = {
       findByPlantSpeciesId: jest.fn(),
+      findOrCreateByGbifKey: jest.fn(),
     } as unknown as jest.Mocked<IPlantSpeciesPort>;
     service = new EnrichPlantWithSpeciesService(
       new PlantBuilder(),

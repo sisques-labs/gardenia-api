@@ -40,15 +40,10 @@ export class PlantSpeciesTypeOrmWriteRepository
     return entity ? this.plantSpeciesMapper.toDomain(entity) : null;
   }
 
-  async findByScientificName(
-    normalizedScientificName: string,
-  ): Promise<PlantSpeciesAggregate | null> {
-    const entity = await this.plantSpeciesRepo
-      .createQueryBuilder('ps')
-      .where('LOWER(TRIM(ps.scientific_name)) = :normalizedScientificName', {
-        normalizedScientificName,
-      })
-      .getOne();
+  async findByGbifKey(gbifKey: number): Promise<PlantSpeciesAggregate | null> {
+    const entity = await this.plantSpeciesRepo.findOne({
+      where: { gbifKey },
+    });
 
     return entity ? this.plantSpeciesMapper.toDomain(entity) : null;
   }
