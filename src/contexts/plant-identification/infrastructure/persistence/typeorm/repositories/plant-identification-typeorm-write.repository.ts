@@ -48,6 +48,12 @@ export class PlantIdentificationTypeOrmWriteRepository
     aggregate: PlantIdentificationAggregate,
   ): Promise<PlantIdentificationAggregate> {
     const { parent, photos, candidates } = this.mapper.toPersistence(aggregate);
+    // This save path uses the raw manager (see below) to run a multi-table
+    // transaction, bypassing createTenantRepository's automatic `save` trap
+    // — so the active space must be stamped explicitly here, exactly like
+    // the proxy would otherwise do, instead of trusting the aggregate's own
+    // spaceId field.
+    parent.spaceId = this.spaceContext.require();
 
     await this.repository.manager.transaction(async (manager) => {
       await manager.save(PlantIdentificationTypeOrmEntity, parent);
