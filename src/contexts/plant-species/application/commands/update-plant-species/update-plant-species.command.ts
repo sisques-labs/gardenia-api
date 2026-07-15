@@ -11,8 +11,7 @@ export interface UpdatePlantSpeciesCommandInput {
 export class UpdatePlantSpeciesCommand {
   public readonly id: PlantSpeciesIdValueObject;
   public readonly scientificName:
-    | PlantSpeciesScientificNameValueObject
-    | undefined;
+    PlantSpeciesScientificNameValueObject | undefined;
   public readonly gbifKey: PlantSpeciesGbifKeyValueObject | null | undefined;
 
   constructor(input: UpdatePlantSpeciesCommandInput) {

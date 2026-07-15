@@ -29,16 +29,12 @@ export class UpdatePlantingSpotCommand {
   public readonly name: PlantingSpotNameValueObject | undefined;
   public readonly type: PlantingSpotTypeValueObject | undefined;
   public readonly description:
-    | PlantingSpotDescriptionValueObject
-    | null
-    | undefined;
+    PlantingSpotDescriptionValueObject | null | undefined;
   public readonly capacity: PlantingSpotCapacityValueObject | null | undefined;
   public readonly row: PlantingSpotRowValueObject | null | undefined;
   public readonly column: PlantingSpotColumnValueObject | null | undefined;
   public readonly dimensions:
-    | PlantingSpotDimensionsValueObject
-    | null
-    | undefined;
+    PlantingSpotDimensionsValueObject | null | undefined;
   public readonly soilType: PlantingSpotSoilTypeValueObject | null | undefined;
   public readonly requestingUserId: UuidValueObject;
   public readonly spaceId: UuidValueObject;

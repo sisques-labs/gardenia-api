@@ -20,13 +20,9 @@ export class UpdatePlantCommand {
   public readonly plantId: PlantIdValueObject;
   public readonly name: PlantNameValueObject | undefined;
   public readonly gbifSpeciesKey:
-    | PlantGbifSpeciesKeyValueObject
-    | null
-    | undefined;
+    PlantGbifSpeciesKeyValueObject | null | undefined;
   public readonly speciesScientificName:
-    | PlantSpeciesScientificNameValueObject
-    | null
-    | undefined;
+    PlantSpeciesScientificNameValueObject | null | undefined;
   public readonly imageUrl: PlantImageUrlValueObject | null | undefined;
   public readonly plantingSpotId: UuidValueObject | null | undefined;
   public readonly requestingUserId: UuidValueObject;
