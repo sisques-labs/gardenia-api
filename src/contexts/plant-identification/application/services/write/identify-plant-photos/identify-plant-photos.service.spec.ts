@@ -1,4 +1,5 @@
 import {
+  MimeTypeValueObject,
   NumberValueObject,
   StringValueObject,
   UuidValueObject,
@@ -38,7 +39,13 @@ describe('IdentifyPlantPhotosService', () => {
     });
 
     expect(port.identify).toHaveBeenCalledWith(
-      [{ content: photo.content, mimeType: 'image/jpeg', organ: 'leaf' }],
+      [
+        {
+          content: photo.content,
+          mimeType: new MimeTypeValueObject('image/jpeg'),
+          organ: 'leaf',
+        },
+      ],
       'all',
     );
     expect(result).toEqual([

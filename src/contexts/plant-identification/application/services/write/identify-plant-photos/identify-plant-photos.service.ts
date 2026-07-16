@@ -1,5 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { IBaseService, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  IBaseService,
+  MimeTypeValueObject,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
 import { IdentifyPlantPhotoCommandItem } from '@contexts/plant-identification/application/commands/identify-plant/identify-plant-photo.command-item';
 import {
@@ -47,7 +51,7 @@ export class IdentifyPlantPhotosService implements IBaseService<
       .identify(
         input.photos.map((photo) => ({
           content: photo.content,
-          mimeType: photo.mimeType.value,
+          mimeType: new MimeTypeValueObject(photo.mimeType.value),
           organ: photo.organ.value as PlantIdentificationOrganEnum,
         })),
         input.project?.value,

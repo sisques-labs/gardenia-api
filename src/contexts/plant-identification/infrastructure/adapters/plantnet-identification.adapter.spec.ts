@@ -1,4 +1,5 @@
 import { HttpService } from '@nestjs/axios';
+import { MimeTypeValueObject } from '@sisques-labs/nestjs-kit';
 import { AxiosError, AxiosResponse } from 'axios';
 import { of, throwError } from 'rxjs';
 
@@ -18,7 +19,7 @@ const CONFIG: PlantNetConfig = {
 
 const IMAGE = {
   content: Buffer.from('leaf-bytes'),
-  mimeType: 'image/png',
+  mimeType: new MimeTypeValueObject('image/png'),
   organ: PlantIdentificationOrganEnum.LEAF,
 };
 

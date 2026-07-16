@@ -53,7 +53,9 @@ export class PlantNetIdentificationAdapter implements IPlantNetIdentificationPor
       formData.append('organs', image.organ);
       formData.append(
         'images',
-        new Blob([new Uint8Array(image.content)], { type: image.mimeType }),
+        new Blob([new Uint8Array(image.content)], {
+          type: image.mimeType.value,
+        }),
         'photo',
       );
     }

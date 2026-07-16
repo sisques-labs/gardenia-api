@@ -1,5 +1,6 @@
 import { CommandBus } from '@nestjs/cqrs';
 import {
+  FilenameValueObject,
   NumberValueObject,
   StringValueObject,
   UuidValueObject,
@@ -24,7 +25,7 @@ describe('FilesAdapter', () => {
     commandBus.execute.mockResolvedValue({ id: 'file-1', url: '/x' });
 
     const result = await adapter.uploadFile({
-      filename: new StringValueObject('leaf.png'),
+      filename: new FilenameValueObject('leaf.png'),
       mimeType: new StringValueObject('image/png'),
       size: new NumberValueObject(100),
       content: Buffer.from('x'),

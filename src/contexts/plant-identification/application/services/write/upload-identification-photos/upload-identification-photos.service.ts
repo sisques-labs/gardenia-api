@@ -1,5 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IBaseService, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  FilenameValueObject,
+  IBaseService,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
 import { IdentifyPlantPhotoCommandItem } from '@contexts/plant-identification/application/commands/identify-plant/identify-plant-photo.command-item';
 import {
@@ -31,7 +35,7 @@ export class UploadIdentificationPhotosService implements IBaseService<
     return Promise.all(
       input.photos.map((photo) =>
         this.filesPort.uploadFile({
-          filename: photo.filename,
+          filename: new FilenameValueObject(photo.filename.value),
           mimeType: photo.mimeType,
           size: photo.size,
           content: photo.content,
