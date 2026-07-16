@@ -8,10 +8,10 @@ import {
   PLANTS_PORT,
 } from '@contexts/plant-identification/application/ports/plants.port';
 import { AssertPlantIdentificationExistsService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-exists/assert-plant-identification-exists.service';
+import { AssertPlantIdentificationNotConvertedService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-not-converted/assert-plant-identification-not-converted.service';
 import { AssertPlantIdentificationOwnershipService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-ownership/assert-plant-identification-ownership.service';
+import { AssertPlantIdentificationResolvedService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-resolved/assert-plant-identification-resolved.service';
 import { PlantIdentificationAggregate } from '@contexts/plant-identification/domain/aggregates/plant-identification.aggregate';
-import { PlantIdentificationAlreadyConvertedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-already-converted.exception';
-import { PlantIdentificationNotResolvedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-not-resolved.exception';
 import {
   IPlantIdentificationWriteRepository,
   PLANT_IDENTIFICATION_WRITE_REPOSITORY,
@@ -42,6 +42,8 @@ export class CreatePlantFromIdentificationCommandHandler
     private readonly plantsPort: IPlantsPort,
     private readonly assertPlantIdentificationExistsService: AssertPlantIdentificationExistsService,
     private readonly assertPlantIdentificationOwnershipService: AssertPlantIdentificationOwnershipService,
+    private readonly assertPlantIdentificationNotConvertedService: AssertPlantIdentificationNotConvertedService,
+    private readonly assertPlantIdentificationResolvedService: AssertPlantIdentificationResolvedService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -60,29 +62,14 @@ export class CreatePlantFromIdentificationCommandHandler
       command.requestingUserId,
     );
 
-    // Checked BEFORE the cross-context write below (not just left to
-    // `convertToPlant()`'s own guard, which only fires afterward) — a
-    // double-submit/retry against an already-converted identification must
-    // not create a second orphaned Plant before the 409 surfaces.
-    if (identification.convertedToPlantId) {
-      throw new PlantIdentificationAlreadyConvertedException(
-        identification.id.value,
-      );
-    }
-
-    if (
-      !identification.resolvedSpeciesKey ||
-      !identification.resolvedScientificName
-    ) {
-      throw new PlantIdentificationNotResolvedException(
-        identification.id.value,
-      );
-    }
+    this.assertPlantIdentificationNotConvertedService.execute(identification);
+    const resolved =
+      this.assertPlantIdentificationResolvedService.execute(identification);
 
     const createdPlant = await this.plantsPort.createPlant({
       name: command.name.value,
-      gbifSpeciesKey: identification.resolvedSpeciesKey.value,
-      speciesScientificName: identification.resolvedScientificName.value,
+      gbifSpeciesKey: resolved.speciesKey.value,
+      speciesScientificName: resolved.scientificName.value,
       imageUrl: command.imageUrl?.value ?? null,
       userId: command.requestingUserId.value,
     });

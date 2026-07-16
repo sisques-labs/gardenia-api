@@ -14,7 +14,9 @@ import { PlantIdentificationFindByCriteriaQueryHandler } from '@contexts/plant-i
 import { PlantIdentificationFindByIdQueryHandler } from '@contexts/plant-identification/application/queries/plant-identification-find-by-id/plant-identification-find-by-id.handler';
 import { AssertPlantIdentificationViewModelExistsService } from '@contexts/plant-identification/application/services/read/assert-plant-identification-view-model-exists/assert-plant-identification-view-model-exists.service';
 import { AssertPlantIdentificationExistsService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-exists/assert-plant-identification-exists.service';
+import { AssertPlantIdentificationNotConvertedService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-not-converted/assert-plant-identification-not-converted.service';
 import { AssertPlantIdentificationOwnershipService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-ownership/assert-plant-identification-ownership.service';
+import { AssertPlantIdentificationResolvedService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-resolved/assert-plant-identification-resolved.service';
 import { IdentifyPlantPhotosService } from '@contexts/plant-identification/application/services/write/identify-plant-photos/identify-plant-photos.service';
 import { ResolvePlantSpeciesMatchService } from '@contexts/plant-identification/application/services/write/resolve-plant-species-match/resolve-plant-species-match.service';
 import { UploadIdentificationPhotosService } from '@contexts/plant-identification/application/services/write/upload-identification-photos/upload-identification-photos.service';
@@ -59,6 +61,8 @@ const APPLICATION_SERVICES = [
   AssertPlantIdentificationExistsService,
   AssertPlantIdentificationViewModelExistsService,
   AssertPlantIdentificationOwnershipService,
+  AssertPlantIdentificationNotConvertedService,
+  AssertPlantIdentificationResolvedService,
   UploadIdentificationPhotosService,
   IdentifyPlantPhotosService,
   ResolvePlantSpeciesMatchService,

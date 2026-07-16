@@ -7,7 +7,9 @@ import {
 
 import { IPlantsPort } from '@contexts/plant-identification/application/ports/plants.port';
 import { AssertPlantIdentificationExistsService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-exists/assert-plant-identification-exists.service';
+import { AssertPlantIdentificationNotConvertedService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-not-converted/assert-plant-identification-not-converted.service';
 import { AssertPlantIdentificationOwnershipService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-ownership/assert-plant-identification-ownership.service';
+import { AssertPlantIdentificationResolvedService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-resolved/assert-plant-identification-resolved.service';
 import { PlantIdentificationAggregate } from '@contexts/plant-identification/domain/aggregates/plant-identification.aggregate';
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
 import { PlantIdentificationAlreadyConvertedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-already-converted.exception';
@@ -76,6 +78,8 @@ describe('CreatePlantFromIdentificationCommandHandler', () => {
   let mockPlantsPort: jest.Mocked<IPlantsPort>;
   let assertExistsService: AssertPlantIdentificationExistsService;
   let assertOwnershipService: AssertPlantIdentificationOwnershipService;
+  let assertNotConvertedService: AssertPlantIdentificationNotConvertedService;
+  let assertResolvedService: AssertPlantIdentificationResolvedService;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -94,6 +98,9 @@ describe('CreatePlantFromIdentificationCommandHandler', () => {
       mockWriteRepo,
     );
     assertOwnershipService = new AssertPlantIdentificationOwnershipService();
+    assertNotConvertedService =
+      new AssertPlantIdentificationNotConvertedService();
+    assertResolvedService = new AssertPlantIdentificationResolvedService();
 
     mockEventBus = {
       publish: jest.fn(),
@@ -105,6 +112,8 @@ describe('CreatePlantFromIdentificationCommandHandler', () => {
       mockPlantsPort,
       assertExistsService,
       assertOwnershipService,
+      assertNotConvertedService,
+      assertResolvedService,
       mockEventBus,
     );
   });
