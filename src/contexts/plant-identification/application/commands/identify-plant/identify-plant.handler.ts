@@ -43,8 +43,12 @@ export class IdentifyPlantCommandHandler
     // them, concurrently — these two calls have no data dependency on each
     // other. Uploaded files are NOT rolled back if identification fails
     // (see design.md's "photos are uploaded (and kept) even on provider
-    // failure" decision).
-    const [uploadedPhotos, candidates] = await Promise.all([
+    // failure" decision). `allSettled` (not `all`) so that, when identify
+    // rejects, we still wait for the upload write to finish before this
+    // command returns/throws — otherwise the upload keeps writing after the
+    // request completes, which under test can race a subsequent test's
+    // table truncation into a deadlock.
+    const [uploadOutcome, identifyOutcome] = await Promise.allSettled([
       this.uploadIdentificationPhotosService.execute({
         photos: command.photos,
         userId: command.userId,
@@ -56,6 +60,12 @@ export class IdentifyPlantCommandHandler
         userId: command.userId,
       }),
     ]);
+
+    if (uploadOutcome.status === 'rejected') throw uploadOutcome.reason;
+    if (identifyOutcome.status === 'rejected') throw identifyOutcome.reason;
+
+    const uploadedPhotos = uploadOutcome.value;
+    const candidates = identifyOutcome.value;
 
     const resolved: IdentifyPlantResolvedResult | null =
       await this.resolvePlantSpeciesMatchService.execute({
