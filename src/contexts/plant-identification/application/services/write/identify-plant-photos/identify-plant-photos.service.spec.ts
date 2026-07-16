@@ -1,7 +1,7 @@
 import {
+  FilenameValueObject,
   MimeTypeValueObject,
   NumberValueObject,
-  StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
@@ -12,8 +12,8 @@ import { IdentifyPlantPhotosService } from './identify-plant-photos.service';
 
 describe('IdentifyPlantPhotosService', () => {
   const photo = {
-    filename: new StringValueObject('a.jpg'),
-    mimeType: new StringValueObject('image/jpeg'),
+    filename: new FilenameValueObject('a.jpg'),
+    mimeType: new MimeTypeValueObject('image/jpeg'),
     size: new NumberValueObject(10),
     content: Buffer.from('a'),
     organ: new PlantIdentificationOrganValueObject(
@@ -42,7 +42,7 @@ describe('IdentifyPlantPhotosService', () => {
       [
         {
           content: photo.content,
-          mimeType: new MimeTypeValueObject('image/jpeg'),
+          mimeType: photo.mimeType,
           organ: 'leaf',
         },
       ],

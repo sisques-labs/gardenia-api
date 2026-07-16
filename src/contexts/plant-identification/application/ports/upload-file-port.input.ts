@@ -1,13 +1,13 @@
 import {
   FilenameValueObject,
+  MimeTypeValueObject,
   NumberValueObject,
-  StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
 export interface UploadFilePortInput {
   filename: FilenameValueObject;
-  mimeType: StringValueObject;
+  mimeType: MimeTypeValueObject;
   size: NumberValueObject;
   content: Buffer;
   userId: UuidValueObject;

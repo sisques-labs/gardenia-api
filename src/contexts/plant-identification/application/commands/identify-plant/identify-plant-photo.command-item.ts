@@ -1,4 +1,8 @@
-import { NumberValueObject, StringValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  FilenameValueObject,
+  MimeTypeValueObject,
+  NumberValueObject,
+} from '@sisques-labs/nestjs-kit';
 
 import { PlantIdentificationOrganValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-organ/plant-identification-organ.value-object';
 
@@ -9,8 +13,8 @@ import { PlantIdentificationOrganValueObject } from '@contexts/plant-identificat
  * an aggregate field.
  */
 export interface IdentifyPlantPhotoCommandItem {
-  filename: StringValueObject;
-  mimeType: StringValueObject;
+  filename: FilenameValueObject;
+  mimeType: MimeTypeValueObject;
   size: NumberValueObject;
   content: Buffer;
   organ: PlantIdentificationOrganValueObject;

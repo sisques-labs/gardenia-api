@@ -1,8 +1,8 @@
 import { CommandBus } from '@nestjs/cqrs';
 import {
   FilenameValueObject,
+  MimeTypeValueObject,
   NumberValueObject,
-  StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
@@ -26,7 +26,7 @@ describe('FilesAdapter', () => {
 
     const result = await adapter.uploadFile({
       filename: new FilenameValueObject('leaf.png'),
-      mimeType: new StringValueObject('image/png'),
+      mimeType: new MimeTypeValueObject('image/png'),
       size: new NumberValueObject(100),
       content: Buffer.from('x'),
       userId: new UuidValueObject(USER_ID),

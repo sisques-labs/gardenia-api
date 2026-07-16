@@ -1,6 +1,7 @@
 import {
+  FilenameValueObject,
+  MimeTypeValueObject,
   NumberValueObject,
-  StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
@@ -32,8 +33,8 @@ export class IdentifyPlantCommand {
 
   constructor(input: IdentifyPlantCommandInput) {
     this.photos = input.photos.map((photo) => ({
-      filename: new StringValueObject(photo.filename),
-      mimeType: new StringValueObject(photo.mimeType),
+      filename: new FilenameValueObject(photo.filename),
+      mimeType: new MimeTypeValueObject(photo.mimeType),
       size: new NumberValueObject(photo.size),
       content: photo.content,
       organ: new PlantIdentificationOrganValueObject(photo.organ),
