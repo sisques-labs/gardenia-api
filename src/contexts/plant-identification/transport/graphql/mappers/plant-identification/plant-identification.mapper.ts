@@ -24,8 +24,9 @@ export class PlantIdentificationGraphQLMapper {
       requestedByUserId: vm.requestedByUserId,
       spaceId: vm.spaceId,
       status: vm.status as PlantIdentificationStatusEnum,
-      resolvedGbifKey: vm.resolvedGbifKey,
+      resolvedSpeciesKey: vm.resolvedSpeciesKey,
       resolvedScientificName: vm.resolvedScientificName,
+      resolvedSpeciesProvider: vm.resolvedSpeciesProvider,
       convertedToPlantId: vm.convertedToPlantId,
       photos: vm.photos.map((photo) => ({
         fileId: photo.fileId,

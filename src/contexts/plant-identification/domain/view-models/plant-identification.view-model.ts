@@ -11,8 +11,9 @@ export class PlantIdentificationViewModel extends BaseViewModel {
   public readonly requestedByUserId: string;
   public readonly spaceId: string;
   public readonly status: PlantIdentificationStatusEnum;
-  public readonly resolvedGbifKey: number | null;
+  public readonly resolvedSpeciesKey: number | null;
   public readonly resolvedScientificName: string | null;
+  public readonly resolvedSpeciesProvider: string | null;
   public readonly convertedToPlantId: string | null;
   public readonly photos: IPlantIdentificationPhotoPrimitives[];
   public readonly candidates: IPlantIdentificationCandidatePrimitives[];
@@ -22,8 +23,9 @@ export class PlantIdentificationViewModel extends BaseViewModel {
     this.requestedByUserId = props.requestedByUserId;
     this.spaceId = props.spaceId;
     this.status = props.status;
-    this.resolvedGbifKey = props.resolvedGbifKey;
+    this.resolvedSpeciesKey = props.resolvedSpeciesKey;
     this.resolvedScientificName = props.resolvedScientificName;
+    this.resolvedSpeciesProvider = props.resolvedSpeciesProvider;
     this.convertedToPlantId = props.convertedToPlantId;
     this.photos = props.photos;
     this.candidates = props.candidates;

@@ -10,6 +10,7 @@ import {
 import { AssertPlantIdentificationExistsService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-exists/assert-plant-identification-exists.service';
 import { AssertPlantIdentificationOwnershipService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-ownership/assert-plant-identification-ownership.service';
 import { PlantIdentificationAggregate } from '@contexts/plant-identification/domain/aggregates/plant-identification.aggregate';
+import { PlantIdentificationAlreadyConvertedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-already-converted.exception';
 import { PlantIdentificationNotResolvedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-not-resolved.exception';
 import {
   IPlantIdentificationWriteRepository,
@@ -59,8 +60,18 @@ export class CreatePlantFromIdentificationCommandHandler
       command.requestingUserId,
     );
 
+    // Checked BEFORE the cross-context write below (not just left to
+    // `convertToPlant()`'s own guard, which only fires afterward) — a
+    // double-submit/retry against an already-converted identification must
+    // not create a second orphaned Plant before the 409 surfaces.
+    if (identification.convertedToPlantId) {
+      throw new PlantIdentificationAlreadyConvertedException(
+        identification.id.value,
+      );
+    }
+
     if (
-      !identification.resolvedGbifKey ||
+      !identification.resolvedSpeciesKey ||
       !identification.resolvedScientificName
     ) {
       throw new PlantIdentificationNotResolvedException(
@@ -70,7 +81,7 @@ export class CreatePlantFromIdentificationCommandHandler
 
     const createdPlant = await this.plantsPort.createPlant({
       name: command.name.value,
-      gbifSpeciesKey: identification.resolvedGbifKey.value,
+      gbifSpeciesKey: identification.resolvedSpeciesKey.value,
       speciesScientificName: identification.resolvedScientificName.value,
       imageUrl: command.imageUrl?.value ?? null,
       userId: command.requestingUserId.value,

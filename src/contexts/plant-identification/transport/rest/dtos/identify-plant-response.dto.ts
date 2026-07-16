@@ -4,11 +4,16 @@ import { PlantIdentificationOrganEnum } from '@contexts/plant-identification/dom
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
 
 export class IdentifyPlantResolvedResponseDto {
-  @ApiProperty({ description: 'Resolved GBIF key' })
-  gbifKey!: number;
+  @ApiProperty({ description: 'Resolved external catalog key' })
+  speciesKey!: number;
 
-  @ApiProperty({ description: 'Resolved GBIF scientific name' })
+  @ApiProperty({ description: 'Resolved scientific name' })
   scientificName!: string;
+
+  @ApiProperty({
+    description: 'External catalog that resolved this match, e.g. "gbif"',
+  })
+  provider!: string;
 }
 
 export class IdentifyPlantPhotoResponseDto {

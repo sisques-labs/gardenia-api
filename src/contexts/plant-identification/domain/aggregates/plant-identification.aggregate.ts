@@ -1,6 +1,5 @@
 import {
   BaseAggregate,
-  NumberValueObject,
   StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
@@ -17,21 +16,27 @@ import {
   IPlantIdentificationPrimitives,
 } from '@contexts/plant-identification/domain/primitives/plant-identification.primitives';
 import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
+import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
 import { PlantIdentificationStatusValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-status/plant-identification-status.value-object';
 
 /**
  * An identification attempt: one or more submitted photos, PlantNet's ranked
  * candidate list, and (if the top candidate cleared the confidence
- * threshold) a `resolved` GBIF match. Immutable after creation — the only
- * mutation is `convertToPlant()`, which stamps `convertedToPlantId` once.
+ * threshold) a `resolved` species match. Provider-agnostic on purpose —
+ * `resolvedSpeciesProvider` records which external catalog resolved it
+ * (`"gbif"` today), never hardcoded into a field name. Immutable after
+ * creation — the only mutation is `convertToPlant()`, which stamps
+ * `convertedToPlantId` once.
  */
 export class PlantIdentificationAggregate extends BaseAggregate {
   private readonly _id: PlantIdentificationIdValueObject;
   private readonly _requestedByUserId: UuidValueObject;
   private readonly _spaceId: UuidValueObject;
   private readonly _status: PlantIdentificationStatusValueObject;
-  private readonly _resolvedGbifKey: NumberValueObject | null;
+  private readonly _resolvedSpeciesKey: PlantIdentificationSpeciesKeyValueObject | null;
   private readonly _resolvedScientificName: StringValueObject | null;
+  private readonly _resolvedSpeciesProvider: PlantIdentificationSpeciesProviderValueObject | null;
   private _convertedToPlantId: UuidValueObject | null;
   private readonly _photos: IPlantIdentificationPhoto[];
   private readonly _candidates: IPlantIdentificationCandidate[];
@@ -42,8 +47,9 @@ export class PlantIdentificationAggregate extends BaseAggregate {
     this._requestedByUserId = props.requestedByUserId;
     this._spaceId = props.spaceId;
     this._status = props.status;
-    this._resolvedGbifKey = props.resolvedGbifKey;
+    this._resolvedSpeciesKey = props.resolvedSpeciesKey;
     this._resolvedScientificName = props.resolvedScientificName;
+    this._resolvedSpeciesProvider = props.resolvedSpeciesProvider;
     this._convertedToPlantId = props.convertedToPlantId;
     this._photos = props.photos;
     this._candidates = props.candidates;
@@ -92,8 +98,9 @@ export class PlantIdentificationAggregate extends BaseAggregate {
       requestedByUserId: this._requestedByUserId.value,
       spaceId: this._spaceId.value,
       status: this._status.value as IPlantIdentificationPrimitives['status'],
-      resolvedGbifKey: this._resolvedGbifKey?.value ?? null,
+      resolvedSpeciesKey: this._resolvedSpeciesKey?.value ?? null,
       resolvedScientificName: this._resolvedScientificName?.value ?? null,
+      resolvedSpeciesProvider: this._resolvedSpeciesProvider?.value ?? null,
       convertedToPlantId: this._convertedToPlantId?.value ?? null,
       photos: this._photos.map(
         (photo): IPlantIdentificationPhotoPrimitives => ({
@@ -129,11 +136,14 @@ export class PlantIdentificationAggregate extends BaseAggregate {
   get status(): PlantIdentificationStatusValueObject {
     return this._status;
   }
-  get resolvedGbifKey(): NumberValueObject | null {
-    return this._resolvedGbifKey;
+  get resolvedSpeciesKey(): PlantIdentificationSpeciesKeyValueObject | null {
+    return this._resolvedSpeciesKey;
   }
   get resolvedScientificName(): StringValueObject | null {
     return this._resolvedScientificName;
+  }
+  get resolvedSpeciesProvider(): PlantIdentificationSpeciesProviderValueObject | null {
+    return this._resolvedSpeciesProvider;
   }
   get convertedToPlantId(): UuidValueObject | null {
     return this._convertedToPlantId;

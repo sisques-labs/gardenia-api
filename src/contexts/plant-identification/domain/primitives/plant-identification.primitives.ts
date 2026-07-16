@@ -21,8 +21,9 @@ export type IPlantIdentificationPrimitives = BasePrimitives & {
   requestedByUserId: string;
   spaceId: string;
   status: PlantIdentificationStatusEnum;
-  resolvedGbifKey: number | null;
+  resolvedSpeciesKey: number | null;
   resolvedScientificName: string | null;
+  resolvedSpeciesProvider: string | null;
   convertedToPlantId: string | null;
   photos: IPlantIdentificationPhotoPrimitives[];
   candidates: IPlantIdentificationCandidatePrimitives[];

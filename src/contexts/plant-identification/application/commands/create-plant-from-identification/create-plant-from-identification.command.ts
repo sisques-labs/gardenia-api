@@ -1,14 +1,8 @@
-import { StringValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
-
-/**
- * `name`'s max length (100) mirrors `plants`' own `PlantNameValueObject` —
- * kept as a plain literal rather than an import, since cross-context imports
- * are only allowed from `infrastructure/adapters/` (see `IPlantsPort`).
- * `plants`' own `CreatePlantCommand` re-validates the name regardless.
- */
-const NAME_MAX_LENGTH = 100;
+import { PlantIdentificationImageUrlValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-image-url/plant-identification-image-url.value-object';
+import { PlantIdentificationNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-name/plant-identification-name.value-object';
 
 export interface CreatePlantFromIdentificationCommandInput {
   identificationId: string;
@@ -19,24 +13,18 @@ export interface CreatePlantFromIdentificationCommandInput {
 
 export class CreatePlantFromIdentificationCommand {
   public readonly identificationId: PlantIdentificationIdValueObject;
-  public readonly name: StringValueObject;
-  public readonly imageUrl: StringValueObject | null;
+  public readonly name: PlantIdentificationNameValueObject;
+  public readonly imageUrl: PlantIdentificationImageUrlValueObject | null;
   public readonly requestingUserId: UuidValueObject;
 
   constructor(input: CreatePlantFromIdentificationCommandInput) {
     this.identificationId = new PlantIdentificationIdValueObject(
       input.identificationId,
     );
-    this.name = new StringValueObject(input.name, {
-      maxLength: NAME_MAX_LENGTH,
-      allowEmpty: false,
-    });
+    this.name = new PlantIdentificationNameValueObject(input.name);
     this.imageUrl =
       input.imageUrl != null
-        ? new StringValueObject(input.imageUrl, {
-            maxLength: 1024,
-            allowEmpty: false,
-          })
+        ? new PlantIdentificationImageUrlValueObject(input.imageUrl)
         : null;
     this.requestingUserId = new UuidValueObject(input.requestingUserId);
   }

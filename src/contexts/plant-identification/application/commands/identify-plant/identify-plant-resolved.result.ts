@@ -1,4 +1,5 @@
 export interface IdentifyPlantResolvedResult {
-  gbifKey: number;
+  speciesKey: number;
   scientificName: string;
+  provider: string;
 }

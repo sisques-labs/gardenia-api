@@ -9,6 +9,13 @@ import {
 } from '@contexts/plant-species/application/queries/gbif-species-search/gbif-species-search.query';
 import { GbifSpeciesSuggestion } from '@contexts/plant-species/application/ports/gbif-species-search.port';
 
+/** This adapter is the ONLY place in `plant-identification` allowed to know
+ * the species search behind `IPlantSpeciesPort` is GBIF-backed today — the
+ * port, the application handler, and the domain aggregate only ever see the
+ * provider-neutral `PlantSpeciesMatch` shape (`speciesKey`/`provider`). If
+ * `plant-species` ever adds a second catalog, only this mapping changes. */
+const GBIF_PROVIDER = 'gbif';
+
 @Injectable()
 export class PlantSpeciesAdapter implements IPlantSpeciesPort {
   private readonly logger = new Logger(PlantSpeciesAdapter.name);
@@ -25,8 +32,9 @@ export class PlantSpeciesAdapter implements IPlantSpeciesPort {
     >(new GbifSpeciesSearchQuery(input));
 
     return results.map((result) => ({
-      gbifKey: result.gbifKey,
+      speciesKey: result.gbifKey,
       scientificName: result.scientificName,
+      provider: GBIF_PROVIDER,
     }));
   }
 }

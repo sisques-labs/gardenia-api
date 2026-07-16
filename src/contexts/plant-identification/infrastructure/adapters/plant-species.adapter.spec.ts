@@ -23,7 +23,11 @@ describe('PlantSpeciesAdapter', () => {
       expect.any(GbifSpeciesSearchQuery),
     );
     expect(result).toEqual([
-      { gbifKey: 2882337, scientificName: 'Monstera deliciosa' },
+      {
+        speciesKey: 2882337,
+        scientificName: 'Monstera deliciosa',
+        provider: 'gbif',
+      },
     ]);
   });
 

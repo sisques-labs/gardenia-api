@@ -17,8 +17,9 @@ function buildParent(): PlantIdentificationTypeOrmEntity {
   entity.requestedByUserId = USER_ID;
   entity.spaceId = SPACE_ID;
   entity.status = PlantIdentificationStatusEnum.RESOLVED;
-  entity.resolvedGbifKey = 2882337;
+  entity.resolvedSpeciesKey = 2882337;
   entity.resolvedScientificName = 'Monstera deliciosa';
+  entity.resolvedSpeciesProvider = 'gbif';
   entity.convertedToPlantId = null;
   entity.createdAt = new Date('2026-01-01T00:00:00.000Z');
   entity.updatedAt = new Date('2026-01-02T00:00:00.000Z');
@@ -60,21 +61,25 @@ describe('PlantIdentificationTypeOrmMapper', () => {
     const aggregate = mapper.toDomain(parent, photos, candidates);
 
     expect(aggregate.id.value).toBe(ID);
-    expect(aggregate.resolvedGbifKey?.value).toBe(2882337);
+    expect(aggregate.resolvedSpeciesKey?.value).toBe(2882337);
+    expect(aggregate.resolvedSpeciesProvider?.value).toBe('gbif');
     expect(aggregate.photos.map((p) => p.position.value)).toEqual([0, 1]);
     expect(aggregate.candidates.map((c) => c.rank.value)).toEqual([0, 1]);
   });
 
-  it('toDomain() leaves resolved fields null when not resolved', () => {
+  it('toDomain() leaves resolved fields null (and derives NO_MATCH) when not resolved', () => {
     const parent = buildParent();
     parent.status = PlantIdentificationStatusEnum.NO_MATCH;
-    parent.resolvedGbifKey = null;
+    parent.resolvedSpeciesKey = null;
     parent.resolvedScientificName = null;
+    parent.resolvedSpeciesProvider = null;
 
     const aggregate = mapper.toDomain(parent, [], []);
 
-    expect(aggregate.resolvedGbifKey).toBeNull();
+    expect(aggregate.status.value).toBe(PlantIdentificationStatusEnum.NO_MATCH);
+    expect(aggregate.resolvedSpeciesKey).toBeNull();
     expect(aggregate.resolvedScientificName).toBeNull();
+    expect(aggregate.resolvedSpeciesProvider).toBeNull();
   });
 
   it('toPersistence() round-trips the aggregate back to entities', () => {
@@ -92,7 +97,8 @@ describe('PlantIdentificationTypeOrmMapper', () => {
       requestedByUserId: USER_ID,
       spaceId: SPACE_ID,
       status: PlantIdentificationStatusEnum.RESOLVED,
-      resolvedGbifKey: 2882337,
+      resolvedSpeciesKey: 2882337,
+      resolvedSpeciesProvider: 'gbif',
     });
     expect(persisted.photos).toHaveLength(1);
     expect(persisted.photos[0]).toMatchObject({
@@ -115,6 +121,7 @@ describe('PlantIdentificationTypeOrmMapper', () => {
 
     expect(vm.id).toBe(ID);
     expect(vm.status).toBe(PlantIdentificationStatusEnum.RESOLVED);
+    expect(vm.resolvedSpeciesProvider).toBe('gbif');
     expect(vm.photos).toHaveLength(1);
     expect(vm.candidates).toHaveLength(1);
   });

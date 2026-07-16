@@ -77,10 +77,13 @@ describe('PlantIdentification TypeORM repositories (integration)', () => {
       .withId(randomUUID())
       .withRequestedByUserId(userId)
       .withSpaceId(spaceId)
-      .withStatus(status)
       .withResolved(
         status === PlantIdentificationStatusEnum.RESOLVED
-          ? { gbifKey: 2882337, scientificName: 'Monstera deliciosa' }
+          ? {
+              speciesKey: 2882337,
+              scientificName: 'Monstera deliciosa',
+              provider: 'gbif',
+            }
           : null,
       )
       .withPhotos([
@@ -117,7 +120,7 @@ describe('PlantIdentification TypeORM repositories (integration)', () => {
       expect(found?.requestedByUserId.value).toBe(userAId);
       expect(found?.photos).toHaveLength(1);
       expect(found?.candidates).toHaveLength(1);
-      expect(found?.resolvedGbifKey?.value).toBe(2882337);
+      expect(found?.resolvedSpeciesKey?.value).toBe(2882337);
     });
   });
 

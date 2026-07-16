@@ -54,16 +54,23 @@ export class PlantIdentificationResponseDto {
 
   @Field(() => Int, {
     nullable: true,
-    description: 'Resolved GBIF key, when confidently auto-resolved',
+    description:
+      'Resolved external catalog key, when confidently auto-resolved',
   })
-  resolvedGbifKey!: number | null;
+  resolvedSpeciesKey!: number | null;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Resolved scientific name, when confidently auto-resolved',
+  })
+  resolvedScientificName!: string | null;
 
   @Field(() => String, {
     nullable: true,
     description:
-      'Resolved GBIF scientific name, when confidently auto-resolved',
+      'External catalog that resolved this match, e.g. "gbif" (when confidently auto-resolved)',
   })
-  resolvedScientificName!: string | null;
+  resolvedSpeciesProvider!: string | null;
 
   @Field(() => String, {
     nullable: true,

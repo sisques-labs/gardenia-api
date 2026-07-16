@@ -1,6 +1,5 @@
 import {
   DateValueObject,
-  NumberValueObject,
   StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
@@ -10,6 +9,8 @@ import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/do
 import { PlantIdentificationNotFoundException } from '@contexts/plant-identification/domain/exceptions/plant-identification-not-found.exception';
 import { IPlantIdentificationWriteRepository } from '@contexts/plant-identification/domain/repositories/write/plant-identification-write.repository';
 import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
+import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
 import { PlantIdentificationStatusValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-status/plant-identification-status.value-object';
 import { AssertPlantIdentificationExistsService } from './assert-plant-identification-exists.service';
 
@@ -25,8 +26,11 @@ function buildIdentification(): PlantIdentificationAggregate {
     status: new PlantIdentificationStatusValueObject(
       PlantIdentificationStatusEnum.RESOLVED,
     ),
-    resolvedGbifKey: new NumberValueObject(2882337),
+    resolvedSpeciesKey: new PlantIdentificationSpeciesKeyValueObject(2882337),
     resolvedScientificName: new StringValueObject('Monstera deliciosa'),
+    resolvedSpeciesProvider: new PlantIdentificationSpeciesProviderValueObject(
+      'gbif',
+    ),
     convertedToPlantId: null,
     photos: [],
     candidates: [],

@@ -30,8 +30,9 @@ export class PlantIdentificationRestMapper {
     dto.requestedByUserId = vm.requestedByUserId;
     dto.spaceId = vm.spaceId;
     dto.status = vm.status;
-    dto.resolvedGbifKey = vm.resolvedGbifKey;
+    dto.resolvedSpeciesKey = vm.resolvedSpeciesKey;
     dto.resolvedScientificName = vm.resolvedScientificName;
+    dto.resolvedSpeciesProvider = vm.resolvedSpeciesProvider;
     dto.convertedToPlantId = vm.convertedToPlantId;
     dto.photos = vm.photos;
     dto.candidates = vm.candidates;

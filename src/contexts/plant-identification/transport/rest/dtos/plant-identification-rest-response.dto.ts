@@ -44,11 +44,17 @@ export class PlantIdentificationRestResponseDto {
   @ApiProperty({ enum: PlantIdentificationStatusEnum })
   status!: PlantIdentificationStatusEnum;
 
-  @ApiProperty({ nullable: true })
-  resolvedGbifKey!: number | null;
+  @ApiProperty({ nullable: true, description: 'Resolved external catalog key' })
+  resolvedSpeciesKey!: number | null;
 
   @ApiProperty({ nullable: true })
   resolvedScientificName!: string | null;
+
+  @ApiProperty({
+    nullable: true,
+    description: 'External catalog that resolved this match, e.g. "gbif"',
+  })
+  resolvedSpeciesProvider!: string | null;
 
   @ApiProperty({ nullable: true })
   convertedToPlantId!: string | null;

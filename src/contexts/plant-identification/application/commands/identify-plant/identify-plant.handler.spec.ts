@@ -65,11 +65,13 @@ describe('IdentifyPlantCommandHandler', () => {
     };
 
     mockPlantSpeciesPort = {
-      search: jest
-        .fn()
-        .mockResolvedValue([
-          { gbifKey: 2882337, scientificName: 'Monstera deliciosa' },
-        ]),
+      search: jest.fn().mockResolvedValue([
+        {
+          speciesKey: 2882337,
+          scientificName: 'Monstera deliciosa',
+          provider: 'gbif',
+        },
+      ]),
     };
 
     mockConfigService = {
@@ -105,8 +107,9 @@ describe('IdentifyPlantCommandHandler', () => {
 
     expect(result.status).toBe(PlantIdentificationStatusEnum.RESOLVED);
     expect(result.resolved).toEqual({
-      gbifKey: 2882337,
+      speciesKey: 2882337,
       scientificName: 'Monstera deliciosa',
+      provider: 'gbif',
     });
     expect(result.candidates).toHaveLength(2);
     expect(result.photos).toEqual([

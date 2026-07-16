@@ -27,8 +27,8 @@ export class PlantIdentificationTypeOrmEntity {
   @Column({ name: 'status', type: 'varchar', nullable: false })
   status!: string;
 
-  @Column({ name: 'resolved_gbif_key', type: 'integer', nullable: true })
-  resolvedGbifKey!: number | null;
+  @Column({ name: 'resolved_species_key', type: 'integer', nullable: true })
+  resolvedSpeciesKey!: number | null;
 
   @Column({
     name: 'resolved_scientific_name',
@@ -37,6 +37,14 @@ export class PlantIdentificationTypeOrmEntity {
     nullable: true,
   })
   resolvedScientificName!: string | null;
+
+  @Column({
+    name: 'resolved_species_provider',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  resolvedSpeciesProvider!: string | null;
 
   @Column({ name: 'converted_to_plant_id', type: 'uuid', nullable: true })
   convertedToPlantId!: string | null;

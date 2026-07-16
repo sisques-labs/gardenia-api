@@ -13,6 +13,8 @@ import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/do
 import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
 import { PlantIdentificationOrganValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-organ/plant-identification-organ.value-object';
 import { PlantIdentificationScoreValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-score/plant-identification-score.value-object';
+import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
+import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
 import { PlantIdentificationStatusValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-status/plant-identification-status.value-object';
 import { PlantIdentificationAggregate } from './plant-identification.aggregate';
 
@@ -24,8 +26,9 @@ const PLANT_ID = '440e8400-e29b-41d4-a716-446655440003';
 
 function buildIdentification(
   overrides: Partial<{
-    resolvedGbifKey: NumberValueObject | null;
+    resolvedSpeciesKey: PlantIdentificationSpeciesKeyValueObject | null;
     resolvedScientificName: StringValueObject | null;
+    resolvedSpeciesProvider: PlantIdentificationSpeciesProviderValueObject | null;
     convertedToPlantId: UuidValueObject | null;
     status: PlantIdentificationStatusEnum;
   }> = {},
@@ -37,14 +40,18 @@ function buildIdentification(
     status: new PlantIdentificationStatusValueObject(
       overrides.status ?? PlantIdentificationStatusEnum.RESOLVED,
     ),
-    resolvedGbifKey:
-      overrides.resolvedGbifKey === undefined
-        ? new NumberValueObject(2882337)
-        : overrides.resolvedGbifKey,
+    resolvedSpeciesKey:
+      overrides.resolvedSpeciesKey === undefined
+        ? new PlantIdentificationSpeciesKeyValueObject(2882337)
+        : overrides.resolvedSpeciesKey,
     resolvedScientificName:
       overrides.resolvedScientificName === undefined
         ? new StringValueObject('Monstera deliciosa')
         : overrides.resolvedScientificName,
+    resolvedSpeciesProvider:
+      overrides.resolvedSpeciesProvider === undefined
+        ? new PlantIdentificationSpeciesProviderValueObject('gbif')
+        : overrides.resolvedSpeciesProvider,
     convertedToPlantId: overrides.convertedToPlantId ?? null,
     photos: [
       {
@@ -105,8 +112,9 @@ describe('PlantIdentificationAggregate', () => {
       requestedByUserId: USER_ID,
       spaceId: SPACE_ID,
       status: PlantIdentificationStatusEnum.RESOLVED,
-      resolvedGbifKey: 2882337,
+      resolvedSpeciesKey: 2882337,
       resolvedScientificName: 'Monstera deliciosa',
+      resolvedSpeciesProvider: 'gbif',
       convertedToPlantId: null,
     });
     expect(primitives.photos).toEqual([
@@ -130,13 +138,15 @@ describe('PlantIdentificationAggregate', () => {
   it('a no_match identification has null resolved fields', () => {
     const identification = buildIdentification({
       status: PlantIdentificationStatusEnum.NO_MATCH,
-      resolvedGbifKey: null,
+      resolvedSpeciesKey: null,
       resolvedScientificName: null,
+      resolvedSpeciesProvider: null,
     });
 
     const primitives = identification.toPrimitives();
     expect(primitives.status).toBe(PlantIdentificationStatusEnum.NO_MATCH);
-    expect(primitives.resolvedGbifKey).toBeNull();
+    expect(primitives.resolvedSpeciesKey).toBeNull();
     expect(primitives.resolvedScientificName).toBeNull();
+    expect(primitives.resolvedSpeciesProvider).toBeNull();
   });
 });

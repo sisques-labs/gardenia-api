@@ -50,8 +50,8 @@ until that verification has been done.**
 | `id` | `PlantIdentificationIdValueObject` | UUID generated on submission |
 | `requestedByUserId` | `UuidValueObject` | Owner — used for the 403 ownership check on conversion |
 | `spaceId` | `UuidValueObject` | Space owning the attempt (`SpaceContext` ALS) |
-| `status` | `PlantIdentificationStatusValueObject` | `resolved` \| `no_match` — a row only ever exists for a *completed* PlantNet call, never a failed one |
-| `resolvedGbifKey` / `resolvedScientificName` | `NumberValueObject`/`StringValueObject`, nullable | Set only when the top PlantNet candidate cleared `PLANTNET_MIN_CONFIDENCE` **and** a GBIF match was found for its name |
+| `status` | `PlantIdentificationStatusValueObject` | `resolved` \| `no_match` — **derived** by the builder from whether `resolvedSpeciesKey` is set, never independently settable; a row only ever exists for a *completed* PlantNet call, never a failed one |
+| `resolvedSpeciesKey` / `resolvedScientificName` / `resolvedSpeciesProvider` | `PlantIdentificationSpeciesKeyValueObject`/`StringValueObject`/`PlantIdentificationSpeciesProviderValueObject`, nullable | Set only when the top PlantNet candidate cleared `PLANTNET_MIN_CONFIDENCE` **and** a species match was found for its name. Provider-agnostic on purpose — `resolvedSpeciesProvider` records which external catalog resolved it (`"gbif"` today); the aggregate/port never hardcode a provider name, only the `plant-species` adapter knows it's GBIF-backed. |
 | `convertedToPlantId` | `UuidValueObject`, nullable | Set once (if) `CreatePlantFromIdentification` succeeds — not FK-enforced (repo convention) |
 | `photos` | `IPlantIdentificationPhoto[]` | `{ fileId, url, organ, position }`, fixed at creation |
 | `candidates` | `IPlantIdentificationCandidate[]` | `{ scientificName, commonNames, score, rank }`, PlantNet's full ranked list, fixed at creation |
@@ -82,7 +82,7 @@ Four outbound ports, all in `application/ports/` with adapters in
 
 | Method | Dispatches | Notes |
 |--------|-----------|-------|
-| `search(name, limit)` | `GbifSpeciesSearchQuery` | **Read-only** — the existing, live, non-persisting GBIF search. Used only to map PlantNet's top scientific name onto a `gbifKey` for display/conversion. Nothing is written to `plant_species` by this call. |
+| `search(name, limit)` | `GbifSpeciesSearchQuery` | **Read-only**, provider-agnostic port (`PlantSpeciesMatch { speciesKey, scientificName, provider }`) — the adapter dispatches the existing, live, non-persisting GBIF search and is the ONLY place in this context that knows it's GBIF-backed, stamping `provider: "gbif"` on the way out. Used only to map PlantNet's top scientific name onto a species key for display/conversion. Nothing is written to `plant_species` by this call. |
 
 ### `IPlantsPort` → `plants`
 
@@ -165,8 +165,9 @@ Binary upload is **not** exposed over GraphQL — same convention as
 Three tables (migration `1780000000025-CreatePlantIdentifications`):
 
 - `plant_identifications` — the attempt: `id`, `requested_by_user_id`,
-  `space_id`, `status`, `resolved_gbif_key`, `resolved_scientific_name`,
-  `converted_to_plant_id`, `created_at`, `updated_at`.
+  `space_id`, `status`, `resolved_species_key`, `resolved_scientific_name`,
+  `resolved_species_provider`, `converted_to_plant_id`, `created_at`,
+  `updated_at`.
 - `plant_identification_photos` — child, `ON DELETE CASCADE` to
   `plant_identifications.id` (real, DB-enforced FK — intra-aggregate, unlike
   `file_id`, which is deliberately NOT FK-enforced since `files` is a

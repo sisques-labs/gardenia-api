@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 import { PlantIdentificationAggregate } from '@contexts/plant-identification/domain/aggregates/plant-identification.aggregate';
 import { PlantIdentificationOrganEnum } from '@contexts/plant-identification/domain/enums/plant-identification-organ.enum';
-import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
 import { PlantIdentificationBuilder } from '@contexts/plant-identification/domain/builders/plant-identification.builder';
 import { PlantIdentificationViewModel } from '@contexts/plant-identification/domain/view-models/plant-identification.view-model';
 import { PlantIdentificationCandidateTypeOrmEntity } from '../entities/plant-identification-candidate.entity';
@@ -28,12 +27,14 @@ export class PlantIdentificationTypeOrmMapper {
       .withId(parent.id)
       .withRequestedByUserId(parent.requestedByUserId)
       .withSpaceId(parent.spaceId)
-      .withStatus(parent.status as PlantIdentificationStatusEnum)
       .withResolved(
-        parent.resolvedGbifKey != null && parent.resolvedScientificName
+        parent.resolvedSpeciesKey != null &&
+          parent.resolvedScientificName &&
+          parent.resolvedSpeciesProvider
           ? {
-              gbifKey: parent.resolvedGbifKey,
+              speciesKey: parent.resolvedSpeciesKey,
               scientificName: parent.resolvedScientificName,
+              provider: parent.resolvedSpeciesProvider,
             }
           : null,
       )
@@ -73,8 +74,9 @@ export class PlantIdentificationTypeOrmMapper {
     parent.requestedByUserId = p.requestedByUserId;
     parent.spaceId = p.spaceId;
     parent.status = p.status;
-    parent.resolvedGbifKey = p.resolvedGbifKey;
+    parent.resolvedSpeciesKey = p.resolvedSpeciesKey;
     parent.resolvedScientificName = p.resolvedScientificName;
+    parent.resolvedSpeciesProvider = p.resolvedSpeciesProvider;
     parent.convertedToPlantId = p.convertedToPlantId;
     parent.createdAt = p.createdAt;
     parent.updatedAt = p.updatedAt;
@@ -111,12 +113,14 @@ export class PlantIdentificationTypeOrmMapper {
       .withId(parent.id)
       .withRequestedByUserId(parent.requestedByUserId)
       .withSpaceId(parent.spaceId)
-      .withStatus(parent.status as PlantIdentificationStatusEnum)
       .withResolved(
-        parent.resolvedGbifKey != null && parent.resolvedScientificName
+        parent.resolvedSpeciesKey != null &&
+          parent.resolvedScientificName &&
+          parent.resolvedSpeciesProvider
           ? {
-              gbifKey: parent.resolvedGbifKey,
+              speciesKey: parent.resolvedSpeciesKey,
               scientificName: parent.resolvedScientificName,
+              provider: parent.resolvedSpeciesProvider,
             }
           : null,
       )

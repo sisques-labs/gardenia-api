@@ -12,7 +12,11 @@ describe('PlantIdentificationRestMapper', () => {
     const dto = mapper.toIdentifyResponse({
       id: ID,
       status: PlantIdentificationStatusEnum.RESOLVED,
-      resolved: { gbifKey: 2882337, scientificName: 'Monstera deliciosa' },
+      resolved: {
+        speciesKey: 2882337,
+        scientificName: 'Monstera deliciosa',
+        provider: 'gbif',
+      },
       candidates: [
         {
           scientificName: 'Monstera deliciosa',
@@ -34,8 +38,9 @@ describe('PlantIdentificationRestMapper', () => {
 
     expect(dto.id).toBe(ID);
     expect(dto.resolved).toEqual({
-      gbifKey: 2882337,
+      speciesKey: 2882337,
       scientificName: 'Monstera deliciosa',
+      provider: 'gbif',
     });
     expect(dto.photos).toEqual([
       {
@@ -52,8 +57,9 @@ describe('PlantIdentificationRestMapper', () => {
       requestedByUserId: '660e8400-e29b-41d4-a716-446655440001',
       spaceId: '770e8400-e29b-41d4-a716-446655440002',
       status: PlantIdentificationStatusEnum.NO_MATCH,
-      resolvedGbifKey: null,
+      resolvedSpeciesKey: null,
       resolvedScientificName: null,
+      resolvedSpeciesProvider: null,
       convertedToPlantId: null,
       photos: [],
       candidates: [],
@@ -65,6 +71,6 @@ describe('PlantIdentificationRestMapper', () => {
 
     expect(dto.id).toBe(ID);
     expect(dto.status).toBe(PlantIdentificationStatusEnum.NO_MATCH);
-    expect(dto.resolvedGbifKey).toBeNull();
+    expect(dto.resolvedSpeciesKey).toBeNull();
   });
 });

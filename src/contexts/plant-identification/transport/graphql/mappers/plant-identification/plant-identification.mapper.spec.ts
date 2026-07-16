@@ -16,8 +16,9 @@ const buildViewModel = (
     requestedByUserId: '660e8400-e29b-41d4-a716-446655440001',
     spaceId: '770e8400-e29b-41d4-a716-446655440002',
     status: PlantIdentificationStatusEnum.RESOLVED,
-    resolvedGbifKey: 2882337,
+    resolvedSpeciesKey: 2882337,
     resolvedScientificName: 'Monstera deliciosa',
+    resolvedSpeciesProvider: 'gbif',
     convertedToPlantId: null,
     photos: [
       {
@@ -52,7 +53,8 @@ describe('PlantIdentificationGraphQLMapper', () => {
 
     expect(dto.id).toBe(ID);
     expect(dto.status).toBe(PlantIdentificationStatusEnum.RESOLVED);
-    expect(dto.resolvedGbifKey).toBe(2882337);
+    expect(dto.resolvedSpeciesKey).toBe(2882337);
+    expect(dto.resolvedSpeciesProvider).toBe('gbif');
     expect(dto.photos).toHaveLength(1);
     expect(dto.candidates).toHaveLength(1);
     expect(dto.photos[0].organ).toBe(PlantIdentificationOrganEnum.LEAF);
@@ -62,12 +64,13 @@ describe('PlantIdentificationGraphQLMapper', () => {
     const dto = mapper.toResponseDto(
       buildViewModel({
         status: PlantIdentificationStatusEnum.NO_MATCH,
-        resolvedGbifKey: null,
+        resolvedSpeciesKey: null,
         resolvedScientificName: null,
+        resolvedSpeciesProvider: null,
       }),
     );
 
-    expect(dto.resolvedGbifKey).toBeNull();
+    expect(dto.resolvedSpeciesKey).toBeNull();
     expect(dto.resolvedScientificName).toBeNull();
   });
 

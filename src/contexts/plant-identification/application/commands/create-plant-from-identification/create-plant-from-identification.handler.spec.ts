@@ -1,7 +1,6 @@
 import { EventBus } from '@nestjs/cqrs';
 import {
   DateValueObject,
-  NumberValueObject,
   StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
@@ -11,11 +10,14 @@ import { AssertPlantIdentificationExistsService } from '@contexts/plant-identifi
 import { AssertPlantIdentificationOwnershipService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-ownership/assert-plant-identification-ownership.service';
 import { PlantIdentificationAggregate } from '@contexts/plant-identification/domain/aggregates/plant-identification.aggregate';
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
+import { PlantIdentificationAlreadyConvertedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-already-converted.exception';
 import { PlantIdentificationForbiddenException } from '@contexts/plant-identification/domain/exceptions/plant-identification-forbidden.exception';
 import { PlantIdentificationNotFoundException } from '@contexts/plant-identification/domain/exceptions/plant-identification-not-found.exception';
 import { PlantIdentificationNotResolvedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-not-resolved.exception';
 import { IPlantIdentificationWriteRepository } from '@contexts/plant-identification/domain/repositories/write/plant-identification-write.repository';
 import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
+import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
 import { PlantIdentificationStatusValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-status/plant-identification-status.value-object';
 import { CreatePlantFromIdentificationCommand } from './create-plant-from-identification.command';
 import { CreatePlantFromIdentificationCommandHandler } from './create-plant-from-identification.handler';
@@ -26,7 +28,10 @@ const OTHER_USER_ID = '660e8400-e29b-41d4-a716-446655440099';
 const SPACE_ID = '770e8400-e29b-41d4-a716-446655440002';
 const PLANT_ID = '440e8400-e29b-41d4-a716-446655440003';
 
-function buildIdentification(resolved = true): PlantIdentificationAggregate {
+function buildIdentification(
+  resolved = true,
+  convertedToPlantId: string | null = null,
+): PlantIdentificationAggregate {
   return new PlantIdentificationAggregate({
     id: new PlantIdentificationIdValueObject(IDENTIFICATION_ID),
     requestedByUserId: new UuidValueObject(OWNER_ID),
@@ -36,11 +41,18 @@ function buildIdentification(resolved = true): PlantIdentificationAggregate {
         ? PlantIdentificationStatusEnum.RESOLVED
         : PlantIdentificationStatusEnum.NO_MATCH,
     ),
-    resolvedGbifKey: resolved ? new NumberValueObject(2882337) : null,
+    resolvedSpeciesKey: resolved
+      ? new PlantIdentificationSpeciesKeyValueObject(2882337)
+      : null,
     resolvedScientificName: resolved
       ? new StringValueObject('Monstera deliciosa')
       : null,
-    convertedToPlantId: null,
+    resolvedSpeciesProvider: resolved
+      ? new PlantIdentificationSpeciesProviderValueObject('gbif')
+      : null,
+    convertedToPlantId: convertedToPlantId
+      ? new UuidValueObject(convertedToPlantId)
+      : null,
     photos: [],
     candidates: [],
     createdAt: new DateValueObject(new Date()),
@@ -136,6 +148,17 @@ describe('CreatePlantFromIdentificationCommandHandler', () => {
 
     await expect(handler.execute(buildCommand())).rejects.toThrow(
       PlantIdentificationNotResolvedException,
+    );
+    expect(mockPlantsPort.createPlant).not.toHaveBeenCalled();
+  });
+
+  it('throws 409 when already converted, WITHOUT calling IPlantsPort again (no duplicate plant on retry)', async () => {
+    mockWriteRepo.findById.mockResolvedValue(
+      buildIdentification(true, PLANT_ID),
+    );
+
+    await expect(handler.execute(buildCommand())).rejects.toThrow(
+      PlantIdentificationAlreadyConvertedException,
     );
     expect(mockPlantsPort.createPlant).not.toHaveBeenCalled();
   });
