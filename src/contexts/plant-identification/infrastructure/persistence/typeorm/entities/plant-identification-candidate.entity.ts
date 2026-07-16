@@ -20,9 +20,6 @@ export class PlantIdentificationCandidateTypeOrmEntity {
   })
   scientificName!: string;
 
-  @Column({ name: 'common_names', type: 'text', array: true, default: '{}' })
-  commonNames!: string[];
-
   @Column({ name: 'score', type: 'numeric', precision: 5, scale: 4 })
   score!: number;
 

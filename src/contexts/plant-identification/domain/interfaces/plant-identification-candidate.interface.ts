@@ -1,5 +1,6 @@
-import { NumberValueObject, StringValueObject } from '@sisques-labs/nestjs-kit';
-
+import { PlantIdentificationCommonNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-common-name/plant-identification-common-name.value-object';
+import { PlantIdentificationRankValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-rank/plant-identification-rank.value-object';
+import { PlantIdentificationScientificNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-scientific-name/plant-identification-scientific-name.value-object';
 import { PlantIdentificationScoreValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-score/plant-identification-score.value-object';
 
 /**
@@ -8,14 +9,8 @@ import { PlantIdentificationScoreValueObject } from '@contexts/plant-identificat
  * auto-resolved one is, via `resolvedScientificName` on the aggregate).
  */
 export interface IPlantIdentificationCandidate {
-  scientificName: StringValueObject;
-  /**
-   * Plain string array, not individually wrapped — a free-text display list
-   * with no per-item business rule to enforce, same reasoning `FILES_ALLOWED_
-   * MIME_TYPES` config values are left as plain strings once split.
-   */
-  commonNames: string[];
+  scientificName: PlantIdentificationScientificNameValueObject;
+  commonNames: PlantIdentificationCommonNameValueObject[];
   score: PlantIdentificationScoreValueObject;
-  /** Preserves PlantNet's own ranking order. */
-  rank: NumberValueObject;
+  rank: PlantIdentificationRankValueObject;
 }

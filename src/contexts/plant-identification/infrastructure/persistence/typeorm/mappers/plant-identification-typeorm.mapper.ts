@@ -4,6 +4,7 @@ import { PlantIdentificationAggregate } from '@contexts/plant-identification/dom
 import { PlantIdentificationOrganEnum } from '@contexts/plant-identification/domain/enums/plant-identification-organ.enum';
 import { PlantIdentificationBuilder } from '@contexts/plant-identification/domain/builders/plant-identification.builder';
 import { PlantIdentificationViewModel } from '@contexts/plant-identification/domain/view-models/plant-identification.view-model';
+import { PlantIdentificationCandidateCommonNameTypeOrmEntity } from '../entities/plant-identification-candidate-common-name.entity';
 import { PlantIdentificationCandidateTypeOrmEntity } from '../entities/plant-identification-candidate.entity';
 import { PlantIdentificationPhotoTypeOrmEntity } from '../entities/plant-identification-photo.entity';
 import { PlantIdentificationTypeOrmEntity } from '../entities/plant-identification.entity';
@@ -12,6 +13,8 @@ export interface PlantIdentificationPersistencePayload {
   parent: PlantIdentificationTypeOrmEntity;
   photos: PlantIdentificationPhotoTypeOrmEntity[];
   candidates: PlantIdentificationCandidateTypeOrmEntity[];
+  /** One array of common names per entry of `candidates`, same index order. */
+  candidateCommonNames: string[][];
 }
 
 @Injectable()
@@ -22,7 +25,11 @@ export class PlantIdentificationTypeOrmMapper {
     parent: PlantIdentificationTypeOrmEntity,
     photos: PlantIdentificationPhotoTypeOrmEntity[],
     candidates: PlantIdentificationCandidateTypeOrmEntity[],
+    commonNames: PlantIdentificationCandidateCommonNameTypeOrmEntity[],
   ): PlantIdentificationAggregate {
+    const commonNamesByCandidate =
+      this.groupCommonNamesByCandidate(commonNames);
+
     return this.builder
       .withId(parent.id)
       .withRequestedByUserId(parent.requestedByUserId)
@@ -54,7 +61,7 @@ export class PlantIdentificationTypeOrmMapper {
           .sort((a, b) => a.rank - b.rank)
           .map((candidate) => ({
             scientificName: candidate.scientificName,
-            commonNames: candidate.commonNames,
+            commonNames: commonNamesByCandidate.get(candidate.id) ?? [],
             score: Number(candidate.score),
             rank: candidate.rank,
           })),
@@ -95,20 +102,27 @@ export class PlantIdentificationTypeOrmMapper {
       const entity = new PlantIdentificationCandidateTypeOrmEntity();
       entity.plantIdentificationId = p.id;
       entity.scientificName = candidate.scientificName;
-      entity.commonNames = candidate.commonNames;
       entity.score = candidate.score;
       entity.rank = candidate.rank;
       return entity;
     });
 
-    return { parent, photos, candidates };
+    const candidateCommonNames = p.candidates.map(
+      (candidate) => candidate.commonNames,
+    );
+
+    return { parent, photos, candidates, candidateCommonNames };
   }
 
   public toViewModel(
     parent: PlantIdentificationTypeOrmEntity,
     photos: PlantIdentificationPhotoTypeOrmEntity[],
     candidates: PlantIdentificationCandidateTypeOrmEntity[],
+    commonNames: PlantIdentificationCandidateCommonNameTypeOrmEntity[],
   ): PlantIdentificationViewModel {
+    const commonNamesByCandidate =
+      this.groupCommonNamesByCandidate(commonNames);
+
     return this.builder
       .withId(parent.id)
       .withRequestedByUserId(parent.requestedByUserId)
@@ -140,7 +154,7 @@ export class PlantIdentificationTypeOrmMapper {
           .sort((a, b) => a.rank - b.rank)
           .map((candidate) => ({
             scientificName: candidate.scientificName,
-            commonNames: candidate.commonNames,
+            commonNames: commonNamesByCandidate.get(candidate.id) ?? [],
             score: Number(candidate.score),
             rank: candidate.rank,
           })),
@@ -148,5 +162,19 @@ export class PlantIdentificationTypeOrmMapper {
       .withCreatedAt(parent.createdAt)
       .withUpdatedAt(parent.updatedAt)
       .buildViewModel();
+  }
+
+  private groupCommonNamesByCandidate(
+    commonNames: PlantIdentificationCandidateCommonNameTypeOrmEntity[],
+  ): Map<string, string[]> {
+    const byCandidate = new Map<string, string[]>();
+    for (const commonName of [...commonNames].sort(
+      (a, b) => a.position - b.position,
+    )) {
+      const list = byCandidate.get(commonName.candidateId) ?? [];
+      list.push(commonName.name);
+      byCandidate.set(commonName.candidateId, list);
+    }
+    return byCandidate;
   }
 }

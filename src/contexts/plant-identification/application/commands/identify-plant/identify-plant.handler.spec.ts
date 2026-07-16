@@ -1,9 +1,8 @@
-import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 
-import { IFilesPort } from '@contexts/plant-identification/application/ports/files.port';
-import { IPlantNetIdentificationPort } from '@contexts/plant-identification/application/ports/plantnet-identification.port';
-import { IPlantSpeciesPort } from '@contexts/plant-identification/application/ports/plant-species.port';
+import { IdentifyPlantPhotosService } from '@contexts/plant-identification/application/services/write/identify-plant-photos/identify-plant-photos.service';
+import { ResolvePlantSpeciesMatchService } from '@contexts/plant-identification/application/services/write/resolve-plant-species-match/resolve-plant-species-match.service';
+import { UploadIdentificationPhotosService } from '@contexts/plant-identification/application/services/write/upload-identification-photos/upload-identification-photos.service';
 import { PlantIdentificationBuilder } from '@contexts/plant-identification/domain/builders/plant-identification.builder';
 import { PlantIdentificationOrganEnum } from '@contexts/plant-identification/domain/enums/plant-identification-organ.enum';
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
@@ -35,10 +34,9 @@ function buildCommand(): IdentifyPlantCommand {
 describe('IdentifyPlantCommandHandler', () => {
   let handler: IdentifyPlantCommandHandler;
   let mockWriteRepo: jest.Mocked<IPlantIdentificationWriteRepository>;
-  let mockFilesPort: jest.Mocked<IFilesPort>;
-  let mockPlantNetPort: jest.Mocked<IPlantNetIdentificationPort>;
-  let mockPlantSpeciesPort: jest.Mocked<IPlantSpeciesPort>;
-  let mockConfigService: jest.Mocked<ConfigService>;
+  let mockUploadService: jest.Mocked<UploadIdentificationPhotosService>;
+  let mockIdentifyService: jest.Mocked<IdentifyPlantPhotosService>;
+  let mockResolveService: jest.Mocked<ResolvePlantSpeciesMatchService>;
   let mockEventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -49,12 +47,12 @@ describe('IdentifyPlantCommandHandler', () => {
       delete: jest.fn(),
     };
 
-    mockFilesPort = {
-      uploadFile: jest.fn().mockResolvedValue({ id: FILE_ID, url: FILE_URL }),
-    };
+    mockUploadService = {
+      execute: jest.fn().mockResolvedValue([{ id: FILE_ID, url: FILE_URL }]),
+    } as unknown as jest.Mocked<UploadIdentificationPhotosService>;
 
-    mockPlantNetPort = {
-      identify: jest.fn().mockResolvedValue([
+    mockIdentifyService = {
+      execute: jest.fn().mockResolvedValue([
         {
           scientificName: 'Monstera deliciosa',
           commonNames: ['Monstera'],
@@ -62,21 +60,15 @@ describe('IdentifyPlantCommandHandler', () => {
         },
         { scientificName: 'Monstera adansonii', commonNames: [], score: 0.1 },
       ]),
-    };
+    } as unknown as jest.Mocked<IdentifyPlantPhotosService>;
 
-    mockPlantSpeciesPort = {
-      search: jest.fn().mockResolvedValue([
-        {
-          speciesKey: 2882337,
-          scientificName: 'Monstera deliciosa',
-          provider: 'gbif',
-        },
-      ]),
-    };
-
-    mockConfigService = {
-      get: jest.fn().mockReturnValue(0.2),
-    } as unknown as jest.Mocked<ConfigService>;
+    mockResolveService = {
+      execute: jest.fn().mockResolvedValue({
+        speciesKey: 2882337,
+        scientificName: 'Monstera deliciosa',
+        provider: 'gbif',
+      }),
+    } as unknown as jest.Mocked<ResolvePlantSpeciesMatchService>;
 
     mockEventBus = {
       publish: jest.fn(),
@@ -85,24 +77,26 @@ describe('IdentifyPlantCommandHandler', () => {
 
     handler = new IdentifyPlantCommandHandler(
       mockWriteRepo,
-      mockFilesPort,
-      mockPlantNetPort,
-      mockPlantSpeciesPort,
+      mockUploadService,
+      mockIdentifyService,
+      mockResolveService,
       new PlantIdentificationBuilder(),
-      mockConfigService,
       mockEventBus,
     );
   });
 
-  it('uploads photos, calls PlantNet once, resolves against GBIF, and persists', async () => {
+  it('uploads photos, identifies once, resolves against the species catalog, and persists', async () => {
     const result = await handler.execute(buildCommand());
 
-    expect(mockFilesPort.uploadFile).toHaveBeenCalledTimes(1);
-    expect(mockPlantNetPort.identify).toHaveBeenCalledTimes(1);
-    expect(mockPlantSpeciesPort.search).toHaveBeenCalledWith(
-      'Monstera deliciosa',
-      1,
-    );
+    expect(mockUploadService.execute).toHaveBeenCalledTimes(1);
+    expect(mockIdentifyService.execute).toHaveBeenCalledTimes(1);
+    expect(mockResolveService.execute).toHaveBeenCalledWith({
+      topCandidate: {
+        scientificName: 'Monstera deliciosa',
+        commonNames: ['Monstera'],
+        score: 0.85,
+      },
+    });
     expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
 
     expect(result.status).toBe(PlantIdentificationStatusEnum.RESOLVED);
@@ -122,7 +116,7 @@ describe('IdentifyPlantCommandHandler', () => {
     ]);
   });
 
-  it('sends all photos in a single PlantNet request (multi-photo)', async () => {
+  it('sends all photos to the identify service in a single call (multi-photo)', async () => {
     const command = new IdentifyPlantCommand({
       photos: [
         {
@@ -143,36 +137,22 @@ describe('IdentifyPlantCommandHandler', () => {
       userId: USER_ID,
       spaceId: SPACE_ID,
     });
-    mockFilesPort.uploadFile
-      .mockResolvedValueOnce({
-        id: '330e8400-e29b-41d4-a716-446655440010',
-        url: '/api/files/1',
-      })
-      .mockResolvedValueOnce({
-        id: '330e8400-e29b-41d4-a716-446655440011',
-        url: '/api/files/2',
-      });
+    mockUploadService.execute.mockResolvedValue([
+      { id: '330e8400-e29b-41d4-a716-446655440010', url: '/api/files/1' },
+      { id: '330e8400-e29b-41d4-a716-446655440011', url: '/api/files/2' },
+    ]);
 
     await handler.execute(command);
 
-    expect(mockPlantNetPort.identify).toHaveBeenCalledTimes(1);
-    expect(mockPlantNetPort.identify.mock.calls[0][0]).toHaveLength(2);
+    expect(mockIdentifyService.execute).toHaveBeenCalledTimes(1);
+    expect(mockIdentifyService.execute.mock.calls[0][0].photos).toHaveLength(2);
   });
 
-  it('stays no_match when the top candidate is below the confidence threshold', async () => {
-    mockPlantNetPort.identify.mockResolvedValue([
+  it('stays no_match when resolution does not find a match', async () => {
+    mockIdentifyService.execute.mockResolvedValue([
       { scientificName: 'Some Plant', commonNames: [], score: 0.05 },
     ]);
-
-    const result = await handler.execute(buildCommand());
-
-    expect(result.status).toBe(PlantIdentificationStatusEnum.NO_MATCH);
-    expect(result.resolved).toBeNull();
-    expect(mockPlantSpeciesPort.search).not.toHaveBeenCalled();
-  });
-
-  it('stays no_match when GBIF finds no match for a confident top candidate', async () => {
-    mockPlantSpeciesPort.search.mockResolvedValue([]);
+    mockResolveService.execute.mockResolvedValue(null);
 
     const result = await handler.execute(buildCommand());
 
@@ -181,7 +161,8 @@ describe('IdentifyPlantCommandHandler', () => {
   });
 
   it('stays no_match with an empty candidate list', async () => {
-    mockPlantNetPort.identify.mockResolvedValue([]);
+    mockIdentifyService.execute.mockResolvedValue([]);
+    mockResolveService.execute.mockResolvedValue(null);
 
     const result = await handler.execute(buildCommand());
 
@@ -189,21 +170,21 @@ describe('IdentifyPlantCommandHandler', () => {
     expect(result.candidates).toEqual([]);
   });
 
-  it('propagates a PlantNet failure and does not persist anything', async () => {
-    mockPlantNetPort.identify.mockRejectedValue(new Error('PlantNet down'));
+  it('propagates an identification failure and does not persist anything', async () => {
+    mockIdentifyService.execute.mockRejectedValue(new Error('provider down'));
 
     await expect(handler.execute(buildCommand())).rejects.toThrow(
-      'PlantNet down',
+      'provider down',
     );
 
     expect(mockWriteRepo.save).not.toHaveBeenCalled();
   });
 
-  it('still uploads photos even when the PlantNet call fails afterwards', async () => {
-    mockPlantNetPort.identify.mockRejectedValue(new Error('PlantNet down'));
+  it('still uploads photos even when identification fails afterwards', async () => {
+    mockIdentifyService.execute.mockRejectedValue(new Error('provider down'));
 
     await expect(handler.execute(buildCommand())).rejects.toThrow();
 
-    expect(mockFilesPort.uploadFile).toHaveBeenCalledTimes(1);
+    expect(mockUploadService.execute).toHaveBeenCalledTimes(1);
   });
 });

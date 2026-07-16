@@ -50,11 +50,11 @@ until that verification has been done.**
 | `id` | `PlantIdentificationIdValueObject` | UUID generated on submission |
 | `requestedByUserId` | `UuidValueObject` | Owner — used for the 403 ownership check on conversion |
 | `spaceId` | `UuidValueObject` | Space owning the attempt (`SpaceContext` ALS) |
-| `status` | `PlantIdentificationStatusValueObject` | `resolved` \| `no_match` — **derived** by the builder from whether `resolvedSpeciesKey` is set, never independently settable; a row only ever exists for a *completed* PlantNet call, never a failed one |
-| `resolvedSpeciesKey` / `resolvedScientificName` / `resolvedSpeciesProvider` | `PlantIdentificationSpeciesKeyValueObject`/`StringValueObject`/`PlantIdentificationSpeciesProviderValueObject`, nullable | Set only when the top PlantNet candidate cleared `PLANTNET_MIN_CONFIDENCE` **and** a species match was found for its name. Provider-agnostic on purpose — `resolvedSpeciesProvider` records which external catalog resolved it (`"gbif"` today); the aggregate/port never hardcode a provider name, only the `plant-species` adapter knows it's GBIF-backed. |
+| `status` | `PlantIdentificationStatusValueObject` | `RESOLVED` \| `NO_MATCH` — **derived** by the builder from whether `resolvedSpeciesKey` is set, never independently settable; a row only ever exists for a *completed* PlantNet call, never a failed one |
+| `resolvedSpeciesKey` / `resolvedScientificName` / `resolvedSpeciesProvider` | `PlantIdentificationSpeciesKeyValueObject`/`PlantIdentificationResolvedScientificNameValueObject`/`PlantIdentificationSpeciesProviderValueObject`, nullable | Set only when the top PlantNet candidate cleared `PLANTNET_MIN_CONFIDENCE` **and** a species match was found for its name. Provider-agnostic on purpose — `resolvedSpeciesProvider` records which external catalog resolved it (`"gbif"` today); the aggregate/port never hardcode a provider name, only the `plant-species` adapter knows it's GBIF-backed. |
 | `convertedToPlantId` | `UuidValueObject`, nullable | Set once (if) `CreatePlantFromIdentification` succeeds — not FK-enforced (repo convention) |
-| `photos` | `IPlantIdentificationPhoto[]` | `{ fileId, url, organ, position }`, fixed at creation |
-| `candidates` | `IPlantIdentificationCandidate[]` | `{ scientificName, commonNames, score, rank }`, PlantNet's full ranked list, fixed at creation |
+| `photos` | `IPlantIdentificationPhoto[]` | `{ fileId, url: PlantIdentificationPhotoUrlValueObject, organ, position: PlantIdentificationPhotoPositionValueObject }`, fixed at creation |
+| `candidates` | `IPlantIdentificationCandidate[]` | `{ scientificName: PlantIdentificationScientificNameValueObject, commonNames: PlantIdentificationCommonNameValueObject[], score, rank: PlantIdentificationRankValueObject }`, PlantNet's full ranked list, fixed at creation. `commonNames` is normalized into its own child table (`plant_identification_candidate_common_names`), not a `text[]` column. |
 | `createdAt` / `updatedAt` | `Date` | Managed by TypeORM |
 
 Domain methods: `create()` → `PlantIdentificationCreatedEvent`;
@@ -117,9 +117,9 @@ Events: `PlantIdentificationCreated`, `PlantIdentificationConvertedToPlant`.
 
 | Situation | Outcome |
 |---|---|
-| PlantNet returns candidates, top ≥ `PLANTNET_MIN_CONFIDENCE` and GBIF matches | `status: 'resolved'`, `resolved*` set, 201 |
-| PlantNet returns candidates, top < threshold, or GBIF finds no match | `status: 'no_match'`, `resolved*` null, candidates still persisted/shown, 201 |
-| PlantNet returns zero candidates | `status: 'no_match'`, empty candidates, 201 |
+| PlantNet returns candidates, top ≥ `PLANTNET_MIN_CONFIDENCE` and GBIF matches | `status: 'RESOLVED'`, `resolved*` set, 201 |
+| PlantNet returns candidates, top < threshold, or GBIF finds no match | `status: 'NO_MATCH'`, `resolved*` null, candidates still persisted/shown, 201 |
+| PlantNet returns zero candidates | `status: 'NO_MATCH'`, empty candidates, 201 |
 | PlantNet request times out / network error / non-2xx (not 429) | `PlantIdentificationProviderUnavailableException` — 502, nothing persisted |
 | PlantNet returns 429 (quota) | `PlantIdentificationQuotaExceededException` — 429, nothing persisted |
 | `files` upload fails (bad mime/size) | Existing `files` exceptions propagate — 400, nothing persisted, no PlantNet call made |

@@ -1,17 +1,18 @@
-import {
-  DateValueObject,
-  NumberValueObject,
-  StringValueObject,
-  UuidValueObject,
-} from '@sisques-labs/nestjs-kit';
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantIdentificationAlreadyConvertedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-already-converted.exception';
 import { PlantIdentificationConvertedToPlantEvent } from '@contexts/plant-identification/domain/events/plant-identification-converted-to-plant/plant-identification-converted-to-plant.event';
 import { PlantIdentificationCreatedEvent } from '@contexts/plant-identification/domain/events/plant-identification-created/plant-identification-created.event';
 import { PlantIdentificationOrganEnum } from '@contexts/plant-identification/domain/enums/plant-identification-organ.enum';
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
+import { PlantIdentificationCommonNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-common-name/plant-identification-common-name.value-object';
 import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
 import { PlantIdentificationOrganValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-organ/plant-identification-organ.value-object';
+import { PlantIdentificationPhotoPositionValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-position/plant-identification-photo-position.value-object';
+import { PlantIdentificationPhotoUrlValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-url/plant-identification-photo-url.value-object';
+import { PlantIdentificationRankValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-rank/plant-identification-rank.value-object';
+import { PlantIdentificationResolvedScientificNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-resolved-scientific-name/plant-identification-resolved-scientific-name.value-object';
+import { PlantIdentificationScientificNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-scientific-name/plant-identification-scientific-name.value-object';
 import { PlantIdentificationScoreValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-score/plant-identification-score.value-object';
 import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
 import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
@@ -27,7 +28,7 @@ const PLANT_ID = '440e8400-e29b-41d4-a716-446655440003';
 function buildIdentification(
   overrides: Partial<{
     resolvedSpeciesKey: PlantIdentificationSpeciesKeyValueObject | null;
-    resolvedScientificName: StringValueObject | null;
+    resolvedScientificName: PlantIdentificationResolvedScientificNameValueObject | null;
     resolvedSpeciesProvider: PlantIdentificationSpeciesProviderValueObject | null;
     convertedToPlantId: UuidValueObject | null;
     status: PlantIdentificationStatusEnum;
@@ -46,7 +47,9 @@ function buildIdentification(
         : overrides.resolvedSpeciesKey,
     resolvedScientificName:
       overrides.resolvedScientificName === undefined
-        ? new StringValueObject('Monstera deliciosa')
+        ? new PlantIdentificationResolvedScientificNameValueObject(
+            'Monstera deliciosa',
+          )
         : overrides.resolvedScientificName,
     resolvedSpeciesProvider:
       overrides.resolvedSpeciesProvider === undefined
@@ -56,19 +59,25 @@ function buildIdentification(
     photos: [
       {
         fileId: new UuidValueObject(FILE_ID),
-        url: new StringValueObject('/api/files/330e8400/content'),
+        url: new PlantIdentificationPhotoUrlValueObject(
+          '/api/files/330e8400/content',
+        ),
         organ: new PlantIdentificationOrganValueObject(
           PlantIdentificationOrganEnum.LEAF,
         ),
-        position: new NumberValueObject(0),
+        position: new PlantIdentificationPhotoPositionValueObject(0),
       },
     ],
     candidates: [
       {
-        scientificName: new StringValueObject('Monstera deliciosa'),
-        commonNames: ['Swiss cheese plant'],
+        scientificName: new PlantIdentificationScientificNameValueObject(
+          'Monstera deliciosa',
+        ),
+        commonNames: [
+          new PlantIdentificationCommonNameValueObject('Swiss cheese plant'),
+        ],
         score: new PlantIdentificationScoreValueObject(0.85),
-        rank: new NumberValueObject(0),
+        rank: new PlantIdentificationRankValueObject(0),
       },
     ],
     createdAt: new DateValueObject(new Date()),

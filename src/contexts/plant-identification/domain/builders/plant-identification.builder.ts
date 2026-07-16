@@ -3,8 +3,6 @@ import {
   BaseBuilder,
   DateValueObject,
   FieldIsRequiredException,
-  NumberValueObject,
-  StringValueObject,
   UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
 
@@ -16,8 +14,14 @@ import {
   IPlantIdentificationCandidatePrimitives,
   IPlantIdentificationPhotoPrimitives,
 } from '@contexts/plant-identification/domain/primitives/plant-identification.primitives';
+import { PlantIdentificationCommonNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-common-name/plant-identification-common-name.value-object';
 import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
 import { PlantIdentificationOrganValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-organ/plant-identification-organ.value-object';
+import { PlantIdentificationPhotoPositionValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-position/plant-identification-photo-position.value-object';
+import { PlantIdentificationPhotoUrlValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-url/plant-identification-photo-url.value-object';
+import { PlantIdentificationRankValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-rank/plant-identification-rank.value-object';
+import { PlantIdentificationResolvedScientificNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-resolved-scientific-name/plant-identification-resolved-scientific-name.value-object';
+import { PlantIdentificationScientificNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-scientific-name/plant-identification-scientific-name.value-object';
 import { PlantIdentificationScoreValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-score/plant-identification-score.value-object';
 import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
 import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
@@ -93,23 +97,22 @@ export class PlantIdentificationBuilder extends BaseBuilder<
 
     const photos: IPlantIdentificationPhoto[] = this._photos.map((photo) => ({
       fileId: new UuidValueObject(photo.fileId),
-      url: new StringValueObject(photo.url, {
-        maxLength: 1024,
-        allowEmpty: false,
-      }),
+      url: new PlantIdentificationPhotoUrlValueObject(photo.url),
       organ: new PlantIdentificationOrganValueObject(photo.organ),
-      position: new NumberValueObject(photo.position),
+      position: new PlantIdentificationPhotoPositionValueObject(photo.position),
     }));
 
     const candidates: IPlantIdentificationCandidate[] = this._candidates.map(
       (candidate) => ({
-        scientificName: new StringValueObject(candidate.scientificName, {
-          maxLength: 300,
-          allowEmpty: false,
-        }),
-        commonNames: candidate.commonNames,
+        scientificName: new PlantIdentificationScientificNameValueObject(
+          candidate.scientificName,
+        ),
+        commonNames: candidate.commonNames.map(
+          (commonName) =>
+            new PlantIdentificationCommonNameValueObject(commonName),
+        ),
         score: new PlantIdentificationScoreValueObject(candidate.score),
-        rank: new NumberValueObject(candidate.rank),
+        rank: new PlantIdentificationRankValueObject(candidate.rank),
       }),
     );
 
@@ -124,10 +127,9 @@ export class PlantIdentificationBuilder extends BaseBuilder<
           )
         : null,
       resolvedScientificName: this._resolved
-        ? new StringValueObject(this._resolved.scientificName, {
-            maxLength: 300,
-            allowEmpty: false,
-          })
+        ? new PlantIdentificationResolvedScientificNameValueObject(
+            this._resolved.scientificName,
+          )
         : null,
       resolvedSpeciesProvider: this._resolved
         ? new PlantIdentificationSpeciesProviderValueObject(

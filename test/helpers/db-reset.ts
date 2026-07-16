@@ -23,6 +23,7 @@ export const TRUNCATE_TABLES = [
   'plant_identifications',
   'plant_identification_photos',
   'plant_identification_candidates',
+  'plant_identification_candidate_common_names',
 ] as const;
 
 /**

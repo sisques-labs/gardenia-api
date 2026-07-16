@@ -5,6 +5,6 @@
  * `PlantIdentificationQuotaExceededException`).
  */
 export enum PlantIdentificationStatusEnum {
-  RESOLVED = 'resolved',
-  NO_MATCH = 'no_match',
+  RESOLVED = 'RESOLVED',
+  NO_MATCH = 'NO_MATCH',
 }

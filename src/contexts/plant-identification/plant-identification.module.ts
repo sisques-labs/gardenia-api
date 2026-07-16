@@ -15,6 +15,9 @@ import { PlantIdentificationFindByIdQueryHandler } from '@contexts/plant-identif
 import { AssertPlantIdentificationViewModelExistsService } from '@contexts/plant-identification/application/services/read/assert-plant-identification-view-model-exists/assert-plant-identification-view-model-exists.service';
 import { AssertPlantIdentificationExistsService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-exists/assert-plant-identification-exists.service';
 import { AssertPlantIdentificationOwnershipService } from '@contexts/plant-identification/application/services/write/assert-plant-identification-ownership/assert-plant-identification-ownership.service';
+import { IdentifyPlantPhotosService } from '@contexts/plant-identification/application/services/write/identify-plant-photos/identify-plant-photos.service';
+import { ResolvePlantSpeciesMatchService } from '@contexts/plant-identification/application/services/write/resolve-plant-species-match/resolve-plant-species-match.service';
+import { UploadIdentificationPhotosService } from '@contexts/plant-identification/application/services/write/upload-identification-photos/upload-identification-photos.service';
 import { PlantIdentificationBuilder } from '@contexts/plant-identification/domain/builders/plant-identification.builder';
 import { PLANT_IDENTIFICATION_READ_REPOSITORY } from '@contexts/plant-identification/domain/repositories/read/plant-identification-read.repository';
 import { PLANT_IDENTIFICATION_WRITE_REPOSITORY } from '@contexts/plant-identification/domain/repositories/write/plant-identification-write.repository';
@@ -23,6 +26,7 @@ import { PlantNetIdentificationAdapter } from '@contexts/plant-identification/in
 import { PlantSpeciesAdapter } from '@contexts/plant-identification/infrastructure/adapters/plant-species.adapter';
 import { PlantsAdapter } from '@contexts/plant-identification/infrastructure/adapters/plants.adapter';
 import { plantnetConfig } from '@contexts/plant-identification/infrastructure/config/plantnet.config';
+import { PlantIdentificationCandidateCommonNameTypeOrmEntity } from '@contexts/plant-identification/infrastructure/persistence/typeorm/entities/plant-identification-candidate-common-name.entity';
 import { PlantIdentificationCandidateTypeOrmEntity } from '@contexts/plant-identification/infrastructure/persistence/typeorm/entities/plant-identification-candidate.entity';
 import { PlantIdentificationPhotoTypeOrmEntity } from '@contexts/plant-identification/infrastructure/persistence/typeorm/entities/plant-identification-photo.entity';
 import { PlantIdentificationTypeOrmEntity } from '@contexts/plant-identification/infrastructure/persistence/typeorm/entities/plant-identification.entity';
@@ -55,6 +59,9 @@ const APPLICATION_SERVICES = [
   AssertPlantIdentificationExistsService,
   AssertPlantIdentificationViewModelExistsService,
   AssertPlantIdentificationOwnershipService,
+  UploadIdentificationPhotosService,
+  IdentifyPlantPhotosService,
+  ResolvePlantSpeciesMatchService,
 ];
 
 const INFRASTRUCTURE_MAPPERS = [PlantIdentificationTypeOrmMapper];
@@ -63,6 +70,7 @@ const INFRASTRUCTURE_ENTITIES = [
   PlantIdentificationTypeOrmEntity,
   PlantIdentificationPhotoTypeOrmEntity,
   PlantIdentificationCandidateTypeOrmEntity,
+  PlantIdentificationCandidateCommonNameTypeOrmEntity,
 ];
 
 const INFRASTRUCTURE_REPOSITORIES = [

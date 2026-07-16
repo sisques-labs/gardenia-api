@@ -117,7 +117,7 @@ describe('Plant Identification REST API (e2e)', () => {
     it('201 — resolved path: persists candidates and the GBIF-resolved species', async () => {
       const res = await identify(ctx, userA).expect(201);
 
-      expect(res.body.status).toBe('resolved');
+      expect(res.body.status).toBe('RESOLVED');
       expect(res.body.resolved).toBeTruthy();
       expect(res.body.candidates.length).toBeGreaterThan(0);
       expect(res.body.photos).toHaveLength(1);
@@ -128,7 +128,7 @@ describe('Plant Identification REST API (e2e)', () => {
 
       const res = await identify(ctx, userA).expect(201);
 
-      expect(res.body.status).toBe('no_match');
+      expect(res.body.status).toBe('NO_MATCH');
       expect(res.body.resolved).toBeNull();
     });
 

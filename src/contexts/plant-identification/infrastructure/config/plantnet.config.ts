@@ -1,5 +1,7 @@
 import { ConfigType, registerAs } from '@nestjs/config';
 
+import { PlantNetApiKeyMissingException } from '@contexts/plant-identification/infrastructure/exceptions/plantnet-api-key-missing.exception';
+
 export const DEFAULT_PLANTNET_PROJECT = 'all';
 export const DEFAULT_PLANTNET_MIN_CONFIDENCE = 0.2;
 export const DEFAULT_PLANTNET_TIMEOUT_MS = 15_000;
@@ -19,9 +21,7 @@ export const plantnetConfig = registerAs('plantnet', () => {
   const apiKey = process.env.PLANTNET_API_KEY ?? '';
 
   if (!apiKey) {
-    throw new Error(
-      'PLANTNET_API_KEY is required for the plant-identification context',
-    );
+    throw new PlantNetApiKeyMissingException();
   }
 
   const rawMinConfidence = Number.parseFloat(

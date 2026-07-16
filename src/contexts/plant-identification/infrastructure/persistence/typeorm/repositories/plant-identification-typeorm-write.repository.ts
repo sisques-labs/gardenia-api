@@ -5,12 +5,13 @@ import {
   Criteria,
   PaginatedResult,
 } from '@sisques-labs/nestjs-kit';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { PlantIdentificationAggregate } from '@contexts/plant-identification/domain/aggregates/plant-identification.aggregate';
 import { IPlantIdentificationWriteRepository } from '@contexts/plant-identification/domain/repositories/write/plant-identification-write.repository';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
+import { PlantIdentificationCandidateCommonNameTypeOrmEntity } from '../entities/plant-identification-candidate-common-name.entity';
 import { PlantIdentificationCandidateTypeOrmEntity } from '../entities/plant-identification-candidate.entity';
 import { PlantIdentificationPhotoTypeOrmEntity } from '../entities/plant-identification-photo.entity';
 import { PlantIdentificationTypeOrmEntity } from '../entities/plant-identification.entity';
@@ -31,6 +32,8 @@ export class PlantIdentificationTypeOrmWriteRepository
     private readonly photoRepository: Repository<PlantIdentificationPhotoTypeOrmEntity>,
     @InjectRepository(PlantIdentificationCandidateTypeOrmEntity)
     private readonly candidateRepository: Repository<PlantIdentificationCandidateTypeOrmEntity>,
+    @InjectRepository(PlantIdentificationCandidateCommonNameTypeOrmEntity)
+    private readonly candidateCommonNameRepository: Repository<PlantIdentificationCandidateCommonNameTypeOrmEntity>,
     private readonly spaceContext: SpaceContext,
   ) {
     super();
@@ -38,16 +41,18 @@ export class PlantIdentificationTypeOrmWriteRepository
   }
 
   /**
-   * Persists the parent row + its two child collections (photos,
-   * candidates) in one transaction. The aggregate is created once and never
-   * edits its child collections after creation — delete+reinsert is safe and
-   * idempotent on every call (including the second `save()` at conversion
-   * time, which only actually changes `convertedToPlantId`/`updatedAt`).
+   * Persists the parent row + its child collections (photos, candidates,
+   * and each candidate's common names) in one transaction. The aggregate is
+   * created once and never edits its child collections after creation —
+   * delete+reinsert is safe and idempotent on every call (including the
+   * second `save()` at conversion time, which only actually changes
+   * `convertedToPlantId`/`updatedAt`).
    */
   async save(
     aggregate: PlantIdentificationAggregate,
   ): Promise<PlantIdentificationAggregate> {
-    const { parent, photos, candidates } = this.mapper.toPersistence(aggregate);
+    const { parent, photos, candidates, candidateCommonNames } =
+      this.mapper.toPersistence(aggregate);
     // This save path uses the raw manager (see below) to run a multi-table
     // transaction, bypassing createTenantRepository's automatic `save` trap
     // — so the active space must be stamped explicitly here, exactly like
@@ -69,10 +74,30 @@ export class PlantIdentificationTypeOrmWriteRepository
         plantIdentificationId: parent.id,
       });
       if (candidates.length > 0) {
-        await manager.save(
+        // Common names cascade-delete via the FK to `candidates.id` above —
+        // saved here (after the insert) so each row can reference the real
+        // DB-generated candidate id.
+        const savedCandidates = await manager.save(
           PlantIdentificationCandidateTypeOrmEntity,
           candidates,
         );
+
+        const commonNames = savedCandidates.flatMap((candidate, index) =>
+          (candidateCommonNames[index] ?? []).map((name, position) => {
+            const entity =
+              new PlantIdentificationCandidateCommonNameTypeOrmEntity();
+            entity.candidateId = candidate.id;
+            entity.name = name;
+            entity.position = position;
+            return entity;
+          }),
+        );
+        if (commonNames.length > 0) {
+          await manager.save(
+            PlantIdentificationCandidateCommonNameTypeOrmEntity,
+            commonNames,
+          );
+        }
       }
     });
 
@@ -90,7 +115,14 @@ export class PlantIdentificationTypeOrmWriteRepository
       }),
     ]);
 
-    return this.mapper.toDomain(parent, photos, candidates);
+    const commonNames =
+      candidates.length > 0
+        ? await this.candidateCommonNameRepository.find({
+            where: { candidateId: In(candidates.map((c) => c.id)) },
+          })
+        : [];
+
+    return this.mapper.toDomain(parent, photos, candidates, commonNames);
   }
 
   async findByCriteria(

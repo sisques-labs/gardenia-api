@@ -13,6 +13,7 @@ import { IPlantIdentificationReadRepository } from '@contexts/plant-identificati
 import { PlantIdentificationViewModel } from '@contexts/plant-identification/domain/view-models/plant-identification.view-model';
 import { SpaceContext } from '@shared/space-context/space-context.service';
 import { createTenantRepository } from '@shared/tenant-repository/create-tenant-repository.factory';
+import { PlantIdentificationCandidateCommonNameTypeOrmEntity } from '../entities/plant-identification-candidate-common-name.entity';
 import { PlantIdentificationCandidateTypeOrmEntity } from '../entities/plant-identification-candidate.entity';
 import { PlantIdentificationPhotoTypeOrmEntity } from '../entities/plant-identification-photo.entity';
 import { PlantIdentificationTypeOrmEntity } from '../entities/plant-identification.entity';
@@ -34,6 +35,8 @@ export class PlantIdentificationTypeOrmReadRepository
     private readonly photoRepository: Repository<PlantIdentificationPhotoTypeOrmEntity>,
     @InjectRepository(PlantIdentificationCandidateTypeOrmEntity)
     private readonly candidateRepository: Repository<PlantIdentificationCandidateTypeOrmEntity>,
+    @InjectRepository(PlantIdentificationCandidateCommonNameTypeOrmEntity)
+    private readonly candidateCommonNameRepository: Repository<PlantIdentificationCandidateCommonNameTypeOrmEntity>,
     private readonly mapper: PlantIdentificationTypeOrmMapper,
     private readonly spaceContext: SpaceContext,
   ) {
@@ -45,14 +48,16 @@ export class PlantIdentificationTypeOrmReadRepository
     const parent = await this.repository.findOne({ where: { id } });
     if (!parent) return null;
 
-    const [photosByParent, candidatesByParent] = await this.loadChildren([
-      parent.id,
-    ]);
+    const [photosByParent, candidatesByParent, commonNamesByCandidate] =
+      await this.loadChildren([parent.id]);
 
     return this.mapper.toViewModel(
       parent,
       photosByParent.get(parent.id) ?? [],
       candidatesByParent.get(parent.id) ?? [],
+      (candidatesByParent.get(parent.id) ?? []).flatMap(
+        (candidate) => commonNamesByCandidate.get(candidate.id) ?? [],
+      ),
     );
   }
 
@@ -82,15 +87,20 @@ export class PlantIdentificationTypeOrmReadRepository
     }
 
     const ids = entities.map((entity) => entity.id);
-    const [photosByParent, candidatesByParent] = await this.loadChildren(ids);
+    const [photosByParent, candidatesByParent, commonNamesByCandidate] =
+      await this.loadChildren(ids);
 
-    const items = entities.map((entity) =>
-      this.mapper.toViewModel(
+    const items = entities.map((entity) => {
+      const candidates = candidatesByParent.get(entity.id) ?? [];
+      return this.mapper.toViewModel(
         entity,
         photosByParent.get(entity.id) ?? [],
-        candidatesByParent.get(entity.id) ?? [],
-      ),
-    );
+        candidates,
+        candidates.flatMap(
+          (candidate) => commonNamesByCandidate.get(candidate.id) ?? [],
+        ),
+      );
+    });
 
     return new PaginatedResult(items, total, page, limit);
   }
@@ -107,6 +117,7 @@ export class PlantIdentificationTypeOrmReadRepository
     [
       Map<string, PlantIdentificationPhotoTypeOrmEntity[]>,
       Map<string, PlantIdentificationCandidateTypeOrmEntity[]>,
+      Map<string, PlantIdentificationCandidateCommonNameTypeOrmEntity[]>,
     ]
   > {
     const [photos, candidates] = await Promise.all([
@@ -117,6 +128,13 @@ export class PlantIdentificationTypeOrmReadRepository
         where: { plantIdentificationId: In(parentIds) },
       }),
     ]);
+
+    const commonNames =
+      candidates.length > 0
+        ? await this.candidateCommonNameRepository.find({
+            where: { candidateId: In(candidates.map((c) => c.id)) },
+          })
+        : [];
 
     const photosByParent = new Map<
       string,
@@ -139,6 +157,16 @@ export class PlantIdentificationTypeOrmReadRepository
       candidatesByParent.set(candidate.plantIdentificationId, list);
     }
 
-    return [photosByParent, candidatesByParent];
+    const commonNamesByCandidate = new Map<
+      string,
+      PlantIdentificationCandidateCommonNameTypeOrmEntity[]
+    >();
+    for (const commonName of commonNames) {
+      const list = commonNamesByCandidate.get(commonName.candidateId) ?? [];
+      list.push(commonName);
+      commonNamesByCandidate.set(commonName.candidateId, list);
+    }
+
+    return [photosByParent, candidatesByParent, commonNamesByCandidate];
   }
 }

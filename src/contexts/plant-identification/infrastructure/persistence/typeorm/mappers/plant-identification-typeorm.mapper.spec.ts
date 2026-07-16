@@ -1,6 +1,7 @@
 import { PlantIdentificationBuilder } from '@contexts/plant-identification/domain/builders/plant-identification.builder';
 import { PlantIdentificationOrganEnum } from '@contexts/plant-identification/domain/enums/plant-identification-organ.enum';
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
+import { PlantIdentificationCandidateCommonNameTypeOrmEntity } from '../entities/plant-identification-candidate-common-name.entity';
 import { PlantIdentificationCandidateTypeOrmEntity } from '../entities/plant-identification-candidate.entity';
 import { PlantIdentificationPhotoTypeOrmEntity } from '../entities/plant-identification-photo.entity';
 import { PlantIdentificationTypeOrmEntity } from '../entities/plant-identification.entity';
@@ -42,9 +43,19 @@ function buildCandidate(rank = 0): PlantIdentificationCandidateTypeOrmEntity {
   entity.id = 'candidate-1';
   entity.plantIdentificationId = ID;
   entity.scientificName = 'Monstera deliciosa';
-  entity.commonNames = ['Swiss cheese plant'];
   entity.score = 0.85;
   entity.rank = rank;
+  return entity;
+}
+
+function buildCommonName(
+  candidateId = 'candidate-1',
+): PlantIdentificationCandidateCommonNameTypeOrmEntity {
+  const entity = new PlantIdentificationCandidateCommonNameTypeOrmEntity();
+  entity.id = 'common-name-1';
+  entity.candidateId = candidateId;
+  entity.name = 'Swiss cheese plant';
+  entity.position = 0;
   return entity;
 }
 
@@ -57,14 +68,18 @@ describe('PlantIdentificationTypeOrmMapper', () => {
     const parent = buildParent();
     const photos = [buildPhoto(1), buildPhoto(0)];
     const candidates = [buildCandidate(1), buildCandidate(0)];
+    const commonNames = [buildCommonName()];
 
-    const aggregate = mapper.toDomain(parent, photos, candidates);
+    const aggregate = mapper.toDomain(parent, photos, candidates, commonNames);
 
     expect(aggregate.id.value).toBe(ID);
     expect(aggregate.resolvedSpeciesKey?.value).toBe(2882337);
     expect(aggregate.resolvedSpeciesProvider?.value).toBe('gbif');
     expect(aggregate.photos.map((p) => p.position.value)).toEqual([0, 1]);
     expect(aggregate.candidates.map((c) => c.rank.value)).toEqual([0, 1]);
+    expect(
+      aggregate.candidates[1].commonNames.map((name) => name.value),
+    ).toEqual(['Swiss cheese plant']);
   });
 
   it('toDomain() leaves resolved fields null (and derives NO_MATCH) when not resolved', () => {
@@ -74,7 +89,7 @@ describe('PlantIdentificationTypeOrmMapper', () => {
     parent.resolvedScientificName = null;
     parent.resolvedSpeciesProvider = null;
 
-    const aggregate = mapper.toDomain(parent, [], []);
+    const aggregate = mapper.toDomain(parent, [], [], []);
 
     expect(aggregate.status.value).toBe(PlantIdentificationStatusEnum.NO_MATCH);
     expect(aggregate.resolvedSpeciesKey).toBeNull();
@@ -88,6 +103,7 @@ describe('PlantIdentificationTypeOrmMapper', () => {
       parent,
       [buildPhoto()],
       [buildCandidate()],
+      [buildCommonName()],
     );
 
     const persisted = mapper.toPersistence(aggregate);
@@ -110,6 +126,7 @@ describe('PlantIdentificationTypeOrmMapper', () => {
       plantIdentificationId: ID,
       scientificName: 'Monstera deliciosa',
     });
+    expect(persisted.candidateCommonNames).toEqual([['Swiss cheese plant']]);
   });
 
   it('toViewModel() builds a view model matching the entities', () => {
@@ -117,6 +134,7 @@ describe('PlantIdentificationTypeOrmMapper', () => {
       buildParent(),
       [buildPhoto()],
       [buildCandidate()],
+      [buildCommonName()],
     );
 
     expect(vm.id).toBe(ID);
@@ -124,5 +142,6 @@ describe('PlantIdentificationTypeOrmMapper', () => {
     expect(vm.resolvedSpeciesProvider).toBe('gbif');
     expect(vm.photos).toHaveLength(1);
     expect(vm.candidates).toHaveLength(1);
+    expect(vm.candidates[0].commonNames).toEqual(['Swiss cheese plant']);
   });
 });

@@ -1,10 +1,8 @@
-import {
-  NumberValueObject,
-  StringValueObject,
-  UuidValueObject,
-} from '@sisques-labs/nestjs-kit';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantIdentificationOrganValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-organ/plant-identification-organ.value-object';
+import { PlantIdentificationPhotoPositionValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-position/plant-identification-photo-position.value-object';
+import { PlantIdentificationPhotoUrlValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-url/plant-identification-photo-url.value-object';
 
 /**
  * One submitted photo, as embedded in `PlantIdentificationAggregate`. Fixed
@@ -13,9 +11,7 @@ import { PlantIdentificationOrganValueObject } from '@contexts/plant-identificat
  */
 export interface IPlantIdentificationPhoto {
   fileId: UuidValueObject;
-  /** Denormalized copy of the `files` context's resolved URL at upload time. */
-  url: StringValueObject;
+  url: PlantIdentificationPhotoUrlValueObject;
   organ: PlantIdentificationOrganValueObject;
-  /** Preserves submitted order for display. */
-  position: NumberValueObject;
+  position: PlantIdentificationPhotoPositionValueObject;
 }

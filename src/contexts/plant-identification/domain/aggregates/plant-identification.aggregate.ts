@@ -1,8 +1,4 @@
-import {
-  BaseAggregate,
-  StringValueObject,
-  UuidValueObject,
-} from '@sisques-labs/nestjs-kit';
+import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantIdentificationAlreadyConvertedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-already-converted.exception';
 import { PlantIdentificationConvertedToPlantEvent } from '@contexts/plant-identification/domain/events/plant-identification-converted-to-plant/plant-identification-converted-to-plant.event';
@@ -16,6 +12,7 @@ import {
   IPlantIdentificationPrimitives,
 } from '@contexts/plant-identification/domain/primitives/plant-identification.primitives';
 import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+import { PlantIdentificationResolvedScientificNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-resolved-scientific-name/plant-identification-resolved-scientific-name.value-object';
 import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
 import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
 import { PlantIdentificationStatusValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-status/plant-identification-status.value-object';
@@ -35,7 +32,7 @@ export class PlantIdentificationAggregate extends BaseAggregate {
   private readonly _spaceId: UuidValueObject;
   private readonly _status: PlantIdentificationStatusValueObject;
   private readonly _resolvedSpeciesKey: PlantIdentificationSpeciesKeyValueObject | null;
-  private readonly _resolvedScientificName: StringValueObject | null;
+  private readonly _resolvedScientificName: PlantIdentificationResolvedScientificNameValueObject | null;
   private readonly _resolvedSpeciesProvider: PlantIdentificationSpeciesProviderValueObject | null;
   private _convertedToPlantId: UuidValueObject | null;
   private readonly _photos: IPlantIdentificationPhoto[];
@@ -114,7 +111,7 @@ export class PlantIdentificationAggregate extends BaseAggregate {
       candidates: this._candidates.map(
         (candidate): IPlantIdentificationCandidatePrimitives => ({
           scientificName: candidate.scientificName.value,
-          commonNames: candidate.commonNames,
+          commonNames: candidate.commonNames.map((name) => name.value),
           score: candidate.score.value,
           rank: candidate.rank.value,
         }),
@@ -139,7 +136,7 @@ export class PlantIdentificationAggregate extends BaseAggregate {
   get resolvedSpeciesKey(): PlantIdentificationSpeciesKeyValueObject | null {
     return this._resolvedSpeciesKey;
   }
-  get resolvedScientificName(): StringValueObject | null {
+  get resolvedScientificName(): PlantIdentificationResolvedScientificNameValueObject | null {
     return this._resolvedScientificName;
   }
   get resolvedSpeciesProvider(): PlantIdentificationSpeciesProviderValueObject | null {

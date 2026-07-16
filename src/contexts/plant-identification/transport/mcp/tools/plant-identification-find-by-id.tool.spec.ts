@@ -20,7 +20,7 @@ describe('PlantIdentificationFindByIdMcpTool', () => {
   });
 
   it('dispatches PlantIdentificationFindByIdQuery and serializes the result', async () => {
-    const viewModel = { id: ID, status: 'resolved' };
+    const viewModel = { id: ID, status: 'RESOLVED' };
     queryBus.execute.mockResolvedValueOnce(viewModel);
 
     const result = await tool.execute({ id: ID });

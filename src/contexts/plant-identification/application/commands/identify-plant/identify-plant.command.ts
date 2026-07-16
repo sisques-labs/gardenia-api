@@ -7,6 +7,7 @@ import {
 import { IdentifyPlantPhotoCommandItem } from '@contexts/plant-identification/application/commands/identify-plant/identify-plant-photo.command-item';
 import { PlantIdentificationOrganEnum } from '@contexts/plant-identification/domain/enums/plant-identification-organ.enum';
 import { PlantIdentificationOrganValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-organ/plant-identification-organ.value-object';
+import { PlantIdentificationProjectValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-project/plant-identification-project.value-object';
 
 export interface IdentifyPlantPhotoInput {
   filename: string;
@@ -25,7 +26,7 @@ export interface IdentifyPlantCommandInput {
 
 export class IdentifyPlantCommand {
   public readonly photos: IdentifyPlantPhotoCommandItem[];
-  public readonly project: StringValueObject | null;
+  public readonly project: PlantIdentificationProjectValueObject | null;
   public readonly userId: UuidValueObject;
   public readonly spaceId: UuidValueObject;
 
@@ -39,7 +40,7 @@ export class IdentifyPlantCommand {
     }));
     this.project =
       input.project != null && input.project !== ''
-        ? new StringValueObject(input.project)
+        ? new PlantIdentificationProjectValueObject(input.project)
         : null;
     this.userId = new UuidValueObject(input.userId);
     this.spaceId = new UuidValueObject(input.spaceId);
