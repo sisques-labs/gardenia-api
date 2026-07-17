@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.5] - 2026-07-17
+
+### CI
+- **labeler:** Auto-label PRs by changed files (b741610)
+- **release-train:** Sync dependabot/updates after stable release (cb2f12a)
+- **release:** Scan Docker image for vulnerabilities with Trivy (23fa3cd)
+- **docker:** Block PR merge on CRITICAL image vulnerabilities (2339fc1)
+- Parallelize lint/test/build via node-ci, decouple e2e/integration (183219a)
 ## [0.27.4] - 2026-07-17
 
 ### Bug Fixes
