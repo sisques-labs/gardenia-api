@@ -1,6 +1,6 @@
 {
   "name": "sisques-labs/gardenia-api",
-  "version": "0.27.2",
+  "version": "0.27.3",
   "description": "Garden & plant manager API",
   "author": "Sisques Labs",
   "repository": {
@@ -49,7 +49,7 @@
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.4",
-    "@nestjs/core": "^10.0.0",
+    "@nestjs/core": "^11.0.0",
     "@nestjs/cqrs": "^10.2.8",
     "@nestjs/graphql": "^12.2.2",
     "@nestjs/jwt": "^11.0.2",
@@ -135,8 +135,22 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.module.ts",
+      "!**/*.schema.ts",
+      "!database/migrations/**",
+      "!**/transport/graphql/dtos/**",
+      "!**/transport/graphql/objects/**",
+      "!**/transport/rest/dtos/**"
     ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
