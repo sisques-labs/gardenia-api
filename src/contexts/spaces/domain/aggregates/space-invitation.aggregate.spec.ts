@@ -49,4 +49,38 @@ describe('SpaceInvitationAggregate', () => {
 
     expect(invitation.isExpired()).toBe(true);
   });
+
+  it('toPrimitives() returns null qrId when no qrId was set', () => {
+    const invitation = new SpaceInvitationBuilder()
+      .withId('550e8400-e29b-41d4-a716-446655440000')
+      .withSpaceId('550e8400-e29b-41d4-a716-446655440001')
+      .withCreatedByUserId('550e8400-e29b-41d4-a716-446655440002')
+      .withRole(MembershipRoleEnum.MEMBER)
+      .withCode('LIM2026K0')
+      .withDisplayCode('LIM · 2026 · K0')
+      .withExpiresAt(EXPIRES)
+      .withCreatedAt(NOW)
+      .withUpdatedAt(NOW)
+      .build();
+
+    expect(invitation.qrId).toBeNull();
+    expect(invitation.toPrimitives().qrId).toBeNull();
+  });
+
+  it('exposes its fields via getters', () => {
+    const invitation = buildInvitation();
+
+    expect(invitation.id.value).toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect(invitation.spaceId.value).toBe(
+      '550e8400-e29b-41d4-a716-446655440001',
+    );
+    expect(invitation.createdByUserId.value).toBe(
+      '550e8400-e29b-41d4-a716-446655440002',
+    );
+    expect(invitation.role.value).toBe(MembershipRoleEnum.MEMBER);
+    expect(invitation.code.value).toBe('LIM2026K0');
+    expect(invitation.displayCode.value).toBe('LIM · 2026 · K0');
+    expect(invitation.qrId?.value).toBe('550e8400-e29b-41d4-a716-446655440003');
+    expect(invitation.expiresAt.value).toEqual(EXPIRES);
+  });
 });
