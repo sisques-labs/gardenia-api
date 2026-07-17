@@ -1,6 +1,21 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.4] - 2026-07-17
+
+### Bug Fixes
+- **deps:** Update dependency @nestjs/core to v11 [security] (05df460)
+
+### CI
+- **security:** Add CodeQL analysis workflow (013aadc)
+
+### Testing
+- **mcp:** Add unit coverage for all MCP tool adapters (d42c375)
+- Raise branch/function coverage to 80% and gate it in CI (4ebac71)
+## [0.27.3] - 2026-07-15
+
+### Chore
+- Adopt shared Renovate config, remove Dependabot (f88d06f)
 ## [0.27.2] - 2026-07-15
 
 ### Chore
