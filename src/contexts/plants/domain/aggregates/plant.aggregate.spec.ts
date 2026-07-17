@@ -2,6 +2,7 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantCreatedEvent } from '../events/plant-created/plant-created.event';
 import { PlantDeletedEvent } from '../events/plant-deleted/plant-deleted.event';
+import { PlantImageUrlChangedEvent } from '../events/field-changed/plant-image-url-changed/plant-image-url-changed.event';
 import { PlantNameChangedEvent } from '../events/field-changed/plant-name-changed/plant-name-changed.event';
 import { PlantPlantingSpotIdChangedEvent } from '../events/field-changed/plant-planting-spot-id-changed/plant-planting-spot-id-changed.event';
 import { PlantSpeciesIdChangedEvent } from '../events/field-changed/plant-species-id-changed/plant-species-id-changed.event';
@@ -36,6 +37,17 @@ const buildPlant = (overrides?: Partial<IPlant>): PlantAggregate =>
   });
 
 describe('PlantAggregate', () => {
+  describe('linkQr()', () => {
+    it('should assign the qrId', () => {
+      const plant = buildPlant();
+      const qrId = new UuidValueObject(SPOT_ID);
+
+      plant.linkQr(qrId);
+
+      expect(plant.qrId).toBe(qrId);
+    });
+  });
+
   describe('create()', () => {
     it('should emit PlantCreatedEvent with full snapshot', () => {
       const plant = buildPlant();
@@ -118,6 +130,54 @@ describe('PlantAggregate', () => {
       expect(events[0]).toBeInstanceOf(PlantSpeciesIdChangedEvent);
     });
 
+    it('should assign imageUrl and emit PlantImageUrlChangedEvent when set from null to a value', () => {
+      const plant = buildPlant();
+      plant.update({
+        imageUrl: new PlantImageUrlValueObject('https://example.com/rose.jpg'),
+      });
+
+      expect(plant.imageUrl?.value).toBe('https://example.com/rose.jpg');
+      const events = plant.getUncommittedEvents();
+      expect(events[0]).toBeInstanceOf(PlantImageUrlChangedEvent);
+    });
+
+    it('should not emit PlantImageUrlChangedEvent when imageUrl is unchanged', () => {
+      const plant = buildPlant({
+        imageUrl: new PlantImageUrlValueObject('https://example.com/rose.jpg'),
+      });
+      plant.update({
+        imageUrl: new PlantImageUrlValueObject('https://example.com/rose.jpg'),
+      });
+
+      const events = plant.getUncommittedEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(PlantUpdatedEvent);
+    });
+
+    it('should clear imageUrl when set to null', () => {
+      const plant = buildPlant({
+        imageUrl: new PlantImageUrlValueObject('https://example.com/rose.jpg'),
+      });
+      plant.update({ imageUrl: null });
+
+      expect(plant.imageUrl).toBeNull();
+      const events = plant.getUncommittedEvents();
+      expect(events[0]).toBeInstanceOf(PlantImageUrlChangedEvent);
+    });
+
+    it('should not emit PlantSpeciesIdChangedEvent when plantSpeciesId is unchanged', () => {
+      const plant = buildPlant({
+        plantSpeciesId: new PlantLinkedSpeciesIdValueObject(SPECIES_ID),
+      });
+      plant.update({
+        plantSpeciesId: new PlantLinkedSpeciesIdValueObject(SPECIES_ID),
+      });
+
+      const events = plant.getUncommittedEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(PlantUpdatedEvent);
+    });
+
     it('should assign plantingSpotId and emit PlantPlantingSpotIdChangedEvent', () => {
       const plant = buildPlant();
       plant.update({ plantingSpotId: new UuidValueObject(SPOT_ID) });
@@ -134,6 +194,17 @@ describe('PlantAggregate', () => {
       plant.update({ plantingSpotId: null });
 
       expect(plant.plantingSpotId).toBeNull();
+    });
+
+    it('should not emit PlantPlantingSpotIdChangedEvent when plantingSpotId is unchanged', () => {
+      const plant = buildPlant({
+        plantingSpotId: new UuidValueObject(SPOT_ID),
+      });
+      plant.update({ plantingSpotId: new UuidValueObject(SPOT_ID) });
+
+      const events = plant.getUncommittedEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(PlantUpdatedEvent);
     });
 
     it('should not touch plantingSpotId when undefined', () => {
@@ -154,6 +225,16 @@ describe('PlantAggregate', () => {
       const events = plant.getUncommittedEvents();
       expect(events).toHaveLength(1);
       expect(events[0]).toBeInstanceOf(PlantDeletedEvent);
+    });
+  });
+
+  describe('getters', () => {
+    it('should expose id, userId and spaceId', () => {
+      const plant = buildPlant();
+
+      expect(plant.id.value).toBe(PLANT_ID);
+      expect(plant.userId.value).toBe(USER_ID);
+      expect(plant.spaceId.value).toBe(SPACE_ID);
     });
   });
 

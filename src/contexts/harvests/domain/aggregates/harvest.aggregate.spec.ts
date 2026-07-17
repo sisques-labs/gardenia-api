@@ -4,7 +4,9 @@ import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.en
 import { HarvestCreatedEvent } from '@contexts/harvests/domain/events/harvest-created/harvest-created.event';
 import { HarvestDeletedEvent } from '@contexts/harvests/domain/events/harvest-deleted/harvest-deleted.event';
 import { HarvestCropTypeChangedEvent } from '@contexts/harvests/domain/events/field-changed/crop-type-changed/crop-type-changed.event';
+import { HarvestHarvestedAtChangedEvent } from '@contexts/harvests/domain/events/field-changed/harvested-at-changed/harvested-at-changed.event';
 import { HarvestQuantityChangedEvent } from '@contexts/harvests/domain/events/field-changed/quantity-changed/quantity-changed.event';
+import { HarvestUnitChangedEvent } from '@contexts/harvests/domain/events/field-changed/unit-changed/unit-changed.event';
 import { HarvestUpdatedEvent } from '@contexts/harvests/domain/events/harvest-updated/harvest-updated.event';
 import { HarvestAggregate } from './harvest.aggregate';
 import { HarvestCropTypeValueObject } from '@contexts/harvests/domain/value-objects/harvest-crop-type/harvest-crop-type.value-object';
@@ -70,5 +72,70 @@ describe('HarvestAggregate', () => {
     const events = harvest.getUncommittedEvents();
     expect(events).toHaveLength(1);
     expect(events[0]).toBeInstanceOf(HarvestDeletedEvent);
+  });
+
+  it('update() does NOT emit QuantityChangedEvent when quantity is equal', () => {
+    const harvest = buildHarvest();
+    harvest.update({ quantity: new HarvestQuantityValueObject(2.5) });
+    expect(
+      harvest
+        .getUncommittedEvents()
+        .some((e) => e instanceof HarvestQuantityChangedEvent),
+    ).toBe(false);
+  });
+
+  it('update() does NOT emit UnitChangedEvent when unit is equal', () => {
+    const harvest = buildHarvest();
+    harvest.update({ unit: new HarvestUnitValueObject(HarvestUnitEnum.KG) });
+    expect(
+      harvest
+        .getUncommittedEvents()
+        .some((e) => e instanceof HarvestUnitChangedEvent),
+    ).toBe(false);
+  });
+
+  it('update() emits UnitChangedEvent when unit changes', () => {
+    const harvest = buildHarvest();
+    harvest.update({ unit: new HarvestUnitValueObject(HarvestUnitEnum.G) });
+    expect(harvest.unit.value).toBe(HarvestUnitEnum.G);
+    expect(
+      harvest
+        .getUncommittedEvents()
+        .some((e) => e instanceof HarvestUnitChangedEvent),
+    ).toBe(true);
+  });
+
+  it('update() does NOT emit HarvestedAtChangedEvent when harvestedAt is equal', () => {
+    const harvest = buildHarvest();
+    harvest.update({
+      harvestedAt: new HarvestHarvestedAtValueObject(new Date('2026-06-01')),
+    });
+    expect(
+      harvest
+        .getUncommittedEvents()
+        .some((e) => e instanceof HarvestHarvestedAtChangedEvent),
+    ).toBe(false);
+  });
+
+  it('update() emits HarvestedAtChangedEvent when harvestedAt changes', () => {
+    const harvest = buildHarvest();
+    harvest.update({
+      harvestedAt: new HarvestHarvestedAtValueObject(new Date('2026-06-15')),
+    });
+    expect(harvest.harvestedAt.value).toEqual(new Date('2026-06-15'));
+    expect(
+      harvest
+        .getUncommittedEvents()
+        .some((e) => e instanceof HarvestHarvestedAtChangedEvent),
+    ).toBe(true);
+  });
+
+  it('exposes id, cropType, quantity, userId and spaceId getters', () => {
+    const harvest = buildHarvest();
+    expect(harvest.id.value).toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect(harvest.cropType.value).toBe('Tomate Cherry');
+    expect(harvest.quantity.value).toBe(2.5);
+    expect(harvest.userId.value).toBe('660e8400-e29b-41d4-a716-446655440001');
+    expect(harvest.spaceId.value).toBe('770e8400-e29b-41d4-a716-446655440002');
   });
 });

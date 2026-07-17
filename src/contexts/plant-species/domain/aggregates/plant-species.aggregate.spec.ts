@@ -23,6 +23,12 @@ const buildPlantSpecies = (): PlantSpeciesAggregate =>
   });
 
 describe('PlantSpeciesAggregate', () => {
+  it('exposes its id via the id getter', () => {
+    const plantSpecies = buildPlantSpecies();
+
+    expect(plantSpecies.id.value).toBe(PLANT_SPECIES_ID);
+  });
+
   it('create() emits PlantSpeciesCreatedEvent', () => {
     const plantSpecies = buildPlantSpecies();
     plantSpecies.create();
@@ -67,6 +73,24 @@ describe('PlantSpeciesAggregate', () => {
     expect(events).toHaveLength(2);
     expect(events[0]).toBeInstanceOf(PlantSpeciesGbifKeyChangedEvent);
     expect(events[1]).toBeInstanceOf(PlantSpeciesUpdatedEvent);
+  });
+
+  it('update() sets gbifKey and emits PlantSpeciesGbifKeyChangedEvent when previously null', () => {
+    const plantSpecies = new PlantSpeciesAggregate({
+      id: new PlantSpeciesIdValueObject(PLANT_SPECIES_ID),
+      scientificName: new PlantSpeciesScientificNameValueObject('Monstera'),
+      gbifKey: null,
+      createdAt: new DateValueObject(NOW),
+      updatedAt: new DateValueObject(NOW),
+    });
+    plantSpecies.update({
+      gbifKey: new PlantSpeciesGbifKeyValueObject(5352251),
+    });
+
+    expect(plantSpecies.gbifKey?.value).toBe(5352251);
+    const events = plantSpecies.getUncommittedEvents();
+    expect(events).toHaveLength(2);
+    expect(events[0]).toBeInstanceOf(PlantSpeciesGbifKeyChangedEvent);
   });
 
   it('update() does not emit gbifKey changed event when value is unchanged', () => {
