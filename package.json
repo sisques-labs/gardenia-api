@@ -50,7 +50,7 @@
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.0",
-    "@nestjs/cqrs": "^10.2.8",
+    "@nestjs/cqrs": "^11.0.0",
     "@nestjs/graphql": "^12.2.2",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
