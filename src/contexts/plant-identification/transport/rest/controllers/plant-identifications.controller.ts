@@ -137,10 +137,14 @@ export class PlantIdentificationsController {
       (dto.project === undefined || typeof dto.project === 'string') &&
       typeof spaceId === 'string'
     ) {
-      const organs = this.parseOrgans(dto.organs, files.length);
+      // String(...) here is a no-op given the typeof check above (it's
+      // already a string) — it's an explicit, unconditional coercion to
+      // string so nothing downstream can be reached with anything else,
+      // as belt-and-suspenders alongside the typeof guard.
+      const organs = this.parseOrgans(String(dto.organs), files.length);
 
       this.logger.log(
-        `Identifying plant from ${files.length} photo(s) for user: ${user.userId}`,
+        `Identifying plant from ${files.length} photo(s) for user: ${String(user.userId)}`,
       );
 
       const result = await this.commandBus.execute<
