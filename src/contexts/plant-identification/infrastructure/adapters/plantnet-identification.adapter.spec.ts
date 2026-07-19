@@ -3,6 +3,7 @@ import { MimeTypeValueObject } from '@sisques-labs/nestjs-kit';
 import { AxiosError, AxiosResponse } from 'axios';
 import { of, throwError } from 'rxjs';
 
+import { IPlantNetImageTranscoderPort } from '@contexts/plant-identification/application/ports/plantnet-image-transcoder.port';
 import { PlantIdentificationOrganEnum } from '@contexts/plant-identification/domain/enums/plant-identification-organ.enum';
 import { PlantIdentificationProviderUnavailableException } from '@contexts/plant-identification/domain/exceptions/plant-identification-provider-unavailable.exception';
 import { PlantIdentificationQuotaExceededException } from '@contexts/plant-identification/domain/exceptions/plant-identification-quota-exceeded.exception';
@@ -49,11 +50,19 @@ function axiosErrorWithStatus(status: number): AxiosError {
 
 describe('PlantNetIdentificationAdapter', () => {
   let httpService: jest.Mocked<HttpService>;
+  let imageTranscoder: jest.Mocked<IPlantNetImageTranscoderPort>;
   let adapter: PlantNetIdentificationAdapter;
 
   beforeEach(() => {
     httpService = { post: jest.fn() } as unknown as jest.Mocked<HttpService>;
-    adapter = new PlantNetIdentificationAdapter(httpService, CONFIG);
+    imageTranscoder = {
+      ensureAcceptedFormat: jest.fn((image) => Promise.resolve(image)),
+    } as unknown as jest.Mocked<IPlantNetImageTranscoderPort>;
+    adapter = new PlantNetIdentificationAdapter(
+      httpService,
+      CONFIG,
+      imageTranscoder,
+    );
   });
 
   it('maps a successful response into scientificName/commonNames/score candidates', async () => {
@@ -174,5 +183,39 @@ describe('PlantNetIdentificationAdapter', () => {
     ]);
 
     expect(httpService.post).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs every image through the transcoder before sending', async () => {
+    httpService.post.mockReturnValue(of(axiosResponse({ results: [] })));
+    const secondImage = {
+      ...IMAGE,
+      organ: PlantIdentificationOrganEnum.FLOWER,
+    };
+
+    await adapter.identify([IMAGE, secondImage]);
+
+    expect(imageTranscoder.ensureAcceptedFormat).toHaveBeenCalledWith(IMAGE);
+    expect(imageTranscoder.ensureAcceptedFormat).toHaveBeenCalledWith(
+      secondImage,
+    );
+  });
+
+  it('sends the transcoded content/mimeType rather than the original', async () => {
+    httpService.post.mockReturnValue(of(axiosResponse({ results: [] })));
+    const transcodedContent = Buffer.from('jpeg-bytes');
+    imageTranscoder.ensureAcceptedFormat.mockResolvedValue({
+      ...IMAGE,
+      content: transcodedContent,
+      mimeType: new MimeTypeValueObject('image/jpeg'),
+    });
+
+    await adapter.identify([IMAGE]);
+
+    const sentFormData = httpService.post.mock.calls[0][1] as FormData;
+    const sentImage = sentFormData.getAll('images')[0] as Blob;
+    expect(sentImage.type).toBe('image/jpeg');
+    expect(Buffer.from(await sentImage.arrayBuffer())).toEqual(
+      transcodedContent,
+    );
   });
 });

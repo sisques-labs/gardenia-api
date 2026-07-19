@@ -8,6 +8,7 @@ import { CreatePlantFromIdentificationCommandHandler } from '@contexts/plant-ide
 import { IdentifyPlantCommandHandler } from '@contexts/plant-identification/application/commands/identify-plant/identify-plant.handler';
 import { FILES_PORT } from '@contexts/plant-identification/application/ports/files.port';
 import { PLANTS_PORT } from '@contexts/plant-identification/application/ports/plants.port';
+import { PLANTNET_IMAGE_TRANSCODER_PORT } from '@contexts/plant-identification/application/ports/plantnet-image-transcoder.port';
 import { PLANTNET_IDENTIFICATION_PORT } from '@contexts/plant-identification/application/ports/plantnet-identification.port';
 import { PLANT_SPECIES_PORT } from '@contexts/plant-identification/application/ports/plant-species.port';
 import { PlantIdentificationFindByCriteriaQueryHandler } from '@contexts/plant-identification/application/queries/plant-identification-find-by-criteria/plant-identification-find-by-criteria.handler';
@@ -28,6 +29,7 @@ import { PlantNetIdentificationAdapter } from '@contexts/plant-identification/in
 import { PlantSpeciesAdapter } from '@contexts/plant-identification/infrastructure/adapters/plant-species.adapter';
 import { PlantsAdapter } from '@contexts/plant-identification/infrastructure/adapters/plants.adapter';
 import { plantnetConfig } from '@contexts/plant-identification/infrastructure/config/plantnet.config';
+import { PlantNetImageTranscoderService } from '@contexts/plant-identification/infrastructure/services/plantnet-image-transcoder.service';
 import { PlantIdentificationCandidateCommonNameTypeOrmEntity } from '@contexts/plant-identification/infrastructure/persistence/typeorm/entities/plant-identification-candidate-common-name.entity';
 import { PlantIdentificationCandidateTypeOrmEntity } from '@contexts/plant-identification/infrastructure/persistence/typeorm/entities/plant-identification-candidate.entity';
 import { PlantIdentificationPhotoTypeOrmEntity } from '@contexts/plant-identification/infrastructure/persistence/typeorm/entities/plant-identification-photo.entity';
@@ -101,6 +103,10 @@ const INFRASTRUCTURE_REPOSITORIES = [
   {
     provide: PLANTNET_IDENTIFICATION_PORT,
     useClass: PlantNetIdentificationAdapter,
+  },
+  {
+    provide: PLANTNET_IMAGE_TRANSCODER_PORT,
+    useClass: PlantNetImageTranscoderService,
   },
 ];
 

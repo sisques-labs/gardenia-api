@@ -5,6 +5,10 @@ import { AxiosError } from 'axios';
 
 import { PlantNetIdentificationCandidateResult } from '@contexts/plant-identification/application/ports/plantnet-identification-candidate.result';
 import { PlantNetIdentificationImageInput } from '@contexts/plant-identification/application/ports/plantnet-identification-image.input';
+import {
+  IPlantNetImageTranscoderPort,
+  PLANTNET_IMAGE_TRANSCODER_PORT,
+} from '@contexts/plant-identification/application/ports/plantnet-image-transcoder.port';
 import { IPlantNetIdentificationPort } from '@contexts/plant-identification/application/ports/plantnet-identification.port';
 import { PlantIdentificationProviderUnavailableException } from '@contexts/plant-identification/domain/exceptions/plant-identification-provider-unavailable.exception';
 import { PlantIdentificationQuotaExceededException } from '@contexts/plant-identification/domain/exceptions/plant-identification-quota-exceeded.exception';
@@ -36,6 +40,8 @@ export class PlantNetIdentificationAdapter implements IPlantNetIdentificationPor
     private readonly httpService: HttpService,
     @Inject(plantnetConfig.KEY)
     private readonly config: PlantNetConfig,
+    @Inject(PLANTNET_IMAGE_TRANSCODER_PORT)
+    private readonly imageTranscoder: IPlantNetImageTranscoderPort,
   ) {}
 
   async identify(
@@ -48,8 +54,12 @@ export class PlantNetIdentificationAdapter implements IPlantNetIdentificationPor
       `Calling PlantNet identify: project=${resolvedProject}, images=${images.length}`,
     );
 
+    const preparedImages = await Promise.all(
+      images.map((image) => this.imageTranscoder.ensureAcceptedFormat(image)),
+    );
+
     const formData = new FormData();
-    for (const image of images) {
+    for (const image of preparedImages) {
       formData.append('organs', image.organ);
       formData.append(
         'images',
