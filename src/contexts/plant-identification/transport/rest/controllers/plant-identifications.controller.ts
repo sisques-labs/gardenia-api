@@ -233,6 +233,13 @@ export class PlantIdentificationsController {
     raw: string,
     expectedCount: number,
   ): PlantIdentificationOrganEnum[] {
+    // Re-checked here (not just by the caller) because JSON.parse is the
+    // actual sink — a caller's guard on a different function's stack frame
+    // doesn't protect this one.
+    if (typeof raw !== 'string') {
+      throw new BadRequestException('"organs" must be a single string value');
+    }
+
     let parsed: unknown;
     try {
       parsed = JSON.parse(raw);
