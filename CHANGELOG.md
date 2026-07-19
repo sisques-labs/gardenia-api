@@ -1,6 +1,25 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.5] - 2026-07-17
+
+### CI
+- **labeler:** Auto-label PRs by changed files (b741610)
+- **release-train:** Sync dependabot/updates after stable release (cb2f12a)
+- **release:** Scan Docker image for vulnerabilities with Trivy (23fa3cd)
+- **docker:** Block PR merge on CRITICAL image vulnerabilities (2339fc1)
+- Parallelize lint/test/build via node-ci, decouple e2e/integration (183219a)
+## [0.27.4] - 2026-07-17
+
+### Bug Fixes
+- **deps:** Update dependency @nestjs/core to v11 [security] (05df460)
+
+### CI
+- **security:** Add CodeQL analysis workflow (013aadc)
+
+### Testing
+- **mcp:** Add unit coverage for all MCP tool adapters (d42c375)
+- Raise branch/function coverage to 80% and gate it in CI (4ebac71)
 ## [0.27.3] - 2026-07-15
 
 ### Chore
