@@ -63,13 +63,8 @@ importers:
         specifier: ^10.58.0
         version: 10.58.0
       '@sisques-labs/nestjs-kit':
-<<<<<<< HEAD
         specifier: ^1.4.1
-        version: 1.5.0(vykw65ourl6tieewa2t2gfezkm)
-=======
-        specifier: ^1.3.1
         version: 1.5.0(ngjzeokheewqsg6acvic363ohu)
->>>>>>> origin/develop
       '@types/passport-github2':
         specifier: ^1.2.9
         version: 1.2.9
@@ -3732,13 +3727,8 @@ packages:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
 
-<<<<<<< HEAD
-  libphonenumber-js@1.13.3:
-    resolution: {integrity: sha512-xMkdAMqcyG7iN2WZZmGIfWbYxW4orRkny+0/AXIbwL0xll2zkDX0Vzo/BXFa6+7mh2UvJl9MbcTtHk0YXkFtBA==}
-=======
   libphonenumber-js@1.13.9:
     resolution: {integrity: sha512-VNS5vWMM7r0P66BYv+TQJATxExEgLxN+34hfHDVhDkUsGAE4cRg0shCNSLTXNKm7nIUscC7AfB51TjxEeF7msQ==}
->>>>>>> origin/develop
 
   limiter@1.1.5:
     resolution: {integrity: sha512-FWWMIEOxz3GwUI4Ts/IvgVy6LPvoMPgjMdQ185nN6psJyBJ4yOpzqm695/h5umdLJg2vW3GR5iG11MAkR2AzJA==}
@@ -6952,11 +6942,7 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-<<<<<<< HEAD
-  '@sisques-labs/nestjs-kit@1.5.0(vykw65ourl6tieewa2t2gfezkm)':
-=======
   '@sisques-labs/nestjs-kit@1.5.0(ngjzeokheewqsg6acvic363ohu)':
->>>>>>> origin/develop
     dependencies:
       '@nestjs/common': 11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.28(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.28)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -8012,11 +7998,7 @@ snapshots:
   class-validator@0.15.1:
     dependencies:
       '@types/validator': 13.15.10
-<<<<<<< HEAD
-      libphonenumber-js: 1.13.3
-=======
       libphonenumber-js: 1.13.9
->>>>>>> origin/develop
       validator: 13.15.35
 
   cli-cursor@3.1.0:
@@ -9479,11 +9461,7 @@ snapshots:
       prelude-ls: 1.2.1
       type-check: 0.4.0
 
-<<<<<<< HEAD
-  libphonenumber-js@1.13.3: {}
-=======
   libphonenumber-js@1.13.9: {}
->>>>>>> origin/develop
 
   limiter@1.1.5: {}
 
