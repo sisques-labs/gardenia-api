@@ -1,0 +1,16 @@
+change: plant-identification
+status: tasks
+created: 2026-07-15
+artifact_store: hybrid
+context: plant-identification
+phases:
+  explore: done
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending
+next_recommended:
+  - sdd-apply

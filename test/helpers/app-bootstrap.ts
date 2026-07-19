@@ -15,12 +15,37 @@ export interface E2EContext {
   close: () => Promise<void>;
 }
 
-export async function createE2EApp(): Promise<E2EContext> {
+/**
+ * DI provider override for `createE2EApp()`. Used to swap a real external
+ * adapter (e.g. `PLANTNET_IDENTIFICATION_PORT`) for a test double when the
+ * real provider would otherwise make a live third-party call the e2e suite
+ * cannot/should not depend on.
+ */
+export interface E2EProviderOverride {
+  provide: unknown;
+  useValue?: unknown;
+  useClass?: new (...args: never[]) => unknown;
+}
+
+export async function createE2EApp(
+  overrides: E2EProviderOverride[] = [],
+): Promise<E2EContext> {
   await bootstrapTestDataSource();
 
-  const moduleFixture = await Test.createTestingModule({
+  const builder = Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  });
+
+  for (const override of overrides) {
+    const overrideBuilder = builder.overrideProvider(override.provide);
+    if (override.useClass) {
+      overrideBuilder.useClass(override.useClass);
+    } else {
+      overrideBuilder.useValue(override.useValue);
+    }
+  }
+
+  const moduleFixture = await builder.compile();
 
   const app = moduleFixture.createNestApplication();
 
