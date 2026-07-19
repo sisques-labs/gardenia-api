@@ -126,30 +126,39 @@ export class PlantIdentificationsController {
       );
     }
 
-    // Multipart form-data lets a client send the same field name more than
-    // once, in which case Multer/Nest hands back an array instead of a
-    // string — guard explicitly rather than trusting the declared DTO type,
-    // and bind the narrowed value to its own local so nothing downstream
-    // re-reads the untyped `dto.organs`/`dto.project` properties directly.
-    const rawOrgans: unknown = dto.organs;
-    if (typeof rawOrgans !== 'string') {
-      throw new BadRequestException('"organs" must be a single string value');
-    }
-    const rawProject: unknown = dto.project;
-    if (rawProject !== undefined && typeof rawProject !== 'string') {
-      throw new BadRequestException('"project" must be a single string value');
-    }
-    // `x-space-id` is a plain header, not DTO-validated at all — Node types
-    // header values as string | string[] | undefined (repeated headers
-    // collapse to an array), so it needs the same explicit guard.
-    const rawSpaceId: unknown = spaceId;
-    if (typeof rawSpaceId !== 'string') {
-      throw new BadRequestException(
-        '"x-space-id" header must be a single string value',
+    // Multipart form-data lets a client send the same field name (or
+    // header) more than once, in which case Multer/Nest hands back an
+    // array instead of a string — only proceed inside the branch where
+    // every value has actually narrowed to a string, and hand off to a
+    // helper whose parameters are typed as plain `string`, so nothing
+    // downstream can reach the untyped `dto`/`spaceId` values directly.
+    if (
+      typeof dto.organs === 'string' &&
+      (dto.project === undefined || typeof dto.project === 'string') &&
+      typeof spaceId === 'string'
+    ) {
+      return this.doIdentifyPlant(
+        files,
+        dto.organs,
+        dto.project,
+        user,
+        spaceId,
       );
     }
 
-    const organs = this.parseOrgans(rawOrgans, files.length);
+    throw new BadRequestException(
+      '"organs", "project", and the "x-space-id" header must each be a single string value',
+    );
+  }
+
+  private async doIdentifyPlant(
+    files: UploadedIdentificationPhotoFile[],
+    organsRaw: string,
+    project: string | undefined,
+    user: CurrentUserPayload,
+    spaceId: string,
+  ): Promise<IdentifyPlantResponseDto> {
+    const organs = this.parseOrgans(organsRaw, files.length);
 
     this.logger.log(
       `Identifying plant from ${files.length} photo(s) for user: ${user.userId}`,
@@ -167,9 +176,9 @@ export class PlantIdentificationsController {
           content: file.buffer,
           organ: organs[index],
         })),
-        project: rawProject,
+        project,
         userId: user.userId,
-        spaceId: rawSpaceId,
+        spaceId,
       }),
     );
 
