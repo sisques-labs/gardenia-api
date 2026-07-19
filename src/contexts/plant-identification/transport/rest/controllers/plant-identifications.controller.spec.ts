@@ -139,6 +139,18 @@ describe('PlantIdentificationsController', () => {
       ).rejects.toThrow(BadRequestException);
       expect(commandBus.execute).not.toHaveBeenCalled();
     });
+
+    it('throws BadRequestException when the "x-space-id" header arrives as an array (repeated header)', async () => {
+      await expect(
+        controller.identifyPlant(
+          [buildFile()],
+          { organs: '["leaf"]' } as never,
+          user,
+          [SPACE_ID, SPACE_ID] as never,
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(commandBus.execute).not.toHaveBeenCalled();
+    });
   });
 
   describe('plantIdentificationsFindByCriteria()', () => {

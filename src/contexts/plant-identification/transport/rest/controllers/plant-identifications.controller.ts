@@ -128,15 +128,28 @@ export class PlantIdentificationsController {
 
     // Multipart form-data lets a client send the same field name more than
     // once, in which case Multer/Nest hands back an array instead of a
-    // string — guard explicitly rather than trusting the declared DTO type.
-    if (typeof dto.organs !== 'string') {
+    // string — guard explicitly rather than trusting the declared DTO type,
+    // and bind the narrowed value to its own local so nothing downstream
+    // re-reads the untyped `dto.organs`/`dto.project` properties directly.
+    const rawOrgans: unknown = dto.organs;
+    if (typeof rawOrgans !== 'string') {
       throw new BadRequestException('"organs" must be a single string value');
     }
-    if (dto.project !== undefined && typeof dto.project !== 'string') {
+    const rawProject: unknown = dto.project;
+    if (rawProject !== undefined && typeof rawProject !== 'string') {
       throw new BadRequestException('"project" must be a single string value');
     }
+    // `x-space-id` is a plain header, not DTO-validated at all — Node types
+    // header values as string | string[] | undefined (repeated headers
+    // collapse to an array), so it needs the same explicit guard.
+    const rawSpaceId: unknown = spaceId;
+    if (typeof rawSpaceId !== 'string') {
+      throw new BadRequestException(
+        '"x-space-id" header must be a single string value',
+      );
+    }
 
-    const organs = this.parseOrgans(dto.organs, files.length);
+    const organs = this.parseOrgans(rawOrgans, files.length);
 
     this.logger.log(
       `Identifying plant from ${files.length} photo(s) for user: ${user.userId}`,
@@ -154,9 +167,9 @@ export class PlantIdentificationsController {
           content: file.buffer,
           organ: organs[index],
         })),
-        project: dto.project,
+        project: rawProject,
         userId: user.userId,
-        spaceId,
+        spaceId: rawSpaceId,
       }),
     );
 
