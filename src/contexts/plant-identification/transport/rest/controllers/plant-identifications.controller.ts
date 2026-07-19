@@ -126,6 +126,16 @@ export class PlantIdentificationsController {
       );
     }
 
+    // Multipart form-data lets a client send the same field name more than
+    // once, in which case Multer/Nest hands back an array instead of a
+    // string — guard explicitly rather than trusting the declared DTO type.
+    if (typeof dto.organs !== 'string') {
+      throw new BadRequestException('"organs" must be a single string value');
+    }
+    if (dto.project !== undefined && typeof dto.project !== 'string') {
+      throw new BadRequestException('"project" must be a single string value');
+    }
+
     const organs = this.parseOrgans(dto.organs, files.length);
 
     this.logger.log(

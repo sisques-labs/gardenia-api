@@ -115,6 +115,30 @@ describe('PlantIdentificationsController', () => {
       ).rejects.toThrow(BadRequestException);
       expect(commandBus.execute).not.toHaveBeenCalled();
     });
+
+    it('throws BadRequestException when "organs" arrives as an array (repeated multipart field)', async () => {
+      await expect(
+        controller.identifyPlant(
+          [buildFile()],
+          { organs: ['["leaf"]', '["leaf"]'] } as never,
+          user,
+          SPACE_ID,
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(commandBus.execute).not.toHaveBeenCalled();
+    });
+
+    it('throws BadRequestException when "project" arrives as an array (repeated multipart field)', async () => {
+      await expect(
+        controller.identifyPlant(
+          [buildFile()],
+          { organs: '["leaf"]', project: ['all', 'weurope'] } as never,
+          user,
+          SPACE_ID,
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(commandBus.execute).not.toHaveBeenCalled();
+    });
   });
 
   describe('plantIdentificationsFindByCriteria()', () => {
