@@ -128,61 +128,45 @@ export class PlantIdentificationsController {
 
     // Multipart form-data lets a client send the same field name (or
     // header) more than once, in which case Multer/Nest hands back an
-    // array instead of a string — only proceed inside the branch where
-    // every value has actually narrowed to a string, and hand off to a
-    // helper whose parameters are typed as plain `string`, so nothing
-    // downstream can reach the untyped `dto`/`spaceId` values directly.
+    // array instead of a string. Only proceed inside this branch, where
+    // every value has actually narrowed to a string — the sink for each
+    // of them (below) must stay textually inside this same `if`, in this
+    // same function, for the guard to actually cover it.
     if (
       typeof dto.organs === 'string' &&
       (dto.project === undefined || typeof dto.project === 'string') &&
       typeof spaceId === 'string'
     ) {
-      return this.doIdentifyPlant(
-        files,
-        dto.organs,
-        dto.project,
-        user,
-        spaceId,
+      const organs = this.parseOrgans(dto.organs, files.length);
+
+      this.logger.log(
+        `Identifying plant from ${files.length} photo(s) for user: ${user.userId}`,
       );
+
+      const result = await this.commandBus.execute<
+        IdentifyPlantCommand,
+        IdentifyPlantResult
+      >(
+        new IdentifyPlantCommand({
+          photos: files.map((file, index) => ({
+            filename: file.originalname,
+            mimeType: file.mimetype,
+            size: file.size,
+            content: file.buffer,
+            organ: organs[index],
+          })),
+          project: dto.project,
+          userId: user.userId,
+          spaceId,
+        }),
+      );
+
+      return this.plantIdentificationRestMapper.toIdentifyResponse(result);
     }
 
     throw new BadRequestException(
       '"organs", "project", and the "x-space-id" header must each be a single string value',
     );
-  }
-
-  private async doIdentifyPlant(
-    files: UploadedIdentificationPhotoFile[],
-    organsRaw: string,
-    project: string | undefined,
-    user: CurrentUserPayload,
-    spaceId: string,
-  ): Promise<IdentifyPlantResponseDto> {
-    const organs = this.parseOrgans(organsRaw, files.length);
-
-    this.logger.log(
-      `Identifying plant from ${files.length} photo(s) for user: ${user.userId}`,
-    );
-
-    const result = await this.commandBus.execute<
-      IdentifyPlantCommand,
-      IdentifyPlantResult
-    >(
-      new IdentifyPlantCommand({
-        photos: files.map((file, index) => ({
-          filename: file.originalname,
-          mimeType: file.mimetype,
-          size: file.size,
-          content: file.buffer,
-          organ: organs[index],
-        })),
-        project,
-        userId: user.userId,
-        spaceId,
-      }),
-    );
-
-    return this.plantIdentificationRestMapper.toIdentifyResponse(result);
   }
 
   @Get()
