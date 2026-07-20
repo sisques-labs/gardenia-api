@@ -1,6 +1,50 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.6] - 2026-07-20
+
+### Bug Fixes
+- **plant-identification:** Guard against array-typed organs/project in multipart body (17f3d2e)
+- **plant-identification:** Bind request-derived values to narrowed locals (1c9243b)
+- **plant-identification:** Nest CodeQL-flagged logic inside the narrowed branch (be391b1)
+- **plant-identification:** Keep the CodeQL guard and its sink in one function (4179681)
+- **plant-identification:** Guard parseOrgans' own JSON.parse sink (bdca82b)
+- **plant-identification:** Coerce guarded values with String() alongside typeof (29caf59)
+- **deps:** Update dependency @nestjs/swagger to v11 (32917fe)
+- **deps:** Update dependency @nestjs/platform-express to v11 (3615650)
+- **deps:** Update dependency class-validator to ^0.15.0 (557bdd2)
+- **deps:** Update dependency @nestjs/graphql to v13 (b1a19d2)
+- **deps:** Update dependency @nestjs/common to v11 (8e709ea)
+- **deps:** Update dependency graphql to v17 (b847138)
+- **deps:** Update libphonenumber-js to version 1.13.9 and resolve version conflicts in pnpm-lock.yaml (f080f92)
+
+### Chore
+- Remove pnpm-lock.yaml file to clean up project dependencies management. (790c589)
+- Update project dependencies and clean up configuration files. (61e063d)
+- **deps:** Update dependency @nestjs/typeorm to v11.0.3 (3907321)
+- **deps:** Update dependency @sisques-labs/nestjs-kit to v1.5.0 (6dfaed0)
+- **deps:** Update dependency eslint-plugin-prettier to v5.5.6 (b475d73)
+- **deps:** Update postgres docker tag to v18 (bc87974)
+- **deps:** Update dependency graphql to v16.14.2 (d4862cd)
+- **deps:** Update pnpm to v9.15.9 (d1edbb5)
+- **deps:** Update dependency @aws-sdk/client-s3 to v3.1090.0 (0f20ef8)
+- **deps:** Update dependency lint-staged to v17.1.0 (fe6baff)
+- **deps:** Update dependency @nestjs/schematics to v11 (f0f303d)
+- **deps:** Update dependency jest to v30 (423d46d)
+- **deps:** Update node.js to v24 (a089402)
+- **deps:** Fix lockfile (a88ee95)
+- **deps:** Update dependency eslint-config-prettier to v10 (71d08e2)
+- **deps:** Update dependency @nestjs/testing to v11 (76ded3e)
+
+### Documentation
+- **openspec:** Propose selecting any PlantNet candidate on plant creation (bbaccb8)
+- **openspec:** Drop plant-identification-select-candidate proposal (1213f39)
+
+### Features
+- **plant-identification:** Transcode unsupported image formats before calling PlantNet (45f0d63)
+
+### Refactor
+- **plant-identification:** Remove unverified response shape banner from PlantNet types (24f4b2f)
 ## [0.27.5] - 2026-07-17
 
 ### CI
@@ -12,6 +56,7 @@ All notable changes to this project will be documented in this file.
 ## [0.27.4] - 2026-07-17
 
 ### Bug Fixes
+- **plant-identification:** Reject unsupported image formats before calling PlantNet (a5d225f)
 - **deps:** Update dependency @nestjs/core to v11 [security] (05df460)
 
 ### CI
@@ -20,10 +65,22 @@ All notable changes to this project will be documented in this file.
 ### Testing
 - **mcp:** Add unit coverage for all MCP tool adapters (d42c375)
 - Raise branch/function coverage to 80% and gate it in CI (4ebac71)
+- **plant-identification:** Cover the TypeORM read/write repositories (15708e4)
 ## [0.27.3] - 2026-07-15
+
+### Bug Fixes
+- **plant-identification:** Register new tables in truncateAll (ce1d69c)
+- **plant-identification:** Wait for photo upload to settle before rethrowing identify errors (e285e99)
 
 ### Chore
 - Adopt shared Renovate config, remove Dependabot (f88d06f)
+
+### Refactor
+- **plant-identification:** Make species resolution provider-agnostic (08536da)
+- **plant-identification:** Apply PR review feedback (c1dc7f0)
+- **plant-identification:** Adopt MimeTypeValueObject/FilenameValueObject (fedcfdb)
+- **plant-identification:** Use nestjs-kit VOs for all filename/mimeType fields (4284f71)
+- **plant-identification:** Extract not-converted/resolved guards into services (215e82f)
 ## [0.27.2] - 2026-07-15
 
 ### Chore
@@ -32,9 +89,26 @@ All notable changes to this project will be documented in this file.
 - **deps:** Bump @aws-sdk/client-s3 from 3.1080.0 to 3.1087.0 (a19bdc1)
 ## [0.27.1] - 2026-07-15
 
+### Bug Fixes
+- **plant-identification:** Stamp active space on write, wire exception filter (25d72dc)
+
 ### Chore
+- **deps-dev:** Bump @nestjs/cli from 11.0.23 to 11.0.24 (ddb3ae4)
+- **deps:** Bump graphql-query-complexity from 1.1.0 to 1.1.1 (5cec1de)
+- **deps-dev:** Bump @typescript-eslint/parser from 8.59.4 to 8.64.0 (90f9f5c)
+- **deps-dev:** Bump @types/supertest from 6.0.3 to 7.2.1 (637f0e5)
+- **deps:** Bump typeorm from 1.0.0 to 1.1.0 (4c2f9cb)
+- **deps-dev:** Bump eslint-plugin-boundaries from 6.0.2 to 7.0.2 (bb2f160)
+- **deps-dev:** Bump prettier from 3.8.3 to 3.9.5 (4888eac)
 - **deps:** Update @sisques-labs/nestjs-kit to version 1.2.1 and bump graphql-query-complexity to 1.1.1 (ca43b6b)
 - **deps:** Bump @sisques-labs/nestjs-kit from 1.2.1 to 1.3.1 (f5b887c)
+
+### Documentation
+- **plant-identification:** Propose PlantNet-powered species identification (30535f1)
+- **plant-identification:** Mark implementation tasks complete (c124239)
+
+### Features
+- **plant-identification:** Add PlantNet-powered species identification context (22eba6d)
 ## [0.27.0] - 2026-07-10
 
 ### Documentation
@@ -134,11 +208,7 @@ All notable changes to this project will be documented in this file.
 
 ### CI
 - Dispatch gardenia-e2e run after alpha/beta release (7de4c74)
-## [0.24.0] - 2026-06-28
-
-### Bug Fixes
-- **files:** Return raw MIME string in GraphQL file response (20e08c4)
-- **test:** Register care-schedule entity and migration in integration bootstrap (f7a355e)
+## [0.24.1] - 2026-07-02
 
 ### Build
 - **deps-dev:** Bump ts-loader from 9.5.7 to 9.6.2 (95ca2a2)
@@ -148,15 +218,11 @@ All notable changes to this project will be documented in this file.
 - **deps:** Bump axios from 1.17.0 to 1.18.1 (87886d4)
 - **deps-dev:** Bump @nestjs/cli from 10.4.9 to 11.0.23 (1cfef6a)
 - **deps-dev:** Bump @types/node from 20.19.41 to 26.1.0 (d634be0)
+## [0.24.0] - 2026-06-28
 
-### Chore
-- **deps-dev:** Bump @nestjs/cli from 11.0.23 to 11.0.24 (ddb3ae4)
-- **deps:** Bump graphql-query-complexity from 1.1.0 to 1.1.1 (5cec1de)
-- **deps-dev:** Bump @typescript-eslint/parser from 8.59.4 to 8.64.0 (90f9f5c)
-- **deps-dev:** Bump @types/supertest from 6.0.3 to 7.2.1 (637f0e5)
-- **deps:** Bump typeorm from 1.0.0 to 1.1.0 (4c2f9cb)
-- **deps-dev:** Bump eslint-plugin-boundaries from 6.0.2 to 7.0.2 (bb2f160)
-- **deps-dev:** Bump prettier from 3.8.3 to 3.9.5 (4888eac)
+### Bug Fixes
+- **files:** Return raw MIME string in GraphQL file response (20e08c4)
+- **test:** Register care-schedule entity and migration in integration bootstrap (f7a355e)
 
 ### Documentation
 - **files:** Propose files bounded context (storage port/adapter) (286453d)
