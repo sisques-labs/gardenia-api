@@ -35,3 +35,7 @@ process.env.OAUTH_STATE_SECRET =
   process.env.OAUTH_STATE_SECRET ?? 'test-oauth-state-secret-for-e2e';
 process.env.NODE_ENV = 'test';
 process.env.QR_BASE_URL = process.env.QR_BASE_URL ?? 'http://localhost:3000';
+// plant-identification's PlantNet config fails fast at boot without this —
+// AppModule (and therefore every e2e suite) would otherwise fail to start.
+process.env.PLANTNET_API_KEY =
+  process.env.PLANTNET_API_KEY ?? 'test-plantnet-api-key';
