@@ -65,6 +65,21 @@ const baseEnvSchema = z
       .optional(),
     KAFKA_SASL_USERNAME: z.string().optional(),
     KAFKA_SASL_PASSWORD: z.string().optional(),
+    REDIS_HOST: z.string().trim().min(1, 'REDIS_HOST must not be empty'),
+    REDIS_PORT: z.string().optional(),
+    REDIS_PASSWORD: z.string().optional(),
+    WEB_PUSH_VAPID_PUBLIC_KEY: z
+      .string()
+      .trim()
+      .min(1, 'WEB_PUSH_VAPID_PUBLIC_KEY must not be empty'),
+    WEB_PUSH_VAPID_PRIVATE_KEY: z
+      .string()
+      .trim()
+      .min(1, 'WEB_PUSH_VAPID_PRIVATE_KEY must not be empty'),
+    WEB_PUSH_VAPID_SUBJECT: z
+      .string()
+      .trim()
+      .min(1, 'WEB_PUSH_VAPID_SUBJECT must not be empty'),
   })
   .superRefine((env, ctx) => {
     if (env.KAFKA_ENABLED === 'true' && !env.KAFKA_BROKERS?.trim()) {

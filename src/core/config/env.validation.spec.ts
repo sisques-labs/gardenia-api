@@ -17,6 +17,10 @@ function validEnv(
     DATABASE_USERNAME: 'gardenia',
     DATABASE_PASSWORD: 'secret',
     DATABASE_DATABASE: 'gardenia_db',
+    REDIS_HOST: 'localhost',
+    WEB_PUSH_VAPID_PUBLIC_KEY: 'dev-vapid-public-key',
+    WEB_PUSH_VAPID_PRIVATE_KEY: 'dev-vapid-private-key',
+    WEB_PUSH_VAPID_SUBJECT: 'mailto:dev@example.com',
     ...overrides,
   };
 }

@@ -4,6 +4,7 @@ import { CareScheduleModule } from '@contexts/care-schedule/care-schedule.module
 import { FilesModule } from '@contexts/files/files.module';
 import { HarvestsModule } from '@contexts/harvests/harvests.module';
 import { InventoryModule } from '@contexts/inventory/inventory.module';
+import { NotificationsModule } from '@contexts/notifications/notifications.module';
 import { PlantIdentificationModule } from '@contexts/plant-identification/plant-identification.module';
 import { PlantPhotosModule } from '@contexts/plant-photos/plant-photos.module';
 import { PlantSpeciesModule } from '@contexts/plant-species/plant-species.module';
@@ -32,6 +33,7 @@ const CONTEXT_MODULES = [
   FilesModule,
   PlantPhotosModule,
   PlantIdentificationModule,
+  NotificationsModule,
 ];
 
 @Module({
