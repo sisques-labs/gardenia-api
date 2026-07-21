@@ -1,10 +1,13 @@
 import { PushSubscriptionBuilder } from '@contexts/notifications/domain/builders/push-subscription.builder';
+import { NoPushSubscriptionsForUserException } from '@contexts/notifications/domain/exceptions/no-push-subscriptions-for-user.exception';
 import { IPushSubscriptionWriteRepository } from '@contexts/notifications/domain/repositories/write/push-subscription-write.repository';
 
-import { FindPushSubscriptionsForUserService } from './find-push-subscriptions-for-user.service';
+import { AssertUserHasPushSubscriptionsService } from './assert-user-has-push-subscriptions.service';
 
-describe('FindPushSubscriptionsForUserService', () => {
-  let service: FindPushSubscriptionsForUserService;
+const USER_ID = '660e8400-e29b-41d4-a716-446655440001';
+
+describe('AssertUserHasPushSubscriptionsService', () => {
+  let service: AssertUserHasPushSubscriptionsService;
   let mockWriteRepo: jest.Mocked<IPushSubscriptionWriteRepository>;
 
   beforeEach(() => {
@@ -17,13 +20,13 @@ describe('FindPushSubscriptionsForUserService', () => {
       findByUserId: jest.fn(),
     } as jest.Mocked<IPushSubscriptionWriteRepository>;
 
-    service = new FindPushSubscriptionsForUserService(mockWriteRepo);
+    service = new AssertUserHasPushSubscriptionsService(mockWriteRepo);
   });
 
-  it('delegates to the write repository', async () => {
+  it('returns the subscriptions when the user has at least one', async () => {
     const subscription = new PushSubscriptionBuilder()
       .withId('550e8400-e29b-41d4-a716-446655440000')
-      .withUserId('660e8400-e29b-41d4-a716-446655440001')
+      .withUserId(USER_ID)
       .withEndpoint('https://fcm.googleapis.com/fcm/send/abc123')
       .withP256dh('p256dh-key')
       .withAuth('auth-secret')
@@ -32,23 +35,17 @@ describe('FindPushSubscriptionsForUserService', () => {
       .build();
     mockWriteRepo.findByUserId.mockResolvedValue([subscription]);
 
-    const result = await service.execute(
-      '660e8400-e29b-41d4-a716-446655440001',
-    );
+    const result = await service.execute(USER_ID);
 
     expect(result).toEqual([subscription]);
-    expect(mockWriteRepo.findByUserId).toHaveBeenCalledWith(
-      '660e8400-e29b-41d4-a716-446655440001',
-    );
+    expect(mockWriteRepo.findByUserId).toHaveBeenCalledWith(USER_ID);
   });
 
-  it('returns an empty array when the user has no subscriptions', async () => {
+  it('throws NoPushSubscriptionsForUserException when the user has none', async () => {
     mockWriteRepo.findByUserId.mockResolvedValue([]);
 
-    const result = await service.execute(
-      '660e8400-e29b-41d4-a716-446655440001',
+    await expect(service.execute(USER_ID)).rejects.toThrow(
+      NoPushSubscriptionsForUserException,
     );
-
-    expect(result).toEqual([]);
   });
 });
