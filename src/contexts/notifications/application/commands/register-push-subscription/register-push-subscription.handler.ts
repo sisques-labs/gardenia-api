@@ -1,8 +1,9 @@
 import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
-import { PushSubscriptionBuilder } from '@contexts/notifications/domain/builders/push-subscription.builder';
+import { CreatePushSubscriptionService } from '@contexts/notifications/application/services/write/create-push-subscription/create-push-subscription.service';
+import { ReassignPushSubscriptionService } from '@contexts/notifications/application/services/write/reassign-push-subscription/reassign-push-subscription.service';
 import { PushSubscriptionAggregate } from '@contexts/notifications/domain/aggregates/push-subscription.aggregate';
 import {
   IPushSubscriptionWriteRepository,
@@ -26,7 +27,8 @@ export class RegisterPushSubscriptionCommandHandler
   constructor(
     @Inject(PUSH_SUBSCRIPTION_WRITE_REPOSITORY)
     private readonly pushSubscriptionWriteRepository: IPushSubscriptionWriteRepository,
-    private readonly pushSubscriptionBuilder: PushSubscriptionBuilder,
+    private readonly reassignPushSubscriptionService: ReassignPushSubscriptionService,
+    private readonly createPushSubscriptionService: CreatePushSubscriptionService,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -38,8 +40,20 @@ export class RegisterPushSubscriptionCommandHandler
     );
 
     const subscription = existing
-      ? this.reassignExisting(existing, command)
-      : this.buildNew(command);
+      ? await this.reassignPushSubscriptionService.execute({
+          existing,
+          userId: command.userId,
+          p256dh: command.p256dh,
+          auth: command.auth,
+          userAgent: command.userAgent,
+        })
+      : await this.createPushSubscriptionService.execute({
+          userId: command.userId,
+          endpoint: command.endpoint,
+          p256dh: command.p256dh,
+          auth: command.auth,
+          userAgent: command.userAgent,
+        });
 
     await this.pushSubscriptionWriteRepository.save(subscription);
     await this.publishEvents(subscription);
@@ -49,39 +63,5 @@ export class RegisterPushSubscriptionCommandHandler
     );
 
     return subscription.id.value;
-  }
-
-  private reassignExisting(
-    existing: PushSubscriptionAggregate,
-    command: RegisterPushSubscriptionCommand,
-  ): PushSubscriptionAggregate {
-    existing.reassign(
-      command.userId,
-      command.p256dh,
-      command.auth,
-      command.userAgent,
-    );
-    return existing;
-  }
-
-  private buildNew(
-    command: RegisterPushSubscriptionCommand,
-  ): PushSubscriptionAggregate {
-    const now = new Date();
-    const subscriptionId = UuidValueObject.generate().value;
-
-    const subscription = this.pushSubscriptionBuilder
-      .withId(subscriptionId)
-      .withUserId(command.userId.value)
-      .withEndpoint(command.endpoint.value)
-      .withP256dh(command.p256dh.value)
-      .withAuth(command.auth.value)
-      .withUserAgent(command.userAgent?.value ?? null)
-      .withCreatedAt(now)
-      .withUpdatedAt(now)
-      .build();
-
-    subscription.create();
-    return subscription;
   }
 }

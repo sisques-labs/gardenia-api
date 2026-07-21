@@ -1,5 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 
+import { CreatePushSubscriptionService } from '@contexts/notifications/application/services/write/create-push-subscription/create-push-subscription.service';
+import { ReassignPushSubscriptionService } from '@contexts/notifications/application/services/write/reassign-push-subscription/reassign-push-subscription.service';
 import { PushSubscriptionBuilder } from '@contexts/notifications/domain/builders/push-subscription.builder';
 import { IPushSubscriptionWriteRepository } from '@contexts/notifications/domain/repositories/write/push-subscription-write.repository';
 
@@ -31,7 +33,8 @@ describe('RegisterPushSubscriptionCommandHandler', () => {
 
     handler = new RegisterPushSubscriptionCommandHandler(
       mockWriteRepo,
-      new PushSubscriptionBuilder(),
+      new ReassignPushSubscriptionService(),
+      new CreatePushSubscriptionService(new PushSubscriptionBuilder()),
       mockEventBus,
     );
   });
