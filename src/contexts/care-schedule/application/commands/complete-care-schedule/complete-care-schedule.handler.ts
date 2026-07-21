@@ -6,6 +6,10 @@ import {
   CARE_LOG_PORT,
   ICareLogPort,
 } from '@contexts/care-schedule/application/ports/care-log.port';
+import {
+  IReminderSchedulerPort,
+  REMINDER_SCHEDULER_PORT,
+} from '@contexts/care-schedule/application/ports/reminder-scheduler.port';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
 import { CareScheduleAggregate } from '@contexts/care-schedule/domain/aggregates/care-schedule.aggregate';
 import {
@@ -28,6 +32,8 @@ export class CompleteCareScheduleCommandHandler
     private readonly assertCareScheduleExistsService: AssertCareScheduleExistsService,
     @Inject(CARE_LOG_PORT)
     private readonly careLogPort: ICareLogPort,
+    @Inject(REMINDER_SCHEDULER_PORT)
+    private readonly reminderSchedulerPort: IReminderSchedulerPort,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -52,6 +58,15 @@ export class CompleteCareScheduleCommandHandler
     // activity, so mirror it into the plant's care journal. Best-effort — a
     // care-log failure must not roll back the (authoritative) completion.
     await this.recordCareLogEntry(schedule, completedAt);
+
+    // Recurring schedules get a reminder for the newly computed due date;
+    // one-time schedules (now inactive) have their pending reminder
+    // cancelled instead. Both best-effort, same rationale as care-log above.
+    if (schedule.active.value) {
+      await this.scheduleReminder(schedule);
+    } else {
+      await this.cancelReminder(schedule);
+    }
   }
 
   private async recordCareLogEntry(
@@ -71,6 +86,38 @@ export class CompleteCareScheduleCommandHandler
     } catch (error) {
       this.logger.warn(
         `Care schedule ${schedule.id.value} completed but care-log entry failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+
+  private async scheduleReminder(
+    schedule: CareScheduleAggregate,
+  ): Promise<void> {
+    try {
+      await this.reminderSchedulerPort.scheduleReminder({
+        careScheduleId: schedule.id.value,
+        userId: schedule.userId.value,
+        plantId: schedule.plantId.value,
+        activityType: schedule.activityType.value,
+        dueAt: schedule.nextDueAt.value,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Care schedule ${schedule.id.value} completed but reminder rescheduling failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+
+  private async cancelReminder(schedule: CareScheduleAggregate): Promise<void> {
+    try {
+      await this.reminderSchedulerPort.cancelReminder(schedule.id.value);
+    } catch (error) {
+      this.logger.warn(
+        `Care schedule ${schedule.id.value} completed but reminder cancellation failed: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );
