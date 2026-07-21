@@ -1,157 +1,140 @@
-# Care Schedule — Due reminder dispatch (delta)
+# Care Schedule — Reminder scheduling (delta)
 
-**Source change:** care-schedule-push-reminders
+**Source change:** care-schedule-push-reminders (revision 2 — Redis/BullMQ, no cron)
 **Created:** 2026-07-21
 
-This is a delta spec against the existing `care-schedule` capability
-(originally specified in the `care-schedule` change). It adds reminder
-tracking and dispatch on top of the existing aggregate/commands — it does
-not restate requirements unaffected by this change (create/update/delete/
-complete semantics are unchanged).
+This is a delta spec against the existing `care-schedule` capability. It adds
+reminder scheduling on top of the existing aggregate/commands — it does not
+restate requirements unaffected by this change (create/update/delete/complete
+value semantics for fields other than the reminder side-effects below are
+unchanged). This revision has **no domain or schema changes at all** — no new
+field, no new value object, no new query. Everything below is
+application-layer orchestration calling a new port.
 
 ---
 
 ## Requirements
 
-### Requirement: lastNotifiedForDueAt Field
+### Requirement: Reminder Scheduling on Create
 
-The `CareScheduleAggregate` MUST carry an additional optional field
-`lastNotifiedForDueAt` (Date, nullable). It defaults to `null` on creation
-and is never set by `create()` or `update()` — only by `markReminderSent()`.
+When `CreateCareSchedule` succeeds and the created schedule is `active`, the
+handler MUST call `IReminderSchedulerPort.scheduleReminder()` with the
+schedule's `id`, `userId`, `plantId`, `activityType`, and `nextDueAt`.
 
-#### Scenario: New schedule has no notification history
+A failure of this call MUST NOT fail the create — it MUST be caught, logged,
+and swallowed (the schedule is created regardless).
 
-- GIVEN a newly created care schedule
-- WHEN it is built
-- THEN `lastNotifiedForDueAt` is `null`
+#### Scenario: New active schedule is queued for a reminder
 
----
+- GIVEN a valid `CreateCareSchedule` command
+- WHEN it is dispatched
+- THEN the schedule is created and `scheduleReminder` is called with its `nextDueAt`
 
-### Requirement: markReminderSent Method
+#### Scenario: Reminder scheduling failure does not block creation
 
-`CareScheduleAggregate.markReminderSent(notifiedAt: Date)` MUST set
-`lastNotifiedForDueAt` to `notifiedAt` and update `updatedAt`. It MUST NOT
-emit a domain event (this is delivery bookkeeping, not a user-facing state
-transition).
-
-#### Scenario: Marking sent updates the field only
-
-- GIVEN a care schedule with `lastNotifiedForDueAt = null`
-- WHEN `markReminderSent(schedule.nextDueAt)` is called
-- THEN `lastNotifiedForDueAt` equals the schedule's `nextDueAt` at the time of the call, and no new domain event is recorded
+- GIVEN `scheduleReminder` throws
+- WHEN `CreateCareSchedule` is dispatched
+- THEN the schedule is still created and returned successfully
 
 ---
 
-### Requirement: findDueForReminder Query (internal)
+### Requirement: Reminder Rescheduling on Completion
 
-The write repository MUST expose `findDueForReminder(now: Date)`, returning
-every `CareScheduleAggregate` where:
-- `active` is `true`, AND
-- `nextDueAt <= now`, AND
-- `lastNotifiedForDueAt` is `NULL` OR `lastNotifiedForDueAt < nextDueAt`
+When `CompleteCareSchedule` succeeds:
+- If the schedule is still `active` after `complete()` (recurring, interval
+  set), the handler MUST call `scheduleReminder()` with the **new**
+  `nextDueAt`, replacing any previously pending reminder for this schedule.
+- If the schedule became inactive after `complete()` (one-time, no
+  interval), the handler MUST call `cancelReminder()` instead.
 
-This is an internal, fixed-shape query with no client-facing filters — it is
-NOT subject to the repo's mandatory `findByCriteria`/Criteria-pattern rule,
-which applies only to client-choosable `{context}sFindByCriteria` endpoints.
+Both calls MUST be best-effort (caught, logged, swallowed on failure).
 
-#### Scenario: Due, active, unnotified schedule is included
+#### Scenario: Recurring schedule reschedules its reminder
 
-- GIVEN a schedule with `active=true`, `nextDueAt` in the past, `lastNotifiedForDueAt=null`
-- WHEN `findDueForReminder(now)` is called
-- THEN the schedule is included
+- GIVEN an active, recurring schedule due today
+- WHEN it is completed
+- THEN `scheduleReminder` is called with the newly computed `nextDueAt`, and any reminder pending for the old due date is replaced (not duplicated)
 
-#### Scenario: Inactive schedule excluded
+#### Scenario: One-time schedule cancels its reminder
 
-- GIVEN a schedule with `active=false` and `nextDueAt` in the past
-- WHEN `findDueForReminder(now)` is called
-- THEN the schedule is excluded
+- GIVEN a one-time (no interval) schedule
+- WHEN it is completed
+- THEN `cancelReminder` is called and no further reminder fires for it
 
-#### Scenario: Future due date excluded
+#### Scenario: Early completion replaces a still-pending reminder
 
-- GIVEN a schedule with `nextDueAt` in the future
-- WHEN `findDueForReminder(now)` is called
-- THEN the schedule is excluded
-
-#### Scenario: Already notified for the current due date excluded
-
-- GIVEN a schedule with `nextDueAt = T` and `lastNotifiedForDueAt = T`
-- WHEN `findDueForReminder(now)` is called with `now >= T`
-- THEN the schedule is excluded
-
-#### Scenario: Notified for a past due date, now due again, is included
-
-- GIVEN a schedule with `lastNotifiedForDueAt = T1` and a new `nextDueAt = T2 > T1` that is now `<= now`
-- WHEN `findDueForReminder(now)` is called
-- THEN the schedule is included
+- GIVEN a recurring schedule completed before its previously scheduled reminder fires
+- WHEN completion recalculates `nextDueAt`
+- THEN the stale reminder for the old due date does not fire — it is replaced by the new one
 
 ---
 
-### Requirement: DispatchDueCareReminders Command
+### Requirement: Reminder Toggling on Activation State Change
 
-`DispatchDueCareRemindersCommand` takes no input. Its handler MUST:
-1. Call `findDueForReminder(now)`.
-2. For each returned schedule, call `INotifyDueCareSchedulePort.notifyDue()`
-   with the schedule's `userId`, `id`, `plantId`, and `activityType`.
-3. Regardless of whether step 2 succeeded or threw, call
-   `schedule.markReminderSent(schedule.nextDueAt.value)` and persist the
-   schedule.
-4. Continue processing remaining due schedules even if one schedule's
-   `notifyDue()` call throws.
+When `UpdateCareSchedule` changes `active`:
+- `true → false` MUST call `cancelReminder()`.
+- `false → true` MUST call `scheduleReminder()` with the schedule's current
+  `nextDueAt` (if already in the past, the resulting reminder fires
+  immediately rather than being skipped).
 
-This command is triggered exclusively by an internal `@Cron(EVERY_MINUTE)`
-job — it has no REST/GraphQL/MCP transport of its own (it is not
-user-facing).
+If `active` is unchanged by the update, neither call MUST be made.
 
-#### Scenario: Due schedule is notified and marked
+#### Scenario: Deactivating cancels the pending reminder
 
-- GIVEN one due, active, unnotified schedule
-- WHEN `DispatchDueCareReminders` is dispatched
-- THEN `notifyDue()` is called once with that schedule's data, and `lastNotifiedForDueAt` is updated to its `nextDueAt`
+- GIVEN an active schedule with a pending reminder
+- WHEN `UpdateCareSchedule` sets `active=false`
+- THEN `cancelReminder` is called
 
-#### Scenario: One failing notification does not block others
+#### Scenario: Reactivating an overdue schedule reminds immediately
 
-- GIVEN two due schedules, where notifying the first throws
-- WHEN `DispatchDueCareReminders` is dispatched
-- THEN the second schedule is still notified and marked, and the first schedule is still marked (not retried indefinitely)
+- GIVEN an inactive schedule whose `nextDueAt` is in the past
+- WHEN `UpdateCareSchedule` sets `active=true`
+- THEN `scheduleReminder` is called and the resulting reminder fires without further delay
 
-#### Scenario: No due schedules is a no-op
+#### Scenario: No-op when active is unchanged
 
-- GIVEN no schedules match `findDueForReminder`
-- WHEN `DispatchDueCareReminders` is dispatched
-- THEN the handler completes without error and without calling the port
+- GIVEN an update that does not touch `active`
+- WHEN `UpdateCareSchedule` is dispatched
+- THEN neither `scheduleReminder` nor `cancelReminder` is called
 
 ---
 
-### Requirement: Cron Trigger
+### Requirement: Reminder Cancellation on Deletion
 
-An `@Injectable()` scheduler MUST dispatch `DispatchDueCareRemindersCommand`
-on `@Cron(CronExpression.EVERY_MINUTE)`.
+`DeleteCareSchedule` MUST call `cancelReminder()` for the deleted schedule's
+id, best-effort.
 
-#### Scenario: Cron dispatches the command
+#### Scenario: Deleting cancels any pending reminder
 
-- GIVEN the scheduler's cron callback fires
-- WHEN it runs
-- THEN `CommandBus.execute(new DispatchDueCareRemindersCommand())` is called
+- GIVEN a schedule with a pending reminder
+- WHEN `DeleteCareSchedule` is dispatched
+- THEN `cancelReminder` is called
 
 ---
 
 ### Requirement: Cross-Context Boundary to notifications
 
 `care-schedule` MUST NOT import `@contexts/notifications/domain` or
-`@contexts/notifications/application` from any file outside
-`care-schedule/infrastructure/adapters/notify-due-care-schedule.adapter.ts`.
+`@contexts/notifications/application` from anywhere. The adapter
+implementing `IReminderSchedulerPort` communicates with `notifications`
+exclusively through the `push-notifications` queue, using a plain,
+duck-typed payload — it requires no compile-time type from
+`@contexts/notifications` at all.
 
-#### Scenario: No forbidden imports outside the adapter
+#### Scenario: No notifications import anywhere in care-schedule
 
 - GIVEN the source tree under `src/contexts/care-schedule/`
 - WHEN scanned for `@contexts/notifications` imports
-- THEN the only match is `infrastructure/adapters/notify-due-care-schedule.adapter.ts`
+- THEN there are none
 
 ---
 
 ## Out of Scope
 
-- Any change to `create`, `update`, `delete`, or `complete` command
+- Any change to `create`/`update`/`delete`/`complete`'s existing field
   semantics — unchanged by this delta.
-- Multi-instance cron coordination / distributed locking.
-- Retrying a failed notification for the same due occurrence.
+- A reconciliation job that re-schedules reminders for due-but-unqueued
+  schedules — explicitly not built in this revision (see design.md's Open
+  Questions).
+- Multi-instance coordination beyond what BullMQ's own Redis-backed atomicity
+  already provides.

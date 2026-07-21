@@ -1,220 +1,245 @@
 # Design: Care Schedule Push Reminders (`notifications` + `care-schedule`)
 
+> Revision 2 — replaces the cron-based design with a Redis/BullMQ delayed-job
+> design. No `@Cron` anywhere in this change. See proposal.md's revision note
+> for why, and Risks for the explicitly-accepted trade-off (no reconciliation
+> safety net).
+
 ## Technical Approach
 
 Two coordinated pieces:
 
-1. **`notifications`** — a small, standalone bounded context whose only job
+1. **`care-schedule`** — on every mutation that changes *whether* or *when* a
+   schedule is due (`create`, `complete`, `active` toggling, `delete`), it
+   schedules or cancels exactly one delayed job in Redis, keyed by the
+   schedule's own id. The job's `delay` **is** the "wait until due" logic —
+   there is nothing else deciding "is it time yet."
+2. **`notifications`** — a small, standalone bounded context whose only job
    is "remember a user's push subscriptions, and send a push to all of
-   them." It has no idea `care-schedule` exists.
-2. **`care-schedule`** — gains the business rule "a due, not-yet-notified,
-   active schedule should trigger a reminder", expressed as a `@Cron` job
-   that walks due schedules and calls out through a port. It has no idea
-   *how* the reminder is delivered (push today, maybe email tomorrow).
+   them." It gains one new entry point in this revision: a BullMQ processor
+   that consumes the jobs `care-schedule` (or, in principle, any future
+   producer) enqueues, and turns each into a `SendPushNotificationCommand`.
 
-The two are connected exclusively through `CommandBus.execute()`, wrapped by
-a port/adapter pair — the same anti-corruption seam `weather`↔`spaces` and
-`care-log`↔`care-schedule` already use in this codebase.
+The two are connected exclusively through the `push-notifications` BullMQ
+queue — an async, durable, retryable transport — instead of the previous
+revision's synchronous `CommandBus.execute()` call. The port/adapter seam
+(`care-schedule/application/ports/` + `care-schedule/infrastructure/adapters/`)
+is unchanged in *shape*; only what the adapter talks to changes.
+
+## Why this removes the cron entirely
+
+A polling cron exists to answer "has time T arrived yet?" by repeatedly
+asking a database. A delayed job answers the same question by **sleeping
+until T**, with Redis (via BullMQ's internal sorted-set + a lightweight
+poller inside the BullMQ *library*, not our application code) doing the
+"has T arrived" check for us, at a much finer granularity and without our
+domain ever holding a "have I already reminded for this occurrence" flag —
+the job existing (or not) IS that flag.
+
+This is a real architectural improvement, not a cosmetic one: it removes
+`CareScheduleLastNotifiedForDueAtValueObject`, `findDueForReminder`, and the
+`DispatchDueCareRemindersCommand` entirely from the previous revision — the
+`care-schedule` domain and schema are untouched by this change (no new
+column, no new VO, no new query).
 
 ## Architecture Decisions
 
 | Decision | Choice | Alternatives rejected | Rationale |
 |----------|--------|------------------------|-----------|
-| Channel for v1 | Web Push (VAPID) | Email | Explicit product decision — immediate, no inbox lag, works with the browser permission model already native to PWAs |
-| Cadence | Immediate (per-task, driven by a 1-minute cron) | Daily digest | Explicit product decision — favors "act now" over batching |
-| `notifications` tenant scoping | None — user-scoped only | Space-scoped like most contexts | A push subscription is tied to a browser+user, not to which space happens to be active; forcing `spaceId` would require re-registering per space for no benefit |
-| Cross-context call | `INotifyDueCareSchedulePort` (care-schedule/application/ports) + `NotifyDueCareScheduleAdapter` (care-schedule/infrastructure/adapters) dispatching `SendPushNotificationCommand` via `CommandBus` | Direct import of `notifications` application/domain from `care-schedule` | Mandatory pattern per `openspec/config.yaml` rule 66 and the `harden-context-boundaries` ESLint rule — cross-context reads/writes only from the consumer's own `infrastructure/adapters/` |
-| `SendPushNotificationCommand` transport exposure | **None** — no REST/GraphQL/MCP tool; reachable only via internal `CommandBus.execute()` | Expose it like every other command (repo's default MCP-tool rule) | A user-triggerable "send an arbitrary push to any userId" endpoint is a real abuse vector (harassment, spam) with no legitimate product use case. The architecture skill already carves out a precedent exception for `auth` (credential/session/PII-sensitive contexts don't get blanket MCP exposure) — this is the same kind of explicit, documented exception, not an oversight |
-| Reminder de-duplication | New VO `lastNotifiedForDueAt` on `CareScheduleAggregate`, compared against `nextDueAt` | A separate "already notified" ledger/log table in `notifications` | Keeps the business rule ("don't remind twice for the same due date") inside the domain that owns the due-date concept (`care-schedule`), not leaked into the generic delivery mechanism. Mirrors how `lastCompletedAt`/`nextDueAt` already live on this aggregate |
-| Endpoint uniqueness | `endpoint` UNIQUE, register = upsert | Reject duplicate `endpoint` with a conflict error | A browser subscription endpoint is a stable identifier across logins/devices; upserting handles re-login and shared-device flows without extra client logic |
-| Delivery failure handling | Best-effort per subscription; catch `410`/`404` → self-unregister; other errors logged, not retried | Retry queue / dead-letter | Out of scope for v1 (explicit); matches the existing `try/catch`-and-log pattern around `careLogPort.recordCareLogEntry` |
-| Scheduler | `@nestjs/schedule` `@Cron(CronExpression.EVERY_MINUTE)`, single instance | A dedicated worker process / distributed lock | First scheduler in the codebase; production is single-instance today. Documented as a risk to revisit before horizontal scaling |
-| `findDueForReminder` query | Dedicated method on `ICareScheduleWriteRepository`, built with TypeORM `QueryBuilder`, NOT the mandatory `findByCriteria`/Criteria-pattern machinery | Add it as a `CareScheduleFindByCriteria` filter | The Criteria/`FilterFieldRegistry` pattern in `openspec/config.yaml` rule 58 is mandatory specifically for **`{context}sFindByCriteria` GraphQL/REST-facing queries** (client-choosable filters). This is an internal, fixed-shape query with no client input and no transport exposure — same category as `AssertCareScheduleExistsService`'s `findById` call, not a public find-by-criteria endpoint |
-| VAPID key transport | `web-push` npm package | AWS SNS, FCM SDK directly, OneSignal/third-party service | `web-push` talks to whichever push service the browser vendor uses (FCM, Mozilla autopush, etc.) using the standard Web Push protocol with only a VAPID key pair — zero third-party account/API-key dependency, matching the codebase's existing preference for direct external APIs (Open-Meteo has no key either) |
+| Detection mechanism | BullMQ delayed job, `jobId = careScheduleId`, `delay = nextDueAt - now` | `@Cron(EVERY_MINUTE)` polling scan (previous revision) | Explicit product decision — precise timing, zero polling, no `lastNotifiedForDueAt` bookkeeping in the domain |
+| Reconciliation safety net | **None** | A coarse (15–30 min) fallback cron re-scanning for due-but-unqueued schedules | Explicit product decision to go fully cron-free; accepted risk is a lost/stale reminder on a transient Redis failure at the exact moment a handler runs (see Risks) |
+| Cross-context transport | BullMQ queue (`push-notifications`), not `CommandBus.execute()` | Keep the synchronous CommandBus call from the previous revision | Once Redis is available, an async queue gives free retry/backoff on the *delivery* step and decouples `care-schedule`'s handler latency from `notifications`'s (and the push provider's) — a straightforward upgrade once the infra exists |
+| Job identity / replace semantics | `jobId = careScheduleId`; `scheduleReminder` always removes any existing job for that id before adding the new one | A separate "cancel" call before every "schedule" call from the handler side | Centralizes replace-safety in one adapter method — callers just say "this is now due at T," never need to reason about whether a previous job exists |
+| `notifications` tenant scoping | None — user-scoped only | Space-scoped like most contexts | Unchanged from the previous revision — a push subscription is tied to a browser+user, not a space |
+| `SendPushNotificationCommand` transport exposure | **None** via REST/GraphQL/MCP; reachable via `CommandBus` from the new BullMQ processor only | Expose it like every other command | Unchanged rationale from the previous revision — no legitimate client use case for "send an arbitrary push to any userId"; the processor is simply a new, still-internal caller |
+| Job payload shape | Plain, duck-typed object (`{ userId, title, body, url }`) — no cross-context TypeScript type import | Import `SendPushNotificationCommand`'s constructor type into `care-schedule`'s adapter | The queue is a message contract between two contexts, conceptually the same as a REST/GraphQL contract — no compile-time coupling needed, only convention. Keeps the "cross-context reach only from infrastructure/adapters" rule trivially true: the adapter needs zero imports from `@contexts/notifications` |
+| Queue registration | `push-notifications` queue registered (BullMQ `registerQueue`) in **both** `care-schedule.module.ts` (producer only) and `notifications.module.ts` (producer + `@Processor` consumer) | A single shared queue-registration module | Standard `@nestjs/bullmq` pattern — any module that injects `@InjectQueue(...)` must register that queue name locally; only one module needs to also declare the `@Processor` |
+| Redis connection config | One `BullModule.forRootAsync(...)` in `CoreModule`, reading `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD` | Per-module Redis config | Same pattern as `TypeOrmModule.forRootAsync` already in `CoreModule` — one global connection config, every `registerQueue` call reuses it |
+| Job cleanup | `defaultJobOptions: { removeOnComplete: true, removeOnFail: true }` on the queue | Keep completed/failed jobs around | A recurring schedule reuses the same `careScheduleId` as `jobId` for its next occurrence — the previous job must not linger and block reuse of that id |
+| VAPID key transport | `web-push` npm package | AWS SNS, FCM SDK directly, third-party push service | Unchanged from the previous revision |
 
-## `IPushSenderPort` / `INotifyDueCareSchedulePort` pattern
-
-```typescript
-// contexts/notifications/application/ports/push-sender.port.ts
-export const PUSH_SENDER_PORT = Symbol('PUSH_SENDER_PORT');
-
-export interface IPushSenderPort {
-  send(subscription: PushSubscriptionAggregate, payload: PushPayload): Promise<void>;
-}
-
-// contexts/notifications/application/ports/push-payload.interface.ts
-export interface PushPayload {
-  title: string;
-  body: string;
-  url?: string;
-}
-```
+## `IReminderSchedulerPort` pattern
 
 ```typescript
-// contexts/care-schedule/application/ports/notify-due-care-schedule.port.ts
-export const NOTIFY_DUE_CARE_SCHEDULE_PORT = Symbol('NOTIFY_DUE_CARE_SCHEDULE_PORT');
+// contexts/care-schedule/application/ports/reminder-scheduler.port.ts
+export const REMINDER_SCHEDULER_PORT = Symbol('REMINDER_SCHEDULER_PORT');
 
-export interface INotifyDueCareSchedulePort {
+export interface IReminderSchedulerPort {
   /**
-   * Notifies the schedule's owner that it is due. Implemented by an adapter
-   * that translates to the notifications context via the Command bus.
+   * Schedules (or replaces) a delayed reminder for this schedule, firing at
+   * `dueAt`. Implemented by an adapter that enqueues into the
+   * push-notifications BullMQ queue.
    */
-  notifyDue(input: NotifyDueCareScheduleInput): Promise<void>;
+  scheduleReminder(input: ScheduleReminderInput): Promise<void>;
+
+  /** Cancels any pending reminder job for this schedule, if one exists. */
+  cancelReminder(careScheduleId: string): Promise<void>;
 }
 
-// contexts/care-schedule/application/ports/notify-due-care-schedule.input.ts
-export interface NotifyDueCareScheduleInput {
-  userId: string;
+// contexts/care-schedule/application/ports/schedule-reminder.input.ts
+export interface ScheduleReminderInput {
   careScheduleId: string;
+  userId: string;
   plantId: string;
   activityType: string;
+  dueAt: Date;
 }
 ```
 
-`NotifyDueCareScheduleAdapter` (infrastructure/adapters/, mirrors
-`CareLogAdapter` exactly) builds a human-readable title/body from the input
-and dispatches:
-
 ```typescript
-await this.commandBus.execute(
-  new SendPushNotificationCommand({
-    userId: input.userId,
-    title: 'Time to take care of your plant',
-    body: `${input.activityType.toLowerCase()} is due`,
-    url: `/plants/${input.plantId}`,
-  }),
-);
+// contexts/care-schedule/infrastructure/adapters/reminder-queue.adapter.ts
+@Injectable()
+export class ReminderQueueAdapter implements IReminderSchedulerPort {
+  private readonly logger = new Logger(ReminderQueueAdapter.name);
+
+  constructor(
+    @InjectQueue('push-notifications') private readonly queue: Queue,
+  ) {}
+
+  async scheduleReminder(input: ScheduleReminderInput): Promise<void> {
+    const delay = Math.max(0, input.dueAt.getTime() - Date.now());
+    await this.cancelReminder(input.careScheduleId); // replace semantics
+    await this.queue.add(
+      'send',
+      {
+        userId: input.userId,
+        title: 'Time to take care of your plant',
+        body: `${input.activityType.toLowerCase()} is due`,
+        url: `/plants/${input.plantId}`,
+      },
+      { jobId: input.careScheduleId, delay },
+    );
+    this.logger.log(
+      `Scheduled reminder for care schedule ${input.careScheduleId} in ${delay}ms`,
+    );
+  }
+
+  async cancelReminder(careScheduleId: string): Promise<void> {
+    const existing = await this.queue.getJob(careScheduleId);
+    if (existing) await existing.remove();
+  }
+}
 ```
 
-Note the adapter file (and only this file) is allowed to import
-`@contexts/notifications/application/commands/send-push-notification/send-push-notification.command` —
-this is the one exception carved out by the "reaching another context is
-allowed exclusively from `infrastructure/adapters/`" rule.
+Note: this file needs **zero** imports from `@contexts/notifications` — the
+payload is a plain object matching the processor's expected shape by
+convention, not by shared type. This is a stronger form of decoupling than
+the previous CommandBus-based revision, which required the adapter to
+import and construct `SendPushNotificationCommand` directly.
+
+## Where each care-schedule handler calls the port
+
+| Handler | Call | Condition |
+|---------|------|-----------|
+| `CreateCareScheduleCommandHandler` | `scheduleReminder(...)` | Always, if the created schedule is `active` (the default) |
+| `CompleteCareScheduleCommandHandler` | `scheduleReminder(...)` with the **new** `nextDueAt` | If the schedule is still `active` after `complete()` (recurring) |
+| `CompleteCareScheduleCommandHandler` | `cancelReminder(...)` | If the schedule became inactive after `complete()` (one-time task, no interval) |
+| `UpdateCareScheduleCommandHandler` | `cancelReminder(...)` | `active` toggled `true → false` |
+| `UpdateCareScheduleCommandHandler` | `scheduleReminder(...)` with the current `nextDueAt` | `active` toggled `false → true` (if `nextDueAt` is already past, `delay` clamps to 0 — fires almost immediately, correctly "catching up" a reactivated overdue schedule) |
+| `DeleteCareScheduleCommandHandler` | `cancelReminder(...)` | Always, before or after removing the aggregate |
+
+Every call is wrapped in `try/catch` (mirrors the existing
+`recordCareLogEntry` pattern in `complete-care-schedule.handler.ts` exactly)
+— a Redis failure logs a warning/error and does not roll back or fail the
+authoritative Postgres write.
+
+## `PushNotificationsProcessor` (notifications, new transport)
+
+```typescript
+// contexts/notifications/transport/queues/push-notifications.processor.ts
+@Processor('push-notifications')
+export class PushNotificationsProcessor extends WorkerHost {
+  private readonly logger = new Logger(PushNotificationsProcessor.name);
+
+  constructor(private readonly commandBus: CommandBus) {
+    super();
+  }
+
+  async process(job: Job): Promise<void> {
+    this.logger.log(`Processing push job ${job.id} for user ${job.data.userId}`);
+    await this.commandBus.execute(
+      new SendPushNotificationCommand({
+        userId: job.data.userId,
+        title: job.data.title,
+        body: job.data.body,
+        url: job.data.url,
+      }),
+    );
+  }
+}
+```
+
+This is the one legitimate internal caller of `SendPushNotificationCommand`
+besides the command itself being dispatched programmatically — it lives
+under `transport/queues/`, a new sibling to `transport/rest/`,
+`transport/graphql/`, `transport/mcp/`, all of which this command
+deliberately has none of.
 
 ## Data Flow
 
 ```
-Every 1 min:
-DueCareRemindersScheduler (@Cron)
-  └─> CommandBus.execute(DispatchDueCareRemindersCommand)
-        └─> DispatchDueCareRemindersHandler
-              ├─> careScheduleWriteRepository.findDueForReminder(now)
-              │     WHERE active = true AND next_due_at <= now
-              │       AND (last_notified_for_due_at IS NULL
-              │            OR last_notified_for_due_at < next_due_at)
-              └─> for each due schedule (best-effort, one failure ≠ abort loop):
-                    ├─> notifyDueCareSchedulePort.notifyDue({...})
-                    │     └─> NotifyDueCareScheduleAdapter
-                    │           └─> CommandBus.execute(SendPushNotificationCommand)
-                    │                 └─> SendPushNotificationHandler (notifications)
-                    │                       ├─> pushSubscriptionReadRepository.findByUserId(userId)
-                    │                       └─> for each subscription:
-                    │                             pushSenderPort.send(subscription, payload)
-                    │                               └─> WebPushAdapter → web-push library → browser push service
-                    │                                     on 404/410 → CommandBus.execute(UnregisterPushSubscriptionCommand)
-                    ├─> schedule.markReminderSent(schedule.nextDueAt.value)
-                    └─> careScheduleWriteRepository.save(schedule)
+CreateCareSchedule / CompleteCareSchedule / UpdateCareSchedule (active) / DeleteCareSchedule
+  └─> (best-effort, try/catch) reminderSchedulerPort.scheduleReminder(...) / .cancelReminder(...)
+        └─> ReminderQueueAdapter
+              └─> queue.getJob(careScheduleId)?.remove()   // replace semantics
+              └─> queue.add('send', payload, { jobId: careScheduleId, delay })
+
+... Redis holds the delayed job until `delay` elapses ...
+
+PushNotificationsProcessor (notifications, BullMQ @Processor)
+  └─> CommandBus.execute(SendPushNotificationCommand)
+        └─> SendPushNotificationHandler
+              ├─> pushSubscriptionReadRepository.findByUserId(userId)
+              └─> for each subscription (best-effort per subscription):
+                    pushSenderPort.send(subscription, payload)
+                      └─> WebPushAdapter → web-push library → browser push service
+                            on 404/410 → CommandBus.execute(UnregisterPushSubscriptionCommand)
 ```
 
-Register/unregister flow (REST/GraphQL/MCP, `@SkipSpace()` + `JwtAuthGuard`):
-
-```
-POST /push-subscriptions  (@CurrentUser → userId)
-  └─> CommandBus.execute(RegisterPushSubscriptionCommand)
-        └─> upsert by endpoint: update userId/keys if exists, else create
-```
+Register/unregister flow (REST/GraphQL/MCP, `@SkipSpace()` + `JwtAuthGuard`)
+is unchanged from the previous revision.
 
 ## File Changes
 
-### `notifications` (new context, ≈32 files)
+### `notifications` (new context)
+
+Same file tree as the previous revision (see git history if needed), **plus**:
 
 ```
-domain/
-  aggregates/push-subscription.aggregate.ts
-  builders/push-subscription.builder.ts
-  events/push-subscription-registered/push-subscription-registered.event.ts
-  events/push-subscription-unregistered/push-subscription-unregistered.event.ts
-  events/interfaces/push-subscription-event-data.interface.ts
-  exceptions/push-subscription-not-found.exception.ts        # 404
-  interfaces/push-subscription.interface.ts
-  primitives/push-subscription.primitives.ts
-  repositories/read/push-subscription-read.repository.ts     # + findByUserId(userId)
-  repositories/write/push-subscription-write.repository.ts   # + findByEndpoint(endpoint)
-  value-objects/push-subscription-id/push-subscription-id.value-object.ts
-  value-objects/push-subscription-endpoint/push-subscription-endpoint.value-object.ts
-  value-objects/push-subscription-p256dh/push-subscription-p256dh.value-object.ts
-  value-objects/push-subscription-auth/push-subscription-auth.value-object.ts
-  view-models/push-subscription.view-model.ts
-application/
-  commands/register-push-subscription/register-push-subscription.command.ts
-  commands/register-push-subscription/register-push-subscription.handler.ts
-  commands/unregister-push-subscription/unregister-push-subscription.command.ts
-  commands/unregister-push-subscription/unregister-push-subscription.handler.ts
-  commands/send-push-notification/send-push-notification.command.ts
-  commands/send-push-notification/send-push-notification.handler.ts
-  ports/push-sender.port.ts
-  ports/push-payload.interface.ts
-infrastructure/
-  persistence/typeorm/entities/push-subscription.entity.ts
-  persistence/typeorm/mappers/push-subscription-typeorm.mapper.ts
-  persistence/typeorm/repositories/push-subscription-typeorm-write.repository.ts
-  persistence/typeorm/repositories/push-subscription-typeorm-read.repository.ts
-  adapters/web-push.adapter.ts
 transport/
-  rest/dtos/register-push-subscription.dto.ts
-  rest/dtos/push-subscription-rest-response.dto.ts
-  rest/controllers/push-subscriptions.controller.ts
-  graphql/dtos/requests/register-push-subscription-graphql.dto.ts
-  graphql/dtos/responses/push-subscription.response.dto.ts
-  graphql/resolvers/push-subscription-mutations.resolver.ts
-  graphql/mappers/push-subscription.mapper.ts
-  mcp/schemas/push-subscription-register.schema.ts
-  mcp/schemas/push-subscription-unregister.schema.ts
-  mcp/tools/push-subscription-register.tool.ts
-  mcp/tools/push-subscription-unregister.tool.ts
-notifications.module.ts
-README.md
+  queues/push-notifications.processor.ts     # NEW
+notifications.module.ts                       # MODIFIED: BullModule.registerQueue + processor provider
 ```
 
-Note: no `update-push-subscription` — a subscription is immutable once
-registered (re-registering the same endpoint is the upsert path). No public
-`find` query — the only reader is `SendPushNotificationHandler` internally
-via the write repository's own lookup, so no read-side transport is needed
-in v1.
-
-### `care-schedule` (modified, ≈10 files)
+### `care-schedule` (modified)
 
 ```
-domain/
-  value-objects/care-schedule-last-notified-for-due-at/care-schedule-last-notified-for-due-at.value-object.ts   # New
-  aggregates/care-schedule.aggregate.ts                # Modified: + markReminderSent()
-  interfaces/care-schedule.interface.ts                # Modified: + lastNotifiedForDueAt
-  primitives/care-schedule.primitives.ts                # Modified: + lastNotifiedForDueAt
-  builders/care-schedule.builder.ts                     # Modified: + withLastNotifiedForDueAt
-  repositories/write/care-schedule-write.repository.ts  # Modified: + findDueForReminder(now)
 application/
-  ports/notify-due-care-schedule.port.ts                # New
-  ports/notify-due-care-schedule.input.ts                # New
-  commands/dispatch-due-care-reminders/dispatch-due-care-reminders.command.ts   # New
-  commands/dispatch-due-care-reminders/dispatch-due-care-reminders.handler.ts   # New
+  ports/reminder-scheduler.port.ts             # NEW (replaces notify-due-care-schedule.port.ts)
+  ports/schedule-reminder.input.ts              # NEW
+  commands/create-care-schedule/create-care-schedule.handler.ts     # MODIFIED
+  commands/complete-care-schedule/complete-care-schedule.handler.ts # MODIFIED
+  commands/update-care-schedule/update-care-schedule.handler.ts     # MODIFIED
+  commands/delete-care-schedule/delete-care-schedule.handler.ts     # MODIFIED
 infrastructure/
-  adapters/notify-due-care-schedule.adapter.ts           # New
-  schedulers/due-care-reminders.scheduler.ts             # New
-  persistence/typeorm/entities/care-schedule.entity.ts   # Modified: + last_notified_for_due_at
-  persistence/typeorm/mappers/care-schedule-typeorm.mapper.ts   # Modified
-  persistence/typeorm/repositories/care-schedule-typeorm-write.repository.ts   # Modified: findDueForReminder impl
-care-schedule.module.ts                                  # Modified: wire new provider + adapter
+  adapters/reminder-queue.adapter.ts            # NEW (replaces notify-due-care-schedule.adapter.ts)
+care-schedule.module.ts                         # MODIFIED: BullModule.registerQueue (producer) + adapter binding
 ```
+
+No domain, entity, mapper, or repository changes in `care-schedule` — this
+revision touches only `application/` (4 handlers + 1 port + 1 input type)
+and `infrastructure/adapters/` (1 new adapter) plus module wiring.
 
 | File | Action | Description |
-|------|--------|-------------|
+|------|--------|--------------|
 | `src/database/migrations/1780000000026-CreatePushSubscriptions.ts` | Create | `push_subscriptions` table + unique index on `endpoint` + index on `user_id` |
-| `src/database/migrations/1780000000027-AddLastNotifiedForDueAtToCareSchedules.ts` | Create | Nullable `last_notified_for_due_at` timestamptz column on `care_schedules` |
-| `src/core/config/env.validation.ts` | Modify | `WEB_PUSH_VAPID_PUBLIC_KEY`, `WEB_PUSH_VAPID_PRIVATE_KEY`, `WEB_PUSH_VAPID_SUBJECT` (required, non-empty) |
-| `src/core/core.module.ts` | Modify | Add `ScheduleModule.forRoot()` to `CORE_MODULES` |
+| `src/core/config/env.validation.ts` | Modify | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `WEB_PUSH_VAPID_PUBLIC_KEY`, `WEB_PUSH_VAPID_PRIVATE_KEY`, `WEB_PUSH_VAPID_SUBJECT` |
+| `src/core/core.module.ts` | Modify | Add `BullModule.forRootAsync(...)` to `CORE_MODULES` |
 | `src/app.module.ts` | Modify | Register `NotificationsModule` |
-| `src/contexts/notifications/README.md` | Create | Context walkthrough (auth README as template) |
-| `src/contexts/care-schedule/README.md` | Modify | Document the new port/adapter/cron |
+| `docker-compose.yml` | Modify | Add `redis` service (`redis:7-alpine`, port `6379`) |
+| `docker-compose.test.yml` | Modify | Add `redis-test` service for integration tests |
+| `src/contexts/notifications/README.md` | Create | Context walkthrough incl. the queue-based processor |
+| `src/contexts/care-schedule/README.md` | Modify | Document the new port/adapter/queue interaction |
 
 ## Interfaces / Contracts
 
@@ -226,93 +251,68 @@ export interface IPushSubscriptionWriteRepository
   findByEndpoint(endpoint: string): Promise<PushSubscriptionAggregate | null>;
   findByUserId(userId: string): Promise<PushSubscriptionAggregate[]>;
 }
-
-// domain/repositories/write/care-schedule-write.repository.ts (extended)
-export interface ICareScheduleWriteRepository
-  extends IBaseWriteRepository<CareScheduleAggregate> {
-  findDueForReminder(now: Date): Promise<CareScheduleAggregate[]>;
-}
 ```
 
-**`push_subscriptions` entity columns**: `id` (uuid pk), `user_id` (uuid,
-indexed, NOT NULL), `endpoint` (text, UNIQUE, NOT NULL), `p256dh` (varchar
-255, NOT NULL), `auth` (varchar 255, NOT NULL), `user_agent` (varchar 512,
-NULL), `created_at`, `updated_at`. No `space_id` — deliberately not
-tenant-scoped.
+(`care-schedule`'s write repository is unchanged in this revision — no
+`findDueForReminder` anymore.)
 
-**`care_schedules` column addition**: `last_notified_for_due_at` (timestamptz,
-NULL).
+**`push_subscriptions` entity columns**: unchanged from the previous
+revision — `id` (uuid pk), `user_id` (uuid, indexed), `endpoint` (text,
+UNIQUE), `p256dh` (varchar 255), `auth` (varchar 255), `user_agent` (varchar
+512, NULL), `created_at`, `updated_at`. No `space_id`.
 
-**`CareScheduleAggregate.markReminderSent(notifiedAt: Date)`**: sets
-`_lastNotifiedForDueAt = new CareScheduleLastNotifiedForDueAtValueObject(notifiedAt)`,
-calls `touch()`. Does NOT emit a domain event — this is bookkeeping state, not
-a business-meaningful transition (mirrors `SpaceAggregate.setGeolocation()`'s
-precedent of a plain mutator with no event when the change is purely
-technical bookkeeping, not a user-facing fact).
+**`RegisterPushSubscriptionCommand` handler**: unchanged — upsert by
+`endpoint`.
 
-**`RegisterPushSubscriptionCommand` handler**: looks up by `endpoint` via
-`findByEndpoint`; if found, updates `userId`/`p256dh`/`auth`/`userAgent` and
-saves (no `PushSubscriptionRegistered` re-emit on update path — only on
-create); if not found, builds + saves + emits
-`PushSubscriptionRegisteredEvent`.
-
-**`SendPushNotificationCommand` handler**: `findByUserId(userId)` — if empty,
-no-op (user has no subscriptions, not an error); otherwise iterate and call
-`pushSenderPort.send()` per subscription inside a `try/catch`, logging and
-continuing on failure; on an error carrying `statusCode` 404 or 410, dispatch
-`UnregisterPushSubscriptionCommand({ id: subscription.id.value })` via
-`CommandBus` before continuing the loop.
-
-**`DispatchDueCareRemindersCommand` handler**: no input fields (parameterless
-command triggered purely by the cron). For each due schedule, wrap the
-`notifyDueCareSchedulePort.notifyDue()` call in `try/catch` (mirrors
-`complete-care-schedule.handler.ts`'s `recordCareLogEntry` pattern exactly) —
-a notification failure must not stop `markReminderSent()`/`save()` for that
-schedule (otherwise a permanently-undeliverable schedule would retry every
-minute forever) nor abort the loop over the remaining due schedules.
+**`SendPushNotificationCommand` handler**: unchanged — best-effort per
+subscription, self-unregisters on `404`/`410`.
 
 ## Testing Strategy
 
 | Layer | What | Approach |
 |-------|------|----------|
-| Unit | `push-subscription.aggregate.spec.ts`: `create()`/`delete()` events; VO validation (`endpoint`/`p256dh`/`auth` non-empty) | Jest |
-| Unit | `register-push-subscription.handler.spec.ts`: create path emits event; existing-endpoint path updates without re-emitting create event | Jest, `jest.Mocked<T>` |
-| Unit | `send-push-notification.handler.spec.ts`: no subscriptions → no-op; multiple subscriptions → all attempted even if one throws; 410 response → dispatches unregister | Jest |
-| Unit | `web-push.adapter.spec.ts`: maps `web-push` library errors' `statusCode` correctly; happy path calls `webpush.sendNotification` with VAPID details | Jest, mock `web-push` module |
-| Unit | `care-schedule.aggregate.spec.ts` (extended): `markReminderSent()` sets the VO and does not emit an event | Jest |
-| Unit | `dispatch-due-care-reminders.handler.spec.ts`: notifies each due schedule and marks it; one schedule's notify failure does not prevent the next schedule from being processed or from being marked | Jest |
-| Unit | `care-schedule-last-notified-for-due-at.value-object.spec.ts`: wraps a `Date`, nullable usage | Jest |
-| Integration | `push-subscription-typeorm-write.repository.integration-spec.ts`: `findByEndpoint` round-trip; unique constraint on `endpoint`; `findByUserId` scoping | Test DB |
-| Integration | `care-schedule-typeorm-write.repository.integration-spec.ts` (extended): `findDueForReminder` returns only active + due + not-yet-notified schedules; excludes future `nextDueAt`; excludes already-notified-for-this-due-date | Test DB |
-| E2E | `push-subscriptions-rest.e2e-spec.ts`: register/unregister behind `JwtAuthGuard` only (no `X-Space-ID` needed); re-registering same endpoint upserts | supertest |
-| E2E | `push-subscriptions-graphql.e2e-spec.ts`: same via GraphQL | supertest |
-| Static | `notifications-no-cross-context-import.spec.ts`: no import from any other `@contexts/` | Jest source scan |
-| Static | `send-push-notification-not-exposed.spec.ts`: scans `notifications/transport/**` (REST controllers, GraphQL resolvers, MCP tools) and asserts none reference `SendPushNotificationCommand` | Jest source scan |
-| Static | `care-schedule-no-cross-context-import.spec.ts` (existing, extended if needed): confirms `@contexts/notifications` appears only under `care-schedule/infrastructure/adapters/` | Jest source scan |
+| Unit | `reminder-queue.adapter.spec.ts`: `scheduleReminder` removes an existing job before adding; computes `delay` correctly (including clamping a past `dueAt` to `0`); `cancelReminder` no-ops when no job exists | Jest, mock BullMQ `Queue` (`jest.Mocked<Queue>`) |
+| Unit | `create-care-schedule.handler.spec.ts` (extend): calls `scheduleReminder` after a successful create; a `scheduleReminder` failure does not prevent the create from succeeding | Jest |
+| Unit | `complete-care-schedule.handler.spec.ts` (extend): recurring completion calls `scheduleReminder` with the new `nextDueAt`; one-time completion calls `cancelReminder` instead | Jest |
+| Unit | `update-care-schedule.handler.spec.ts` (extend): `active` `true→false` calls `cancelReminder`; `false→true` calls `scheduleReminder`; no `active` change calls neither | Jest |
+| Unit | `delete-care-schedule.handler.spec.ts` (extend): calls `cancelReminder` | Jest |
+| Unit | `push-notifications.processor.spec.ts`: `process(job)` dispatches `SendPushNotificationCommand` with the job's data | Jest, mock `CommandBus` |
+| Unit | `push-subscription.aggregate.spec.ts`, `register-push-subscription.handler.spec.ts`, `send-push-notification.handler.spec.ts`, `web-push.adapter.spec.ts` | Unchanged from the previous revision |
+| Integration | `reminder-queue.adapter.integration-spec.ts`: against a real Redis (docker-compose), a job scheduled with a short delay actually becomes available after that delay; replacing a job by id leaves exactly one job for that id | Real Redis |
+| Integration | `push-subscription-typeorm-write.repository.integration-spec.ts` | Unchanged |
+| E2E | `push-subscriptions-rest.e2e-spec.ts`, `push-subscriptions-graphql.e2e-spec.ts` | Unchanged |
+| E2E | `care-schedule-reminders.e2e-spec.ts` (new): creating a schedule with a `nextDueAt` a few seconds in the future results in a job appearing in the `push-notifications` queue with the right `jobId`/`delay`; completing it early removes/replaces that job | Real Redis + Postgres |
+| Static | `notifications-no-cross-context-import.spec.ts` | Unchanged |
+| Static | `send-push-notification-not-exposed.spec.ts`: scans `notifications/transport/rest/**`, `transport/graphql/**`, `transport/mcp/**` (explicitly excluding `transport/queues/**`, the processor's legitimate location) for references to `SendPushNotificationCommand` | Jest source scan |
+| Static | `care-schedule-no-cross-context-import.spec.ts` (extend): `@contexts/notifications` imports appear only under `care-schedule/infrastructure/adapters/` — note this assertion is now moot in practice since the adapter imports nothing from `@contexts/notifications` at all (see Architecture Decisions), but the test still guards against a future regression that *does* add such an import | Jest source scan |
 
 ## Migration / Rollout
 
-Two additive migrations, applied in order
-(`1780000000026` before `1780000000027`, though they touch different tables
-and have no ordering dependency between each other). Both `down()` methods
-fully revert (drop table / drop column). No backfill needed —
-`last_notified_for_due_at` defaults to `NULL`, meaning every existing active
-overdue schedule becomes immediately eligible for a reminder the first time
-the cron runs after deploy. This is the desired behavior (nothing was ever
-notified before this change existed).
+One additive migration (`push_subscriptions`), unchanged from the previous
+revision. No `care-schedule` schema change in this revision — nothing to
+migrate there. `BullModule.forRootAsync(...)` is registered once, globally,
+in `CoreModule`; any future context needing a queue registers it locally via
+`BullModule.registerQueue(...)`.
 
-`ScheduleModule.forRoot()` is registered once, globally, in `CoreModule` —
-any future context needing a `@Cron` job does not need to re-register it.
+**Rollout ordering**: Redis must be reachable (env vars set, service up)
+before this deploys — `BullModule.forRootAsync` will fail fast at boot
+otherwise, same as the existing Postgres connection does today.
 
 ## Open Questions
 
-- **Browser support caveat** (not blocking this backend change, flagged for
-  the web-side proposal): Web Push requires a registered Service Worker and
-  is unsupported or restricted on some browser/OS combinations (notably iOS
-  Safari requires the site to be installed as a Home Screen PWA before push
-  works at all). This is purely a frontend concern and does not affect this
-  change's API contract.
-- **VAPID key rotation**: not addressed in v1 — rotating the key pair would
-  invalidate all existing subscriptions (every browser would need to
-  re-subscribe). Acceptable for a first version; flagged as future work if
-  key rotation becomes necessary.
+- **No reconciliation safety net, by explicit decision.** Flagged here again
+  (also in proposal.md's Risks) because it is the single biggest behavioural
+  difference from a "fully professional" production system: real-world
+  systems combining precise delayed jobs typically pair them with a coarse
+  periodic reconciliation pass specifically to catch lost enqueues. This
+  change deliberately ships without one. If reminder reliability issues
+  surface in practice, the cheapest fix is a low-frequency (e.g. every 30
+  min) job that queries `active` schedules with `nextDueAt` in the past and
+  no corresponding job in the queue (`queue.getJob(id)` returns `undefined`),
+  re-enqueueing those — this can be added later without touching anything
+  else in this design.
+- **Browser support caveat** (frontend concern, unchanged from the previous
+  revision): iOS Safari requires the site installed as a Home Screen PWA
+  before Web Push works at all.
+- **VAPID key rotation**: not addressed in v1, unchanged from the previous
+  revision.

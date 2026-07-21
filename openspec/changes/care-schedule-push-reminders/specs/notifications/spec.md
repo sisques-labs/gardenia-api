@@ -1,7 +1,13 @@
 # Notifications — Web Push subscriptions and delivery
 
-**Source change:** care-schedule-push-reminders
+**Source change:** care-schedule-push-reminders (revision 2 — Redis/BullMQ, no cron)
 **Created:** 2026-07-21
+
+> Revision note: `SendPushNotificationCommand`'s only internal caller is now
+> the `push-notifications` BullMQ processor (see the new Requirement below),
+> instead of a cron-driven command handler in `care-schedule`. Its own rules
+> (internal-only, best-effort per subscription, self-unregister on
+> `404`/`410`) are unchanged.
 
 ---
 
@@ -119,8 +125,10 @@ If delivery to a subscription fails with an HTTP status of `404` or `410`
 MUST be logged and skipped, without unregistering.
 
 This command MUST NOT be reachable via REST, GraphQL, or any MCP tool. It is
-reachable exclusively via internal `CommandBus.execute()` calls from other
-bounded contexts' `infrastructure/adapters/`.
+reachable exclusively via internal `CommandBus.execute()` calls — in
+practice, exactly one caller: `PushNotificationsProcessor`
+(`transport/queues/push-notifications.processor.ts`), consuming the
+`push-notifications` BullMQ queue.
 
 #### Scenario: Delivers to all subscriptions
 
@@ -148,9 +156,46 @@ bounded contexts' `infrastructure/adapters/`.
 
 #### Scenario: No transport exposure
 
-- GIVEN the source tree under `src/contexts/notifications/transport/`
+- GIVEN the source tree under `src/contexts/notifications/transport/rest/`, `transport/graphql/`, and `transport/mcp/` (explicitly excluding `transport/queues/`)
 - WHEN scanned for references to `SendPushNotificationCommand`
 - THEN no REST controller, GraphQL resolver, or MCP tool references it
+
+---
+
+### Requirement: Push Notifications Queue (BullMQ)
+
+The system MUST register a `push-notifications` BullMQ queue with
+`removeOnComplete: true` and `removeOnFail: true` default job options (so a
+recurring producer can safely reuse the same `jobId` for a schedule's next
+occurrence once the previous job is done).
+
+A `PushNotificationsProcessor` MUST consume this queue and, for each job,
+dispatch `SendPushNotificationCommand` via `CommandBus` with the job's
+`userId`, `title`, `body`, and `url` data.
+
+If `SendPushNotificationCommand`'s dispatch itself throws (as opposed to a
+single subscription's delivery failing, which the command's own handler
+already absorbs), the processor MUST let the error propagate so BullMQ's job
+retry policy applies — this is the one place actual retry/backoff exists in
+this system, and it did not exist in the previous cron-based revision.
+
+#### Scenario: Job triggers delivery
+
+- GIVEN a job on the `push-notifications` queue with `{ userId, title, body, url }`
+- WHEN the processor consumes it
+- THEN `SendPushNotificationCommand` is dispatched with that data
+
+#### Scenario: Job id reuse after completion
+
+- GIVEN a completed job with `jobId = X`
+- WHEN a new job is added with the same `jobId = X`
+- THEN it succeeds (the completed job was removed per `removeOnComplete`)
+
+#### Scenario: Unexpected processor failure is retried by BullMQ
+
+- GIVEN `CommandBus.execute` throws for reasons other than a single subscription's delivery failure
+- WHEN the processor's `process()` re-throws
+- THEN BullMQ applies its configured retry/backoff to that job
 
 ---
 
@@ -197,5 +242,9 @@ context's `domain`, `application`, or `transport`.
 - Email or any non-push channel.
 - Per-user notification preferences, quiet hours, opt-out granularity.
 - A public "list my subscriptions" query.
-- Retry/backoff for failed deliveries.
+- Retry/backoff *tuning* beyond BullMQ's defaults (per-subscription delivery
+  failures are still absorbed by the handler, not retried — only an
+  unexpected processor-level failure benefits from BullMQ's job retry).
+- A reconciliation job for lost/stale reminder jobs (owned by the paired
+  `care-schedule` delta spec's Out of Scope, not this one).
 - VAPID key rotation tooling.
