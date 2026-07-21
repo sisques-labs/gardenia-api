@@ -8,6 +8,10 @@ import { SendPushNotificationCommandHandler } from '@contexts/notifications/appl
 import { UnregisterPushSubscriptionCommandHandler } from '@contexts/notifications/application/commands/unregister-push-subscription/unregister-push-subscription.handler';
 import { PUSH_SENDER_PORT } from '@contexts/notifications/application/ports/push-sender.port';
 import { AssertPushSubscriptionExistsService } from '@contexts/notifications/application/services/write/assert-push-subscription-exists/assert-push-subscription-exists.service';
+import { CreatePushSubscriptionService } from '@contexts/notifications/application/services/write/create-push-subscription/create-push-subscription.service';
+import { DeliverPushToSubscriptionService } from '@contexts/notifications/application/services/write/deliver-push-to-subscription/deliver-push-to-subscription.service';
+import { FindPushSubscriptionsForUserService } from '@contexts/notifications/application/services/write/find-push-subscriptions-for-user/find-push-subscriptions-for-user.service';
+import { ReassignPushSubscriptionService } from '@contexts/notifications/application/services/write/reassign-push-subscription/reassign-push-subscription.service';
 import { PushSubscriptionBuilder } from '@contexts/notifications/domain/builders/push-subscription.builder';
 import { PUSH_SUBSCRIPTION_READ_REPOSITORY } from '@contexts/notifications/domain/repositories/read/push-subscription-read.repository';
 import { PUSH_SUBSCRIPTION_WRITE_REPOSITORY } from '@contexts/notifications/domain/repositories/write/push-subscription-write.repository';
@@ -33,7 +37,13 @@ const COMMAND_HANDLERS = [
 
 const DOMAIN_BUILDERS = [PushSubscriptionBuilder];
 
-const APPLICATION_SERVICES = [AssertPushSubscriptionExistsService];
+const APPLICATION_SERVICES = [
+  AssertPushSubscriptionExistsService,
+  ReassignPushSubscriptionService,
+  CreatePushSubscriptionService,
+  FindPushSubscriptionsForUserService,
+  DeliverPushToSubscriptionService,
+];
 
 const INFRASTRUCTURE_MAPPERS = [PushSubscriptionTypeOrmMapper];
 

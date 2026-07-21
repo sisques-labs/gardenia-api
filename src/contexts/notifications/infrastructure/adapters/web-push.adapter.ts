@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as webpush from 'web-push';
 
 import { IPushSenderPort } from '@contexts/notifications/application/ports/push-sender.port';
-import { PushPayload } from '@contexts/notifications/application/ports/push-payload.interface';
+import { PushPayload } from '@contexts/notifications/application/ports/interfaces/push-payload.interface';
 import { PushSubscriptionAggregate } from '@contexts/notifications/domain/aggregates/push-subscription.aggregate';
 
 @Injectable()
