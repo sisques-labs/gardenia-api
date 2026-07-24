@@ -41,7 +41,10 @@ ENV HUSKY=0
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/dist ./dist
 
-RUN mkdir -p logs && chown node:node logs
+# npm isn't needed at runtime (only pnpm is used during build) — dropping it
+# removes the CVEs that ride along with npm's bundled dependencies (e.g. tar).
+RUN mkdir -p logs && chown node:node logs \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 USER node
 EXPOSE 3000

@@ -28,6 +28,7 @@ export const AGGREGATE_MODULE_MAP: Readonly<Record<string, string>> = {
   PlantingSpotAggregate: 'planting-spots',
   PlantingSpotPlantAggregate: 'planting-spots',
   PlantingSpotQrAggregate: 'planting-spots',
+  PushSubscriptionAggregate: 'notifications',
   QrAggregate: 'qr',
   SpaceAggregate: 'spaces',
   SpaceInvitationAggregate: 'spaces',
