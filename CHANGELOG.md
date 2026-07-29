@@ -1,6 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.8] - 2026-07-29
+
+### Bug Fixes
+- **deps:** Update dependency graphql-query-complexity to v2 (ccda401)
+
+### Chore
+- **deps:** Update dependency prettier to v3.9.6 (8d18fac)
+- **deps:** Update dependency @aws-sdk/client-s3 to v3.1096.0 (42b8e90)
+- **deps:** Update dependency ts-jest to v29.4.12 (#422) (7c4d66e)
+- **deps:** Update dependency @typescript-eslint/eslint-plugin to v8.65.0 (#426) (608ce84)
+- **deps:** Update dependency @typescript-eslint/parser to v8.65.0 (#427) (c88f515)
+- **deps:** Update dependency eslint-plugin-boundaries to v7.1.0 (#428) (dbc6ed3)
+- **deps:** Update dependency lint-staged to v17.2.0 (7cf5bb4)
 ## [0.27.7] - 2026-07-28
 
 ### Bug Fixes
