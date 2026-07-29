@@ -1,4 +1,4 @@
-import * as request from 'supertest';
+import request from 'supertest';
 
 import { createE2EApp, E2EContext } from '../../helpers/app-bootstrap';
 import { truncateAll } from '../../helpers/db-reset';
