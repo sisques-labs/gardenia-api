@@ -1,6 +1,6 @@
 {
   "name": "sisques-labs/gardenia-api",
-  "version": "0.27.6",
+  "version": "0.27.7",
   "description": "Garden & plant manager API",
   "author": "Sisques Labs",
   "repository": {
@@ -72,7 +72,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "graphql": "^17.0.0",
-    "graphql-query-complexity": "^1.1.1",
+    "graphql-query-complexity": "^2.0.0",
     "kafkajs": "^2.2.4",
     "nest-winston": "^1.10.2",
     "passport": "^0.7.0",
