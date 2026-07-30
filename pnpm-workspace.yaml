@@ -1,0 +1,9 @@
+allowBuilds:
+  '@apollo/protobufjs': false
+  '@scarf/scarf': false
+  '@sentry/node-cpu-profiler': false
+  bcrypt: false
+  cpu-features: false
+  protobufjs: false
+  ssh2: false
+  unrs-resolver: false
