@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.9] - 2026-07-30
+
+### Bug Fixes
+- **ci:** Copy pnpm-workspace.yaml into docker build context (32fe329)
+- **ci:** Fix E2E build under TypeScript 6 (supertest namespace import) (0d00560)
+
+### Chore
+- Migrate to pnpm 11 and TypeScript 6 (71f03c5)
+
+### Refactor
+- Use a plain default import for cookie-parser instead of require() (47e6246)
 ## [0.27.8] - 2026-07-29
 
 ### Bug Fixes
