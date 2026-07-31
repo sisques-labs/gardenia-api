@@ -1,6 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 
 import { ICareLogPort } from '@contexts/care-schedule/application/ports/care-log.port';
+import { IReminderSchedulerPort } from '@contexts/care-schedule/application/ports/reminder-scheduler.port';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
@@ -14,6 +15,7 @@ describe('CompleteCareScheduleCommandHandler', () => {
   let mockEventBus: jest.Mocked<EventBus>;
   let mockAssert: jest.Mocked<AssertCareScheduleExistsService>;
   let mockCareLogPort: jest.Mocked<ICareLogPort>;
+  let mockReminderSchedulerPort: jest.Mocked<IReminderSchedulerPort>;
 
   function buildSchedule(intervalDays: number | null = 3) {
     const now = new Date('2026-06-27T00:00:00.000Z');
@@ -51,10 +53,16 @@ describe('CompleteCareScheduleCommandHandler', () => {
       recordCareLogEntry: jest.fn().mockResolvedValue(undefined),
     } as jest.Mocked<ICareLogPort>;
 
+    mockReminderSchedulerPort = {
+      scheduleReminder: jest.fn().mockResolvedValue(undefined),
+      cancelReminder: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<IReminderSchedulerPort>;
+
     handler = new CompleteCareScheduleCommandHandler(
       mockWriteRepo,
       mockAssert,
       mockCareLogPort,
+      mockReminderSchedulerPort,
       mockEventBus,
     );
   });
@@ -130,5 +138,57 @@ describe('CompleteCareScheduleCommandHandler', () => {
       ),
     ).resolves.toBeUndefined();
     expect(mockWriteRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('reschedules the reminder with the new due date for a recurring schedule', async () => {
+    const schedule = buildSchedule();
+    mockAssert.execute.mockResolvedValue(schedule);
+
+    await handler.execute(
+      new CompleteCareScheduleCommand({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        completedAt: new Date('2026-06-27T00:00:00.000Z'),
+      }),
+    );
+
+    expect(mockReminderSchedulerPort.scheduleReminder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        careScheduleId: '550e8400-e29b-41d4-a716-446655440000',
+        dueAt: new Date('2026-06-30T00:00:00.000Z'),
+      }),
+    );
+    expect(mockReminderSchedulerPort.cancelReminder).not.toHaveBeenCalled();
+  });
+
+  it('cancels the reminder for a one-time schedule completion', async () => {
+    const schedule = buildSchedule(null);
+    mockAssert.execute.mockResolvedValue(schedule);
+
+    await handler.execute(
+      new CompleteCareScheduleCommand({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+      }),
+    );
+
+    expect(mockReminderSchedulerPort.cancelReminder).toHaveBeenCalledWith(
+      '550e8400-e29b-41d4-a716-446655440000',
+    );
+    expect(mockReminderSchedulerPort.scheduleReminder).not.toHaveBeenCalled();
+  });
+
+  it('does not fail completion when reminder rescheduling throws', async () => {
+    const schedule = buildSchedule();
+    mockAssert.execute.mockResolvedValue(schedule);
+    mockReminderSchedulerPort.scheduleReminder.mockRejectedValue(
+      new Error('redis down'),
+    );
+
+    await expect(
+      handler.execute(
+        new CompleteCareScheduleCommand({
+          id: '550e8400-e29b-41d4-a716-446655440000',
+        }),
+      ),
+    ).resolves.toBeUndefined();
   });
 });
