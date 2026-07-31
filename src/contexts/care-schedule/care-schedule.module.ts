@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,10 +11,12 @@ import { WaterPlantCommandHandler } from '@contexts/care-schedule/application/co
 import { CareScheduleFindByCriteriaQueryHandler } from '@contexts/care-schedule/application/queries/care-schedule-find-by-criteria/care-schedule-find-by-criteria.handler';
 import { CareScheduleFindByIdQueryHandler } from '@contexts/care-schedule/application/queries/care-schedule-find-by-id/care-schedule-find-by-id.handler';
 import { CARE_LOG_PORT } from '@contexts/care-schedule/application/ports/care-log.port';
+import { REMINDER_SCHEDULER_PORT } from '@contexts/care-schedule/application/ports/reminder-scheduler.port';
 import { AssertCareScheduleViewModelExistsService } from '@contexts/care-schedule/application/services/read/assert-care-schedule-view-model-exists/assert-care-schedule-view-model-exists.service';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareLogAdapter } from '@contexts/care-schedule/infrastructure/adapters/care-log.adapter';
+import { ReminderQueueAdapter } from '@contexts/care-schedule/infrastructure/adapters/reminder-queue.adapter';
 import { CARE_SCHEDULE_READ_REPOSITORY } from '@contexts/care-schedule/domain/repositories/read/care-schedule-read.repository';
 import { CARE_SCHEDULE_WRITE_REPOSITORY } from '@contexts/care-schedule/domain/repositories/write/care-schedule-write.repository';
 import { CareScheduleTypeOrmEntity } from '@contexts/care-schedule/infrastructure/persistence/typeorm/entities/care-schedule.entity';
@@ -58,7 +61,12 @@ const INFRASTRUCTURE_MAPPERS = [CareScheduleTypeOrmMapper];
 
 const INFRASTRUCTURE_ADAPTERS = [
   { provide: CARE_LOG_PORT, useClass: CareLogAdapter },
+  { provide: REMINDER_SCHEDULER_PORT, useClass: ReminderQueueAdapter },
 ];
+
+// Must match notifications' PUSH_NOTIFICATIONS_QUEUE constant — see
+// reminder-queue.adapter.ts for why this isn't a shared import.
+const PUSH_NOTIFICATIONS_QUEUE = 'push-notifications';
 
 const INFRASTRUCTURE_REPOSITORIES = [
   {
@@ -93,7 +101,11 @@ const MCP_TOOLS = [
 ];
 
 @Module({
-  imports: [CqrsModule, TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES)],
+  imports: [
+    CqrsModule,
+    TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES),
+    BullModule.registerQueue({ name: PUSH_NOTIFICATIONS_QUEUE }),
+  ],
   controllers: [...REST_CONTROLLERS],
   providers: [
     ...COMMAND_HANDLERS,

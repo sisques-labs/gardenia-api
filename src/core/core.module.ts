@@ -6,6 +6,7 @@ import { authConfig } from '@core/config/auth.config';
 import { validateEnv } from '@core/config/env.validation';
 import { kafkaConfig } from '@core/config/kafka.config';
 import { postgresConfig } from '@core/config/postgres.config';
+import { IRedisConnectionConfig, redisConfig } from '@core/config/redis.config';
 import { sentryConfig } from '@core/config/sentry.config';
 import { AGGREGATE_MODULE_MAP } from '@core/messaging/domain/topics/aggregate-module.map.generated';
 import { HealthModule } from '@core/health/health.module';
@@ -14,6 +15,7 @@ import '@core/metrics/exempt-metrics-from-space-guard';
 import { ObservabilityModule } from '@core/observability/observability.module';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -39,13 +41,26 @@ const CORE_MODULES = [
   ConfigModule.forRoot({
     isGlobal: true,
     validate: validateEnv,
-    load: [postgresConfig, authConfig, appConfig, sentryConfig, kafkaConfig],
+    load: [
+      postgresConfig,
+      authConfig,
+      appConfig,
+      sentryConfig,
+      kafkaConfig,
+      redisConfig,
+    ],
     cache: true,
   }),
   TypeOrmModule.forRootAsync({
     inject: [ConfigService],
     useFactory: (config: ConfigService) =>
       config.getOrThrow<TypeOrmModuleOptions>('postgres'),
+  }),
+  BullModule.forRootAsync({
+    inject: [ConfigService],
+    useFactory: (config: ConfigService) => ({
+      connection: config.getOrThrow<IRedisConnectionConfig>('redis'),
+    }),
   }),
   GraphQLModule.forRoot<ApolloDriverConfig>({
     driver: ApolloDriver,

@@ -39,3 +39,19 @@ process.env.QR_BASE_URL = process.env.QR_BASE_URL ?? 'http://localhost:3000';
 // AppModule (and therefore every e2e suite) would otherwise fail to start.
 process.env.PLANTNET_API_KEY =
   process.env.PLANTNET_API_KEY ?? 'test-plantnet-api-key';
+// notifications' BullMQ/Redis + VAPID config fails fast at boot without
+// these too — matches docker-compose.test.yml's redis-test service.
+// WebPushAdapter calls webpush.setVapidDetails() at construction time, which
+// strictly validates key shape (not just non-empty) — a placeholder string
+// throws and would crash every e2e suite's AppModule boot. This is a fixed,
+// non-secret test-only key pair generated with `web-push generate-vapid-keys`.
+process.env.REDIS_HOST = process.env.REDIS_HOST ?? 'localhost';
+process.env.REDIS_PORT = process.env.REDIS_PORT ?? '6380';
+process.env.WEB_PUSH_VAPID_PUBLIC_KEY =
+  process.env.WEB_PUSH_VAPID_PUBLIC_KEY ??
+  'BLXizUpT3qPIRBAgTlcObRTK7X1hykXBeswzUpt8ZGe95Y55P9eh4k7EA4OzOReNz1eekQGbNu36GZKQIegLxoI';
+process.env.WEB_PUSH_VAPID_PRIVATE_KEY =
+  process.env.WEB_PUSH_VAPID_PRIVATE_KEY ??
+  'Bz3hXcnM2BtTmHIU6TnnnFH_pLsopvfexa5QIQCKRzM';
+process.env.WEB_PUSH_VAPID_SUBJECT =
+  process.env.WEB_PUSH_VAPID_SUBJECT ?? 'mailto:test@example.com';

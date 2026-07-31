@@ -1,5 +1,6 @@
 import { EventBus } from '@nestjs/cqrs';
 
+import { IReminderSchedulerPort } from '@contexts/care-schedule/application/ports/reminder-scheduler.port';
 import { AssertCareScheduleExistsService } from '@contexts/care-schedule/application/services/write/assert-care-schedule-exists/assert-care-schedule-exists.service';
 import { CareScheduleBuilder } from '@contexts/care-schedule/domain/builders/care-schedule.builder';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
@@ -12,6 +13,7 @@ describe('DeleteCareScheduleCommandHandler', () => {
   let mockWriteRepo: jest.Mocked<ICareScheduleWriteRepository>;
   let mockEventBus: jest.Mocked<EventBus>;
   let mockAssert: jest.Mocked<AssertCareScheduleExistsService>;
+  let mockReminderSchedulerPort: jest.Mocked<IReminderSchedulerPort>;
 
   beforeEach(() => {
     mockWriteRepo = {
@@ -30,9 +32,15 @@ describe('DeleteCareScheduleCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertCareScheduleExistsService>;
 
+    mockReminderSchedulerPort = {
+      scheduleReminder: jest.fn().mockResolvedValue(undefined),
+      cancelReminder: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<IReminderSchedulerPort>;
+
     handler = new DeleteCareScheduleCommandHandler(
       mockWriteRepo,
       mockAssert,
+      mockReminderSchedulerPort,
       mockEventBus,
     );
   });
@@ -61,5 +69,35 @@ describe('DeleteCareScheduleCommandHandler', () => {
     expect(mockWriteRepo.delete).toHaveBeenCalledWith(
       '550e8400-e29b-41d4-a716-446655440000',
     );
+    expect(mockReminderSchedulerPort.cancelReminder).toHaveBeenCalledWith(
+      '550e8400-e29b-41d4-a716-446655440000',
+    );
+  });
+
+  it('does not fail deletion when reminder cancellation throws', async () => {
+    const now = new Date();
+    const schedule = new CareScheduleBuilder()
+      .withId('550e8400-e29b-41d4-a716-446655440000')
+      .withPlantId('110e8400-e29b-41d4-a716-446655440010')
+      .withActivityType(CareScheduleActivityTypeEnum.WATERING)
+      .withIntervalDays(3)
+      .withNextDueAt(now)
+      .withUserId('660e8400-e29b-41d4-a716-446655440001')
+      .withSpaceId('770e8400-e29b-41d4-a716-446655440002')
+      .withCreatedAt(now)
+      .withUpdatedAt(now)
+      .build();
+    mockAssert.execute.mockResolvedValue(schedule);
+    mockReminderSchedulerPort.cancelReminder.mockRejectedValue(
+      new Error('redis down'),
+    );
+
+    await expect(
+      handler.execute(
+        new DeleteCareScheduleCommand({
+          id: '550e8400-e29b-41d4-a716-446655440000',
+        }),
+      ),
+    ).resolves.toBeUndefined();
   });
 });
