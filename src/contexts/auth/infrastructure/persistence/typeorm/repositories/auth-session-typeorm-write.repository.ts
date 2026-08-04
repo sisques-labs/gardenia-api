@@ -79,8 +79,11 @@ export class AuthSessionTypeOrmWriteRepository implements IAuthSessionWriteRepos
 
       const { revoked, created } = await fn(current, findLockedById);
 
-      await em.save(AuthSessionEntity, this.mapper.toEntity(revoked));
+      // `revoked.replacedBySessionId` points at `created.id`, which doesn't
+      // exist in the DB yet — insert `created` first, or the FK constraint
+      // on `revoked`'s row rejects the reference.
       await em.save(AuthSessionEntity, this.mapper.toEntity(created));
+      await em.save(AuthSessionEntity, this.mapper.toEntity(revoked));
 
       return { status: 'ok', oldSession: revoked, newSession: created };
     });

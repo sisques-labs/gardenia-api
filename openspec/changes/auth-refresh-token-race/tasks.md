@@ -70,16 +70,26 @@ green.
       succeed, asserts exactly 1 of the resulting 3 sessions is revoked (not
       a revoke-all), and asserts a third replay of the *original* token
       throws `RefreshTokenReuseDetectedException` and revokes every session.
-      Initially failed in CI with "command handler for RefreshTokenCommand
-      was not found" — `createIntegrationModule()` only compiles the
-      `TestingModule`, it never becomes a running application, so
-      `@nestjs/cqrs`'s `onApplicationBootstrap` (where it binds handlers to
-      buses) never fires. Fixed by calling `await ctx.module.init()` in this
-      spec's `beforeAll` (confirmed via `@nestjs/core`'s
-      `NestApplicationContext.init()` → `callBootstrapHook()`), scoped to
-      this file only rather than the shared helper, to avoid changing
-      bootstrap behavior for the other 21 integration specs that don't use
-      CommandBus/QueryBus. Pushed fix; awaiting CI confirmation.
+      This test caught two real bugs that mocked unit tests couldn't:
+      1. CI failed with "command handler for RefreshTokenCommand was not
+         found" — `createIntegrationModule()` only compiles the
+         `TestingModule`, it never becomes a running application, so
+         `@nestjs/cqrs`'s `onApplicationBootstrap` (where it binds handlers
+         to buses) never fires. Fixed by calling `await ctx.module.init()`
+         in this spec's `beforeAll` (confirmed via `@nestjs/core`'s
+         `NestApplicationContext.init()` → `callBootstrapHook()`), scoped to
+         this file only, not the shared helper, so the other 21 integration
+         specs (which don't use CommandBus/QueryBus) keep their current
+         bootstrap behavior.
+      2. Real Postgres then caught a genuine bug in
+         `AuthSessionTypeOrmWriteRepository.rotate()`: it saved `revoked`
+         (whose `replacedBySessionId` FK points at `created.id`) *before*
+         `created` existed as a row, violating
+         `FK_auth_sessions_replaced_by_session_id`. The mocked repository
+         unit tests couldn't catch this — a mock `em.save` doesn't enforce
+         FK constraints. Fixed by swapping the save order: insert `created`
+         first, then save `revoked`.
+      Pushed both fixes; awaiting CI re-run confirmation.
 
 ## Phase 4 — Docs
 
