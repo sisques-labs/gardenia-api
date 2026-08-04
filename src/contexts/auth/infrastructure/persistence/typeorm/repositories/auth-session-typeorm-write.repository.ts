@@ -1,5 +1,6 @@
 import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
 import { RotateResult } from '@contexts/auth/domain/interfaces/rotate-result.interface';
+import { RotateSessionCallback } from '@contexts/auth/domain/interfaces/rotate-session-callback.interface';
 import { IAuthSessionWriteRepository } from '@contexts/auth/domain/repositories/write/auth-session-write.repository';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -54,7 +55,7 @@ export class AuthSessionTypeOrmWriteRepository implements IAuthSessionWriteRepos
 
   async rotate(
     tokenHash: string,
-    fn: (current: AuthSessionAggregate) => Promise<AuthSessionAggregate>,
+    fn: RotateSessionCallback,
   ): Promise<RotateResult> {
     return this.repo.manager.transaction(async (em) => {
       const entity = await em.findOne(AuthSessionEntity, {
@@ -65,12 +66,23 @@ export class AuthSessionTypeOrmWriteRepository implements IAuthSessionWriteRepos
       if (!entity) return { status: 'not-found' };
 
       const current = this.mapper.toAggregate(entity);
-      const newSession = await fn(current);
 
-      await em.save(AuthSessionEntity, this.mapper.toEntity(current));
-      await em.save(AuthSessionEntity, this.mapper.toEntity(newSession));
+      const findLockedById = async (
+        id: string,
+      ): Promise<AuthSessionAggregate | null> => {
+        const found = await em.findOne(AuthSessionEntity, {
+          where: { id },
+          lock: { mode: 'pessimistic_write' },
+        });
+        return found ? this.mapper.toAggregate(found) : null;
+      };
 
-      return { status: 'ok', oldSession: current, newSession };
+      const { revoked, created } = await fn(current, findLockedById);
+
+      await em.save(AuthSessionEntity, this.mapper.toEntity(revoked));
+      await em.save(AuthSessionEntity, this.mapper.toEntity(created));
+
+      return { status: 'ok', oldSession: revoked, newSession: created };
     });
   }
 }

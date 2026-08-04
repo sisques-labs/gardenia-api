@@ -54,6 +54,7 @@ describe('AuthSessionBuilder', () => {
         expiresAt: new Date('2026-07-08T00:00:00.000Z'),
         revokedAt,
         deviceInfo: null,
+        replacedBySessionId: '990e8400-e29b-41d4-a716-446655440009',
         createdAt: new Date('2026-06-07T19:04:20.105Z'),
         updatedAt: new Date('2026-06-08T14:26:46.697Z'),
       })
@@ -67,8 +68,24 @@ describe('AuthSessionBuilder', () => {
       .build();
 
     expect(freshSession.revokedAt).toBeNull();
+    expect(freshSession.replacedBySessionId).toBeNull();
     expect(freshSession.createdAt.value.getTime()).toBeGreaterThan(
       revokedAt.getTime(),
+    );
+  });
+
+  it('should build with optional replacedBySessionId', () => {
+    const builder = new AuthSessionBuilder();
+    const session = builder
+      .withId(VALID_UUID)
+      .withUserId(VALID_USER_UUID)
+      .withTokenHash(VALID_HASH)
+      .withExpiresAt(new Date())
+      .withReplacedBySessionId('990e8400-e29b-41d4-a716-446655440009')
+      .build();
+
+    expect(session.replacedBySessionId).toBe(
+      '990e8400-e29b-41d4-a716-446655440009',
     );
   });
 });

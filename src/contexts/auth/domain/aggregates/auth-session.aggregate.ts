@@ -14,6 +14,7 @@ export class AuthSessionAggregate extends BaseAggregate {
   private readonly _expiresAt: Date;
   private _revokedAt: Date | null;
   private readonly _deviceInfo: string | null;
+  private _replacedBySessionId: string | null;
 
   constructor(props: IAuthSession) {
     super(props.createdAt as any, props.updatedAt as any);
@@ -23,6 +24,7 @@ export class AuthSessionAggregate extends BaseAggregate {
     this._expiresAt = props.expiresAt;
     this._revokedAt = props.revokedAt;
     this._deviceInfo = props.deviceInfo;
+    this._replacedBySessionId = props.replacedBySessionId;
   }
 
   public create(): void {
@@ -40,12 +42,13 @@ export class AuthSessionAggregate extends BaseAggregate {
     );
   }
 
-  public revoke(reason: string): void {
+  public revoke(reason: string, replacedBySessionId?: string): void {
     if (this._revokedAt !== null) {
       return;
     }
 
     this._revokedAt = new Date();
+    this._replacedBySessionId = replacedBySessionId ?? null;
 
     this.apply(
       new AuthSessionRevokedEvent(
@@ -107,6 +110,10 @@ export class AuthSessionAggregate extends BaseAggregate {
     return this._deviceInfo;
   }
 
+  get replacedBySessionId(): string | null {
+    return this._replacedBySessionId;
+  }
+
   toPrimitives(): AuthSessionPrimitives {
     return {
       id: this._id.value,
@@ -115,6 +122,7 @@ export class AuthSessionAggregate extends BaseAggregate {
       expiresAt: this._expiresAt,
       revokedAt: this._revokedAt,
       deviceInfo: this._deviceInfo,
+      replacedBySessionId: this._replacedBySessionId,
       createdAt: this.createdAt?.value ?? new Date(),
       updatedAt: this.updatedAt?.value ?? new Date(),
     };

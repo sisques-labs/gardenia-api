@@ -29,6 +29,9 @@ export class AuthSessionEntity {
   @Column({ type: 'varchar', length: 512, nullable: true })
   deviceInfo!: string | null;
 
+  @Column({ type: 'uuid', nullable: true })
+  replacedBySessionId!: string | null;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
 

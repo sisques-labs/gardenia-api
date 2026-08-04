@@ -24,6 +24,7 @@ export class AuthSessionTypeOrmMapper {
     entity.expiresAt = primitives.expiresAt;
     entity.revokedAt = primitives.revokedAt;
     entity.deviceInfo = primitives.deviceInfo;
+    entity.replacedBySessionId = primitives.replacedBySessionId;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
     return entity;
@@ -47,6 +48,7 @@ export class AuthSessionTypeOrmMapper {
       expiresAt: entity.expiresAt,
       revokedAt: entity.revokedAt,
       deviceInfo: entity.deviceInfo,
+      replacedBySessionId: entity.replacedBySessionId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };
