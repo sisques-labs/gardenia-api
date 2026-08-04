@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import {
   AggregateRoot,
   CommandHandler,
@@ -31,6 +31,8 @@ export class RefreshTokenCommandHandler
   extends BaseCommandHandler<RefreshTokenCommand, AggregateRoot>
   implements ICommandHandler<RefreshTokenCommand>
 {
+  private readonly logger = new Logger(RefreshTokenCommandHandler.name);
+
   constructor(
     eventBus: EventBus,
     @Inject(AUTH_SESSION_WRITE_REPOSITORY)
@@ -63,34 +65,57 @@ export class RefreshTokenCommandHandler
 
     const rotateResult = await this.sessionRepo.rotate(
       hash,
-      async (current) => {
+      async (current, findLockedById) => {
+        let base = current;
+
         if (current.revokedAt !== null) {
-          // REUSE DETECTED — revoke all user sessions
-          current.markReuseDetected();
-          await this.sessionRepo.revokeAllByUserId(current.userId.value);
-          await this.publishEvents(current);
-          throw new RefreshTokenReuseDetectedException();
+          // Already rotated. This is either a benign one-hop race (two
+          // requests presenting the same, just-rotated token — e.g. two
+          // browser tabs refreshing concurrently) or genuine token reuse.
+          const graceMs = this.configService.get<number>(
+            'auth.refreshReuseGraceMs',
+          )!;
+          const withinGrace =
+            Date.now() - current.revokedAt.getTime() <= graceMs;
+
+          const successor =
+            withinGrace && current.replacedBySessionId
+              ? await findLockedById(current.replacedBySessionId)
+              : null;
+
+          if (successor && successor.revokedAt === null) {
+            this.logger.warn(
+              `Refresh token reuse grace window applied: userId=${current.userId.value} revokedSessionId=${current.id.value} successorSessionId=${successor.id.value} elapsedMs=${Date.now() - current.revokedAt.getTime()}`,
+            );
+            base = successor;
+          } else {
+            // Not recoverable — real reuse (no successor, successor already
+            // consumed, or the grace window elapsed).
+            current.markReuseDetected();
+            await this.sessionRepo.revokeAllByUserId(current.userId.value);
+            await this.publishEvents(current);
+            throw new RefreshTokenReuseDetectedException();
+          }
         }
 
-        if (current.expiresAt < new Date()) {
+        if (base.expiresAt < new Date()) {
           throw new InvalidRefreshTokenException();
         }
 
-        // Rotate: revoke old session
-        current.revoke('rotation');
-
         const newSession = this.authSessionBuilder
           .withId(UuidValueObject.generate().value)
-          .withUserId(current.userId.value)
+          .withUserId(base.userId.value)
           .withTokenHash(newHash)
           .withExpiresAt(newExpiry)
           .withDeviceInfo(command.deviceInfo?.value ?? null)
           .build();
 
         newSession.create();
-        resolvedUserId = current.userId.value;
+        resolvedUserId = base.userId.value;
 
-        return newSession;
+        base.revoke('rotation', newSession.id.value);
+
+        return { revoked: base, created: newSession };
       },
     );
 

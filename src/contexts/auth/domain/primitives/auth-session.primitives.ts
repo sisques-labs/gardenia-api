@@ -5,6 +5,7 @@ export type AuthSessionPrimitives = {
   expiresAt: Date;
   revokedAt: Date | null;
   deviceInfo: string | null;
+  replacedBySessionId: string | null;
   createdAt: Date;
   updatedAt: Date;
 };

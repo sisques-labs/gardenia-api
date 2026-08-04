@@ -20,6 +20,7 @@ const buildEntity = (
   e.expiresAt = new Date('2026-08-01');
   e.revokedAt = null;
   e.deviceInfo = 'iPhone';
+  e.replacedBySessionId = null;
   e.createdAt = new Date('2026-01-01');
   e.updatedAt = new Date('2026-01-01');
   return Object.assign(e, overrides);
@@ -192,7 +193,10 @@ describe('AuthSessionTypeOrmWriteRepository', () => {
         (fn: (em: EntityManager) => Promise<unknown>) => fn(em),
       );
 
-      await repository.rotate(TOKEN_HASH, async () => newSession);
+      await repository.rotate(TOKEN_HASH, async (current) => ({
+        revoked: current,
+        created: newSession,
+      }));
 
       expect(em.findOne).toHaveBeenCalledWith(
         AuthSessionEntity,
@@ -203,7 +207,7 @@ describe('AuthSessionTypeOrmWriteRepository', () => {
       );
     });
 
-    it('saves both the old and new session within the same transaction', async () => {
+    it('saves both the revoked and created session within the same transaction', async () => {
       const entity = buildEntity();
       const newAggregate = buildAggregate();
 
@@ -216,12 +220,52 @@ describe('AuthSessionTypeOrmWriteRepository', () => {
         (fn: (em: EntityManager) => Promise<unknown>) => fn(em),
       );
 
-      const result = await repository.rotate(TOKEN_HASH, async (_current) => {
-        return newAggregate;
+      const result = await repository.rotate(TOKEN_HASH, async (current) => {
+        return { revoked: current, created: newAggregate };
       });
 
       expect(em.save).toHaveBeenCalledTimes(2);
       expect(result).toMatchObject({ status: 'ok' });
+    });
+
+    it('passes a findLockedById helper that looks up another row within the same transaction, locked', async () => {
+      const entity = buildEntity();
+      const successorEntity = buildEntity({
+        id: '770e8400-e29b-41d4-a716-446655440099',
+      });
+      const newAggregate = buildAggregate();
+
+      const em = {
+        findOne: jest
+          .fn()
+          .mockResolvedValueOnce(entity)
+          .mockResolvedValueOnce(successorEntity),
+        save: jest.fn().mockResolvedValue(entity),
+      } as unknown as jest.Mocked<EntityManager>;
+
+      (rawRepo.manager.transaction as jest.Mock).mockImplementation(
+        (fn: (em: EntityManager) => Promise<unknown>) => fn(em),
+      );
+
+      let capturedSuccessorId: string | undefined;
+
+      await repository.rotate(TOKEN_HASH, async (current, findLockedById) => {
+        const successor = await findLockedById(
+          '770e8400-e29b-41d4-a716-446655440099',
+        );
+        capturedSuccessorId = successor?.id.value;
+        return { revoked: current, created: newAggregate };
+      });
+
+      expect(capturedSuccessorId).toBe('770e8400-e29b-41d4-a716-446655440099');
+      expect(em.findOne).toHaveBeenNthCalledWith(
+        2,
+        AuthSessionEntity,
+        expect.objectContaining({
+          where: { id: '770e8400-e29b-41d4-a716-446655440099' },
+          lock: { mode: 'pessimistic_write' },
+        }),
+      );
     });
   });
 });

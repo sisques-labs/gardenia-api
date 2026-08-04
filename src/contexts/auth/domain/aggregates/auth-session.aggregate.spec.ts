@@ -10,6 +10,7 @@ const VALID_HASH = 'a3b4c5d6'.repeat(8);
 
 function buildSession(overrides?: {
   revokedAt?: Date | null;
+  replacedBySessionId?: string | null;
 }): AuthSessionAggregate {
   return new AuthSessionAggregate({
     id: new AuthSessionIdValueObject('550e8400-e29b-41d4-a716-446655440000'),
@@ -18,6 +19,7 @@ function buildSession(overrides?: {
     expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     revokedAt: overrides?.revokedAt ?? null,
     deviceInfo: null,
+    replacedBySessionId: overrides?.replacedBySessionId ?? null,
     createdAt: null,
     updatedAt: null,
   });
@@ -57,6 +59,22 @@ describe('AuthSessionAggregate', () => {
 
       const events = session.getUncommittedEvents();
       expect(events).toHaveLength(0);
+    });
+
+    it('should set replacedBySessionId when revoking by rotation', () => {
+      const session = buildSession();
+      session.revoke('rotation', '550e8400-e29b-41d4-a716-446655440099');
+
+      expect(session.replacedBySessionId).toBe(
+        '550e8400-e29b-41d4-a716-446655440099',
+      );
+    });
+
+    it('should leave replacedBySessionId null when no successor is given', () => {
+      const session = buildSession();
+      session.revoke('user-logout');
+
+      expect(session.replacedBySessionId).toBeNull();
     });
   });
 
