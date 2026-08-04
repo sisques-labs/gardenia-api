@@ -67,10 +67,15 @@ green.
       existing e2e harness has no `cookie-parser` middleware wired in, which
       is a pre-existing gap out of scope for this change): fires two
       concurrent `RefreshTokenCommand`s with the same token; asserts both
-      succeed, asserts exactly 1 of the resulting 3 sessions is revoked (not
-      a revoke-all), and asserts a third replay of the *original* token
-      throws `RefreshTokenReuseDetectedException` and revokes every session.
-      This test caught two real bugs that mocked unit tests couldn't:
+      succeed, asserts exactly 1 of the resulting 3 sessions is still valid
+      (i.e. NOT a revoke-all — both concurrent requests share the same
+      original token, so they serialize onto one lineage: request 1 rotates
+      seed→S2 normally, request 2 finds the seed already revoked and
+      grace-chains S2→S3, leaving only S3 valid), and asserts a third replay
+      of the *original* token throws `RefreshTokenReuseDetectedException`
+      and revokes every session.
+      This test caught three real bugs — two in the implementation, one in
+      the test's own first-draft assertion:
       1. CI failed with "command handler for RefreshTokenCommand was not
          found" — `createIntegrationModule()` only compiles the
          `TestingModule`, it never becomes a running application, so
@@ -89,7 +94,14 @@ green.
          unit tests couldn't catch this — a mock `em.save` doesn't enforce
          FK constraints. Fixed by swapping the save order: insert `created`
          first, then save `revoked`.
-      Pushed both fixes; awaiting CI re-run confirmation.
+      3. With that fixed, the test itself failed: it asserted 2 of the 3
+         sessions stay valid, but the correct outcome (per §3.2 above) is
+         only 1 — the second concurrent request's grace-chain consumes S2
+         the same way a legitimate follow-up refresh would. Also corrected
+         proposal.md's summary, which had the same wrong intuition ("two
+         different, both-valid sessions"); design.md and spec.md §3.2 were
+         already accurate.
+      Pushed all three fixes; awaiting CI re-run confirmation.
 
 ## Phase 4 — Docs
 

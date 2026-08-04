@@ -43,11 +43,15 @@ raced.
   of that specific hash, treat it as a benign race: rotate again from the
   **successor session** (the one the winning request already obtained) and
   return a fresh, valid token pair — instead of raising
-  `RefreshTokenReuseDetectedException`. The two racing requests end up with
-  two different, both-valid sessions (not an identical replayed pair — the
-  original plaintext token was only ever returned once, to the winner).
-  Outside the grace window, or on a second replay of the same hash, current
-  behavior (revoke-all) is unchanged.
+  `RefreshTokenReuseDetectedException`. Both racing requests get their own
+  successful response (never an error, never a logout); the loser's pair
+  descends from the winner's session in the same chain, so if the loser's
+  session (not the winner's) happens to be the one still in use later, it
+  will itself grace-chain forward exactly the same way on its next refresh.
+  Nobody is logged out — the original plaintext token was only ever returned
+  once, to the winner, so an *identical* replayed pair for both sides was
+  never on the table. Outside the grace window, or on a second replay of the
+  same hash, current behavior (revoke-all) is unchanged.
 - **`AuthSessionAggregate`** / session persistence: link a revoked-by-rotation
   session to the session it was rotated into (`replacedBySessionId`), so the
   handler can answer "was this hash revoked by rotation, when, and which

@@ -109,10 +109,17 @@ describe('RefreshTokenCommandHandler race (integration)', () => {
       [userId],
     );
 
-    // 1 original (revoked, rotated) + 2 sessions born from the race.
+    // Both requests present the identical original token, so Postgres's
+    // pessimistic lock serializes them onto the same lineage: request 1 does
+    // the normal rotation (seed -> S2); request 2, once unblocked, finds the
+    // seed already revoked and chains via the grace path (S2 -> S3). Net:
+    // seed + 2 sessions born from the race, with only the newest (S3) still
+    // valid — S2 gets consumed as a side effect of the second request's
+    // grace-chain, same as it would from a legitimate follow-up refresh.
     expect(rows).toHaveLength(3);
-    // Not a revoke-all: exactly one of the three (the original) is revoked.
-    expect(rows.filter((r) => r.revokedAt === null)).toHaveLength(2);
+    // The key invariant: this is NOT a revoke-all. Exactly one survives
+    // (never zero) — the user is never fully logged out by the race.
+    expect(rows.filter((r) => r.revokedAt === null)).toHaveLength(1);
   });
 
   it('treats a third replay of the original token as real reuse and revokes everything', async () => {
