@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.11] - 2026-08-04
+
+### Bug Fixes
+- **auth:** Tolerate one racing duplicate refresh-token request (#451) (23dac58)
 ## [0.27.10] - 2026-08-04
 
 ### Bug Fixes
