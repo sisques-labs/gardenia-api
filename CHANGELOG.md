@@ -1,6 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.10] - 2026-08-04
+
+### Bug Fixes
+- **deps:** Update dependency @sisques-labs/nestjs-kit to v1.5.1 (9373c95)
+
+### Chore
+- **deps:** Update dependency @types/node to v26.1.2 (#441) (e2d991d)
+- **deps:** Update pnpm to v11.18.0 (4a22571)
+- **deps:** Update dependency @aws-sdk/client-s3 to v3.1101.0 (f425157)
+- **deps:** Update dependency @modelcontextprotocol/sdk to v1.30.0 (fa1d8c7)
+- **deps:** Update dependency axios to v1.19.0 (8fa3c8b)
+- **deps:** Update dependency lint-staged to v17.3.0 (7e08b4c)
 ## [0.27.9] - 2026-07-30
 
 ### Bug Fixes

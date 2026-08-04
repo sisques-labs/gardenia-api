@@ -16,17 +16,20 @@ import { RefreshTokenCommand } from './refresh-token.command';
 import { RefreshTokenCommandHandler } from './refresh-token.handler';
 
 const buildActiveSession = (overrides?: {
+  id?: string;
   expiresAt?: Date;
   revokedAt?: Date | null;
+  replacedBySessionId?: string | null;
 }) =>
   new AuthSessionBuilder()
-    .withId('a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1')
+    .withId(overrides?.id ?? 'a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1')
     .withUserId('660e8400-e29b-41d4-a716-446655440001')
     .withTokenHash('a'.repeat(64))
     .withExpiresAt(
       overrides?.expiresAt ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     )
     .withRevokedAt(overrides?.revokedAt ?? null)
+    .withReplacedBySessionId(overrides?.replacedBySessionId ?? null)
     .build();
 
 const buildAccount = () =>
@@ -40,20 +43,23 @@ const buildAccount = () =>
     .build();
 
 /**
- * Helper to make sessionRepo.rotate() call the callback with `session`,
- * or simulate not-found.
+ * Helper to make sessionRepo.rotate() call the callback with `session`
+ * (and a stubbed findLockedById), or simulate not-found.
  */
 function mockRotateWith(
   sessionRepo: jest.Mocked<IAuthSessionWriteRepository>,
   session: AuthSessionAggregate | null,
+  findLockedById: (
+    id: string,
+  ) => Promise<AuthSessionAggregate | null> = async () => null,
 ) {
   if (session === null) {
     sessionRepo.rotate.mockResolvedValue({ status: 'not-found' });
     return;
   }
   sessionRepo.rotate.mockImplementation(async (_hash, fn) => {
-    const newSession = await fn(session);
-    return { status: 'ok', oldSession: session, newSession };
+    const { revoked, created } = await fn(session, findLockedById);
+    return { status: 'ok', oldSession: revoked, newSession: created };
   });
 }
 
@@ -101,7 +107,11 @@ describe('RefreshTokenCommandHandler', () => {
     } as unknown as jest.Mocked<HashRefreshTokenService>;
 
     configService = {
-      get: jest.fn().mockReturnValue(30),
+      get: jest.fn((key: string) => {
+        if (key === 'auth.refreshTokenTtlDays') return 30;
+        if (key === 'auth.refreshReuseGraceMs') return 10_000;
+        return undefined;
+      }),
     } as unknown as jest.Mocked<ConfigService>;
 
     eventBus = {
@@ -202,5 +212,102 @@ describe('RefreshTokenCommandHandler', () => {
     await handler.execute(command);
 
     expect(sessionRepo.findByTokenHash).not.toHaveBeenCalled();
+  });
+
+  describe('reuse grace window', () => {
+    it('rotates from the successor instead of throwing when replayed within the grace window with a live successor', async () => {
+      const successorId = 'b2b2b2b2-b2b2-4b2b-b2b2-b2b2b2b2b2b2';
+      const revokedSession = buildActiveSession({
+        revokedAt: new Date(Date.now() - 2_000), // 2s ago, within 10s grace
+        replacedBySessionId: successorId,
+      });
+      const successorSession = buildActiveSession({ id: successorId });
+      const account = buildAccount();
+
+      mockRotateWith(sessionRepo, revokedSession, async (id) =>
+        id === successorId ? successorSession : null,
+      );
+      accountRepo.findByUserId.mockResolvedValue(account);
+
+      const command = new RefreshTokenCommand({
+        refreshToken: 'some-plain-token',
+      });
+
+      const result = await handler.execute(command);
+
+      expect(result).toHaveProperty('accessToken', 'new-access-token');
+      expect(sessionRepo.revokeAllByUserId).not.toHaveBeenCalled();
+    });
+
+    it('treats a second replay (successor already revoked) as real reuse', async () => {
+      const successorId = 'b2b2b2b2-b2b2-4b2b-b2b2-b2b2b2b2b2b2';
+      const revokedSession = buildActiveSession({
+        revokedAt: new Date(Date.now() - 2_000),
+        replacedBySessionId: successorId,
+      });
+      const alreadyConsumedSuccessor = buildActiveSession({
+        id: successorId,
+        revokedAt: new Date(Date.now() - 1_000),
+      });
+
+      mockRotateWith(sessionRepo, revokedSession, async (id) =>
+        id === successorId ? alreadyConsumedSuccessor : null,
+      );
+
+      const command = new RefreshTokenCommand({
+        refreshToken: 'some-plain-token',
+      });
+
+      await expect(handler.execute(command)).rejects.toThrow(
+        RefreshTokenReuseDetectedException,
+      );
+      expect(sessionRepo.revokeAllByUserId).toHaveBeenCalledWith(
+        revokedSession.userId.value,
+      );
+    });
+
+    it('treats a replay after the grace window has elapsed as real reuse', async () => {
+      const successorId = 'b2b2b2b2-b2b2-4b2b-b2b2-b2b2b2b2b2b2';
+      const revokedSession = buildActiveSession({
+        revokedAt: new Date(Date.now() - 60_000), // 60s ago, past 10s grace
+        replacedBySessionId: successorId,
+      });
+      const successorSession = buildActiveSession({ id: successorId });
+
+      mockRotateWith(sessionRepo, revokedSession, async (id) =>
+        id === successorId ? successorSession : null,
+      );
+
+      const command = new RefreshTokenCommand({
+        refreshToken: 'some-plain-token',
+      });
+
+      await expect(handler.execute(command)).rejects.toThrow(
+        RefreshTokenReuseDetectedException,
+      );
+      expect(sessionRepo.revokeAllByUserId).toHaveBeenCalledWith(
+        revokedSession.userId.value,
+      );
+    });
+
+    it('treats replay of a session revoked without a successor (e.g. logout) as real reuse, unaffected by grace', async () => {
+      const revokedSession = buildActiveSession({
+        revokedAt: new Date(Date.now() - 2_000),
+        replacedBySessionId: null,
+      });
+
+      mockRotateWith(sessionRepo, revokedSession);
+
+      const command = new RefreshTokenCommand({
+        refreshToken: 'some-plain-token',
+      });
+
+      await expect(handler.execute(command)).rejects.toThrow(
+        RefreshTokenReuseDetectedException,
+      );
+      expect(sessionRepo.revokeAllByUserId).toHaveBeenCalledWith(
+        revokedSession.userId.value,
+      );
+    });
   });
 });

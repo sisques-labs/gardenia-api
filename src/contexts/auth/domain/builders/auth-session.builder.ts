@@ -21,6 +21,7 @@ export class AuthSessionBuilder extends BaseBuilder<
   private _expiresAt!: Date;
   private _revokedAt: Date | null = null;
   private _deviceInfo: string | null = null;
+  private _replacedBySessionId: string | null = null;
 
   // Nest injects this builder as a singleton. Reset on each new chain so mapper
   // reads (fromPrimitives) cannot leak revokedAt/createdAt into login saves.
@@ -36,6 +37,7 @@ export class AuthSessionBuilder extends BaseBuilder<
     this._expiresAt = undefined as unknown as Date;
     this._revokedAt = null;
     this._deviceInfo = null;
+    this._replacedBySessionId = null;
     this._createdAt = undefined as unknown as Date;
     this._updatedAt = undefined as unknown as Date;
   }
@@ -65,6 +67,11 @@ export class AuthSessionBuilder extends BaseBuilder<
     return this;
   }
 
+  withReplacedBySessionId(replacedBySessionId: string | null): this {
+    this._replacedBySessionId = replacedBySessionId;
+    return this;
+  }
+
   public override buildViewModel(): AuthSessionViewModel {
     this._createdAt = this._createdAt ?? new Date();
     this._updatedAt = this._updatedAt ?? new Date();
@@ -77,6 +84,7 @@ export class AuthSessionBuilder extends BaseBuilder<
       expiresAt: this._expiresAt,
       revokedAt: this._revokedAt,
       deviceInfo: this._deviceInfo,
+      replacedBySessionId: this._replacedBySessionId,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     });
@@ -94,6 +102,7 @@ export class AuthSessionBuilder extends BaseBuilder<
       expiresAt: this._expiresAt,
       revokedAt: this._revokedAt,
       deviceInfo: this._deviceInfo,
+      replacedBySessionId: this._replacedBySessionId,
       createdAt: new DateValueObject(this._createdAt ?? new Date()),
       updatedAt: new DateValueObject(this._updatedAt ?? new Date()),
     });
@@ -113,6 +122,7 @@ export class AuthSessionBuilder extends BaseBuilder<
       .withExpiresAt(primitives.expiresAt)
       .withRevokedAt(primitives.revokedAt)
       .withDeviceInfo(primitives.deviceInfo)
+      .withReplacedBySessionId(primitives.replacedBySessionId)
       .withCreatedAt(primitives.createdAt)
       .withUpdatedAt(primitives.updatedAt);
   }

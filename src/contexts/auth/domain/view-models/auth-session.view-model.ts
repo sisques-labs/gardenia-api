@@ -7,6 +7,7 @@ export class AuthSessionViewModel extends BaseViewModel {
   public readonly expiresAt: Date;
   public readonly revokedAt: Date | null;
   public readonly deviceInfo: string | null;
+  public readonly replacedBySessionId: string | null;
 
   constructor(props: AuthSessionPrimitives) {
     super(props.id, props.createdAt, props.updatedAt);
@@ -15,5 +16,6 @@ export class AuthSessionViewModel extends BaseViewModel {
     this.expiresAt = props.expiresAt;
     this.revokedAt = props.revokedAt;
     this.deviceInfo = props.deviceInfo;
+    this.replacedBySessionId = props.replacedBySessionId;
   }
 }
