@@ -9,6 +9,7 @@ export interface IAuthSession {
   expiresAt: Date;
   revokedAt: Date | null;
   deviceInfo: string | null;
+  replacedBySessionId: string | null;
   createdAt: DateValueObject | null;
   updatedAt: DateValueObject | null;
 }

@@ -37,12 +37,12 @@ Domain methods:
 
 ### `AuthSessionAggregate`
 
-Represents a refresh token session. Fields: `id`, `userId`, `tokenHash` (bcrypt hash of the raw token), `expiresAt`, `revokedAt`, `deviceInfo`.
+Represents a refresh token session. Fields: `id`, `userId`, `tokenHash` (SHA-256 hash of the raw token), `expiresAt`, `revokedAt`, `deviceInfo`, `replacedBySessionId`.
 
 Methods:
 
 - `create()` — applies `AuthSessionCreatedEvent`
-- `revoke(reason)` — idempotent, sets `revokedAt`, applies `AuthSessionRevokedEvent`
+- `revoke(reason, replacedBySessionId?)` — idempotent, sets `revokedAt` (and `replacedBySessionId` when the revocation is a rotation), applies `AuthSessionRevokedEvent`
 - `markReuseDetected()` — applies `AuthSessionReuseDetectedEvent` (token rotation attack signal)
 
 ### `OAuthIdentityAggregate`
@@ -98,11 +98,28 @@ POST /api/auth/login      →   AuthController (LocalAuthGuard validates credent
 ```
 POST /api/auth/refresh    →   RefreshTokenCommandHandler
                               1. Extract hashed token from cookie
-                              2. Find session by userId + match hash
-                              3. If session already revoked → markReuseDetected() + revoke all sessions (rotation attack)
-                              4. Revoke old session, create new session
+                              2. Find + pessimistic-lock session by tokenHash (sessionRepo.rotate)
+                              3. If session already revoked:
+                                   a. Within REFRESH_REUSE_GRACE_MS of revocation AND it has a live
+                                      (unrevoked) replacedBySessionId → benign one-hop race (e.g. two
+                                      browser tabs refreshing concurrently): rotate from the successor
+                                      session instead of throwing.
+                                   b. Otherwise → markReuseDetected() + revoke all sessions (rotation attack)
+                              4. Revoke old (or successor) session with replacedBySessionId = new session id,
+                                 create new session
                               5. Issue new accessToken + refreshToken
 ```
+
+**Reuse grace window.** Refresh tokens are single-use; rotation revokes the
+presented session and links it to its successor via `replacedBySessionId`. A
+session revoked by rotation (not by logout or a prior reuse-revoke) can be
+replayed **exactly once**, and only within `REFRESH_REUSE_GRACE_MS` (default
+10s) of its `revokedAt` — the handler then rotates from the still-live
+successor instead of treating it as theft. A second replay of the same hash,
+or any replay after the grace window elapses, or any replay of a session
+revoked for a reason other than rotation, is treated as reuse and revokes
+every session the user has. See
+`openspec/changes/auth-refresh-token-race/design.md` for the full rationale.
 
 ## How OAuth login works
 
@@ -298,6 +315,7 @@ pnpm test:e2e --testPathPattern=auth
 | `JWT_SECRET` | Yes | — | Signs access tokens |
 | `JWT_EXPIRES_IN` | No | `1d` | Access token TTL |
 | `JWT_REFRESH_EXPIRES_IN` | No | — | Refresh token TTL in days (`auth.refreshTokenTtlDays`) |
+| `REFRESH_REUSE_GRACE_MS` | No | `10000` | Reuse grace window in ms (`auth.refreshReuseGraceMs`) — see "How token refresh works" above |
 | `GOOGLE_CLIENT_ID` | OAuth | — | Google OAuth app credentials |
 | `GOOGLE_CLIENT_SECRET` | OAuth | — | |
 | `GITHUB_CLIENT_ID` | OAuth | — | GitHub OAuth app credentials |

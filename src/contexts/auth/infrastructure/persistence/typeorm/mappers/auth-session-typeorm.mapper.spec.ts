@@ -19,6 +19,7 @@ const buildEntity = (
   entity.expiresAt = EXPIRES_AT;
   entity.revokedAt = null;
   entity.deviceInfo = 'iPhone';
+  entity.replacedBySessionId = null;
   entity.createdAt = CREATED_AT;
   entity.updatedAt = UPDATED_AT;
   return Object.assign(entity, overrides);
@@ -49,6 +50,13 @@ describe('AuthSessionTypeOrmMapper', () => {
       const result = mapper.toAggregate(buildEntity({ revokedAt }));
 
       expect(result.revokedAt).toEqual(revokedAt);
+    });
+
+    it('maps replacedBySessionId', () => {
+      const replacedBySessionId = '990e8400-e29b-41d4-a716-446655440009';
+      const result = mapper.toAggregate(buildEntity({ replacedBySessionId }));
+
+      expect(result.replacedBySessionId).toBe(replacedBySessionId);
     });
   });
 
