@@ -43,6 +43,14 @@ describe('RefreshTokenCommandHandler race (integration)', () => {
     ctx = await createIntegrationModule({
       imports: [AuthModule],
     });
+    // createIntegrationModule() only compiles the TestingModule — it never
+    // becomes a running application, so Nest never fires onApplicationBootstrap.
+    // @nestjs/cqrs binds command/query handlers to their buses in that hook,
+    // so any integration test that dispatches through CommandBus/QueryBus
+    // (unlike the repository-only integration specs elsewhere in this dir)
+    // needs an explicit init() here or CommandBus.execute() throws
+    // "command handler ... was not found".
+    await ctx.module.init();
     accountWriteRepo = ctx.module.get(ACCOUNT_WRITE_REPOSITORY);
     sessionWriteRepo = ctx.module.get(AUTH_SESSION_WRITE_REPOSITORY);
     commandBus = ctx.module.get(CommandBus);

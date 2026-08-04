@@ -70,10 +70,16 @@ green.
       succeed, asserts exactly 1 of the resulting 3 sessions is revoked (not
       a revoke-all), and asserts a third replay of the *original* token
       throws `RefreshTokenReuseDetectedException` and revokes every session.
-      **Not executed locally** — this sandbox has no running Docker daemon
-      (`docker info` fails to reach `/var/run/docker.sock`), which
-      `test:integration` requires. Compiles clean (`tsc --noEmit`) and lints
-      clean; needs a real run in CI/locally-with-Docker before merge.
+      Initially failed in CI with "command handler for RefreshTokenCommand
+      was not found" — `createIntegrationModule()` only compiles the
+      `TestingModule`, it never becomes a running application, so
+      `@nestjs/cqrs`'s `onApplicationBootstrap` (where it binds handlers to
+      buses) never fires. Fixed by calling `await ctx.module.init()` in this
+      spec's `beforeAll` (confirmed via `@nestjs/core`'s
+      `NestApplicationContext.init()` → `callBootstrapHook()`), scoped to
+      this file only rather than the shared helper, to avoid changing
+      bootstrap behavior for the other 21 integration specs that don't use
+      CommandBus/QueryBus. Pushed fix; awaiting CI confirmation.
 
 ## Phase 4 — Docs
 
@@ -89,8 +95,8 @@ green.
 ## Verification
 
 - [x] `pnpm test` green (2280/2280, full suite)
-- [ ] `pnpm test:integration` — written, **not run** (no Docker daemon in
-      this sandbox; run before merge)
+- [ ] `pnpm test:integration` — written, fixed a CQRS bootstrap gap after CI
+      caught it (see Phase 3 note); awaiting green re-run confirmation
 - [x] `pnpm build` green
 - [ ] Coverage ≥ 80% — not measured this run (no `--coverage` pass); existing
       suite was green before and after, no reason to expect regression, but
