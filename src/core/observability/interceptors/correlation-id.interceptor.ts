@@ -5,7 +5,6 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import * as Sentry from '@sentry/nestjs';
 import { randomUUID } from 'node:crypto';
 import { Observable } from 'rxjs';
 
@@ -33,7 +32,6 @@ export class CorrelationIdInterceptor implements NestInterceptor {
         : randomUUID();
 
     res.setHeader(CORRELATION_ID_HEADER, correlationId);
-    Sentry.getCurrentScope().setTag('correlation_id', correlationId);
 
     return new Observable((subscriber) => {
       this.correlationContext.run(correlationId, () => {

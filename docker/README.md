@@ -64,7 +64,6 @@ The container needs a reachable PostgreSQL instance — it does not bundle one.
 | `APPLE_CLIENT_ID` / `APPLE_TEAM_ID` / `APPLE_KEY_ID` / `APPLE_PRIVATE_KEY` / `APPLE_CALLBACK_URL` | — | Only if Sign in with Apple is used | |
 | `QR_BASE_URL` | `http://localhost:3000` | No | Base URL embedded in plant QR deep links |
 | `CORS_ORIGINS` | — | Production only | Comma-separated allowed origins |
-| `SENTRY_DSN` | — | No | Sentry error reporting disabled when unset |
 | `KAFKA_ENABLED` | `false` | No | Domain event forwarding; app boots fine without a broker when disabled |
 | `KAFKA_BROKERS` | — | If Kafka enabled | Comma-separated broker list |
 | `FILES_STORAGE_DRIVER` | `database` | No | `database` or `s3`; S3 vars only required when set to `s3` |

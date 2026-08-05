@@ -389,7 +389,7 @@ avoid "metric already registered" errors.
 ## 8. ADR-style Decisions
 
 ### ADR-1 — Location: `src/core/metrics/`
-- **Decision**: Nest the metrics module beside the existing Sentry `ObservabilityModule`.
+- **Decision**: Nest the metrics module beside the existing `ObservabilityModule`.
 - **Rationale**: Metrics are cross-cutting operational infra with no domain model — same category as
   `core/config`, `core/filters`, and the existing observability concern. Putting them in
   `src/contexts/` would invent a bounded context that does not exist (screaming-architecture

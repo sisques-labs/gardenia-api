@@ -1,5 +1,4 @@
 import { CallHandler, ExecutionContext } from '@nestjs/common';
-import * as Sentry from '@sentry/nestjs';
 import { of, throwError } from 'rxjs';
 
 import { CorrelationContext } from '@shared/correlation-context/correlation-context.service';
@@ -11,10 +10,6 @@ import {
 
 jest.mock('node:crypto', () => ({
   randomUUID: jest.fn(() => 'generated-uuid'),
-}));
-
-jest.mock('@sentry/nestjs', () => ({
-  getCurrentScope: jest.fn(),
 }));
 
 jest.mock('@nestjs/graphql', () => ({
@@ -66,7 +61,6 @@ describe('CorrelationIdInterceptor', () => {
   let interceptor: CorrelationIdInterceptor;
   let correlationContext: jest.Mocked<CorrelationContext>;
   let setHeader: jest.Mock;
-  let setTag: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -79,14 +73,12 @@ describe('CorrelationIdInterceptor', () => {
     } as unknown as jest.Mocked<CorrelationContext>;
 
     setHeader = jest.fn();
-    setTag = jest.fn();
-    (Sentry.getCurrentScope as jest.Mock).mockReturnValue({ setTag });
 
     interceptor = new CorrelationIdInterceptor(correlationContext);
   });
 
   describe('when the request carries an x-request-id header', () => {
-    it('should reuse it, echo it on the response, and tag Sentry', (done) => {
+    it('should reuse it and echo it on the response', (done) => {
       const ctx = buildMockContext(
         { [CORRELATION_ID_HEADER]: 'incoming-id' },
         setHeader,
@@ -102,7 +94,6 @@ describe('CorrelationIdInterceptor', () => {
             CORRELATION_ID_HEADER,
             'incoming-id',
           );
-          expect(setTag).toHaveBeenCalledWith('correlation_id', 'incoming-id');
           expect(correlationContext.run).toHaveBeenCalledWith(
             'incoming-id',
             expect.any(Function),
@@ -156,7 +147,6 @@ describe('CorrelationIdInterceptor', () => {
             CORRELATION_ID_HEADER,
             'incoming-id',
           );
-          expect(setTag).toHaveBeenCalledWith('correlation_id', 'incoming-id');
           expect(correlationContext.run).toHaveBeenCalledWith(
             'incoming-id',
             expect.any(Function),

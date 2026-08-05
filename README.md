@@ -13,7 +13,6 @@ Backend for Gardenia, a gardening companion application. Exposes REST and GraphQ
 | Database | PostgreSQL via [TypeORM](https://typeorm.io/) + MongoDB |
 | Auth | JWT + refresh tokens, OAuth (Google, GitHub, Apple) |
 | Tests | [Jest](https://jestjs.io/) (unit, integration, E2E) |
-| Observability | Sentry (optional, disabled when `SENTRY_DSN` is unset) |
 | Package manager | [pnpm](https://pnpm.io/) |
 
 ## Prerequisites
@@ -42,7 +41,6 @@ Key variables (see `.env.example` for the full list with defaults):
 | `GOOGLE_*` / `GITHUB_*` / `APPLE_*` | Per-provider OAuth credentials |
 | `FRONTEND_URL` / `CORS_ORIGINS` | Post-login redirect target and allowed browser origins |
 | `QR_BASE_URL` | Base URL used to build plant QR deep links |
-| `SENTRY_DSN` | Error monitoring; SDK is skipped entirely when unset |
 
 ## Getting started
 
@@ -106,13 +104,13 @@ src/
 │   ├── users/
 │   └── weather/
 └── core/                 # Cross-cutting infra shared by every context
-    ├── config/           # postgres/auth/sentry config factories
+    ├── config/           # postgres/auth config factories
     ├── filters/          # BaseExceptionFilter
     ├── health/           # Health checks
     ├── mcp/               # MCP context builder (see below)
     ├── messaging/        # Aggregate→module topic mapping
     ├── metrics/
-    ├── observability/    # Sentry wiring
+    ├── observability/    # Correlation id + HTTP access logging interceptors
     └── transport/graphql/ # Shared GraphQL enum registrations
 ```
 
