@@ -1,49 +1,124 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Gardenia API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend for Gardenia, a gardening companion application. Exposes REST and GraphQL APIs for managing plants, spaces, care logs, harvests, planting spots, and the planting calendar.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech stack
 
-## Description
+| Layer | Technology |
+|-------|-----------|
+| Framework | [NestJS 10](https://nestjs.com/) |
+| Language | TypeScript (strict) |
+| API | GraphQL ([Apollo](https://www.apollographql.com/docs/apollo-server/), code-first) + REST |
+| Architecture | CQRS ([`@nestjs/cqrs`](https://docs.nestjs.com/recipes/cqrs)) over DDD + Hexagonal (Screaming Architecture) |
+| Database | PostgreSQL via [TypeORM](https://typeorm.io/) + MongoDB |
+| Auth | JWT + refresh tokens, OAuth (Google, GitHub, Apple) |
+| Tests | [Jest](https://jestjs.io/) (unit, integration, E2E) |
+| Observability | Sentry (optional, disabled when `SENTRY_DSN` is unset) |
+| Package manager | [pnpm](https://pnpm.io/) |
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Prerequisites
 
-## Project setup
+- Node.js 24 (see `.nvmrc`)
+- pnpm 9.15.4 (`corepack enable` picks up the pinned version from `package.json`)
+- Docker (for local Postgres and integration/E2E test databases)
+
+## Environment setup
+
+Copy the example env file and fill in the values for your local environment:
 
 ```bash
-$ pnpm install
+cp .env.example .env
 ```
 
-## Compile and run the project
+Key variables (see `.env.example` for the full list with defaults):
+
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_HOST` / `DATABASE_PORT` / `DATABASE_USERNAME` / `DATABASE_PASSWORD` / `DATABASE_DATABASE` | PostgreSQL connection (individual vars — `DATABASE_URL` is not supported) |
+| `MONGO_URI` | MongoDB connection string |
+| `JWT_SECRET` / `JWT_EXPIRES_IN` | Access token signing |
+| `REFRESH_TOKEN_TTL_DAYS` / `REFRESH_COOKIE_NAME` / `REFRESH_REUSE_GRACE_MS` | Refresh token rotation |
+| `OAUTH_TOKEN_ENC_KEY` / `OAUTH_STATE_SECRET` | OAuth token encryption + CSRF state signing |
+| `GOOGLE_*` / `GITHUB_*` / `APPLE_*` | Per-provider OAuth credentials |
+| `FRONTEND_URL` / `CORS_ORIGINS` | Post-login redirect target and allowed browser origins |
+| `QR_BASE_URL` | Base URL used to build plant QR deep links |
+| `SENTRY_DSN` | Error monitoring; SDK is skipped entirely when unset |
+
+## Getting started
 
 ```bash
-# development
-$ pnpm run start
+# Install dependencies
+pnpm install
 
-# watch mode
-$ pnpm run start:dev
+# Start a local Postgres (port 5434, database gardenia_db)
+docker compose up -d
 
-# production mode
-$ pnpm run start:prod
+# Run pending migrations
+pnpm migration:run
+
+# Start the API in watch mode
+pnpm dev
 ```
+
+The API listens on `http://localhost:3000` (REST) and exposes GraphQL at `http://localhost:3000/graphql`.
+
+## Available scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start in watch mode |
+| `pnpm start` | Start (no watch) |
+| `pnpm debug` | Start with `--debug --watch` |
+| `pnpm build` | Compile to `dist/` |
+| `pnpm prod` | Run the compiled build (`node dist/main`) |
+| `pnpm lint` | ESLint with `--fix` |
+| `pnpm format` | Prettier write |
+| `pnpm migration:generate` / `migration:create` / `migration:run` / `migration:revert` / `migration:show` | TypeORM migrations |
+| `pnpm gen:topics` / `gen:topics:check` | Generate/verify the aggregate→module messaging topic map |
+
+## Architecture
+
+DDD + CQRS + Hexagonal (Screaming Architecture). Each bounded context under `src/contexts/{context}/` is self-contained with four layers:
+
+| Layer | Contains |
+|-------|----------|
+| `domain/` | Aggregates, value objects, domain events, repository interfaces — no framework imports |
+| `application/` | Command/query handlers, assert services — orchestrates domain + ports |
+| `infrastructure/` | TypeORM/Mongo repositories, mappers, adapters to other contexts |
+| `transport/` | GraphQL resolvers, REST controllers, MCP tools — CommandBus/QueryBus only, no direct service injection |
+
+```
+src/
+├── contexts/            # Bounded contexts (business domains)
+│   ├── auth/
+│   ├── care-log/
+│   ├── care-schedule/
+│   ├── files/
+│   ├── harvests/
+│   ├── inventory/
+│   ├── plant-identification/
+│   ├── plant-photos/
+│   ├── plant-species/
+│   ├── planting-spots/
+│   ├── plants/
+│   ├── qr/
+│   ├── spaces/
+│   ├── users/
+│   └── weather/
+└── core/                 # Cross-cutting infra shared by every context
+    ├── config/           # postgres/auth/sentry config factories
+    ├── filters/          # BaseExceptionFilter
+    ├── health/           # Health checks
+    ├── mcp/               # MCP context builder (see below)
+    ├── messaging/        # Aggregate→module topic mapping
+    ├── metrics/
+    ├── observability/    # Sentry wiring
+    └── transport/graphql/ # Shared GraphQL enum registrations
+```
+
+A bounded context may only import its own `@contexts/{self}/`. Reaching into another context happens exclusively through `infrastructure/adapters/` (a port implementation dispatching via Command/QueryBus), enforced by an ESLint boundaries rule. See `src/core/README.md` and each context's own `README.md` (e.g. `src/contexts/auth/README.md`) for details, and `.claude/skills/architecture/SKILL.md` for the full layering rules.
+
+Every bounded context also exposes its public commands/queries as [MCP](https://modelcontextprotocol.io/) tools under `transport/mcp/`, served from a single `/api/mcp` endpoint.
 
 ## Testing
 
@@ -92,46 +167,26 @@ pnpm test:integration
 # API E2E tests (full AppModule + HTTP/GraphQL)
 pnpm test:e2e
 
-# coverage
+# coverage (threshold: 80%)
 pnpm test:cov
 ```
 
-## Deployment
+## Docker
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+A 2-stage `Dockerfile` (`node:24-bookworm-slim`) builds with pnpm and runs the compiled output directly (`node dist/main`, no pnpm/npm at runtime). Exposes port `3000`.
 
 ```bash
-$ pnpm install -g mau
-$ mau deploy
+docker build -t gardenia-api .
+docker compose up -d   # local Postgres only — the API itself runs via pnpm dev, not this compose file
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Contributing
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Base branch: `main`. Feature branches → PR → `main`.
+- [Conventional Commits](https://www.conventionalcommits.org/); no AI attribution in commit messages.
+- Pre-push hooks (Husky) run unit tests; pre-commit (lint-staged) runs ESLint/Prettier on staged files.
+- Releases are automated via `release-train.yml` / `release.yml` (git-cliff generates `CHANGELOG.md`).
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+[Gardenia Community License 1.0](LICENSE)
