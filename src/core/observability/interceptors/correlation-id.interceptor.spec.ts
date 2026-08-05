@@ -17,6 +17,17 @@ jest.mock('@sentry/nestjs', () => ({
   getCurrentScope: jest.fn(),
 }));
 
+jest.mock('@nestjs/graphql', () => ({
+  GqlExecutionContext: {
+    create: jest.fn(),
+  },
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { GqlExecutionContext } = jest.requireMock('@nestjs/graphql') as {
+  GqlExecutionContext: { create: jest.Mock };
+};
+
 function buildMockContext(
   headers: Record<string, string | undefined>,
   setHeader: jest.Mock,
@@ -26,6 +37,9 @@ function buildMockContext(
   const res = { setHeader };
 
   if (type === 'graphql') {
+    GqlExecutionContext.create.mockReturnValue({
+      getContext: () => ({ req, res }),
+    });
     return {
       getType: () => 'graphql',
     } as unknown as ExecutionContext;
@@ -115,6 +129,36 @@ describe('CorrelationIdInterceptor', () => {
           );
           expect(correlationContext.run).toHaveBeenCalledWith(
             'generated-uuid',
+            expect.any(Function),
+          );
+          done();
+        },
+        error: done.fail,
+      });
+    });
+  });
+
+  describe('when the request is a GraphQL operation', () => {
+    it('should read/write headers through GqlExecutionContext, same as HTTP', (done) => {
+      const ctx = buildMockContext(
+        { [CORRELATION_ID_HEADER]: 'incoming-id' },
+        setHeader,
+        'graphql',
+      );
+      const next = buildMockCallHandler('data');
+
+      const result$ = interceptor.intercept(ctx, next);
+
+      result$.subscribe({
+        next: (value) => {
+          expect(value).toBe('data');
+          expect(setHeader).toHaveBeenCalledWith(
+            CORRELATION_ID_HEADER,
+            'incoming-id',
+          );
+          expect(setTag).toHaveBeenCalledWith('correlation_id', 'incoming-id');
+          expect(correlationContext.run).toHaveBeenCalledWith(
+            'incoming-id',
             expect.any(Function),
           );
           done();
