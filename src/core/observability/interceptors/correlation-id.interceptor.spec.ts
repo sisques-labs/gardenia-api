@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext } from '@nestjs/common';
 import { of, throwError } from 'rxjs';
 
-import { CorrelationContext } from '@shared/correlation-context/correlation-context.service';
+import { CorrelationContext } from '@core/observability/correlation-context.service';
 
 import {
   CORRELATION_ID_HEADER,

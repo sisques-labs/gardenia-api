@@ -11,7 +11,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import type { Logger } from 'winston';
 
-import { CorrelationContext } from '@shared/correlation-context/correlation-context.service';
+import { CorrelationContext } from '@core/observability/correlation-context.service';
 
 interface IRequestMeta {
   res: Record<string, unknown>;

@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext } from '@nestjs/common';
 import { of, throwError } from 'rxjs';
 import type { Logger } from 'winston';
 
-import { CorrelationContext } from '@shared/correlation-context/correlation-context.service';
+import { CorrelationContext } from '@core/observability/correlation-context.service';
 
 import { HttpLoggingInterceptor } from './http-logging.interceptor';
 

@@ -8,7 +8,7 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { randomUUID } from 'node:crypto';
 import { Observable } from 'rxjs';
 
-import { CorrelationContext } from '@shared/correlation-context/correlation-context.service';
+import { CorrelationContext } from '@core/observability/correlation-context.service';
 
 export const CORRELATION_ID_HEADER = 'x-request-id';
 
