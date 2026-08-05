@@ -46,15 +46,6 @@ const baseEnvSchema = z
       .string()
       .trim()
       .min(1, 'DATABASE_DATABASE must not be empty'),
-    SENTRY_DSN: z.string().optional(),
-    SENTRY_ENVIRONMENT: z.string().optional(),
-    SENTRY_RELEASE: z.string().optional(),
-    SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).optional(),
-    SENTRY_PROFILE_SESSION_SAMPLE_RATE: z.coerce
-      .number()
-      .min(0)
-      .max(1)
-      .optional(),
     KAFKA_ENABLED: z.enum(['true', 'false']).optional(),
     KAFKA_BROKERS: z.string().optional(),
     KAFKA_CLIENT_ID: z.string().optional(),
