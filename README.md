@@ -13,7 +13,7 @@ Backend for Gardenia, a gardening companion application. Exposes REST and GraphQ
 | Database | PostgreSQL via [TypeORM](https://typeorm.io/) + MongoDB |
 | Auth | JWT + refresh tokens, OAuth (Google, GitHub, Apple) |
 | Tests | [Jest](https://jestjs.io/) (unit, integration, E2E) |
-| Observability | OpenTelemetry traces + metrics (optional, disabled when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset) |
+| Observability | OpenTelemetry traces + metrics + logs (optional, all disabled together when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset) |
 | Package manager | [pnpm](https://pnpm.io/) |
 
 ## Prerequisites
