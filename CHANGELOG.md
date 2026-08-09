@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.28.0] - 2026-08-09
+
+### Bug Fixes
+- **observability:** Remove leftover Prometheus e2e test and stray gitlink (fed76b2)
+
+### Features
+- **observability:** Replace Sentry and Prometheus with OpenTelemetry (eeedfb3)
+- **observability:** Forward logs through the OpenTelemetry pipeline (7145ab5)
 ## [0.27.12] - 2026-08-05
 
 ### Documentation
