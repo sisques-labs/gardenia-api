@@ -13,7 +13,7 @@ Every module in the application benefits from what `core` exposes, loaded at boo
 - **`postgresConfig`** — a `ConfigModule`-registered factory that reads database env vars and returns `TypeOrmModuleOptions`. Consumed by the test bootstrap to override DB settings.
 - **`authConfig`** — a `ConfigModule`-registered factory that exposes `JWT_SECRET` and `JWT_EXPIRES_IN` under the `'auth'` namespace. Consumed by `AuthModule`'s `JwtModule.registerAsync`.
 - **`BaseExceptionFilter`** — a global NestJS `ExceptionFilter` that catches `BaseException` subclasses and maps them to HTTP status codes, or re-throws them for Apollo to format in GraphQL responses.
-- **`ObservabilityModule`** — registers Sentry (`SentryModule.forRoot()` and `SentryGlobalFilter`) for unhandled error reporting, tracing, and profiling. Sentry is disabled when `SENTRY_DSN` is unset.
+- **`ObservabilityModule`** — instruments `CommandBus`/`QueryBus.execute()` via `CqrsObservabilityService`, emitting an OpenTelemetry span plus duration/count metrics for every CQRS dispatch. The underlying OpenTelemetry SDK (bootstrapped in `src/telemetry.ts`, before any other import) is disabled when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset.
 - **GraphQL enum registrations** — `FilterOperator` and `SortDirection` from `@sisques-labs/nestjs-kit` are registered with the GraphQL schema so that criteria-based queries work correctly.
 
 ---
@@ -22,9 +22,9 @@ Every module in the application benefits from what `core` exposes, loaded at boo
 
 | Layer | Path | What lives here |
 |-------|------|-----------------|
-| **config** | `config/` | `postgresConfig` factory (`postgres.config.ts`), `authConfig` factory (`auth.config.ts`), `sentryConfig` factory (`sentry.config.ts`) |
+| **config** | `config/` | `postgresConfig` factory (`postgres.config.ts`), `authConfig` factory (`auth.config.ts`), `otelConfig` factory (`otel.config.ts`) |
 | **filters** | `filters/` | `BaseExceptionFilter` — catches `BaseException`, maps to HTTP status codes |
-| **observability** | `observability/` | `ObservabilityModule` — Sentry error monitoring, tracing, and profiling |
+| **observability** | `observability/` | `ObservabilityModule` — `CqrsObservabilityService` wraps CommandBus/QueryBus with OpenTelemetry spans + metrics |
 | **transport/graphql** | `transport/graphql/` | `registered-enums.graphql.ts` — registers shared GraphQL enums at startup |
 
 ---
@@ -57,19 +57,18 @@ Registered under the `'auth'` namespace. Reads:
 | `JWT_SECRET` | — | Secret key used to sign JWT tokens |
 | `JWT_EXPIRES_IN` | `1d` | JWT expiry duration (e.g. `1d`, `7d`, `3600`) |
 
-### `sentryConfig`
+### `otelConfig`
 
-Registered under the `'sentry'` namespace. Sentry is **optional** — when `SENTRY_DSN` is unset, `instrument.ts` skips `Sentry.init()` and the API starts normally.
+Registered under the `'otel'` namespace. OpenTelemetry is **optional** — when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset, `telemetry.ts` never starts the SDK and the API starts normally.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SENTRY_DSN` | — | Sentry project DSN; SDK disabled when unset |
-| `SENTRY_ENVIRONMENT` | `NODE_ENV` or `development` | Environment tag in Sentry |
-| `SENTRY_RELEASE` | — | Release identifier (e.g. git SHA) |
-| `SENTRY_TRACES_SAMPLE_RATE` | `1.0` | Transaction sample rate (0–1) |
-| `SENTRY_PROFILE_SESSION_SAMPLE_RATE` | `1.0` | Profiling session sample rate (0–1) |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | — | OTLP collector endpoint; SDK disabled when unset |
+| `OTEL_SERVICE_NAME` | `gardenia-api` | Service name reported on spans/metrics |
+| `OTEL_TRACES_SAMPLE_RATIO` | `1.0` | Trace sampling ratio (0–1) |
+| `OTEL_METRIC_EXPORT_INTERVAL_MILLIS` | `15000` | Metric export interval in milliseconds |
 
-Initialization happens in `src/instrument.ts` (imported first in `main.ts`) before NestJS boots. `ObservabilityModule` wires `SentryGlobalFilter` for unhandled exceptions; domain `BaseException` errors are handled separately and are not reported to Sentry.
+Bootstrap happens in `src/telemetry.ts` (imported first in `main.ts`, before Nest/Express/TypeORM/kafkajs) so auto-instrumentation can patch those modules at require time. It exports traces + metrics via OTLP and auto-instruments HTTP/Express, GraphQL, Postgres, and Kafka. `ObservabilityModule`'s `CqrsObservabilityService` additionally wraps `CommandBus`/`QueryBus.execute()` so every CQRS dispatch gets a span plus duration/count metrics, with no per-handler wiring required.
 
 ### `BaseExceptionFilter`
 
