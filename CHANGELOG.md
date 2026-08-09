@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.27.12] - 2026-08-05
+
+### Documentation
+- Replace stock NestJS README with real project documentation (#454) (349d6f1)
 ## [0.27.11] - 2026-08-04
 
 ### Bug Fixes
