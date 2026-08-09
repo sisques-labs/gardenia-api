@@ -5,12 +5,11 @@ import { appConfig } from '@core/config/app.config';
 import { authConfig } from '@core/config/auth.config';
 import { validateEnv } from '@core/config/env.validation';
 import { kafkaConfig } from '@core/config/kafka.config';
+import { otelConfig } from '@core/config/otel.config';
 import { postgresConfig } from '@core/config/postgres.config';
-import { sentryConfig } from '@core/config/sentry.config';
 import { AGGREGATE_MODULE_MAP } from '@core/messaging/domain/topics/aggregate-module.map.generated';
 import { HealthModule } from '@core/health/health.module';
 import { McpContextBuilder } from '@core/mcp/mcp-context.builder';
-import '@core/metrics/exempt-metrics-from-space-guard';
 import { ObservabilityModule } from '@core/observability/observability.module';
 import '@core/transport/graphql/registered-enums.graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -23,7 +22,6 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { SharedGraphQLModule } from '@sisques-labs/nestjs-kit/graphql';
 import { McpModule } from '@sisques-labs/nestjs-kit/mcp';
 import { MessagingModule } from '@sisques-labs/nestjs-kit/messaging';
-import { MetricsModule } from '@sisques-labs/nestjs-kit/metrics';
 
 import { SharedModule } from '../shared/shared.module';
 import { SupportModule } from '../support/support.module';
@@ -39,7 +37,7 @@ const CORE_MODULES = [
   ConfigModule.forRoot({
     isGlobal: true,
     validate: validateEnv,
-    load: [postgresConfig, authConfig, appConfig, sentryConfig, kafkaConfig],
+    load: [postgresConfig, authConfig, appConfig, otelConfig, kafkaConfig],
     cache: true,
   }),
   TypeOrmModule.forRootAsync({
@@ -61,7 +59,6 @@ const CORE_MODULES = [
     }),
   }),
   ObservabilityModule,
-  MetricsModule.forRoot({ appLabel: 'gardenia-api' }),
   MessagingModule.forRoot({ aggregateModuleMap: AGGREGATE_MODULE_MAP }),
   HealthModule,
   McpModule.forRoot({

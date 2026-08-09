@@ -4,8 +4,8 @@ Backend for Gardenia — a gardening companion that keeps your green spaces
 organized, shared, and easy to look after. DDD + CQRS + Hexagonal
 architecture on NestJS, TypeORM/PostgreSQL, JWT + OAuth (Google/GitHub/Apple)
 auth with multi-tenant spaces, optional Kafka event forwarding, REST
-(Swagger) + GraphQL (Apollo) transports, Prometheus metrics, and an MCP
-endpoint.
+(Swagger) + GraphQL (Apollo) transports, OpenTelemetry traces + metrics, and
+an MCP endpoint.
 
 ## Quick start
 
@@ -29,7 +29,7 @@ The container needs a reachable PostgreSQL instance — it does not bundle one.
 
 | Port | Purpose |
 |------|---------|
-| `3000` | HTTP — REST (`/api/*`), GraphQL (`/graphql`), Swagger docs, health, metrics, MCP (see routes below) |
+| `3000` | HTTP — REST (`/api/*`), GraphQL (`/graphql`), Swagger docs, health, MCP (see routes below) |
 
 ## Routes
 
@@ -37,10 +37,13 @@ The container needs a reachable PostgreSQL instance — it does not bundle one.
 |------|---------|
 | `GET /api/health/live` | Liveness probe |
 | `GET /api/health/ready` | Readiness probe (checks DB connectivity) |
-| `GET /api/metrics` | Prometheus metrics (public, not auth-gated) |
 | `POST /api/mcp` | MCP (Model Context Protocol) endpoint — auth required, exposes every bounded context's commands/queries as tools |
 | `POST /graphql` | GraphQL (Apollo) |
 | `GET /docs` | Swagger UI |
+
+Traces and metrics are pushed via OTLP to a collector (see
+`OTEL_EXPORTER_OTLP_ENDPOINT` below) — there is no in-process `/metrics`
+endpoint to scrape.
 
 ## Environment variables
 
@@ -64,7 +67,7 @@ The container needs a reachable PostgreSQL instance — it does not bundle one.
 | `APPLE_CLIENT_ID` / `APPLE_TEAM_ID` / `APPLE_KEY_ID` / `APPLE_PRIVATE_KEY` / `APPLE_CALLBACK_URL` | — | Only if Sign in with Apple is used | |
 | `QR_BASE_URL` | `http://localhost:3000` | No | Base URL embedded in plant QR deep links |
 | `CORS_ORIGINS` | — | Production only | Comma-separated allowed origins |
-| `SENTRY_DSN` | — | No | Sentry error reporting disabled when unset |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | — | No | OpenTelemetry traces+metrics disabled when unset |
 | `KAFKA_ENABLED` | `false` | No | Domain event forwarding; app boots fine without a broker when disabled |
 | `KAFKA_BROKERS` | — | If Kafka enabled | Comma-separated broker list |
 | `FILES_STORAGE_DRIVER` | `database` | No | `database` or `s3`; S3 vars only required when set to `s3` |
