@@ -1,6 +1,23 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.28.1] - 2026-08-10
+
+### Chore
+- **deps:** Update dependency @aws-sdk/client-s3 to v3.1106.0 (#462) (8851f63)
+- **deps:** Update pnpm to v11.21.0 (b0a0beb)
+- **deps:** Update jaegertracing/all-in-one docker tag to v1.76.0 (ece3bb2)
+- **deps:** Update otel/opentelemetry-collector-contrib docker tag to v0.158.0 (6160ee1)
+- **deps:** Pin dependency @nestjs/cli to 11.0.24 (4430872)
+- **deps:** Pin dependency @nestjs/schematics to 11.1.0 (7b6c5e0)
+- **deps:** Pin dependency @nestjs/testing to 11.1.28 (d41a36f)
+- **deps:** Pin dependency @testcontainers/postgresql to 12.0.4 (5638900)
+- **deps:** Pin dependency eslint-import-resolver-typescript to 4.4.5 (a2c616c)
+- **deps:** Pin dependency eslint-config-prettier to 10.1.8 (02d8f6c)
+- **deps:** Pin dependency @types/node to 26.1.2 (5a8436d)
+- **deps:** Pin dependency @typescript-eslint/eslint-plugin to 8.65.0 (800e629)
+- **deps:** Pin dependency @typescript-eslint/parser to 8.65.0 (3e11c98)
+- **deps:** Pin dependency eslint to 8.57.1 (daefc68)
 ## [0.28.0] - 2026-08-09
 
 ### Bug Fixes
