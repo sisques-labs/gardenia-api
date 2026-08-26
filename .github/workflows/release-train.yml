@@ -36,3 +36,18 @@ jobs:
       contents: write
       packages: write
       security-events: write
+
+  deploy:
+    name: Deploy to Coolify
+    needs: release
+    if: needs.release.outputs.should_release == 'true'
+    uses: sisques-labs/workflows/.github/workflows/coolify-deploy.yml@main
+    secrets:
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+      COOLIFY_UUID: >-
+        ${{
+          github.ref_name == 'main' && secrets.COOLIFY_UUID_PROD ||
+          github.ref_name == 'staging' && secrets.COOLIFY_UUID_STAGING ||
+          secrets.COOLIFY_UUID_DEV
+        }}
