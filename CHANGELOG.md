@@ -1,6 +1,36 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.28.2] - 2026-08-26
+
+### Bug Fixes
+- **deps:** Pin dependency @aws-sdk/client-s3 to 3.1106.0 (#500) (b107a80)
+- **deps:** Pin dependency @modelcontextprotocol/sdk to 1.30.0 (#501) (8fb5c25)
+- **deps:** Pin dependency @nestjs/apollo to 12.2.2 (#502) (8a89a86)
+- **deps:** Pin dependency @nestjs/axios to 4.0.1 (#503) (f7651fc)
+- **deps:** Pin dependency @nestjs/common to 11.1.28 (3aa741b)
+- **deps:** Pin dependency @nestjs/core to 11.1.28 (a7a9873)
+- **deps:** Pin dependency @nestjs/config to 4.0.4 (#505) (a26dd3d)
+- **deps:** Pin dependency @nestjs/cqrs to 10.2.8 (#507) (07bf29d)
+- **deps:** Pin dependency @nestjs/graphql to 13.4.2 (#508) (6cfc31c)
+- **deps:** Pin dependency @nestjs/jwt to 11.0.2 (#509) (84736a1)
+- **deps:** Pin dependency @nestjs/passport to 11.0.5 (990c07d)
+
+### Chore
+- **deps:** Pin dependency eslint-plugin-boundaries to 7.1.0 (#485) (3032dd6)
+- **deps:** Pin dependency eslint-plugin-prettier to 5.5.6 (2581216)
+- **deps:** Pin dependency ts-loader to 9.6.2 (e8aec10)
+- **deps:** Pin dependency husky to 9.1.7 (0699f0b)
+- **deps:** Pin dependency jest to 30.4.2 (#488) (2886e6f)
+- **deps:** Pin dependency lint-staged to 17.3.0 (#489) (d0ad897)
+- **deps:** Pin dependency ts-jest to 29.4.12 (#493) (2d9c0c6)
+- **deps:** Pin dependency prettier to 3.9.6 (#490) (73c2c73)
+- **deps:** Pin dependency source-map-support to 0.5.21 (#491) (5966136)
+- **deps:** Pin dependency supertest to 7.2.2 (4a102f5)
+- **deps:** Pin dependency ts-node to 10.9.2 (#496) (9b1710c)
+- **deps:** Pin dependency tsconfig-paths to 4.2.0 (#497) (486d8ad)
+- **deps:** Pin dependency typescript to 6.0.3 (#498) (7dcff96)
+- **deps:** Pin node.js to v24.19.0 (#499) (3c09602)
 ## [0.28.1] - 2026-08-10
 
 ### Chore
