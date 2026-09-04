@@ -2,7 +2,7 @@ import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggre
 import { AppRoleEnum } from '@contexts/auth/domain/enums/app-role.enum';
 import { AppRoleValueObject } from '@contexts/auth/domain/value-objects/app-role/app-role.vo';
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
-import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
+
 import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import { Injectable } from '@nestjs/common';
@@ -61,7 +61,7 @@ export class AccountBuilder extends BaseBuilder<
     this.validate();
 
     return new AccountAggregate({
-      id: new AccountIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       userId: new UuidValueObject(this._userId),
       email: new AccountEmailValueObject(this._email),
       passwordHash: new AccountPasswordHashValueObject(this._passwordHash),

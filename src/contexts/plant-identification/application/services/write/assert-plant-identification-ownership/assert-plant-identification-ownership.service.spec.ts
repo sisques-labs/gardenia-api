@@ -7,7 +7,7 @@ import {
 import { PlantIdentificationAggregate } from '@contexts/plant-identification/domain/aggregates/plant-identification.aggregate';
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
 import { PlantIdentificationForbiddenException } from '@contexts/plant-identification/domain/exceptions/plant-identification-forbidden.exception';
-import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+
 import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
 import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
 import { PlantIdentificationStatusValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-status/plant-identification-status.value-object';
@@ -19,7 +19,7 @@ const OTHER_USER_ID = '660e8400-e29b-41d4-a716-446655440099';
 
 function buildIdentification(): PlantIdentificationAggregate {
   return new PlantIdentificationAggregate({
-    id: new PlantIdentificationIdValueObject(ID),
+    id: new UuidValueObject(ID),
     requestedByUserId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject('770e8400-e29b-41d4-a716-446655440002'),
     status: new PlantIdentificationStatusValueObject(

@@ -2,9 +2,9 @@ import { PlantPlantingSpotViewModel } from '@contexts/plants/domain/view-models/
 import { PlantQrViewModel } from '@contexts/plants/domain/view-models/plant-qr.view-model';
 import { PlantSpeciesViewModel } from '@contexts/plants/domain/view-models/plant-species.view-model';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
-import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
+
 import { PlantImageUrlValueObject } from '@contexts/plants/domain/value-objects/plant-image-url/plant-image-url.value-object';
-import { PlantLinkedSpeciesIdValueObject } from '@contexts/plants/domain/value-objects/plant-linked-species-id/plant-linked-species-id.value-object';
+
 import { PlantNameValueObject } from '@contexts/plants/domain/value-objects/plant-name/plant-name.value-object';
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
 import { Injectable } from '@nestjs/common';
@@ -81,11 +81,11 @@ export class PlantBuilder extends BaseBuilder<PlantAggregate, PlantViewModel> {
   public override build(): PlantAggregate {
     this.validate();
     return new PlantAggregate({
-      id: new PlantIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       name: new PlantNameValueObject(this._name),
       plantSpeciesId:
         this._plantSpeciesId != null
-          ? new PlantLinkedSpeciesIdValueObject(this._plantSpeciesId)
+          ? new UuidValueObject(this._plantSpeciesId)
           : null,
       imageUrl:
         this._imageUrl != null

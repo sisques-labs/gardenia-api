@@ -1,8 +1,9 @@
 import { HarvestAggregate } from '@contexts/harvests/domain/aggregates/harvest.aggregate';
 import { HarvestNotFoundException } from '@contexts/harvests/domain/exceptions/harvest-not-found.exception';
 import { IHarvestWriteRepository } from '@contexts/harvests/domain/repositories/write/harvest-write.repository';
-import { HarvestIdValueObject } from '@contexts/harvests/domain/value-objects/harvest-id/harvest-id.value-object';
+
 import { AssertHarvestExistsService } from './assert-harvest-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const ID = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -25,7 +26,7 @@ describe('AssertHarvestExistsService', () => {
     const aggregate = {} as HarvestAggregate;
     writeRepository.findById.mockResolvedValue(aggregate);
 
-    const result = await service.execute(new HarvestIdValueObject(ID));
+    const result = await service.execute(new UuidValueObject(ID));
 
     expect(result).toBe(aggregate);
     expect(writeRepository.findById).toHaveBeenCalledWith(ID);
@@ -34,7 +35,7 @@ describe('AssertHarvestExistsService', () => {
   it('throws HarvestNotFoundException when it does not exist', async () => {
     writeRepository.findById.mockResolvedValue(null);
 
-    await expect(service.execute(new HarvestIdValueObject(ID))).rejects.toThrow(
+    await expect(service.execute(new UuidValueObject(ID))).rejects.toThrow(
       HarvestNotFoundException,
     );
   });
@@ -42,8 +43,6 @@ describe('AssertHarvestExistsService', () => {
   it('includes the id in the thrown exception', async () => {
     writeRepository.findById.mockResolvedValue(null);
 
-    await expect(service.execute(new HarvestIdValueObject(ID))).rejects.toThrow(
-      ID,
-    );
+    await expect(service.execute(new UuidValueObject(ID))).rejects.toThrow(ID);
   });
 });

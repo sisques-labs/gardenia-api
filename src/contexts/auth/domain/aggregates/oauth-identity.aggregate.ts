@@ -12,7 +12,6 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 export class OAuthIdentityAggregate extends BaseAggregate {
-  private readonly _id: UuidValueObject;
   private readonly _userId: UuidValueObject;
   private readonly _provider: OAuthProviderValueObject;
   private readonly _providerUserId: StringValueObject;
@@ -23,8 +22,7 @@ export class OAuthIdentityAggregate extends BaseAggregate {
   private _tokenExpiresAt: DateValueObject | null;
 
   constructor(props: IOAuthIdentity) {
-    super(props.createdAt as any, props.updatedAt as any);
-    this._id = props.id;
+    super(props.id, props.createdAt as any, props.updatedAt as any);
     this._userId = props.userId;
     this._provider = props.provider;
     this._providerUserId = props.providerUserId;
@@ -66,9 +64,6 @@ export class OAuthIdentityAggregate extends BaseAggregate {
     this._tokenExpiresAt = tokenExpiresAt;
   }
 
-  get id(): UuidValueObject {
-    return this._id;
-  }
   get userId(): UuidValueObject {
     return this._userId;
   }

@@ -1,13 +1,13 @@
-import { HarvestIdValueObject } from '@contexts/harvests/domain/value-objects/harvest-id/harvest-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type HarvestFindByIdQueryInput = {
   id: string;
 };
 
 export class HarvestFindByIdQuery {
-  public readonly id: HarvestIdValueObject;
+  public readonly id: UuidValueObject;
 
   constructor(input: HarvestFindByIdQueryInput) {
-    this.id = new HarvestIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
   }
 }

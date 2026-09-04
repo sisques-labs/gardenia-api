@@ -3,11 +3,10 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { MembershipRoleEnum } from '../enums/membership-role.enum';
 import { ISpaceMembership } from '../interfaces/space-membership.interface';
 import { MembershipRoleValueObject } from '../value-objects/membership-role/membership-role.value-object';
-import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
 
 export class SpaceMembership {
   private readonly _userId: UuidValueObject;
-  private readonly _spaceId: SpaceIdValueObject;
+  private readonly _spaceId: UuidValueObject;
   private readonly _role: MembershipRoleValueObject;
   private readonly _joinedAt: DateValueObject;
 
@@ -25,7 +24,7 @@ export class SpaceMembership {
   ): SpaceMembership {
     return new SpaceMembership({
       userId: new UuidValueObject(userId),
-      spaceId: new SpaceIdValueObject(spaceId),
+      spaceId: new UuidValueObject(spaceId),
       role: new MembershipRoleValueObject(role),
       joinedAt: new DateValueObject(new Date()),
     });

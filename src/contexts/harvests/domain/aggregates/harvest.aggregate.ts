@@ -11,12 +11,11 @@ import { IHarvest } from '@contexts/harvests/domain/interfaces/harvest.interface
 import { IHarvestPrimitives } from '@contexts/harvests/domain/primitives/harvest.primitives';
 import { HarvestCropTypeValueObject } from '@contexts/harvests/domain/value-objects/harvest-crop-type/harvest-crop-type.value-object';
 import { HarvestHarvestedAtValueObject } from '@contexts/harvests/domain/value-objects/harvest-harvested-at/harvest-harvested-at.value-object';
-import { HarvestIdValueObject } from '@contexts/harvests/domain/value-objects/harvest-id/harvest-id.value-object';
+
 import { HarvestQuantityValueObject } from '@contexts/harvests/domain/value-objects/harvest-quantity/harvest-quantity.value-object';
 import { HarvestUnitValueObject } from '@contexts/harvests/domain/value-objects/harvest-unit/harvest-unit.value-object';
 
 export class HarvestAggregate extends BaseAggregate {
-  private readonly _id: HarvestIdValueObject;
   private _cropType: HarvestCropTypeValueObject;
   private _quantity: HarvestQuantityValueObject;
   private _unit: HarvestUnitValueObject;
@@ -25,8 +24,7 @@ export class HarvestAggregate extends BaseAggregate {
   private readonly _spaceId: UuidValueObject;
 
   constructor(props: IHarvest) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._cropType = props.cropType;
     this._quantity = props.quantity;
     this._unit = props.unit;
@@ -187,9 +185,6 @@ export class HarvestAggregate extends BaseAggregate {
     };
   }
 
-  get id(): HarvestIdValueObject {
-    return this._id;
-  }
   get cropType(): HarvestCropTypeValueObject {
     return this._cropType;
   }

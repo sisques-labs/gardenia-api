@@ -1,9 +1,10 @@
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
-import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
+
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import { AssertAccountViewModelExistsService } from '@contexts/auth/application/services/read/assert-account-view-model-exists/assert-account-view-model-exists.service';
 import { AccountFindByIdQuery } from './account-find-by-id.query';
 import { AccountFindByIdQueryHandler } from './account-find-by-id.handler';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const buildViewModel = (): AccountViewModel =>
   new AccountViewModel({
@@ -36,7 +37,7 @@ describe('AccountFindByIdQueryHandler', () => {
     const result = await handler.execute(query);
 
     expect(assertService.execute).toHaveBeenCalledWith(
-      expect.any(AccountIdValueObject),
+      expect.any(UuidValueObject),
     );
     expect(result).toBe(viewModel);
   });

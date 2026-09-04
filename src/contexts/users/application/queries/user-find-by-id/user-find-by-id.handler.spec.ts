@@ -1,7 +1,6 @@
-import { UserStatusEnum } from '@sisques-labs/nestjs-kit';
-
+import { UserStatusEnum, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
-import { UserIdValueObject } from '@contexts/users/domain/value-objects/user-id/user-id.value-object';
+
 import { UserViewModel } from '@contexts/users/domain/view-models/user.view-model';
 import { AssertUserViewModelExistsService } from '@contexts/users/application/services/read/assert-user-view-model-exists/assert-user-view-model-exists.service';
 import { UserFindByIdQuery } from './user-find-by-id.query';
@@ -62,7 +61,7 @@ describe('UserFindByIdQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(assertUserViewModelExistsService.execute).toHaveBeenCalledWith(
-        expect.any(UserIdValueObject),
+        expect.any(UuidValueObject),
       );
       expect(result).toBe(viewModel);
     });

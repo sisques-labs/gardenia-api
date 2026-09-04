@@ -1,5 +1,5 @@
 import { IInventoryItemPrimitives } from '@contexts/inventory/domain/primitives/inventory-item.primitives';
-import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type DeleteInventoryItemCommandInput = Pick<
   IInventoryItemPrimitives,
@@ -7,9 +7,9 @@ export type DeleteInventoryItemCommandInput = Pick<
 >;
 
 export class DeleteInventoryItemCommand {
-  public readonly id: InventoryItemIdValueObject;
+  public readonly id: UuidValueObject;
 
   constructor(input: DeleteInventoryItemCommandInput) {
-    this.id = new InventoryItemIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
   }
 }

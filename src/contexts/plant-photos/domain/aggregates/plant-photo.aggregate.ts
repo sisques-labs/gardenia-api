@@ -4,7 +4,7 @@ import { PlantPhotoDeletedEvent } from '@contexts/plant-photos/domain/events/pla
 import { PlantPhotoUploadedEvent } from '@contexts/plant-photos/domain/events/plant-photo-uploaded/plant-photo-uploaded.event';
 import { IPlantPhoto } from '@contexts/plant-photos/domain/interfaces/plant-photo.interface';
 import { IPlantPhotoPrimitives } from '@contexts/plant-photos/domain/primitives/plant-photo.primitives';
-import { PlantPhotoIdValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-id/plant-photo-id.value-object';
+
 import { PlantPhotoUrlValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-url/plant-photo-url.value-object';
 
 /**
@@ -13,7 +13,6 @@ import { PlantPhotoUrlValueObject } from '@contexts/plant-photos/domain/value-ob
  * upload a new one and delete the old one.
  */
 export class PlantPhotoAggregate extends BaseAggregate {
-  private readonly _id: PlantPhotoIdValueObject;
   private readonly _plantId: UuidValueObject;
   private readonly _fileId: UuidValueObject;
   private readonly _url: PlantPhotoUrlValueObject;
@@ -21,8 +20,7 @@ export class PlantPhotoAggregate extends BaseAggregate {
   private readonly _spaceId: UuidValueObject;
 
   constructor(props: IPlantPhoto) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._plantId = props.plantId;
     this._fileId = props.fileId;
     this._url = props.url;
@@ -73,9 +71,6 @@ export class PlantPhotoAggregate extends BaseAggregate {
     };
   }
 
-  get id(): PlantPhotoIdValueObject {
-    return this._id;
-  }
   get plantId(): UuidValueObject {
     return this._plantId;
   }

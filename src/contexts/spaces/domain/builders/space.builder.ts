@@ -3,12 +3,12 @@ import {
   BaseBuilder,
   DateValueObject,
   FieldIsRequiredException,
+  UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
-
 import { SpaceAggregate } from '../aggregates/space.aggregate';
 import { SpaceEnvironmentEnum } from '../enums/space-environment.enum';
 import { SpaceEnvironmentValueObject } from '../value-objects/space-environment/space-environment.value-object';
-import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
+
 import { SpaceLatitudeValueObject } from '../value-objects/space-latitude/space-latitude.value-object';
 import { SpaceLongitudeValueObject } from '../value-objects/space-longitude/space-longitude.value-object';
 import { SpaceNameValueObject } from '../value-objects/space-name/space-name.value-object';
@@ -50,14 +50,23 @@ export class SpaceBuilder extends BaseBuilder<SpaceAggregate, SpaceViewModel> {
   public override build(): SpaceAggregate {
     this.validate();
     return new SpaceAggregate({
-      id: new SpaceIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       name: new SpaceNameValueObject(this._name),
-      ownerId: new SpaceIdValueObject(this._ownerId),
+      ownerId: new UuidValueObject(this._ownerId),
       createdAt: new DateValueObject(this._createdAt),
       updatedAt: new DateValueObject(this._updatedAt),
-      latitude: this._latitude != null ? new SpaceLatitudeValueObject(this._latitude) : null,
-      longitude: this._longitude != null ? new SpaceLongitudeValueObject(this._longitude) : null,
-      environment: this._environment != null ? new SpaceEnvironmentValueObject(this._environment) : null,
+      latitude:
+        this._latitude != null
+          ? new SpaceLatitudeValueObject(this._latitude)
+          : null,
+      longitude:
+        this._longitude != null
+          ? new SpaceLongitudeValueObject(this._longitude)
+          : null,
+      environment:
+        this._environment != null
+          ? new SpaceEnvironmentValueObject(this._environment)
+          : null,
     });
   }
 

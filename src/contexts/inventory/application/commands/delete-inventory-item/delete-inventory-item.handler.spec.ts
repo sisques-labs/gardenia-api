@@ -7,7 +7,7 @@ import { InventoryItemTypeEnum } from '@contexts/inventory/domain/enums/inventor
 import { InventoryUnitEnum } from '@contexts/inventory/domain/enums/inventory-unit.enum';
 import { InventoryItemNotFoundException } from '@contexts/inventory/domain/exceptions/inventory-item-not-found.exception';
 import { IInventoryItemWriteRepository } from '@contexts/inventory/domain/repositories/write/inventory-item-write.repository';
-import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
+
 import { InventoryItemNameValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-name/inventory-item-name.value-object';
 import { InventoryItemTypeValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-type/inventory-item-type.value-object';
 import { InventoryQuantityValueObject } from '@contexts/inventory/domain/value-objects/inventory-quantity/inventory-quantity.value-object';
@@ -19,7 +19,7 @@ const ID = '550e8400-e29b-41d4-a716-446655440000';
 
 function buildItem(): InventoryItemAggregate {
   return new InventoryItemAggregate({
-    id: new InventoryItemIdValueObject(ID),
+    id: new UuidValueObject(ID),
     itemType: new InventoryItemTypeValueObject(InventoryItemTypeEnum.SEEDS),
     name: new InventoryItemNameValueObject('Lettuce seeds'),
     brand: null,

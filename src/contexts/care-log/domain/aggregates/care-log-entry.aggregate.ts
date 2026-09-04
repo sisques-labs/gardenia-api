@@ -11,7 +11,7 @@ import { CareLogEntryDeletedEvent } from '@contexts/care-log/domain/events/care-
 import { CareLogQuantityUnitMismatchException } from '@contexts/care-log/domain/exceptions/care-log-quantity-unit-mismatch.exception';
 import { ICareLogEntry } from '@contexts/care-log/domain/interfaces/care-log-entry.interface';
 import { ICareLogEntryPrimitives } from '@contexts/care-log/domain/primitives/care-log-entry.primitives';
-import { CareLogIdValueObject } from '@contexts/care-log/domain/value-objects/care-log-id/care-log-id.value-object';
+
 import { CareLogActivityTypeValueObject } from '@contexts/care-log/domain/value-objects/care-log-activity-type/care-log-activity-type.value-object';
 import { CareLogPerformedAtValueObject } from '@contexts/care-log/domain/value-objects/care-log-performed-at/care-log-performed-at.value-object';
 import { CareLogNotesValueObject } from '@contexts/care-log/domain/value-objects/care-log-notes/care-log-notes.value-object';
@@ -19,7 +19,6 @@ import { CareLogQuantityValueObject } from '@contexts/care-log/domain/value-obje
 import { CareLogUnitValueObject } from '@contexts/care-log/domain/value-objects/care-log-unit/care-log-unit.value-object';
 
 export class CareLogEntryAggregate extends BaseAggregate {
-  private readonly _id: CareLogIdValueObject;
   private readonly _plantId: UuidValueObject;
   private readonly _userId: UuidValueObject;
   private readonly _spaceId: UuidValueObject;
@@ -30,8 +29,7 @@ export class CareLogEntryAggregate extends BaseAggregate {
   private _unit: CareLogUnitValueObject | null;
 
   constructor(props: ICareLogEntry) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._plantId = props.plantId;
     this._userId = props.userId;
     this._spaceId = props.spaceId;
@@ -262,10 +260,6 @@ export class CareLogEntryAggregate extends BaseAggregate {
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };
-  }
-
-  get id(): CareLogIdValueObject {
-    return this._id;
   }
 
   get plantId(): UuidValueObject {

@@ -7,7 +7,7 @@ import { FileAggregate } from '@contexts/files/domain/aggregates/file.aggregate'
 import { FileMimeTypeEnum } from '@contexts/files/domain/enums/file-mime-type.enum';
 import { FileNotFoundException } from '@contexts/files/domain/exceptions/file-not-found.exception';
 import { IFileWriteRepository } from '@contexts/files/domain/repositories/write/file-write.repository';
-import { FileIdValueObject } from '@contexts/files/domain/value-objects/file-id/file-id.value-object';
+
 import { FileMimeTypeValueObject } from '@contexts/files/domain/value-objects/file-mime-type/file-mime-type.value-object';
 import { FileNameValueObject } from '@contexts/files/domain/value-objects/file-name/file-name.value-object';
 import { FileSizeValueObject } from '@contexts/files/domain/value-objects/file-size/file-size.value-object';
@@ -20,7 +20,7 @@ const FILE_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 function buildFile(): FileAggregate {
   return new FileAggregate({
-    id: new FileIdValueObject(FILE_ID),
+    id: new UuidValueObject(FILE_ID),
     filename: new FileNameValueObject('rose.png'),
     mimeType: new FileMimeTypeValueObject(FileMimeTypeEnum.IMAGE_PNG),
     size: new FileSizeValueObject(1024),

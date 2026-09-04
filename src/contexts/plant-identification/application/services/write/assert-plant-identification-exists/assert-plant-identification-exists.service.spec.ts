@@ -8,7 +8,7 @@ import { PlantIdentificationAggregate } from '@contexts/plant-identification/dom
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
 import { PlantIdentificationNotFoundException } from '@contexts/plant-identification/domain/exceptions/plant-identification-not-found.exception';
 import { IPlantIdentificationWriteRepository } from '@contexts/plant-identification/domain/repositories/write/plant-identification-write.repository';
-import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+
 import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
 import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
 import { PlantIdentificationStatusValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-status/plant-identification-status.value-object';
@@ -18,7 +18,7 @@ const ID = '550e8400-e29b-41d4-a716-446655440000';
 
 function buildIdentification(): PlantIdentificationAggregate {
   return new PlantIdentificationAggregate({
-    id: new PlantIdentificationIdValueObject(ID),
+    id: new UuidValueObject(ID),
     requestedByUserId: new UuidValueObject(
       '660e8400-e29b-41d4-a716-446655440001',
     ),
@@ -57,9 +57,7 @@ describe('AssertPlantIdentificationExistsService', () => {
     const identification = buildIdentification();
     mockWriteRepo.findById.mockResolvedValue(identification);
 
-    const result = await service.execute(
-      new PlantIdentificationIdValueObject(ID),
-    );
+    const result = await service.execute(new UuidValueObject(ID));
 
     expect(result).toBe(identification);
   });
@@ -67,8 +65,8 @@ describe('AssertPlantIdentificationExistsService', () => {
   it('throws PlantIdentificationNotFoundException when not found', async () => {
     mockWriteRepo.findById.mockResolvedValue(null);
 
-    await expect(
-      service.execute(new PlantIdentificationIdValueObject(ID)),
-    ).rejects.toThrow(PlantIdentificationNotFoundException);
+    await expect(service.execute(new UuidValueObject(ID))).rejects.toThrow(
+      PlantIdentificationNotFoundException,
+    );
   });
 });

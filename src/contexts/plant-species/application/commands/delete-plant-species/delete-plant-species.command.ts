@@ -1,13 +1,13 @@
-import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export interface DeletePlantSpeciesCommandInput {
   id: string;
 }
 
 export class DeletePlantSpeciesCommand {
-  public readonly id: PlantSpeciesIdValueObject;
+  public readonly id: UuidValueObject;
 
   constructor(input: DeletePlantSpeciesCommandInput) {
-    this.id = new PlantSpeciesIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
   }
 }

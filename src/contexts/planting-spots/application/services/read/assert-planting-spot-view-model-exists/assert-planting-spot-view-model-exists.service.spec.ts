@@ -1,8 +1,9 @@
 import { PlantingSpotNotFoundException } from '@contexts/planting-spots/domain/exceptions/planting-spot-not-found.exception';
 import { IPlantingSpotReadRepository } from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
-import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
+
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
 import { AssertPlantingSpotViewModelExistsService } from './assert-planting-spot-view-model-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const ID = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -23,7 +24,7 @@ describe('AssertPlantingSpotViewModelExistsService', () => {
     const vm = {} as PlantingSpotViewModel;
     readRepository.findById.mockResolvedValue(vm);
 
-    const result = await service.execute(new PlantingSpotIdValueObject(ID));
+    const result = await service.execute(new UuidValueObject(ID));
 
     expect(result).toBe(vm);
     expect(readRepository.findById).toHaveBeenCalledWith(ID);
@@ -32,8 +33,8 @@ describe('AssertPlantingSpotViewModelExistsService', () => {
   it('throws PlantingSpotNotFoundException when it does not exist', async () => {
     readRepository.findById.mockResolvedValue(null);
 
-    await expect(
-      service.execute(new PlantingSpotIdValueObject(ID)),
-    ).rejects.toThrow(PlantingSpotNotFoundException);
+    await expect(service.execute(new UuidValueObject(ID))).rejects.toThrow(
+      PlantingSpotNotFoundException,
+    );
   });
 });

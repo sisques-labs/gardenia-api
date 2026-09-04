@@ -5,8 +5,9 @@ import {
   IPlantingSpotReadRepository,
   PLANTING_SPOT_READ_REPOSITORY,
 } from '@contexts/planting-spots/domain/repositories/read/planting-spot-read.repository';
-import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
+
 import { PlantingSpotViewModel } from '@contexts/planting-spots/domain/view-models/planting-spot.view-model';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 @Injectable()
 export class AssertPlantingSpotViewModelExistsService {
@@ -15,7 +16,7 @@ export class AssertPlantingSpotViewModelExistsService {
     private readonly plantingSpotReadRepository: IPlantingSpotReadRepository,
   ) {}
 
-  async execute(id: PlantingSpotIdValueObject): Promise<PlantingSpotViewModel> {
+  async execute(id: UuidValueObject): Promise<PlantingSpotViewModel> {
     const spot = await this.plantingSpotReadRepository.findById(id.value);
     if (!spot) throw new PlantingSpotNotFoundException(id.value);
 

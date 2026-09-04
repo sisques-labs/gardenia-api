@@ -10,7 +10,7 @@ import { HarvestAggregate } from '@contexts/harvests/domain/aggregates/harvest.a
 import { HarvestUnitEnum } from '@contexts/harvests/domain/enums/harvest-unit.enum';
 import { HarvestCropTypeValueObject } from '@contexts/harvests/domain/value-objects/harvest-crop-type/harvest-crop-type.value-object';
 import { HarvestHarvestedAtValueObject } from '@contexts/harvests/domain/value-objects/harvest-harvested-at/harvest-harvested-at.value-object';
-import { HarvestIdValueObject } from '@contexts/harvests/domain/value-objects/harvest-id/harvest-id.value-object';
+
 import { HarvestQuantityValueObject } from '@contexts/harvests/domain/value-objects/harvest-quantity/harvest-quantity.value-object';
 import { HarvestUnitValueObject } from '@contexts/harvests/domain/value-objects/harvest-unit/harvest-unit.value-object';
 import { HarvestViewModel } from '@contexts/harvests/domain/view-models/harvest.view-model';
@@ -60,7 +60,7 @@ export class HarvestBuilder extends BaseBuilder<
   public override build(): HarvestAggregate {
     this.validate();
     return new HarvestAggregate({
-      id: new HarvestIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       cropType: new HarvestCropTypeValueObject(this._cropType),
       quantity: new HarvestQuantityValueObject(this._quantity),
       unit: new HarvestUnitValueObject(this._unit as HarvestUnitEnum),

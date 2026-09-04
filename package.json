@@ -71,7 +71,7 @@
     "@opentelemetry/sdk-trace-base": "^2.10.0",
     "@opentelemetry/semantic-conventions": "^1.43.0",
     "@opentelemetry/winston-transport": "^0.31.0",
-    "@sisques-labs/nestjs-kit": "1.5.1",
+    "@sisques-labs/nestjs-kit": "1.8.0",
     "@types/passport-github2": "^1.2.9",
     "@types/passport-google-oauth20": "^2.0.17",
     "axios": "^1.18.1",
