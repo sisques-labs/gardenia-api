@@ -1,13 +1,13 @@
-import { FileIdValueObject } from '@contexts/files/domain/value-objects/file-id/file-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type FileFindByIdQueryInput = {
   id: string;
 };
 
 export class FileFindByIdQuery {
-  public readonly id: FileIdValueObject;
+  public readonly id: UuidValueObject;
 
   constructor(input: FileFindByIdQueryInput) {
-    this.id = new FileIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
   }
 }

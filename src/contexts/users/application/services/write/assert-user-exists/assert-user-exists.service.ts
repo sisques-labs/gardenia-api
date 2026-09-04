@@ -4,10 +4,9 @@ import {
   IUserWriteRepository,
   USER_WRITE_REPOSITORY,
 } from '@contexts/users/domain/repositories/write/user-write.repository';
-import { UserIdValueObject } from '@contexts/users/domain/value-objects/user-id/user-id.value-object';
-import { Inject, Injectable } from '@nestjs/common';
-import { IBaseService } from '@sisques-labs/nestjs-kit';
 
+import { Inject, Injectable } from '@nestjs/common';
+import { IBaseService, UuidValueObject } from '@sisques-labs/nestjs-kit';
 @Injectable()
 export class AssertUserExistsService implements IBaseService {
   constructor(
@@ -15,7 +14,7 @@ export class AssertUserExistsService implements IBaseService {
     private readonly userWriteRepository: IUserWriteRepository,
   ) {}
 
-  async execute(id: UserIdValueObject): Promise<UserAggregate> {
+  async execute(id: UuidValueObject): Promise<UserAggregate> {
     const user = await this.userWriteRepository.findById(id.value);
     if (!user) throw new UserNotFoundException(id.value);
 

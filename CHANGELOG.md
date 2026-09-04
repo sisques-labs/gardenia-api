@@ -1,6 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.28.3] - 2026-09-03
+
+### Bug Fixes
+- **deps:** Pin dependency @nestjs/platform-express to 11.1.28 (#514) (ec0c793)
+- **deps:** Pin dependency @nestjs/swagger to 11.4.6 (#515) (1153654)
+- **deps:** Pin dependency @nestjs/typeorm to 11.0.3 (#516) (8c03415)
+- **deps:** Pin dependency @nicokaiser/passport-apple to 3.3.0 (#517) (f93cf7f)
+- **deps:** Pin dependency @opentelemetry/api to 1.9.1 (#518) (79d05a4)
+- **deps:** Pin dependency @opentelemetry/api-logs to 0.221.0 (#519) (b5f7df6)
+- **deps:** Pin dependency @opentelemetry/auto-instrumentations-node to 0.79.0 (#520) (5b9219c)
+- **deps:** Pin dependency @opentelemetry/exporter-logs-otlp-proto to 0.221.0 (#521) (bf2b263)
+- **deps:** Pin dependency @opentelemetry/exporter-metrics-otlp-proto to 0.221.0 (#522) (02963bd)
+- **deps:** Pin dependency @opentelemetry/exporter-trace-otlp-proto to 0.221.0 (#523) (68ecab3)
 ## [0.28.2] - 2026-08-26
 
 ### Bug Fixes
@@ -108,6 +121,10 @@ All notable changes to this project will be documented in this file.
 ## [0.27.6] - 2026-07-20
 
 ### Bug Fixes
+- **plant-identification:** Stamp active space on write, wire exception filter (25d72dc)
+- **plant-identification:** Register new tables in truncateAll (ce1d69c)
+- **plant-identification:** Wait for photo upload to settle before rethrowing identify errors (e285e99)
+- **plant-identification:** Reject unsupported image formats before calling PlantNet (a5d225f)
 - **plant-identification:** Guard against array-typed organs/project in multipart body (17f3d2e)
 - **plant-identification:** Bind request-derived values to narrowed locals (1c9243b)
 - **plant-identification:** Nest CodeQL-flagged logic inside the narrowed branch (be391b1)
@@ -141,14 +158,25 @@ All notable changes to this project will be documented in this file.
 - **deps:** Update dependency @nestjs/testing to v11 (76ded3e)
 
 ### Documentation
+- **plant-identification:** Propose PlantNet-powered species identification (30535f1)
+- **plant-identification:** Mark implementation tasks complete (c124239)
 - **openspec:** Propose selecting any PlantNet candidate on plant creation (bbaccb8)
 - **openspec:** Drop plant-identification-select-candidate proposal (1213f39)
 
 ### Features
+- **plant-identification:** Add PlantNet-powered species identification context (22eba6d)
 - **plant-identification:** Transcode unsupported image formats before calling PlantNet (45f0d63)
 
 ### Refactor
+- **plant-identification:** Make species resolution provider-agnostic (08536da)
+- **plant-identification:** Apply PR review feedback (c1dc7f0)
+- **plant-identification:** Adopt MimeTypeValueObject/FilenameValueObject (fedcfdb)
+- **plant-identification:** Use nestjs-kit VOs for all filename/mimeType fields (4284f71)
+- **plant-identification:** Extract not-converted/resolved guards into services (215e82f)
 - **plant-identification:** Remove unverified response shape banner from PlantNet types (24f4b2f)
+
+### Testing
+- **plant-identification:** Cover the TypeORM read/write repositories (15708e4)
 ## [0.27.5] - 2026-07-17
 
 ### CI
@@ -160,7 +188,6 @@ All notable changes to this project will be documented in this file.
 ## [0.27.4] - 2026-07-17
 
 ### Bug Fixes
-- **plant-identification:** Reject unsupported image formats before calling PlantNet (a5d225f)
 - **deps:** Update dependency @nestjs/core to v11 [security] (05df460)
 
 ### CI
@@ -169,22 +196,10 @@ All notable changes to this project will be documented in this file.
 ### Testing
 - **mcp:** Add unit coverage for all MCP tool adapters (d42c375)
 - Raise branch/function coverage to 80% and gate it in CI (4ebac71)
-- **plant-identification:** Cover the TypeORM read/write repositories (15708e4)
 ## [0.27.3] - 2026-07-15
-
-### Bug Fixes
-- **plant-identification:** Register new tables in truncateAll (ce1d69c)
-- **plant-identification:** Wait for photo upload to settle before rethrowing identify errors (e285e99)
 
 ### Chore
 - Adopt shared Renovate config, remove Dependabot (f88d06f)
-
-### Refactor
-- **plant-identification:** Make species resolution provider-agnostic (08536da)
-- **plant-identification:** Apply PR review feedback (c1dc7f0)
-- **plant-identification:** Adopt MimeTypeValueObject/FilenameValueObject (fedcfdb)
-- **plant-identification:** Use nestjs-kit VOs for all filename/mimeType fields (4284f71)
-- **plant-identification:** Extract not-converted/resolved guards into services (215e82f)
 ## [0.27.2] - 2026-07-15
 
 ### Chore
@@ -192,9 +207,6 @@ All notable changes to this project will be documented in this file.
 - **deps-dev:** Bump @types/node from 26.1.0 to 26.1.1 (b129028)
 - **deps:** Bump @aws-sdk/client-s3 from 3.1080.0 to 3.1087.0 (a19bdc1)
 ## [0.27.1] - 2026-07-15
-
-### Bug Fixes
-- **plant-identification:** Stamp active space on write, wire exception filter (25d72dc)
 
 ### Chore
 - **deps-dev:** Bump @nestjs/cli from 11.0.23 to 11.0.24 (ddb3ae4)
@@ -206,13 +218,6 @@ All notable changes to this project will be documented in this file.
 - **deps-dev:** Bump prettier from 3.8.3 to 3.9.5 (4888eac)
 - **deps:** Update @sisques-labs/nestjs-kit to version 1.2.1 and bump graphql-query-complexity to 1.1.1 (ca43b6b)
 - **deps:** Bump @sisques-labs/nestjs-kit from 1.2.1 to 1.3.1 (f5b887c)
-
-### Documentation
-- **plant-identification:** Propose PlantNet-powered species identification (30535f1)
-- **plant-identification:** Mark implementation tasks complete (c124239)
-
-### Features
-- **plant-identification:** Add PlantNet-powered species identification context (22eba6d)
 ## [0.27.0] - 2026-07-10
 
 ### Documentation
@@ -475,6 +480,23 @@ All notable changes to this project will be documented in this file.
 - **test:** Add missing migrations 11-OAuth and both 15s, add missing entities to test helpers (c8d0b2a)
 - **test:** Reorder imports in test-data-source and remove unused migration import (73f8a41)
 - **care-log:** Add space_id tenant filter to findByCriteria query builder (46f5dc1)
+
+### Documentation
+- **care-log:** Add README for the care log bounded context (8bae3e0)
+
+### Features
+- **openspec:** Add care-log change — full proposal, design, spec and tasks (b53a827)
+- **care-log:** Implement care journal bounded context (#216) (3e3769d)
+
+### Refactor
+- **care-log:** Commands use Pick/Omit input types and full VO class fields (b35fc9a)
+- **care-log:** Per-field change events on update + FindByCriteria query (3cec1d0)
+- **care-log:** Address PR review comments (a7a452a)
+- **care-log:** Address remaining PR review comments (4694821)
+- **care-log:** Update CareLogFindLastByTypeQuery to use UuidValueObject for plantId (25dfcee)
+
+### Testing
+- **care-log:** Add unit, integration and e2e tests (374c62b)
 ## [0.17.0] - 2026-06-13
 
 ### Bug Fixes
@@ -493,6 +515,22 @@ All notable changes to this project will be documented in this file.
 
 ### Testing
 - **harvests:** Add where mock and spaceId assertion to read repository spec (e505179)
+## [0.16.0] - 2026-06-12
+
+### Bug Fixes
+- **plant-species:** Restrict write mutations to admin role (885d3a0)
+- **ci:** Use valid 32-byte base64 OAUTH_TOKEN_ENC_KEY (edd2da8)
+- **security:** Whitelist CORS origins instead of reflecting any origin (c4a87e8)
+
+### Chore
+- Release v0.15.1-beta.3 (85c6616)
+
+### Features
+- **database:** Add tenant relationship indexes and FK constraints (610f362)
+- **security:** Validate critical secrets at startup with Zod (b8c0e12)
+
+### Testing
+- **integration:** Seed FK parent rows for tenant constraints (fa41657)
 ## [0.15.2] - 2026-06-12
 
 ### Bug Fixes
@@ -565,9 +603,6 @@ All notable changes to this project will be documented in this file.
 - **auth:** Add appRole to CurrentUserPayload mocks in transport specs (744fa8d)
 - **auth:** Add appRole to CurrentUserPayload mocks in planting-spots and plants specs (9566ac3)
 - **spaces:** Update expiration date for space invitations (276bbde)
-- **plant-species:** Restrict write mutations to admin role (885d3a0)
-- **ci:** Use valid 32-byte base64 OAUTH_TOKEN_ENC_KEY (edd2da8)
-- **security:** Whitelist CORS origins instead of reflecting any origin (c4a87e8)
 
 ### CI
 - Add CI/CD workflows, Docker infrastructure and release automation (1abb71c)
@@ -657,7 +692,6 @@ All notable changes to this project will be documented in this file.
 - Release v0.15.1-beta.1 (3b792fa)
 - Release v0.15.1 (6450dd7)
 - Release v0.15.1-beta.2 (32f9ddd)
-- Release v0.15.1-beta.3 (85c6616)
 
 ### Documentation
 - **readme:** Add auth, users, and core module documentation (86ed6fe)
@@ -675,7 +709,6 @@ All notable changes to this project will be documented in this file.
 - **openspec:** Document graphql field resolver space context fix (c71ca8a)
 - **spaces:** Add module README for spaces and invitations (7a26a4d)
 - **auth:** Rewrite README to cover sessions, OAuth, RBAC, and full API (0073d31)
-- **care-log:** Add README for the care log bounded context (8bae3e0)
 
 ### Features
 - **core:** Add config factories, exception filter and AppModule wiring (aa27b10)
@@ -749,10 +782,6 @@ All notable changes to this project will be documented in this file.
 - **plant-species:** Add enrich command with GBIF validation gate (84b1e65)
 - **plants:** Align linked species view model with plant-species catalog (312f91c)
 - **auth:** Implement app-level RBAC with ADMIN and USER roles (28d5810)
-- **openspec:** Add care-log change — full proposal, design, spec and tasks (b53a827)
-- **care-log:** Implement care journal bounded context (#216) (3e3769d)
-- **database:** Add tenant relationship indexes and FK constraints (610f362)
-- **security:** Validate critical secrets at startup with Zod (b8c0e12)
 
 ### Refactor
 - **users:** Replace static factories with builder pattern and add toPrimitives (f527be2)
@@ -851,11 +880,6 @@ All notable changes to this project will be documented in this file.
 - **spaces:** Drop EnsureUserExists from invitation accept flow (0cdbde2)
 - **spaces:** Reorganize imports and add TODO for invitation handling (ddfd52c)
 - **plant-species:** Address PR review on import command and GBIF types (a392dcf)
-- **care-log:** Commands use Pick/Omit input types and full VO class fields (b35fc9a)
-- **care-log:** Per-field change events on update + FindByCriteria query (3cec1d0)
-- **care-log:** Address PR review comments (a7a452a)
-- **care-log:** Address remaining PR review comments (4694821)
-- **care-log:** Update CareLogFindLastByTypeQuery to use UuidValueObject for plantId (25dfcee)
 
 ### Testing
 - **users:** Unit tests for UserAggregate (f46657e)
@@ -874,8 +898,6 @@ All notable changes to this project will be documented in this file.
 - **planting-spots:** Relax SC-16 constraint to allow Phase 2 adapters (b964fc8)
 - **config:** Update migrationsRun assertions for new default-true behavior (4f51703)
 - **spaces:** Fix invitation expiry fixture past current date (397c16f)
-- **care-log:** Add unit, integration and e2e tests (374c62b)
-- **integration:** Seed FK parent rows for tenant constraints (fa41657)
 
 ### Tech
 - **auth:** Implement findByCriteria in AccountTypeOrmReadRepository (f2e7a78)

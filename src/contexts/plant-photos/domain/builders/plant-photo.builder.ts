@@ -7,7 +7,7 @@ import {
 } from '@sisques-labs/nestjs-kit';
 
 import { PlantPhotoAggregate } from '@contexts/plant-photos/domain/aggregates/plant-photo.aggregate';
-import { PlantPhotoIdValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-id/plant-photo-id.value-object';
+
 import { PlantPhotoUrlValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-url/plant-photo-url.value-object';
 import { PlantPhotoViewModel } from '@contexts/plant-photos/domain/view-models/plant-photo.view-model';
 
@@ -50,7 +50,7 @@ export class PlantPhotoBuilder extends BaseBuilder<
   public override build(): PlantPhotoAggregate {
     this.validate();
     return new PlantPhotoAggregate({
-      id: new PlantPhotoIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       plantId: new UuidValueObject(this._plantId),
       fileId: new UuidValueObject(this._fileId),
       url: new PlantPhotoUrlValueObject(this._url),

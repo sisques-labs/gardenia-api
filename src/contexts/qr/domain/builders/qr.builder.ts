@@ -9,7 +9,7 @@ import {
 import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
 import { QrExpiresAtValueObject } from '@contexts/qr/domain/value-objects/qr-expires-at/qr-expires-at.value-object';
 import { QrGenerationValueObject } from '@contexts/qr/domain/value-objects/qr-generation/qr-generation.value-object';
-import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
+
 import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
 import { QrViewModel } from '@contexts/qr/domain/view-models/qr.view-model';
 
@@ -43,7 +43,7 @@ export class QrBuilder extends BaseBuilder<QrAggregate, QrViewModel> {
   public override build(): QrAggregate {
     this.validate();
     return new QrAggregate({
-      id: new QrIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       spaceId: new UuidValueObject(this._spaceId),
       targetUrl: new QrTargetUrlValueObject(this._targetUrl),
       generation: new QrGenerationValueObject(this._generation),

@@ -16,15 +16,13 @@ import { IPlantingSpotQrPrimitives } from '@contexts/planting-spots/domain/primi
  * so it can flow through the builder's build()/buildViewModel() contract.
  */
 export class PlantingSpotQrAggregate extends BaseAggregate {
-  private readonly _id: UuidValueObject;
   private readonly _spaceId: UuidValueObject;
   private readonly _targetUrl: UrlValueObject;
   private readonly _generation: NumberValueObject;
   private readonly _image: StringValueObject;
 
   constructor(props: IPlantingSpotQr) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._spaceId = props.spaceId;
     this._targetUrl = props.targetUrl;
     this._generation = props.generation;
@@ -43,9 +41,6 @@ export class PlantingSpotQrAggregate extends BaseAggregate {
     };
   }
 
-  get id(): UuidValueObject {
-    return this._id;
-  }
   get spaceId(): UuidValueObject {
     return this._spaceId;
   }

@@ -1,11 +1,11 @@
 import { IUserPrimitives } from '@contexts/users/domain/primitives/user.primitives';
-import { UserIdValueObject } from '@contexts/users/domain/value-objects/user-id/user-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type DeleteUserCommandInput = Pick<IUserPrimitives, 'id'>;
 
 export class DeleteUserCommand {
-  public readonly id: UserIdValueObject;
+  public readonly id: UuidValueObject;
   constructor(input: DeleteUserCommandInput) {
-    this.id = new UserIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
   }
 }

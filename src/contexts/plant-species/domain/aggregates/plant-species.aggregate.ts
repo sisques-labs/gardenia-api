@@ -1,5 +1,4 @@
 import { BaseAggregate } from '@sisques-labs/nestjs-kit';
-
 import { PlantSpeciesGbifKeyChangedEvent } from '@contexts/plant-species/domain/events/field-changed/plant-species-gbif-key-changed/plant-species-gbif-key-changed.event';
 import { PlantSpeciesScientificNameChangedEvent } from '@contexts/plant-species/domain/events/field-changed/plant-species-scientific-name-changed/plant-species-scientific-name-changed.event';
 import { PlantSpeciesCreatedEvent } from '@contexts/plant-species/domain/events/plant-species-created/plant-species-created.event';
@@ -8,17 +7,15 @@ import { PlantSpeciesUpdatedEvent } from '@contexts/plant-species/domain/events/
 import { IPlantSpecies } from '@contexts/plant-species/domain/interfaces/plant-species.interface';
 import { IPlantSpeciesPrimitives } from '@contexts/plant-species/domain/primitives/plant-species.primitives';
 import { PlantSpeciesGbifKeyValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-gbif-key/plant-species-gbif-key.value-object';
-import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+
 import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 
 export class PlantSpeciesAggregate extends BaseAggregate {
-  private readonly _id: PlantSpeciesIdValueObject;
   private _scientificName: PlantSpeciesScientificNameValueObject;
   private _gbifKey: PlantSpeciesGbifKeyValueObject | null;
 
   constructor(props: IPlantSpecies) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._scientificName = props.scientificName;
     this._gbifKey = props.gbifKey;
   }
@@ -137,10 +134,6 @@ export class PlantSpeciesAggregate extends BaseAggregate {
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };
-  }
-
-  get id(): PlantSpeciesIdValueObject {
-    return this._id;
   }
 
   get scientificName(): PlantSpeciesScientificNameValueObject {

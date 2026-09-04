@@ -3,7 +3,7 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { MembershipRoleEnum } from '../enums/membership-role.enum';
 import { ISpaceMembership } from '../interfaces/space-membership.interface';
 import { MembershipRoleValueObject } from '../value-objects/membership-role/membership-role.value-object';
-import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
+
 import { SpaceMembership } from './space-membership.entity';
 
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
@@ -65,7 +65,7 @@ describe('SpaceMembership', () => {
       const joinedAt = new Date('2024-01-01');
       const props: ISpaceMembership = {
         userId: new UuidValueObject(USER_ID),
-        spaceId: new SpaceIdValueObject(SPACE_ID),
+        spaceId: new UuidValueObject(SPACE_ID),
         role: new MembershipRoleValueObject(MembershipRoleEnum.MEMBER),
         joinedAt: new DateValueObject(joinedAt),
       };

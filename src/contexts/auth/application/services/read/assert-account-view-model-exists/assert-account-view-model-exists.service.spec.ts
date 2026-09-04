@@ -1,8 +1,9 @@
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
 import { IAccountReadRepository } from '@contexts/auth/domain/repositories/read/account-read.repository';
-import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
+
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import { AssertAccountViewModelExistsService } from './assert-account-view-model-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const buildViewModel = (): AccountViewModel =>
   new AccountViewModel({
@@ -30,7 +31,7 @@ describe('AssertAccountViewModelExistsService', () => {
 
   it('should return the view model when read repository finds the account', async () => {
     const viewModel = buildViewModel();
-    const id = new AccountIdValueObject('550e8400-e29b-41d4-a716-446655440000');
+    const id = new UuidValueObject('550e8400-e29b-41d4-a716-446655440000');
     readRepository.findById.mockResolvedValue(viewModel);
 
     const result = await service.execute(id);
@@ -40,7 +41,7 @@ describe('AssertAccountViewModelExistsService', () => {
   });
 
   it('should throw AccountNotFoundException when read repository returns null', async () => {
-    const id = new AccountIdValueObject('550e8400-e29b-41d4-a716-446655440000');
+    const id = new UuidValueObject('550e8400-e29b-41d4-a716-446655440000');
     readRepository.findById.mockResolvedValue(null);
 
     await expect(service.execute(id)).rejects.toThrow(AccountNotFoundException);

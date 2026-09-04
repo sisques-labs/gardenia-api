@@ -1,9 +1,10 @@
 import { PlantFindByIdQueryHandler } from '@contexts/plants/application/queries/plant-find-by-id/plant-find-by-id.handler';
 import { PlantFindByIdQuery } from '@contexts/plants/application/queries/plant-find-by-id/plant-find-by-id.query';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
-import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
+
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
 import { AssertPlantViewModelExistsService } from '../../services/read/assert-plant-view-model-exists/assert-plant-view-model-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const PLANT_ID = '550e8400-e29b-41d4-a716-446655440000';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
@@ -48,7 +49,7 @@ describe('PlantFindByIdQueryHandler', () => {
 
       expect(result).toBe(viewModel);
       expect(assertService.execute).toHaveBeenCalledWith(
-        expect.any(PlantIdValueObject),
+        expect.any(UuidValueObject),
       );
     });
   });

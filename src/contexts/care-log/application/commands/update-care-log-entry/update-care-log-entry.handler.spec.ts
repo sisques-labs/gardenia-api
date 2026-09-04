@@ -5,7 +5,7 @@ import { CareLogEntryAggregate } from '@contexts/care-log/domain/aggregates/care
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
 import { CareLogEntryNotFoundException } from '@contexts/care-log/domain/exceptions/care-log-entry-not-found.exception';
 import { ICareLogEntryWriteRepository } from '@contexts/care-log/domain/repositories/write/care-log-entry-write.repository';
-import { CareLogIdValueObject } from '@contexts/care-log/domain/value-objects/care-log-id/care-log-id.value-object';
+
 import { CareLogActivityTypeValueObject } from '@contexts/care-log/domain/value-objects/care-log-activity-type/care-log-activity-type.value-object';
 import { CareLogPerformedAtValueObject } from '@contexts/care-log/domain/value-objects/care-log-performed-at/care-log-performed-at.value-object';
 import { AssertCareLogEntryExistsService } from '@contexts/care-log/application/services/write/assert-care-log-entry-exists/assert-care-log-entry-exists.service';
@@ -22,7 +22,7 @@ const NOW = new Date('2024-01-01T00:00:00.000Z');
 
 const buildAggregate = (): CareLogEntryAggregate =>
   new CareLogEntryAggregate({
-    id: new CareLogIdValueObject(ENTRY_ID),
+    id: new UuidValueObject(ENTRY_ID),
     plantId: new UuidValueObject(PLANT_ID),
     userId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),

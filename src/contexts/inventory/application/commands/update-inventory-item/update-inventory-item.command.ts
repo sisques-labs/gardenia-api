@@ -4,12 +4,13 @@ import { IInventoryItemPrimitives } from '@contexts/inventory/domain/primitives/
 import { InventoryAcquiredAtValueObject } from '@contexts/inventory/domain/value-objects/inventory-acquired-at/inventory-acquired-at.value-object';
 import { InventoryExpiresAtValueObject } from '@contexts/inventory/domain/value-objects/inventory-expires-at/inventory-expires-at.value-object';
 import { InventoryItemBrandValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-brand/inventory-item-brand.value-object';
-import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
+
 import { InventoryItemNameValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-name/inventory-item-name.value-object';
 import { InventoryItemNotesValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-notes/inventory-item-notes.value-object';
 import { InventoryItemTypeValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-type/inventory-item-type.value-object';
 import { InventoryLowStockThresholdValueObject } from '@contexts/inventory/domain/value-objects/inventory-low-stock-threshold/inventory-low-stock-threshold.value-object';
 import { InventoryUnitValueObject } from '@contexts/inventory/domain/value-objects/inventory-unit/inventory-unit.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type UpdateInventoryItemCommandInput = Pick<
   IInventoryItemPrimitives,
@@ -23,21 +24,19 @@ export type UpdateInventoryItemCommandInput = Pick<
   >;
 
 export class UpdateInventoryItemCommand {
-  public readonly id: InventoryItemIdValueObject;
+  public readonly id: UuidValueObject;
   public readonly itemType: InventoryItemTypeValueObject | undefined;
   public readonly name: InventoryItemNameValueObject | undefined;
   public readonly brand: InventoryItemBrandValueObject | null | undefined;
   public readonly notes: InventoryItemNotesValueObject | null | undefined;
   public readonly unit: InventoryUnitValueObject | undefined;
   public readonly lowStockThreshold:
-    | InventoryLowStockThresholdValueObject
-    | null
-    | undefined;
+    InventoryLowStockThresholdValueObject | null | undefined;
   public readonly acquiredAt: InventoryAcquiredAtValueObject | null | undefined;
   public readonly expiresAt: InventoryExpiresAtValueObject | null | undefined;
 
   constructor(input: UpdateInventoryItemCommandInput) {
-    this.id = new InventoryItemIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
     this.itemType = input.itemType
       ? new InventoryItemTypeValueObject(
           input.itemType as InventoryItemTypeEnum,

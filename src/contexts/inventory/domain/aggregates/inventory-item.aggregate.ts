@@ -17,7 +17,7 @@ import { IInventoryItemPrimitives } from '@contexts/inventory/domain/primitives/
 import { InventoryAcquiredAtValueObject } from '@contexts/inventory/domain/value-objects/inventory-acquired-at/inventory-acquired-at.value-object';
 import { InventoryExpiresAtValueObject } from '@contexts/inventory/domain/value-objects/inventory-expires-at/inventory-expires-at.value-object';
 import { InventoryItemBrandValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-brand/inventory-item-brand.value-object';
-import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
+
 import { InventoryItemNameValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-name/inventory-item-name.value-object';
 import { InventoryItemNotesValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-notes/inventory-item-notes.value-object';
 import { InventoryItemTypeValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-type/inventory-item-type.value-object';
@@ -26,7 +26,6 @@ import { InventoryQuantityValueObject } from '@contexts/inventory/domain/value-o
 import { InventoryUnitValueObject } from '@contexts/inventory/domain/value-objects/inventory-unit/inventory-unit.value-object';
 
 export class InventoryItemAggregate extends BaseAggregate {
-  private readonly _id: InventoryItemIdValueObject;
   private _itemType: InventoryItemTypeValueObject;
   private _name: InventoryItemNameValueObject;
   private _brand: InventoryItemBrandValueObject | null;
@@ -40,8 +39,7 @@ export class InventoryItemAggregate extends BaseAggregate {
   private readonly _spaceId: UuidValueObject;
 
   constructor(props: IInventoryItem) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._itemType = props.itemType;
     this._name = props.name;
     this._brand = props.brand;
@@ -320,9 +318,6 @@ export class InventoryItemAggregate extends BaseAggregate {
     };
   }
 
-  get id(): InventoryItemIdValueObject {
-    return this._id;
-  }
   get itemType(): InventoryItemTypeValueObject {
     return this._itemType;
   }

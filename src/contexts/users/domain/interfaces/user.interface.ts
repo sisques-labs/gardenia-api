@@ -1,11 +1,8 @@
-import { UserIdValueObject } from '@contexts/users/domain/value-objects/user-id/user-id.value-object';
 import { UserStatusValueObject } from '@contexts/users/domain/value-objects/user-status/user-status.vo';
 import { UsernameValueObject } from '@contexts/users/domain/value-objects/username/username.value-object';
-import { DateValueObject } from '@sisques-labs/nestjs-kit';
-
+import { IBaseAggregate } from '@sisques-labs/nestjs-kit';
 // TODO: All with value objects
-export interface IUser {
-  id: UserIdValueObject;
+export interface IUser extends IBaseAggregate {
   status: UserStatusValueObject;
   username: UsernameValueObject;
   firstName: string | null;
@@ -14,6 +11,4 @@ export interface IUser {
   bio: string | null;
   locale: string | null;
   timezone: string | null;
-  createdAt: DateValueObject;
-  updatedAt: DateValueObject;
 }

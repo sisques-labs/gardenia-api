@@ -8,12 +8,9 @@ import { InvitationCodeValueObject } from '../value-objects/invitation-code/invi
 import { InvitationDisplayCodeValueObject } from '../value-objects/invitation-display-code/invitation-display-code.value-object';
 import { InvitationExpiresAtValueObject } from '../value-objects/invitation-expires-at/invitation-expires-at.value-object';
 import { MembershipRoleValueObject } from '../value-objects/membership-role/membership-role.value-object';
-import { SpaceInvitationIdValueObject } from '../value-objects/space-invitation-id/space-invitation-id.value-object';
-import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
 
 export class SpaceInvitationAggregate extends BaseAggregate {
-  private readonly _id: SpaceInvitationIdValueObject;
-  private readonly _spaceId: SpaceIdValueObject;
+  private readonly _spaceId: UuidValueObject;
   private readonly _createdByUserId: UuidValueObject;
   private readonly _role: MembershipRoleValueObject;
   private readonly _code: InvitationCodeValueObject;
@@ -22,8 +19,7 @@ export class SpaceInvitationAggregate extends BaseAggregate {
   private readonly _expiresAt: InvitationExpiresAtValueObject;
 
   constructor(props: ISpaceInvitation) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._spaceId = props.spaceId;
     this._createdByUserId = props.createdByUserId;
     this._role = props.role;
@@ -67,11 +63,7 @@ export class SpaceInvitationAggregate extends BaseAggregate {
     };
   }
 
-  get id(): SpaceInvitationIdValueObject {
-    return this._id;
-  }
-
-  get spaceId(): SpaceIdValueObject {
+  get spaceId(): UuidValueObject {
     return this._spaceId;
   }
 

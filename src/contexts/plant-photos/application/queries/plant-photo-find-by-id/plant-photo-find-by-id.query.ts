@@ -1,12 +1,12 @@
 import { IPlantPhotoPrimitives } from '@contexts/plant-photos/domain/primitives/plant-photo.primitives';
-import { PlantPhotoIdValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-id/plant-photo-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type PlantPhotoFindByIdQueryInput = Pick<IPlantPhotoPrimitives, 'id'>;
 
 export class PlantPhotoFindByIdQuery {
-  public readonly id: PlantPhotoIdValueObject;
+  public readonly id: UuidValueObject;
 
   constructor(input: PlantPhotoFindByIdQueryInput) {
-    this.id = new PlantPhotoIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
   }
 }

@@ -5,8 +5,9 @@ import {
   IPlantIdentificationReadRepository,
   PLANT_IDENTIFICATION_READ_REPOSITORY,
 } from '@contexts/plant-identification/domain/repositories/read/plant-identification-read.repository';
-import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+
 import { PlantIdentificationViewModel } from '@contexts/plant-identification/domain/view-models/plant-identification.view-model';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 @Injectable()
 export class AssertPlantIdentificationViewModelExistsService {
@@ -15,9 +16,7 @@ export class AssertPlantIdentificationViewModelExistsService {
     private readonly plantIdentificationReadRepository: IPlantIdentificationReadRepository,
   ) {}
 
-  async execute(
-    id: PlantIdentificationIdValueObject,
-  ): Promise<PlantIdentificationViewModel> {
+  async execute(id: UuidValueObject): Promise<PlantIdentificationViewModel> {
     const identification =
       await this.plantIdentificationReadRepository.findById(id.value);
     if (!identification) {

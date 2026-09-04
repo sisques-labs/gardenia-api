@@ -1,10 +1,9 @@
-import { UserStatusEnum } from '@sisques-labs/nestjs-kit';
-
+import { UserStatusEnum, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
 import { UserBuilder } from '@contexts/users/domain/builders/user.builder';
 import { UserNotFoundException } from '@contexts/users/domain/exceptions/user-not-found.exception';
 import { IUserWriteRepository } from '@contexts/users/domain/repositories/write/user-write.repository';
-import { UserIdValueObject } from '@contexts/users/domain/value-objects/user-id/user-id.value-object';
+
 import { AssertUserExistsService } from './assert-user-exists.service';
 
 const USER_ID = '550e8400-e29b-41d4-a716-446655440000';
@@ -38,7 +37,7 @@ describe('AssertUserExistsService', () => {
   describe('user exists', () => {
     it('should return the aggregate when write repository finds the user', async () => {
       const aggregate = buildAggregate();
-      const id = new UserIdValueObject(USER_ID);
+      const id = new UuidValueObject(USER_ID);
       writeRepository.findById.mockResolvedValue(aggregate);
 
       const result = await service.execute(id);
@@ -50,14 +49,14 @@ describe('AssertUserExistsService', () => {
 
   describe('user does not exist', () => {
     it('should throw UserNotFoundException when write repository returns null', async () => {
-      const id = new UserIdValueObject(USER_ID);
+      const id = new UuidValueObject(USER_ID);
       writeRepository.findById.mockResolvedValue(null);
 
       await expect(service.execute(id)).rejects.toThrow(UserNotFoundException);
     });
 
     it('should include the user id in the thrown exception', async () => {
-      const id = new UserIdValueObject(USER_ID);
+      const id = new UuidValueObject(USER_ID);
       writeRepository.findById.mockResolvedValue(null);
 
       await expect(service.execute(id)).rejects.toThrow(USER_ID);

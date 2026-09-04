@@ -6,7 +6,7 @@ import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggrega
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
 import { PlantPlantingSpotNotFoundException } from '@contexts/plants/domain/exceptions/plant-planting-spot-not-found.exception';
 import { IPlantWriteRepository } from '@contexts/plants/domain/repositories/write/plant-write.repository';
-import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
+
 import { PlantNameValueObject } from '@contexts/plants/domain/value-objects/plant-name/plant-name.value-object';
 import { AssertPlantExistsService } from '../../services/write/assert-plant-exists/assert-plant-exists.service';
 import { AssertPlantPlantingSpotExistsService } from '../../services/write/assert-plant-planting-spot-exists/assert-plant-planting-spot-exists.service';
@@ -22,7 +22,7 @@ const NOW = new Date('2024-01-01');
 
 const buildAggregate = (): PlantAggregate =>
   new PlantAggregate({
-    id: new PlantIdValueObject(PLANT_ID),
+    id: new UuidValueObject(PLANT_ID),
     name: new PlantNameValueObject('Rose'),
     plantSpeciesId: null,
     imageUrl: null,

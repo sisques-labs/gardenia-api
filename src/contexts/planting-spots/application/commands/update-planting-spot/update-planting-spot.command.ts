@@ -6,7 +6,7 @@ import { PlantingSpotCapacityValueObject } from '@contexts/planting-spots/domain
 import { PlantingSpotColumnValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-column/planting-spot-column.value-object';
 import { PlantingSpotDescriptionValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-description/planting-spot-description.value-object';
 import { PlantingSpotDimensionsValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-dimensions/planting-spot-dimensions.value-object';
-import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
+
 import { PlantingSpotNameValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-name/planting-spot-name.value-object';
 import { PlantingSpotRowValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-row/planting-spot-row.value-object';
 import { PlantingSpotSoilTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-soil-type/planting-spot-soil-type.value-object';
@@ -25,7 +25,7 @@ export type UpdatePlantingSpotCommandInput = Pick<
   >;
 
 export class UpdatePlantingSpotCommand {
-  public readonly id: PlantingSpotIdValueObject;
+  public readonly id: UuidValueObject;
   public readonly name: PlantingSpotNameValueObject | undefined;
   public readonly type: PlantingSpotTypeValueObject | undefined;
   public readonly description:
@@ -40,7 +40,7 @@ export class UpdatePlantingSpotCommand {
   public readonly spaceId: UuidValueObject;
 
   constructor(input: UpdatePlantingSpotCommandInput) {
-    this.id = new PlantingSpotIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
     this.name = input.name
       ? new PlantingSpotNameValueObject(input.name)
       : undefined;

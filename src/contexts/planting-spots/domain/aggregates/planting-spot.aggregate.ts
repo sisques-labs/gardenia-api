@@ -20,7 +20,7 @@ import { PlantingSpotColumnValueObject } from '../value-objects/planting-spot-co
 import { PlantingSpotDescriptionValueObject } from '../value-objects/planting-spot-description/planting-spot-description.value-object';
 import { PlantingSpotDimensionsValueObject } from '../value-objects/planting-spot-dimensions/planting-spot-dimensions.value-object';
 import { PlantingSpotFallowSinceValueObject } from '../value-objects/planting-spot-fallow-since/planting-spot-fallow-since.value-object';
-import { PlantingSpotIdValueObject } from '../value-objects/planting-spot-id/planting-spot-id.value-object';
+
 import { PlantingSpotNameValueObject } from '../value-objects/planting-spot-name/planting-spot-name.value-object';
 import { PlantingSpotRowValueObject } from '../value-objects/planting-spot-row/planting-spot-row.value-object';
 import { PlantingSpotSoilTypeValueObject } from '../value-objects/planting-spot-soil-type/planting-spot-soil-type.value-object';
@@ -28,7 +28,6 @@ import { PlantingSpotStatusValueObject } from '../value-objects/planting-spot-st
 import { PlantingSpotTypeValueObject } from '../value-objects/planting-spot-type/planting-spot-type.value-object';
 
 export class PlantingSpotAggregate extends BaseAggregate {
-  private readonly _id: PlantingSpotIdValueObject;
   private _name: PlantingSpotNameValueObject;
   private _type: PlantingSpotTypeValueObject;
   private _description: PlantingSpotDescriptionValueObject | null;
@@ -44,8 +43,7 @@ export class PlantingSpotAggregate extends BaseAggregate {
   private readonly _spaceId: UuidValueObject;
 
   constructor(props: IPlantingSpot) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._name = props.name;
     this._type = props.type;
     this._description = props.description;
@@ -373,9 +371,6 @@ export class PlantingSpotAggregate extends BaseAggregate {
     };
   }
 
-  get id(): PlantingSpotIdValueObject {
-    return this._id;
-  }
   get name(): PlantingSpotNameValueObject {
     return this._name;
   }

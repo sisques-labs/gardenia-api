@@ -1,11 +1,10 @@
 import { EventBus } from '@nestjs/cqrs';
-import { DateValueObject } from '@sisques-labs/nestjs-kit';
-
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { PlantSpeciesAggregate } from '@contexts/plant-species/domain/aggregates/plant-species.aggregate';
 import { IPlantSpeciesWriteRepository } from '@contexts/plant-species/domain/repositories/write/plant-species-write.repository';
 import { PlantSpeciesBuilder } from '@contexts/plant-species/domain/builders/plant-species.builder';
 import { PlantSpeciesGbifKeyValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-gbif-key/plant-species-gbif-key.value-object';
-import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+
 import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 
 import { FindOrCreatePlantSpeciesByGbifKeyCommand } from './find-or-create-plant-species-by-gbif-key.command';
@@ -46,7 +45,7 @@ describe('FindOrCreatePlantSpeciesByGbifKeyCommandHandler', () => {
 
   it('returns the existing id when a catalog entry already has the gbifKey', async () => {
     const existing = new PlantSpeciesAggregate({
-      id: new PlantSpeciesIdValueObject(EXISTING_ID),
+      id: new UuidValueObject(EXISTING_ID),
       scientificName: new PlantSpeciesScientificNameValueObject('Monstera'),
       gbifKey: new PlantSpeciesGbifKeyValueObject(2882337),
       createdAt: new DateValueObject(NOW),

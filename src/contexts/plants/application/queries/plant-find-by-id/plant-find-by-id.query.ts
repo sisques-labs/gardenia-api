@@ -1,13 +1,13 @@
-import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export interface PlantFindByIdQueryInput {
   plantId: string;
 }
 
 export class PlantFindByIdQuery {
-  public readonly plantId: PlantIdValueObject;
+  public readonly plantId: UuidValueObject;
 
   constructor(input: PlantFindByIdQueryInput) {
-    this.plantId = new PlantIdValueObject(input.plantId);
+    this.plantId = new UuidValueObject(input.plantId);
   }
 }

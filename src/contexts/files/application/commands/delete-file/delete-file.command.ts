@@ -1,13 +1,13 @@
-import { FileIdValueObject } from '@contexts/files/domain/value-objects/file-id/file-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type DeleteFileCommandInput = {
   id: string;
 };
 
 export class DeleteFileCommand {
-  public readonly id: FileIdValueObject;
+  public readonly id: UuidValueObject;
 
   constructor(input: DeleteFileCommandInput) {
-    this.id = new FileIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
   }
 }

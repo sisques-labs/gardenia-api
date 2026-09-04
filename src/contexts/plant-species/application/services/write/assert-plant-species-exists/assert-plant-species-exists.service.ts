@@ -1,13 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IBaseService } from '@sisques-labs/nestjs-kit';
-
+import { IBaseService, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { PlantSpeciesAggregate } from '@contexts/plant-species/domain/aggregates/plant-species.aggregate';
 import { PlantSpeciesNotFoundException } from '@contexts/plant-species/domain/exceptions/plant-species-not-found.exception';
 import {
   IPlantSpeciesWriteRepository,
   PLANT_SPECIES_WRITE_REPOSITORY,
 } from '@contexts/plant-species/domain/repositories/write/plant-species-write.repository';
-import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
 
 @Injectable()
 export class AssertPlantSpeciesExistsService implements IBaseService {
@@ -16,7 +14,7 @@ export class AssertPlantSpeciesExistsService implements IBaseService {
     private readonly plantSpeciesWriteRepository: IPlantSpeciesWriteRepository,
   ) {}
 
-  async execute(id: PlantSpeciesIdValueObject): Promise<PlantSpeciesAggregate> {
+  async execute(id: UuidValueObject): Promise<PlantSpeciesAggregate> {
     const plantSpecies = await this.plantSpeciesWriteRepository.findById(
       id.value,
     );

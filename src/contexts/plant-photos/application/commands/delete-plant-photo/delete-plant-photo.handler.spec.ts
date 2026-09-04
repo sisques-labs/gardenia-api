@@ -8,7 +8,7 @@ import { SyncPlantImageUrlAfterDeleteService } from '@contexts/plant-photos/appl
 import { PlantPhotoAggregate } from '@contexts/plant-photos/domain/aggregates/plant-photo.aggregate';
 import { PlantPhotoForbiddenException } from '@contexts/plant-photos/domain/exceptions/plant-photo-forbidden.exception';
 import { IPlantPhotoWriteRepository } from '@contexts/plant-photos/domain/repositories/write/plant-photo-write.repository';
-import { PlantPhotoIdValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-id/plant-photo-id.value-object';
+
 import { PlantPhotoUrlValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-url/plant-photo-url.value-object';
 import { DeletePlantPhotoCommand } from './delete-plant-photo.command';
 import { DeletePlantPhotoCommandHandler } from './delete-plant-photo.handler';
@@ -22,7 +22,7 @@ const URL = '/api/files/330e8400/content';
 
 function buildPhoto(): PlantPhotoAggregate {
   return new PlantPhotoAggregate({
-    id: new PlantPhotoIdValueObject(PHOTO_ID),
+    id: new UuidValueObject(PHOTO_ID),
     plantId: new UuidValueObject(PLANT_ID),
     fileId: new UuidValueObject(FILE_ID),
     url: new PlantPhotoUrlValueObject(URL),

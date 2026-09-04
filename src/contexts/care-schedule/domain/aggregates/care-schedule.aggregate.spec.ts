@@ -17,7 +17,7 @@ import { CareScheduleQuantityChangedEvent } from '@contexts/care-schedule/domain
 import { CareScheduleUnitChangedEvent } from '@contexts/care-schedule/domain/events/field-changed/unit-changed/unit-changed.event';
 import { CareScheduleUnitEnum } from '@contexts/care-schedule/domain/enums/care-schedule-unit.enum';
 import { CareScheduleActivityTypeValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-activity-type/care-schedule-activity-type.value-object';
-import { CareScheduleIdValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-id/care-schedule-id.value-object';
+
 import { CareScheduleIntervalDaysValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-interval-days/care-schedule-interval-days.value-object';
 import { CareScheduleNextDueAtValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-next-due-at/care-schedule-next-due-at.value-object';
 import { CareScheduleNotesValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-notes/care-schedule-notes.value-object';
@@ -27,7 +27,7 @@ import { CareScheduleAggregate } from './care-schedule.aggregate';
 
 function buildSchedule(intervalDays: number | null = 3): CareScheduleAggregate {
   return new CareScheduleAggregate({
-    id: new CareScheduleIdValueObject('550e8400-e29b-41d4-a716-446655440000'),
+    id: new UuidValueObject('550e8400-e29b-41d4-a716-446655440000'),
     plantId: new UuidValueObject('110e8400-e29b-41d4-a716-446655440010'),
     activityType: new CareScheduleActivityTypeValueObject(
       CareScheduleActivityTypeEnum.WATERING,

@@ -3,11 +3,11 @@ import {
   BaseBuilder,
   DateValueObject,
   FieldIsRequiredException,
+  UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
-
 import { PlantSpeciesAggregate } from '@contexts/plant-species/domain/aggregates/plant-species.aggregate';
 import { PlantSpeciesGbifKeyValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-gbif-key/plant-species-gbif-key.value-object';
-import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+
 import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 import { PlantSpeciesViewModel } from '@contexts/plant-species/domain/view-models/plant-species.view-model';
 
@@ -32,7 +32,7 @@ export class PlantSpeciesBuilder extends BaseBuilder<
   public override build(): PlantSpeciesAggregate {
     this.validate();
     return new PlantSpeciesAggregate({
-      id: new PlantSpeciesIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       scientificName: new PlantSpeciesScientificNameValueObject(
         this._scientificName,
       ),

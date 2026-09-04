@@ -12,8 +12,7 @@ import { InvitationCodeValueObject } from '../value-objects/invitation-code/invi
 import { InvitationDisplayCodeValueObject } from '../value-objects/invitation-display-code/invitation-display-code.value-object';
 import { InvitationExpiresAtValueObject } from '../value-objects/invitation-expires-at/invitation-expires-at.value-object';
 import { MembershipRoleValueObject } from '../value-objects/membership-role/membership-role.value-object';
-import { SpaceInvitationIdValueObject } from '../value-objects/space-invitation-id/space-invitation-id.value-object';
-import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
+
 import { SpaceInvitationViewModel } from '../view-models/space-invitation.view-model';
 
 @Injectable()
@@ -67,8 +66,8 @@ export class SpaceInvitationBuilder extends BaseBuilder<
   public override build(): SpaceInvitationAggregate {
     this.validate();
     return new SpaceInvitationAggregate({
-      id: new SpaceInvitationIdValueObject(this._id),
-      spaceId: new SpaceIdValueObject(this._spaceId),
+      id: new UuidValueObject(this._id),
+      spaceId: new UuidValueObject(this._spaceId),
       createdByUserId: new UuidValueObject(this._createdByUserId),
       role: new MembershipRoleValueObject(this._role),
       code: new InvitationCodeValueObject(this._code),
