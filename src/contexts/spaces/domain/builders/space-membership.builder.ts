@@ -5,7 +5,6 @@ import { SpaceMembership } from '../entities/space-membership.entity';
 import { MembershipRoleEnum } from '../enums/membership-role.enum';
 import { ISpaceMembership } from '../interfaces/space-membership.interface';
 import { MembershipRoleValueObject } from '../value-objects/membership-role/membership-role.value-object';
-import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
 
 @Injectable()
 export class SpaceMembershipBuilder {
@@ -37,7 +36,7 @@ export class SpaceMembershipBuilder {
   build(): SpaceMembership {
     const props: ISpaceMembership = {
       userId: new UuidValueObject(this._userId),
-      spaceId: new SpaceIdValueObject(this._spaceId),
+      spaceId: new UuidValueObject(this._spaceId),
       role: new MembershipRoleValueObject(this._role),
       joinedAt: new DateValueObject(this._joinedAt),
     };

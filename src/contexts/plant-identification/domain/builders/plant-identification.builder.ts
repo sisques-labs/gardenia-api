@@ -15,7 +15,7 @@ import {
   IPlantIdentificationPhotoPrimitives,
 } from '@contexts/plant-identification/domain/primitives/plant-identification.primitives';
 import { PlantIdentificationCommonNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-common-name/plant-identification-common-name.value-object';
-import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+
 import { PlantIdentificationOrganValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-organ/plant-identification-organ.value-object';
 import { PlantIdentificationPhotoPositionValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-position/plant-identification-photo-position.value-object';
 import { PlantIdentificationPhotoUrlValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-url/plant-identification-photo-url.value-object';
@@ -117,7 +117,7 @@ export class PlantIdentificationBuilder extends BaseBuilder<
     );
 
     return new PlantIdentificationAggregate({
-      id: new PlantIdentificationIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       requestedByUserId: new UuidValueObject(this._requestedByUserId),
       spaceId: new UuidValueObject(this._spaceId),
       status: new PlantIdentificationStatusValueObject(this.deriveStatus()),

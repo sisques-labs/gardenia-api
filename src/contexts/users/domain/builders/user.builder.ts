@@ -1,6 +1,6 @@
 import { UserAggregate } from '@contexts/users/domain/aggregates/user.aggregate';
 import { UserStatusEnum } from '@contexts/users/domain/enums/user-status.enum';
-import { UserIdValueObject } from '@contexts/users/domain/value-objects/user-id/user-id.value-object';
+
 import { UserStatusValueObject } from '@contexts/users/domain/value-objects/user-status/user-status.vo';
 import { UsernameValueObject } from '@contexts/users/domain/value-objects/username/username.value-object';
 import { UserViewModel } from '@contexts/users/domain/view-models/user.view-model';
@@ -9,8 +9,8 @@ import {
   BaseBuilder,
   DateValueObject,
   FieldIsRequiredException,
+  UuidValueObject,
 } from '@sisques-labs/nestjs-kit';
-
 @Injectable()
 export class UserBuilder extends BaseBuilder<UserAggregate, UserViewModel> {
   private _status!: string;
@@ -84,7 +84,7 @@ export class UserBuilder extends BaseBuilder<UserAggregate, UserViewModel> {
     this.validate();
 
     return new UserAggregate({
-      id: new UserIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       status: new UserStatusValueObject(this._status as UserStatusEnum),
       username: new UsernameValueObject(this._username),
       firstName: this._firstName,

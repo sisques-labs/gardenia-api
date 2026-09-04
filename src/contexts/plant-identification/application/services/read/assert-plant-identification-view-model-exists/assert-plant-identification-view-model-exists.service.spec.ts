@@ -1,9 +1,10 @@
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
 import { PlantIdentificationNotFoundException } from '@contexts/plant-identification/domain/exceptions/plant-identification-not-found.exception';
 import { IPlantIdentificationReadRepository } from '@contexts/plant-identification/domain/repositories/read/plant-identification-read.repository';
-import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+
 import { PlantIdentificationViewModel } from '@contexts/plant-identification/domain/view-models/plant-identification.view-model';
 import { AssertPlantIdentificationViewModelExistsService } from './assert-plant-identification-view-model-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const ID = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -42,17 +43,15 @@ describe('AssertPlantIdentificationViewModelExistsService', () => {
     const vm = buildViewModel();
     mockReadRepo.findById.mockResolvedValue(vm);
 
-    const result = await service.execute(
-      new PlantIdentificationIdValueObject(ID),
-    );
+    const result = await service.execute(new UuidValueObject(ID));
     expect(result).toBe(vm);
   });
 
   it('throws PlantIdentificationNotFoundException when not found', async () => {
     mockReadRepo.findById.mockResolvedValue(null);
 
-    await expect(
-      service.execute(new PlantIdentificationIdValueObject(ID)),
-    ).rejects.toThrow(PlantIdentificationNotFoundException);
+    await expect(service.execute(new UuidValueObject(ID))).rejects.toThrow(
+      PlantIdentificationNotFoundException,
+    );
   });
 });

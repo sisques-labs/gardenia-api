@@ -8,9 +8,9 @@ import { PlantPlantingSpotIdChangedEvent } from '../events/field-changed/plant-p
 import { PlantSpeciesIdChangedEvent } from '../events/field-changed/plant-species-id-changed/plant-species-id-changed.event';
 import { PlantUpdatedEvent } from '../events/plant-updated/plant-updated.event';
 import { IPlant } from '../interfaces/plant.interface';
-import { PlantIdValueObject } from '../value-objects/plant-id/plant-id.value-object';
+
 import { PlantImageUrlValueObject } from '../value-objects/plant-image-url/plant-image-url.value-object';
-import { PlantLinkedSpeciesIdValueObject } from '../value-objects/plant-linked-species-id/plant-linked-species-id.value-object';
+
 import { PlantNameValueObject } from '../value-objects/plant-name/plant-name.value-object';
 import { PlantAggregate } from './plant.aggregate';
 
@@ -23,7 +23,7 @@ const NOW = new Date('2024-01-01');
 
 const buildPlant = (overrides?: Partial<IPlant>): PlantAggregate =>
   new PlantAggregate({
-    id: new PlantIdValueObject(PLANT_ID),
+    id: new UuidValueObject(PLANT_ID),
     name: new PlantNameValueObject('Rose'),
     plantSpeciesId: null,
     imageUrl: null,
@@ -60,7 +60,7 @@ describe('PlantAggregate', () => {
 
     it('should include all fields in the event data', () => {
       const plant = buildPlant({
-        plantSpeciesId: new PlantLinkedSpeciesIdValueObject(SPECIES_ID),
+        plantSpeciesId: new UuidValueObject(SPECIES_ID),
         imageUrl: new PlantImageUrlValueObject('https://example.com/rose.jpg'),
       });
       plant.create();
@@ -104,7 +104,7 @@ describe('PlantAggregate', () => {
 
     it('should clear optional fields when set to null', () => {
       const plant = buildPlant({
-        plantSpeciesId: new PlantLinkedSpeciesIdValueObject(SPECIES_ID),
+        plantSpeciesId: new UuidValueObject(SPECIES_ID),
       });
       plant.update({ plantSpeciesId: null });
 
@@ -113,7 +113,7 @@ describe('PlantAggregate', () => {
 
     it('should not update fields that are undefined', () => {
       const plant = buildPlant({
-        plantSpeciesId: new PlantLinkedSpeciesIdValueObject(SPECIES_ID),
+        plantSpeciesId: new UuidValueObject(SPECIES_ID),
       });
       plant.update({ name: new PlantNameValueObject('Updated') });
 
@@ -123,7 +123,7 @@ describe('PlantAggregate', () => {
     it('should emit PlantSpeciesIdChangedEvent when plantSpeciesId changes', () => {
       const plant = buildPlant();
       plant.update({
-        plantSpeciesId: new PlantLinkedSpeciesIdValueObject(SPECIES_ID),
+        plantSpeciesId: new UuidValueObject(SPECIES_ID),
       });
 
       const events = plant.getUncommittedEvents();
@@ -167,10 +167,10 @@ describe('PlantAggregate', () => {
 
     it('should not emit PlantSpeciesIdChangedEvent when plantSpeciesId is unchanged', () => {
       const plant = buildPlant({
-        plantSpeciesId: new PlantLinkedSpeciesIdValueObject(SPECIES_ID),
+        plantSpeciesId: new UuidValueObject(SPECIES_ID),
       });
       plant.update({
-        plantSpeciesId: new PlantLinkedSpeciesIdValueObject(SPECIES_ID),
+        plantSpeciesId: new UuidValueObject(SPECIES_ID),
       });
 
       const events = plant.getUncommittedEvents();
@@ -241,7 +241,7 @@ describe('PlantAggregate', () => {
   describe('toPrimitives()', () => {
     it('should return a round-trippable primitive snapshot', () => {
       const plant = buildPlant({
-        plantSpeciesId: new PlantLinkedSpeciesIdValueObject(SPECIES_ID),
+        plantSpeciesId: new UuidValueObject(SPECIES_ID),
         imageUrl: new PlantImageUrlValueObject('https://example.com/rose.jpg'),
       });
 

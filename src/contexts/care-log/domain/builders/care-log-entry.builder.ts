@@ -10,7 +10,7 @@ import { CareLogEntryAggregate } from '@contexts/care-log/domain/aggregates/care
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
 import { CareLogUnitEnum } from '@contexts/care-log/domain/enums/care-log-unit.enum';
 import { CareLogEntryViewModel } from '@contexts/care-log/domain/view-models/care-log-entry.view-model';
-import { CareLogIdValueObject } from '@contexts/care-log/domain/value-objects/care-log-id/care-log-id.value-object';
+
 import { CareLogActivityTypeValueObject } from '@contexts/care-log/domain/value-objects/care-log-activity-type/care-log-activity-type.value-object';
 import { CareLogPerformedAtValueObject } from '@contexts/care-log/domain/value-objects/care-log-performed-at/care-log-performed-at.value-object';
 import { CareLogNotesValueObject } from '@contexts/care-log/domain/value-objects/care-log-notes/care-log-notes.value-object';
@@ -74,7 +74,7 @@ export class CareLogEntryBuilder extends BaseBuilder<
   public override build(): CareLogEntryAggregate {
     this.validate();
     return new CareLogEntryAggregate({
-      id: new CareLogIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       plantId: new UuidValueObject(this._plantId),
       userId: new UuidValueObject(this._userId),
       spaceId: new UuidValueObject(this._spaceId),

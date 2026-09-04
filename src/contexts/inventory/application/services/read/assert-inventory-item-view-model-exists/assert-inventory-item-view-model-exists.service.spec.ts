@@ -1,8 +1,9 @@
 import { InventoryItemNotFoundException } from '@contexts/inventory/domain/exceptions/inventory-item-not-found.exception';
 import { IInventoryItemReadRepository } from '@contexts/inventory/domain/repositories/read/inventory-item-read.repository';
-import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
+
 import { InventoryItemViewModel } from '@contexts/inventory/domain/view-models/inventory-item.view-model';
 import { AssertInventoryItemViewModelExistsService } from './assert-inventory-item-view-model-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const ID = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -23,7 +24,7 @@ describe('AssertInventoryItemViewModelExistsService', () => {
     const vm = {} as InventoryItemViewModel;
     readRepository.findById.mockResolvedValue(vm);
 
-    const result = await service.execute(new InventoryItemIdValueObject(ID));
+    const result = await service.execute(new UuidValueObject(ID));
 
     expect(result).toBe(vm);
     expect(readRepository.findById).toHaveBeenCalledWith(ID);
@@ -32,8 +33,8 @@ describe('AssertInventoryItemViewModelExistsService', () => {
   it('throws InventoryItemNotFoundException when it does not exist', async () => {
     readRepository.findById.mockResolvedValue(null);
 
-    await expect(
-      service.execute(new InventoryItemIdValueObject(ID)),
-    ).rejects.toThrow(InventoryItemNotFoundException);
+    await expect(service.execute(new UuidValueObject(ID))).rejects.toThrow(
+      InventoryItemNotFoundException,
+    );
   });
 });

@@ -9,15 +9,14 @@ import { PlantDeletedEvent } from '../events/plant-deleted/plant-deleted.event';
 import { PlantUpdatedEvent } from '../events/plant-updated/plant-updated.event';
 import { IPlant } from '../interfaces/plant.interface';
 import { IPlantPrimitives } from '../primitives/plant.primitives';
-import { PlantIdValueObject } from '../value-objects/plant-id/plant-id.value-object';
+
 import { PlantImageUrlValueObject } from '../value-objects/plant-image-url/plant-image-url.value-object';
-import { PlantLinkedSpeciesIdValueObject } from '../value-objects/plant-linked-species-id/plant-linked-species-id.value-object';
+
 import { PlantNameValueObject } from '../value-objects/plant-name/plant-name.value-object';
 
 export class PlantAggregate extends BaseAggregate {
-  private readonly _id: PlantIdValueObject;
   private _name: PlantNameValueObject;
-  private _plantSpeciesId: PlantLinkedSpeciesIdValueObject | null;
+  private _plantSpeciesId: UuidValueObject | null;
   private _imageUrl: PlantImageUrlValueObject | null;
   private readonly _userId: UuidValueObject;
   private readonly _spaceId: UuidValueObject;
@@ -25,8 +24,7 @@ export class PlantAggregate extends BaseAggregate {
   private _plantingSpotId: UuidValueObject | null;
 
   constructor(props: IPlant) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._name = props.name;
     this._plantSpeciesId = props.plantSpeciesId;
     this._imageUrl = props.imageUrl;
@@ -58,7 +56,7 @@ export class PlantAggregate extends BaseAggregate {
 
   public update(props: {
     name?: PlantNameValueObject;
-    plantSpeciesId?: PlantLinkedSpeciesIdValueObject | null;
+    plantSpeciesId?: UuidValueObject | null;
     imageUrl?: PlantImageUrlValueObject | null;
     plantingSpotId?: UuidValueObject | null;
   }): void {
@@ -131,7 +129,7 @@ export class PlantAggregate extends BaseAggregate {
   }
 
   private changePlantSpeciesId(
-    newPlantSpeciesId: PlantLinkedSpeciesIdValueObject | null,
+    newPlantSpeciesId: UuidValueObject | null,
   ): void {
     const oldValue = this._plantSpeciesId?.value ?? null;
     const newValue = newPlantSpeciesId?.value ?? null;
@@ -218,15 +216,11 @@ export class PlantAggregate extends BaseAggregate {
     };
   }
 
-  get id(): PlantIdValueObject {
-    return this._id;
-  }
-
   get name(): PlantNameValueObject {
     return this._name;
   }
 
-  get plantSpeciesId(): PlantLinkedSpeciesIdValueObject | null {
+  get plantSpeciesId(): UuidValueObject | null {
     return this._plantSpeciesId;
   }
 

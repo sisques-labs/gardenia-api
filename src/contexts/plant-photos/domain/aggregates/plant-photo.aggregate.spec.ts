@@ -2,13 +2,13 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 import { PlantPhotoDeletedEvent } from '@contexts/plant-photos/domain/events/plant-photo-deleted/plant-photo-deleted.event';
 import { PlantPhotoUploadedEvent } from '@contexts/plant-photos/domain/events/plant-photo-uploaded/plant-photo-uploaded.event';
-import { PlantPhotoIdValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-id/plant-photo-id.value-object';
+
 import { PlantPhotoUrlValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-url/plant-photo-url.value-object';
 import { PlantPhotoAggregate } from './plant-photo.aggregate';
 
 function buildPlantPhoto(): PlantPhotoAggregate {
   return new PlantPhotoAggregate({
-    id: new PlantPhotoIdValueObject('550e8400-e29b-41d4-a716-446655440000'),
+    id: new UuidValueObject('550e8400-e29b-41d4-a716-446655440000'),
     plantId: new UuidValueObject('440e8400-e29b-41d4-a716-446655440003'),
     fileId: new UuidValueObject('330e8400-e29b-41d4-a716-446655440004'),
     url: new PlantPhotoUrlValueObject('/api/files/550e8400/content'),

@@ -17,7 +17,7 @@ import { CareScheduleUnitChangedEvent } from '@contexts/care-schedule/domain/eve
 import { ICareSchedule } from '@contexts/care-schedule/domain/interfaces/care-schedule.interface';
 import { ICareSchedulePrimitives } from '@contexts/care-schedule/domain/primitives/care-schedule.primitives';
 import { CareScheduleActivityTypeValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-activity-type/care-schedule-activity-type.value-object';
-import { CareScheduleIdValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-id/care-schedule-id.value-object';
+
 import { CareScheduleIntervalDaysValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-interval-days/care-schedule-interval-days.value-object';
 import { CareScheduleLastCompletedAtValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-last-completed-at/care-schedule-last-completed-at.value-object';
 import { CareScheduleNextDueAtValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-next-due-at/care-schedule-next-due-at.value-object';
@@ -28,7 +28,6 @@ import { CareScheduleUnitValueObject } from '@contexts/care-schedule/domain/valu
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export class CareScheduleAggregate extends BaseAggregate {
-  private readonly _id: CareScheduleIdValueObject;
   private readonly _plantId: UuidValueObject;
   private _activityType: CareScheduleActivityTypeValueObject;
   private _intervalDays: CareScheduleIntervalDaysValueObject | null;
@@ -42,8 +41,7 @@ export class CareScheduleAggregate extends BaseAggregate {
   private readonly _spaceId: UuidValueObject;
 
   constructor(props: ICareSchedule) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._plantId = props.plantId;
     this._activityType = props.activityType;
     this._intervalDays = props.intervalDays;
@@ -306,9 +304,6 @@ export class CareScheduleAggregate extends BaseAggregate {
     };
   }
 
-  get id(): CareScheduleIdValueObject {
-    return this._id;
-  }
   get plantId(): UuidValueObject {
     return this._plantId;
   }

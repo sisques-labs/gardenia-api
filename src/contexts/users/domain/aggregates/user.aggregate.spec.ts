@@ -1,5 +1,4 @@
 import { UserStatusEnum } from '@sisques-labs/nestjs-kit';
-
 import { UserCreatedEvent } from '@contexts/users/domain/events/user-created/user-created.event';
 import { UserDeletedEvent } from '@contexts/users/domain/events/user-deleted/user-deleted.event';
 import { UserStatusChangedEvent } from '@contexts/users/domain/events/field-changed/user-status-changed/user-status-changed.event';
@@ -383,7 +382,7 @@ describe('UserAggregate', () => {
   });
 
   describe('field accessors', () => {
-    it('should expose id as a UserIdValueObject', () => {
+    it('should expose id as a UuidValueObject', () => {
       const user = buildUser();
 
       expect(user.id).toBeDefined();

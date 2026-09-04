@@ -1,8 +1,8 @@
 import { PlantingSpotInUseException } from '@contexts/planting-spots/domain/exceptions/planting-spot-in-use.exception';
 import { IPlantingSpotInUsePort } from '@contexts/planting-spots/application/ports/planting-spot-in-use.port';
-import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
 
 import { AssertPlantingSpotNotInUseService } from './assert-planting-spot-not-in-use.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const SPOT_ID = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -25,7 +25,7 @@ describe('AssertPlantingSpotNotInUseService', () => {
       inUsePort.countByPlantingSpotId.mockResolvedValue(0);
 
       await expect(
-        service.execute(new PlantingSpotIdValueObject(SPOT_ID)),
+        service.execute(new UuidValueObject(SPOT_ID)),
       ).resolves.toBeUndefined();
     });
   });
@@ -35,7 +35,7 @@ describe('AssertPlantingSpotNotInUseService', () => {
       inUsePort.countByPlantingSpotId.mockResolvedValue(1);
 
       await expect(
-        service.execute(new PlantingSpotIdValueObject(SPOT_ID)),
+        service.execute(new UuidValueObject(SPOT_ID)),
       ).rejects.toThrow(PlantingSpotInUseException);
     });
 
@@ -43,7 +43,7 @@ describe('AssertPlantingSpotNotInUseService', () => {
       inUsePort.countByPlantingSpotId.mockResolvedValue(5);
 
       await expect(
-        service.execute(new PlantingSpotIdValueObject(SPOT_ID)),
+        service.execute(new UuidValueObject(SPOT_ID)),
       ).rejects.toThrow(PlantingSpotInUseException);
     });
 
@@ -51,7 +51,7 @@ describe('AssertPlantingSpotNotInUseService', () => {
       inUsePort.countByPlantingSpotId.mockResolvedValue(1);
 
       await expect(
-        service.execute(new PlantingSpotIdValueObject(SPOT_ID)),
+        service.execute(new UuidValueObject(SPOT_ID)),
       ).rejects.toThrow(SPOT_ID);
     });
   });

@@ -2,9 +2,9 @@ import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggrega
 import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
 import { SpaceNotFoundException } from '@contexts/spaces/domain/exceptions/space-not-found.exception';
 import { ISpaceWriteRepository } from '@contexts/spaces/domain/repositories/write/space-write.repository';
-import { SpaceIdValueObject } from '@contexts/spaces/domain/value-objects/space-id/space-id.value-object';
 
 import { AssertSpaceExistsService } from './assert-space-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440000';
 const OWNER_ID = '550e8400-e29b-41d4-a716-446655440001';
@@ -38,7 +38,7 @@ describe('AssertSpaceExistsService', () => {
   describe('space exists', () => {
     it('should return the aggregate when write repository finds the space', async () => {
       const aggregate = buildAggregate();
-      const id = new SpaceIdValueObject(SPACE_ID);
+      const id = new UuidValueObject(SPACE_ID);
       writeRepository.findById.mockResolvedValue(aggregate);
 
       const result = await service.execute(id);
@@ -50,14 +50,14 @@ describe('AssertSpaceExistsService', () => {
 
   describe('space does not exist', () => {
     it('should throw SpaceNotFoundException when write repository returns null', async () => {
-      const id = new SpaceIdValueObject(SPACE_ID);
+      const id = new UuidValueObject(SPACE_ID);
       writeRepository.findById.mockResolvedValue(null);
 
       await expect(service.execute(id)).rejects.toThrow(SpaceNotFoundException);
     });
 
     it('should include the space id in the thrown exception', async () => {
-      const id = new SpaceIdValueObject(SPACE_ID);
+      const id = new UuidValueObject(SPACE_ID);
       writeRepository.findById.mockResolvedValue(null);
 
       await expect(service.execute(id)).rejects.toThrow(SPACE_ID);

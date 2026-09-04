@@ -5,7 +5,7 @@ import { IPlantQrPort } from '@contexts/plants/application/ports/plant-qr.port';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
 import { IPlantWriteRepository } from '@contexts/plants/domain/repositories/write/plant-write.repository';
-import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
+
 import { PlantNameValueObject } from '@contexts/plants/domain/value-objects/plant-name/plant-name.value-object';
 import { AssertPlantExistsService } from '../../services/write/assert-plant-exists/assert-plant-exists.service';
 
@@ -22,7 +22,7 @@ const QR_ID = '660e8400-e29b-41d4-a716-446655440099';
 
 const buildAggregate = (qrId: string | null = QR_ID): PlantAggregate =>
   new PlantAggregate({
-    id: new PlantIdValueObject(PLANT_ID),
+    id: new UuidValueObject(PLANT_ID),
     name: new PlantNameValueObject('Rose'),
     plantSpeciesId: null,
     imageUrl: null,

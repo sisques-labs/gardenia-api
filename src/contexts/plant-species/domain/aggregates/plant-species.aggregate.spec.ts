@@ -1,12 +1,11 @@
-import { DateValueObject } from '@sisques-labs/nestjs-kit';
-
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { PlantSpeciesGbifKeyChangedEvent } from '@contexts/plant-species/domain/events/field-changed/plant-species-gbif-key-changed/plant-species-gbif-key-changed.event';
 import { PlantSpeciesScientificNameChangedEvent } from '@contexts/plant-species/domain/events/field-changed/plant-species-scientific-name-changed/plant-species-scientific-name-changed.event';
 import { PlantSpeciesCreatedEvent } from '@contexts/plant-species/domain/events/plant-species-created/plant-species-created.event';
 import { PlantSpeciesDeletedEvent } from '@contexts/plant-species/domain/events/plant-species-deleted/plant-species-deleted.event';
 import { PlantSpeciesUpdatedEvent } from '@contexts/plant-species/domain/events/plant-species-updated/plant-species-updated.event';
 import { PlantSpeciesGbifKeyValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-gbif-key/plant-species-gbif-key.value-object';
-import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+
 import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 import { PlantSpeciesAggregate } from '@contexts/plant-species/domain/aggregates/plant-species.aggregate';
 
@@ -15,7 +14,7 @@ const NOW = new Date('2024-01-01');
 
 const buildPlantSpecies = (): PlantSpeciesAggregate =>
   new PlantSpeciesAggregate({
-    id: new PlantSpeciesIdValueObject(PLANT_SPECIES_ID),
+    id: new UuidValueObject(PLANT_SPECIES_ID),
     scientificName: new PlantSpeciesScientificNameValueObject('Monstera'),
     gbifKey: new PlantSpeciesGbifKeyValueObject(2882337),
     createdAt: new DateValueObject(NOW),
@@ -77,7 +76,7 @@ describe('PlantSpeciesAggregate', () => {
 
   it('update() sets gbifKey and emits PlantSpeciesGbifKeyChangedEvent when previously null', () => {
     const plantSpecies = new PlantSpeciesAggregate({
-      id: new PlantSpeciesIdValueObject(PLANT_SPECIES_ID),
+      id: new UuidValueObject(PLANT_SPECIES_ID),
       scientificName: new PlantSpeciesScientificNameValueObject('Monstera'),
       gbifKey: null,
       createdAt: new DateValueObject(NOW),

@@ -3,12 +3,11 @@ import { AuthSessionReuseDetectedEvent } from '@contexts/auth/domain/events/auth
 import { AuthSessionRevokedEvent } from '@contexts/auth/domain/events/auth-session-revoked/auth-session-revoked.event';
 import { IAuthSession } from '@contexts/auth/domain/interfaces/auth-session.interface';
 import { AuthSessionPrimitives } from '@contexts/auth/domain/primitives/auth-session.primitives';
-import { AuthSessionIdValueObject } from '@contexts/auth/domain/value-objects/auth-session-id/auth-session-id.vo';
+
 import { RefreshTokenHashValueObject } from '@contexts/auth/domain/value-objects/refresh-token-hash/refresh-token-hash.vo';
 import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export class AuthSessionAggregate extends BaseAggregate {
-  private readonly _id: AuthSessionIdValueObject;
   private readonly _userId: UuidValueObject;
   private readonly _tokenHash: RefreshTokenHashValueObject;
   private readonly _expiresAt: Date;
@@ -17,8 +16,7 @@ export class AuthSessionAggregate extends BaseAggregate {
   private _replacedBySessionId: string | null;
 
   constructor(props: IAuthSession) {
-    super(props.createdAt as any, props.updatedAt as any);
-    this._id = props.id;
+    super(props.id, props.createdAt as any, props.updatedAt as any);
     this._userId = props.userId;
     this._tokenHash = props.tokenHash;
     this._expiresAt = props.expiresAt;
@@ -84,10 +82,6 @@ export class AuthSessionAggregate extends BaseAggregate {
         },
       ),
     );
-  }
-
-  get id(): AuthSessionIdValueObject {
-    return this._id;
   }
 
   get userId(): UuidValueObject {

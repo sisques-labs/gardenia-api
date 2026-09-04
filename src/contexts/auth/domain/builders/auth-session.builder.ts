@@ -1,7 +1,7 @@
 import { AuthSessionAggregate } from '@contexts/auth/domain/aggregates/auth-session.aggregate';
 import { AuthSessionPrimitives } from '@contexts/auth/domain/primitives/auth-session.primitives';
 import { AuthSessionViewModel } from '@contexts/auth/domain/view-models/auth-session.view-model';
-import { AuthSessionIdValueObject } from '@contexts/auth/domain/value-objects/auth-session-id/auth-session-id.vo';
+
 import { RefreshTokenHashValueObject } from '@contexts/auth/domain/value-objects/refresh-token-hash/refresh-token-hash.vo';
 import { Injectable } from '@nestjs/common';
 import {
@@ -96,7 +96,7 @@ export class AuthSessionBuilder extends BaseBuilder<
     this.validate();
 
     return new AuthSessionAggregate({
-      id: new AuthSessionIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       userId: new UuidValueObject(this._userId),
       tokenHash: new RefreshTokenHashValueObject(this._tokenHash),
       expiresAt: this._expiresAt,

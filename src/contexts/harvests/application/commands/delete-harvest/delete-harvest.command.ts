@@ -1,13 +1,13 @@
-import { HarvestIdValueObject } from '@contexts/harvests/domain/value-objects/harvest-id/harvest-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type DeleteHarvestCommandInput = {
   id: string;
 };
 
 export class DeleteHarvestCommand {
-  public readonly id: HarvestIdValueObject;
+  public readonly id: UuidValueObject;
 
   constructor(input: DeleteHarvestCommandInput) {
-    this.id = new HarvestIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
   }
 }

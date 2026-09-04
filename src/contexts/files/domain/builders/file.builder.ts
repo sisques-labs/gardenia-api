@@ -8,7 +8,7 @@ import {
 
 import { FileAggregate } from '@contexts/files/domain/aggregates/file.aggregate';
 import { FileMimeTypeEnum } from '@contexts/files/domain/enums/file-mime-type.enum';
-import { FileIdValueObject } from '@contexts/files/domain/value-objects/file-id/file-id.value-object';
+
 import { FileMimeTypeValueObject } from '@contexts/files/domain/value-objects/file-mime-type/file-mime-type.value-object';
 import { FileNameValueObject } from '@contexts/files/domain/value-objects/file-name/file-name.value-object';
 import { FileSizeValueObject } from '@contexts/files/domain/value-objects/file-size/file-size.value-object';
@@ -64,7 +64,7 @@ export class FileBuilder extends BaseBuilder<FileAggregate, FileViewModel> {
   public override build(): FileAggregate {
     this.validate();
     return new FileAggregate({
-      id: new FileIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       filename: new FileNameValueObject(this._filename),
       mimeType: new FileMimeTypeValueObject(this._mimeType as FileMimeTypeEnum),
       size: new FileSizeValueObject(this._size),

@@ -8,7 +8,7 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { HarvestAggregate } from '@contexts/harvests/domain/aggregates/harvest.aggregate';
 import { HarvestCropTypeValueObject } from '@contexts/harvests/domain/value-objects/harvest-crop-type/harvest-crop-type.value-object';
 import { HarvestHarvestedAtValueObject } from '@contexts/harvests/domain/value-objects/harvest-harvested-at/harvest-harvested-at.value-object';
-import { HarvestIdValueObject } from '@contexts/harvests/domain/value-objects/harvest-id/harvest-id.value-object';
+
 import { HarvestQuantityValueObject } from '@contexts/harvests/domain/value-objects/harvest-quantity/harvest-quantity.value-object';
 import { HarvestUnitValueObject } from '@contexts/harvests/domain/value-objects/harvest-unit/harvest-unit.value-object';
 import { UpdateHarvestCommand } from './update-harvest.command';
@@ -16,7 +16,7 @@ import { UpdateHarvestCommandHandler } from './update-harvest.handler';
 
 function buildAggregate(): HarvestAggregate {
   return new HarvestAggregate({
-    id: new HarvestIdValueObject('550e8400-e29b-41d4-a716-446655440000'),
+    id: new UuidValueObject('550e8400-e29b-41d4-a716-446655440000'),
     cropType: new HarvestCropTypeValueObject('Tomate Cherry'),
     quantity: new HarvestQuantityValueObject(2.5),
     unit: new HarvestUnitValueObject(HarvestUnitEnum.KG),

@@ -1,13 +1,13 @@
-import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export interface PlantSpeciesFindByIdQueryInput {
   plantSpeciesId: string;
 }
 
 export class PlantSpeciesFindByIdQuery {
-  public readonly plantSpeciesId: PlantSpeciesIdValueObject;
+  public readonly plantSpeciesId: UuidValueObject;
 
   constructor(input: PlantSpeciesFindByIdQueryInput) {
-    this.plantSpeciesId = new PlantSpeciesIdValueObject(input.plantSpeciesId);
+    this.plantSpeciesId = new UuidValueObject(input.plantSpeciesId);
   }
 }

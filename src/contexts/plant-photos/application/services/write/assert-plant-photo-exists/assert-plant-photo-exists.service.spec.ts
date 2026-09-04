@@ -1,8 +1,9 @@
 import { PlantPhotoAggregate } from '@contexts/plant-photos/domain/aggregates/plant-photo.aggregate';
 import { PlantPhotoNotFoundException } from '@contexts/plant-photos/domain/exceptions/plant-photo-not-found.exception';
 import { IPlantPhotoWriteRepository } from '@contexts/plant-photos/domain/repositories/write/plant-photo-write.repository';
-import { PlantPhotoIdValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-id/plant-photo-id.value-object';
+
 import { AssertPlantPhotoExistsService } from './assert-plant-photo-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const ID = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -24,7 +25,7 @@ describe('AssertPlantPhotoExistsService', () => {
     const aggregate = {} as PlantPhotoAggregate;
     writeRepository.findById.mockResolvedValue(aggregate);
 
-    const result = await service.execute(new PlantPhotoIdValueObject(ID));
+    const result = await service.execute(new UuidValueObject(ID));
 
     expect(result).toBe(aggregate);
   });
@@ -32,8 +33,8 @@ describe('AssertPlantPhotoExistsService', () => {
   it('throws PlantPhotoNotFoundException when not found', async () => {
     writeRepository.findById.mockResolvedValue(null);
 
-    await expect(
-      service.execute(new PlantPhotoIdValueObject(ID)),
-    ).rejects.toThrow(PlantPhotoNotFoundException);
+    await expect(service.execute(new UuidValueObject(ID))).rejects.toThrow(
+      PlantPhotoNotFoundException,
+    );
   });
 });

@@ -1,5 +1,4 @@
 import { BaseAggregate, UserStatusEnum } from '@sisques-labs/nestjs-kit';
-
 import { UserAvatarUrlChangedEvent } from '@contexts/users/domain/events/field-changed/user-avatar-url-changed/user-avatar-url-changed.event';
 import { UserBioChangedEvent } from '@contexts/users/domain/events/field-changed/user-bio-changed/user-bio-changed.event';
 import { UserFirstNameChangedEvent } from '@contexts/users/domain/events/field-changed/user-first-name-changed/user-first-name-changed.event';
@@ -14,12 +13,11 @@ import { UserCreatedEvent } from '../events/user-created/user-created.event';
 import { UserDeletedEvent } from '../events/user-deleted/user-deleted.event';
 import { IUser } from '../interfaces/user.interface';
 import { IUserPrimitives } from '../primitives/user.primitives';
-import { UserIdValueObject } from '../value-objects/user-id/user-id.value-object';
+
 import { UserStatusValueObject } from '../value-objects/user-status/user-status.vo';
 import { UsernameValueObject } from '../value-objects/username/username.value-object';
 
 export class UserAggregate extends BaseAggregate {
-  private readonly _id: UserIdValueObject;
   private _status: UserStatusValueObject;
   private _username: UsernameValueObject;
   private _firstName: string | null;
@@ -30,8 +28,7 @@ export class UserAggregate extends BaseAggregate {
   private _timezone: string | null;
 
   constructor(props: IUser) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._status = props.status;
     this._username = props.username;
     this._firstName = props.firstName;
@@ -340,10 +337,6 @@ export class UserAggregate extends BaseAggregate {
         this.toPrimitives(),
       ),
     );
-  }
-
-  get id(): UserIdValueObject {
-    return this._id;
   }
 
   get status(): UserStatusValueObject {

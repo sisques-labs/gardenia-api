@@ -11,13 +11,13 @@ import { HarvestUpdatedEvent } from '@contexts/harvests/domain/events/harvest-up
 import { HarvestAggregate } from './harvest.aggregate';
 import { HarvestCropTypeValueObject } from '@contexts/harvests/domain/value-objects/harvest-crop-type/harvest-crop-type.value-object';
 import { HarvestHarvestedAtValueObject } from '@contexts/harvests/domain/value-objects/harvest-harvested-at/harvest-harvested-at.value-object';
-import { HarvestIdValueObject } from '@contexts/harvests/domain/value-objects/harvest-id/harvest-id.value-object';
+
 import { HarvestQuantityValueObject } from '@contexts/harvests/domain/value-objects/harvest-quantity/harvest-quantity.value-object';
 import { HarvestUnitValueObject } from '@contexts/harvests/domain/value-objects/harvest-unit/harvest-unit.value-object';
 
 function buildHarvest(): HarvestAggregate {
   return new HarvestAggregate({
-    id: new HarvestIdValueObject('550e8400-e29b-41d4-a716-446655440000'),
+    id: new UuidValueObject('550e8400-e29b-41d4-a716-446655440000'),
     cropType: new HarvestCropTypeValueObject('Tomate Cherry'),
     quantity: new HarvestQuantityValueObject(2.5),
     unit: new HarvestUnitValueObject(HarvestUnitEnum.KG),

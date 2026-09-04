@@ -13,7 +13,7 @@ import { InventoryItemViewModel } from '@contexts/inventory/domain/view-models/i
 import { InventoryAcquiredAtValueObject } from '@contexts/inventory/domain/value-objects/inventory-acquired-at/inventory-acquired-at.value-object';
 import { InventoryExpiresAtValueObject } from '@contexts/inventory/domain/value-objects/inventory-expires-at/inventory-expires-at.value-object';
 import { InventoryItemBrandValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-brand/inventory-item-brand.value-object';
-import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
+
 import { InventoryItemNameValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-name/inventory-item-name.value-object';
 import { InventoryItemNotesValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-notes/inventory-item-notes.value-object';
 import { InventoryItemTypeValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-type/inventory-item-type.value-object';
@@ -96,7 +96,7 @@ export class InventoryItemBuilder extends BaseBuilder<
   public override build(): InventoryItemAggregate {
     this.validate();
     return new InventoryItemAggregate({
-      id: new InventoryItemIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       itemType: new InventoryItemTypeValueObject(
         this._itemType as InventoryItemTypeEnum,
       ),

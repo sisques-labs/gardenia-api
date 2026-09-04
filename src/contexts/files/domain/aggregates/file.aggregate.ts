@@ -4,7 +4,7 @@ import { FileDeletedEvent } from '@contexts/files/domain/events/file-deleted/fil
 import { FileUploadedEvent } from '@contexts/files/domain/events/file-uploaded/file-uploaded.event';
 import { IFile } from '@contexts/files/domain/interfaces/file.interface';
 import { IFilePrimitives } from '@contexts/files/domain/primitives/file.primitives';
-import { FileIdValueObject } from '@contexts/files/domain/value-objects/file-id/file-id.value-object';
+
 import { FileMimeTypeValueObject } from '@contexts/files/domain/value-objects/file-mime-type/file-mime-type.value-object';
 import { FileNameValueObject } from '@contexts/files/domain/value-objects/file-name/file-name.value-object';
 import { FileSizeValueObject } from '@contexts/files/domain/value-objects/file-size/file-size.value-object';
@@ -17,7 +17,6 @@ import { FileUrlValueObject } from '@contexts/files/domain/value-objects/file-ur
  * to change an image, upload a new file and delete the old one.
  */
 export class FileAggregate extends BaseAggregate {
-  private readonly _id: FileIdValueObject;
   private readonly _filename: FileNameValueObject;
   private readonly _mimeType: FileMimeTypeValueObject;
   private readonly _size: FileSizeValueObject;
@@ -27,8 +26,7 @@ export class FileAggregate extends BaseAggregate {
   private readonly _spaceId: UuidValueObject;
 
   constructor(props: IFile) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._filename = props.filename;
     this._mimeType = props.mimeType;
     this._size = props.size;
@@ -83,9 +81,6 @@ export class FileAggregate extends BaseAggregate {
     };
   }
 
-  get id(): FileIdValueObject {
-    return this._id;
-  }
   get filename(): FileNameValueObject {
     return this._filename;
   }
