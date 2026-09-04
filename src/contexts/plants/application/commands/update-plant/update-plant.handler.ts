@@ -1,13 +1,12 @@
 import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
-
+import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import {
   IPlantSpeciesPort,
   PLANT_SPECIES_PORT,
 } from '@contexts/plants/application/ports/plant-species.port';
 import { PlantAggregate } from '@contexts/plants/domain/aggregates/plant.aggregate';
-import { PlantLinkedSpeciesIdValueObject } from '@contexts/plants/domain/value-objects/plant-linked-species-id/plant-linked-species-id.value-object';
+
 import {
   IPlantWriteRepository,
   PLANT_WRITE_REPOSITORY,
@@ -39,8 +38,7 @@ export class UpdatePlantCommandHandler
   async execute(command: UpdatePlantCommand): Promise<void> {
     const plant = await this.assertPlantExistsService.execute(command.plantId);
 
-    let plantSpeciesId: PlantLinkedSpeciesIdValueObject | null | undefined =
-      undefined;
+    let plantSpeciesId: UuidValueObject | null | undefined = undefined;
     if (command.gbifSpeciesKey !== undefined) {
       if (command.gbifSpeciesKey === null) {
         plantSpeciesId = null;
@@ -49,7 +47,7 @@ export class UpdatePlantCommandHandler
           command.gbifSpeciesKey.value,
           command.speciesScientificName!.value,
         );
-        plantSpeciesId = new PlantLinkedSpeciesIdValueObject(linked.id);
+        plantSpeciesId = new UuidValueObject(linked.id);
       }
     }
 

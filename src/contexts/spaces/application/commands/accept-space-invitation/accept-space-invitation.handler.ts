@@ -1,7 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
-
+import { BaseCommandHandler, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { AssertSpaceInvitationViewModelExistsByCodeService } from '@contexts/spaces/application/services/read/assert-space-invitation-view-model-exists-by-code/assert-space-invitation-view-model-exists-by-code.service';
 import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
 import { AssertSpaceInvitationNotExpiredService } from '@contexts/spaces/application/services/write/assert-space-invitation-not-expired/assert-space-invitation-not-expired.service';
@@ -12,7 +11,6 @@ import {
   ISpaceWriteRepository,
   SPACE_WRITE_REPOSITORY,
 } from '@contexts/spaces/domain/repositories/write/space-write.repository';
-import { SpaceIdValueObject } from '@contexts/spaces/domain/value-objects/space-id/space-id.value-object';
 
 import { AcceptSpaceInvitationCommand } from './accept-space-invitation.command';
 
@@ -61,7 +59,7 @@ export class AcceptSpaceInvitationCommandHandler
     }
 
     const space = await this.assertSpaceExistsService.execute(
-      new SpaceIdValueObject(invitation.spaceId),
+      new UuidValueObject(invitation.spaceId),
     );
 
     space.addMember(command.acceptingUserId.value, invitation.role);

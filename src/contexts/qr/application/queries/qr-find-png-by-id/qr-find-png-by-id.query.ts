@@ -1,13 +1,13 @@
-import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export interface QrFindPngByIdQueryInput {
   qrId: string;
 }
 
 export class QrFindPngByIdQuery {
-  public readonly qrId: QrIdValueObject;
+  public readonly qrId: UuidValueObject;
 
   constructor(input: QrFindPngByIdQueryInput) {
-    this.qrId = new QrIdValueObject(input.qrId);
+    this.qrId = new UuidValueObject(input.qrId);
   }
 }

@@ -5,8 +5,9 @@ import {
   HARVEST_READ_REPOSITORY,
   IHarvestReadRepository,
 } from '@contexts/harvests/domain/repositories/read/harvest-read.repository';
-import { HarvestIdValueObject } from '@contexts/harvests/domain/value-objects/harvest-id/harvest-id.value-object';
+
 import { HarvestViewModel } from '@contexts/harvests/domain/view-models/harvest.view-model';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 @Injectable()
 export class AssertHarvestViewModelExistsService {
@@ -15,7 +16,7 @@ export class AssertHarvestViewModelExistsService {
     private readonly harvestReadRepository: IHarvestReadRepository,
   ) {}
 
-  async execute(id: HarvestIdValueObject): Promise<HarvestViewModel> {
+  async execute(id: UuidValueObject): Promise<HarvestViewModel> {
     const harvest = await this.harvestReadRepository.findById(id.value);
     if (!harvest) throw new HarvestNotFoundException(id.value);
     return harvest;

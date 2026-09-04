@@ -6,7 +6,7 @@ import { PlantingSpotStatusEnum } from '@contexts/planting-spots/domain/enums/pl
 import { PlantingSpotTypeEnum } from '@contexts/planting-spots/domain/enums/planting-spot-type.enum';
 import { PlantingSpotNotFoundException } from '@contexts/planting-spots/domain/exceptions/planting-spot-not-found.exception';
 import { IPlantingSpotWriteRepository } from '@contexts/planting-spots/domain/repositories/write/planting-spot-write.repository';
-import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
+
 import { PlantingSpotNameValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-name/planting-spot-name.value-object';
 import { PlantingSpotStatusValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-status/planting-spot-status.value-object';
 import { PlantingSpotTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-type/planting-spot-type.value-object';
@@ -23,7 +23,7 @@ const NOW = new Date('2024-01-01');
 
 const buildAggregate = (): PlantingSpotAggregate =>
   new PlantingSpotAggregate({
-    id: new PlantingSpotIdValueObject(SPOT_ID),
+    id: new UuidValueObject(SPOT_ID),
     name: new PlantingSpotNameValueObject('Bancal Norte'),
     type: new PlantingSpotTypeValueObject(PlantingSpotTypeEnum.RAISED_BED),
     description: null,

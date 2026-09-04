@@ -1,12 +1,11 @@
 import { EventBus } from '@nestjs/cqrs';
-import { DateValueObject } from '@sisques-labs/nestjs-kit';
-
+import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { PlantSpeciesAggregate } from '@contexts/plant-species/domain/aggregates/plant-species.aggregate';
 import { PlantSpeciesGbifKeyAlreadyExistsException } from '@contexts/plant-species/domain/exceptions/plant-species-gbif-key-already-exists.exception';
 import { PlantSpeciesNotFoundException } from '@contexts/plant-species/domain/exceptions/plant-species-not-found.exception';
 import { IPlantSpeciesWriteRepository } from '@contexts/plant-species/domain/repositories/write/plant-species-write.repository';
 import { PlantSpeciesGbifKeyValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-gbif-key/plant-species-gbif-key.value-object';
-import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+
 import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
 import { AssertPlantSpeciesExistsService } from '@contexts/plant-species/application/services/write/assert-plant-species-exists/assert-plant-species-exists.service';
 import { AssertPlantSpeciesGbifKeyAvailableService } from '@contexts/plant-species/application/services/write/assert-plant-species-gbif-key-available/assert-plant-species-gbif-key-available.service';
@@ -19,7 +18,7 @@ const NOW = new Date('2024-01-01');
 
 const buildAggregate = (): PlantSpeciesAggregate =>
   new PlantSpeciesAggregate({
-    id: new PlantSpeciesIdValueObject(PLANT_SPECIES_ID),
+    id: new UuidValueObject(PLANT_SPECIES_ID),
     scientificName: new PlantSpeciesScientificNameValueObject('Monstera'),
     gbifKey: new PlantSpeciesGbifKeyValueObject(2882337),
     createdAt: new DateValueObject(NOW),

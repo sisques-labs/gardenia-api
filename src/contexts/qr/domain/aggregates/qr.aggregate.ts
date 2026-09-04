@@ -7,19 +7,17 @@ import { IQr } from '@contexts/qr/domain/interfaces/qr.interface';
 import { IQrPrimitives } from '@contexts/qr/domain/primitives/qr.primitives';
 import { QrExpiresAtValueObject } from '@contexts/qr/domain/value-objects/qr-expires-at/qr-expires-at.value-object';
 import { QrGenerationValueObject } from '@contexts/qr/domain/value-objects/qr-generation/qr-generation.value-object';
-import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
+
 import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
 
 export class QrAggregate extends BaseAggregate {
-  private readonly _id: QrIdValueObject;
   private readonly _spaceId: UuidValueObject;
   private readonly _targetUrl: QrTargetUrlValueObject;
   private _generation: QrGenerationValueObject;
   private readonly _expiresAt: QrExpiresAtValueObject | null;
 
   constructor(props: IQr) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._spaceId = props.spaceId;
     this._targetUrl = props.targetUrl;
     this._generation = props.generation;
@@ -87,10 +85,6 @@ export class QrAggregate extends BaseAggregate {
 
   public isExpired(): boolean {
     return this._expiresAt !== null && this._expiresAt.value < new Date();
-  }
-
-  get id(): QrIdValueObject {
-    return this._id;
   }
 
   get spaceId(): UuidValueObject {

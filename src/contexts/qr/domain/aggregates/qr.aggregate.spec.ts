@@ -5,7 +5,7 @@ import { QrDeletedEvent } from '@contexts/qr/domain/events/qr-deleted/qr-deleted
 import { QrRegeneratedEvent } from '@contexts/qr/domain/events/qr-regenerated/qr-regenerated.event';
 import { QrExpiresAtValueObject } from '@contexts/qr/domain/value-objects/qr-expires-at/qr-expires-at.value-object';
 import { QrGenerationValueObject } from '@contexts/qr/domain/value-objects/qr-generation/qr-generation.value-object';
-import { QrIdValueObject } from '@contexts/qr/domain/value-objects/qr-id/qr-id.value-object';
+
 import { QrTargetUrlValueObject } from '@contexts/qr/domain/value-objects/qr-target-url/qr-target-url.value-object';
 import { QrAggregate } from '@contexts/qr/domain/aggregates/qr.aggregate';
 
@@ -19,7 +19,7 @@ const buildQr = (
   expiresAt: QrExpiresAtValueObject | null = null,
 ): QrAggregate =>
   new QrAggregate({
-    id: new QrIdValueObject(QR_ID),
+    id: new UuidValueObject(QR_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     targetUrl: new QrTargetUrlValueObject(
       `http://localhost:3000/plants/example?spaceId=${SPACE_ID}`,

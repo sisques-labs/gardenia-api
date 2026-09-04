@@ -3,11 +3,10 @@ import {
   IUserReadRepository,
   USER_READ_REPOSITORY,
 } from '@contexts/users/domain/repositories/read/user-read.repository';
-import { UserIdValueObject } from '@contexts/users/domain/value-objects/user-id/user-id.value-object';
+
 import { UserViewModel } from '@contexts/users/domain/view-models/user.view-model';
 import { Inject, Injectable } from '@nestjs/common';
-import { IBaseService } from '@sisques-labs/nestjs-kit';
-
+import { IBaseService, UuidValueObject } from '@sisques-labs/nestjs-kit';
 @Injectable()
 export class AssertUserViewModelExistsService implements IBaseService {
   constructor(
@@ -15,7 +14,7 @@ export class AssertUserViewModelExistsService implements IBaseService {
     private readonly userReadRepository: IUserReadRepository,
   ) {}
 
-  async execute(id: UserIdValueObject): Promise<UserViewModel> {
+  async execute(id: UuidValueObject): Promise<UserViewModel> {
     const user = await this.userReadRepository.findById(id.value);
     if (!user) throw new UserNotFoundException(id.value);
 

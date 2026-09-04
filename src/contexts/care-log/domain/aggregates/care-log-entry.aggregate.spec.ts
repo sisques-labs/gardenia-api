@@ -11,7 +11,7 @@ import { CareLogUnitChangedEvent } from '@contexts/care-log/domain/events/field-
 import { CareLogActivityTypeEnum } from '@contexts/care-log/domain/enums/care-log-activity-type.enum';
 import { CareLogUnitEnum } from '@contexts/care-log/domain/enums/care-log-unit.enum';
 import { CareLogQuantityUnitMismatchException } from '@contexts/care-log/domain/exceptions/care-log-quantity-unit-mismatch.exception';
-import { CareLogIdValueObject } from '@contexts/care-log/domain/value-objects/care-log-id/care-log-id.value-object';
+
 import { CareLogActivityTypeValueObject } from '@contexts/care-log/domain/value-objects/care-log-activity-type/care-log-activity-type.value-object';
 import { CareLogPerformedAtValueObject } from '@contexts/care-log/domain/value-objects/care-log-performed-at/care-log-performed-at.value-object';
 import { CareLogNotesValueObject } from '@contexts/care-log/domain/value-objects/care-log-notes/care-log-notes.value-object';
@@ -34,7 +34,7 @@ const buildAggregate = (
   }>,
 ): CareLogEntryAggregate =>
   new CareLogEntryAggregate({
-    id: new CareLogIdValueObject(ENTRY_ID),
+    id: new UuidValueObject(ENTRY_ID),
     plantId: new UuidValueObject(PLANT_ID),
     userId: new UuidValueObject(USER_ID),
     spaceId: new UuidValueObject(SPACE_ID),

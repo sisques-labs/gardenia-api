@@ -5,8 +5,9 @@ import {
   PLANT_PHOTO_READ_REPOSITORY,
   IPlantPhotoReadRepository,
 } from '@contexts/plant-photos/domain/repositories/read/plant-photo-read.repository';
-import { PlantPhotoIdValueObject } from '@contexts/plant-photos/domain/value-objects/plant-photo-id/plant-photo-id.value-object';
+
 import { PlantPhotoViewModel } from '@contexts/plant-photos/domain/view-models/plant-photo.view-model';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 @Injectable()
 export class AssertPlantPhotoViewModelExistsService {
@@ -15,7 +16,7 @@ export class AssertPlantPhotoViewModelExistsService {
     private readonly plantPhotoReadRepository: IPlantPhotoReadRepository,
   ) {}
 
-  async execute(id: PlantPhotoIdValueObject): Promise<PlantPhotoViewModel> {
+  async execute(id: UuidValueObject): Promise<PlantPhotoViewModel> {
     const photo = await this.plantPhotoReadRepository.findById(id.value);
     if (!photo) throw new PlantPhotoNotFoundException(id.value);
     return photo;

@@ -1,5 +1,5 @@
 import { ICareSchedulePrimitives } from '@contexts/care-schedule/domain/primitives/care-schedule.primitives';
-import { CareScheduleIdValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-id/care-schedule-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type DeleteCareScheduleCommandInput = Pick<
   ICareSchedulePrimitives,
@@ -7,9 +7,9 @@ export type DeleteCareScheduleCommandInput = Pick<
 >;
 
 export class DeleteCareScheduleCommand {
-  public readonly id: CareScheduleIdValueObject;
+  public readonly id: UuidValueObject;
 
   constructor(input: DeleteCareScheduleCommandInput) {
-    this.id = new CareScheduleIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
   }
 }

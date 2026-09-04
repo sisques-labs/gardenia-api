@@ -21,7 +21,7 @@ import { InventoryItemBrandValueObject } from '@contexts/inventory/domain/value-
 import { InventoryItemNameValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-name/inventory-item-name.value-object';
 import { InventoryItemNotesValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-notes/inventory-item-notes.value-object';
 import { InventoryItemTypeValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-type/inventory-item-type.value-object';
-import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
+
 import { InventoryLowStockThresholdValueObject } from '@contexts/inventory/domain/value-objects/inventory-low-stock-threshold/inventory-low-stock-threshold.value-object';
 import { InventoryQuantityValueObject } from '@contexts/inventory/domain/value-objects/inventory-quantity/inventory-quantity.value-object';
 import { InventoryUnitValueObject } from '@contexts/inventory/domain/value-objects/inventory-unit/inventory-unit.value-object';
@@ -43,7 +43,7 @@ function buildItem(
   > = {},
 ): InventoryItemAggregate {
   return new InventoryItemAggregate({
-    id: new InventoryItemIdValueObject('550e8400-e29b-41d4-a716-446655440000'),
+    id: new UuidValueObject('550e8400-e29b-41d4-a716-446655440000'),
     itemType:
       overrides.itemType ??
       new InventoryItemTypeValueObject(InventoryItemTypeEnum.SEEDS),

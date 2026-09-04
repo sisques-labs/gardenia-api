@@ -6,21 +6,19 @@ import { IAccount } from '@contexts/auth/domain/interfaces/account.interface';
 import { IAccountPrimitives } from '@contexts/auth/domain/primitives/account.primitives';
 import { AppRoleValueObject } from '@contexts/auth/domain/value-objects/app-role/app-role.vo';
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
-import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
+
 import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
 import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import * as bcrypt from 'bcrypt';
 
 export class AccountAggregate extends BaseAggregate {
-  private readonly _id: AccountIdValueObject;
   private readonly _userId: UuidValueObject;
   private readonly _email: AccountEmailValueObject;
   private _passwordHash: AccountPasswordHashValueObject;
   private readonly _appRole: AppRoleValueObject;
 
   constructor(props: IAccount) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._userId = props.userId;
     this._email = props.email;
     this._passwordHash = props.passwordHash;
@@ -96,10 +94,6 @@ export class AccountAggregate extends BaseAggregate {
         this.toPrimitives(),
       ),
     );
-  }
-
-  get id(): AccountIdValueObject {
-    return this._id;
   }
 
   get userId(): UuidValueObject {

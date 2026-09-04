@@ -6,7 +6,7 @@ import { PlantIdentificationCreatedEvent } from '@contexts/plant-identification/
 import { PlantIdentificationOrganEnum } from '@contexts/plant-identification/domain/enums/plant-identification-organ.enum';
 import { PlantIdentificationStatusEnum } from '@contexts/plant-identification/domain/enums/plant-identification-status.enum';
 import { PlantIdentificationCommonNameValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-common-name/plant-identification-common-name.value-object';
-import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+
 import { PlantIdentificationOrganValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-organ/plant-identification-organ.value-object';
 import { PlantIdentificationPhotoPositionValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-position/plant-identification-photo-position.value-object';
 import { PlantIdentificationPhotoUrlValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-photo-url/plant-identification-photo-url.value-object';
@@ -35,7 +35,7 @@ function buildIdentification(
   }> = {},
 ): PlantIdentificationAggregate {
   return new PlantIdentificationAggregate({
-    id: new PlantIdentificationIdValueObject(ID),
+    id: new UuidValueObject(ID),
     requestedByUserId: new UuidValueObject(USER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     status: new PlantIdentificationStatusValueObject(

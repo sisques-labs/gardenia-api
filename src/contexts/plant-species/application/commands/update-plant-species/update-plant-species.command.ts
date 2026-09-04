@@ -1,6 +1,7 @@
 import { PlantSpeciesGbifKeyValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-gbif-key/plant-species-gbif-key.value-object';
-import { PlantSpeciesIdValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-id/plant-species-id.value-object';
+
 import { PlantSpeciesScientificNameValueObject } from '@contexts/plant-species/domain/value-objects/plant-species-scientific-name/plant-species-scientific-name.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export interface UpdatePlantSpeciesCommandInput {
   id: string;
@@ -9,13 +10,13 @@ export interface UpdatePlantSpeciesCommandInput {
 }
 
 export class UpdatePlantSpeciesCommand {
-  public readonly id: PlantSpeciesIdValueObject;
+  public readonly id: UuidValueObject;
   public readonly scientificName:
     PlantSpeciesScientificNameValueObject | undefined;
   public readonly gbifKey: PlantSpeciesGbifKeyValueObject | null | undefined;
 
   constructor(input: UpdatePlantSpeciesCommandInput) {
-    this.id = new PlantSpeciesIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
     this.scientificName = input.scientificName
       ? new PlantSpeciesScientificNameValueObject(input.scientificName)
       : undefined;

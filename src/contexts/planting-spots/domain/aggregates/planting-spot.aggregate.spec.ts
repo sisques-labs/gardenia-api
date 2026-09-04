@@ -17,7 +17,7 @@ import { PlantingSpotColumnValueObject } from '@contexts/planting-spots/domain/v
 import { PlantingSpotDescriptionValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-description/planting-spot-description.value-object';
 import { PlantingSpotDimensionsValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-dimensions/planting-spot-dimensions.value-object';
 import { PlantingSpotFallowSinceValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-fallow-since/planting-spot-fallow-since.value-object';
-import { PlantingSpotIdValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-id/planting-spot-id.value-object';
+
 import { PlantingSpotNameValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-name/planting-spot-name.value-object';
 import { PlantingSpotRowValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-row/planting-spot-row.value-object';
 import { PlantingSpotSoilTypeValueObject } from '@contexts/planting-spots/domain/value-objects/planting-spot-soil-type/planting-spot-soil-type.value-object';
@@ -37,7 +37,7 @@ const buildAggregate = (
   fallowSince: Date | null = null,
 ): PlantingSpotAggregate =>
   new PlantingSpotAggregate({
-    id: new PlantingSpotIdValueObject(SPOT_ID),
+    id: new UuidValueObject(SPOT_ID),
     name: new PlantingSpotNameValueObject('Bancal Norte'),
     type: new PlantingSpotTypeValueObject(PlantingSpotTypeEnum.RAISED_BED),
     description: null,

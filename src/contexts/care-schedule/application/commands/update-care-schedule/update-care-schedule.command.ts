@@ -1,10 +1,9 @@
-import { BooleanValueObject } from '@sisques-labs/nestjs-kit';
-
+import { BooleanValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enums/care-schedule-activity-type.enum';
 import { CareScheduleUnitEnum } from '@contexts/care-schedule/domain/enums/care-schedule-unit.enum';
 import { ICareSchedulePrimitives } from '@contexts/care-schedule/domain/primitives/care-schedule.primitives';
 import { CareScheduleActivityTypeValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-activity-type/care-schedule-activity-type.value-object';
-import { CareScheduleIdValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-id/care-schedule-id.value-object';
+
 import { CareScheduleIntervalDaysValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-interval-days/care-schedule-interval-days.value-object';
 import { CareScheduleNotesValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-notes/care-schedule-notes.value-object';
 import { CareScheduleQuantityValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-quantity/care-schedule-quantity.value-object';
@@ -22,7 +21,7 @@ export type UpdateCareScheduleCommandInput = Pick<
   >;
 
 export class UpdateCareScheduleCommand {
-  public readonly id: CareScheduleIdValueObject;
+  public readonly id: UuidValueObject;
   public readonly activityType: CareScheduleActivityTypeValueObject | undefined;
   public readonly intervalDays:
     CareScheduleIntervalDaysValueObject | null | undefined;
@@ -32,7 +31,7 @@ export class UpdateCareScheduleCommand {
   public readonly active: BooleanValueObject | undefined;
 
   constructor(input: UpdateCareScheduleCommandInput) {
-    this.id = new CareScheduleIdValueObject(input.id);
+    this.id = new UuidValueObject(input.id);
     this.activityType = input.activityType
       ? new CareScheduleActivityTypeValueObject(
           input.activityType as CareScheduleActivityTypeEnum,

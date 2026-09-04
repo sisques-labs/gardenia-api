@@ -2,10 +2,11 @@ import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
 import { AssertSpaceInvitationViewModelExistsByCodeService } from '@contexts/spaces/application/services/read/assert-space-invitation-view-model-exists-by-code/assert-space-invitation-view-model-exists-by-code.service';
 import { AssertSpaceViewModelExistsService } from '@contexts/spaces/application/services/read/assert-space-view-model-exists/assert-space-view-model-exists.service';
-import { SpaceIdValueObject } from '@contexts/spaces/domain/value-objects/space-id/space-id.value-object';
+
 import { SpaceInvitationPreviewViewModel } from '@contexts/spaces/domain/view-models/space-invitation-preview.view-model';
 
 import { SpaceInvitationPreviewFindByCodeQuery } from './space-invitation-preview-find-by-code.query';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 @QueryHandler(SpaceInvitationPreviewFindByCodeQuery)
 export class SpaceInvitationPreviewFindByCodeQueryHandler implements IQueryHandler<
@@ -26,7 +27,7 @@ export class SpaceInvitationPreviewFindByCodeQueryHandler implements IQueryHandl
       );
 
     const space = await this.assertSpaceViewModelExistsService.execute(
-      new SpaceIdValueObject(invitation.spaceId),
+      new UuidValueObject(invitation.spaceId),
     );
 
     return {

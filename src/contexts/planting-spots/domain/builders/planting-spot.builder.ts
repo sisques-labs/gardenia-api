@@ -14,7 +14,7 @@ import { PlantingSpotColumnValueObject } from '../value-objects/planting-spot-co
 import { PlantingSpotDescriptionValueObject } from '../value-objects/planting-spot-description/planting-spot-description.value-object';
 import { PlantingSpotDimensionsValueObject } from '../value-objects/planting-spot-dimensions/planting-spot-dimensions.value-object';
 import { PlantingSpotFallowSinceValueObject } from '../value-objects/planting-spot-fallow-since/planting-spot-fallow-since.value-object';
-import { PlantingSpotIdValueObject } from '../value-objects/planting-spot-id/planting-spot-id.value-object';
+
 import { PlantingSpotNameValueObject } from '../value-objects/planting-spot-name/planting-spot-name.value-object';
 import { PlantingSpotRowValueObject } from '../value-objects/planting-spot-row/planting-spot-row.value-object';
 import { PlantingSpotSoilTypeValueObject } from '../value-objects/planting-spot-soil-type/planting-spot-soil-type.value-object';
@@ -143,7 +143,7 @@ export class PlantingSpotBuilder extends BaseBuilder<
   public override build(): PlantingSpotAggregate {
     this.validate();
     return new PlantingSpotAggregate({
-      id: new PlantingSpotIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       name: new PlantingSpotNameValueObject(this._name),
       type: new PlantingSpotTypeValueObject(this._type as PlantingSpotTypeEnum),
       description:

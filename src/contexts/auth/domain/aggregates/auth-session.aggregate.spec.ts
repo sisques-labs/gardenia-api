@@ -1,7 +1,7 @@
 import { AuthSessionCreatedEvent } from '@contexts/auth/domain/events/auth-session-created/auth-session-created.event';
 import { AuthSessionReuseDetectedEvent } from '@contexts/auth/domain/events/auth-session-reuse-detected/auth-session-reuse-detected.event';
 import { AuthSessionRevokedEvent } from '@contexts/auth/domain/events/auth-session-revoked/auth-session-revoked.event';
-import { AuthSessionIdValueObject } from '@contexts/auth/domain/value-objects/auth-session-id/auth-session-id.vo';
+
 import { RefreshTokenHashValueObject } from '@contexts/auth/domain/value-objects/refresh-token-hash/refresh-token-hash.vo';
 import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { AuthSessionAggregate } from './auth-session.aggregate';
@@ -13,7 +13,7 @@ function buildSession(overrides?: {
   replacedBySessionId?: string | null;
 }): AuthSessionAggregate {
   return new AuthSessionAggregate({
-    id: new AuthSessionIdValueObject('550e8400-e29b-41d4-a716-446655440000'),
+    id: new UuidValueObject('550e8400-e29b-41d4-a716-446655440000'),
     userId: new UuidValueObject('550e8400-e29b-41d4-a716-446655440001'),
     tokenHash: new RefreshTokenHashValueObject(VALID_HASH),
     expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),

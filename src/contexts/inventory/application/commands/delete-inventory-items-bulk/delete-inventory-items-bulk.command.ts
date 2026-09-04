@@ -1,15 +1,13 @@
-import { InventoryItemIdValueObject } from '@contexts/inventory/domain/value-objects/inventory-item-id/inventory-item-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export interface DeleteInventoryItemsBulkCommandInput {
   ids: string[];
 }
 
 export class DeleteInventoryItemsBulkCommand {
-  public readonly ids: InventoryItemIdValueObject[];
+  public readonly ids: UuidValueObject[];
 
   constructor(input: DeleteInventoryItemsBulkCommandInput) {
-    this.ids = [...new Set(input.ids)].map(
-      (id) => new InventoryItemIdValueObject(id),
-    );
+    this.ids = [...new Set(input.ids)].map((id) => new UuidValueObject(id));
   }
 }

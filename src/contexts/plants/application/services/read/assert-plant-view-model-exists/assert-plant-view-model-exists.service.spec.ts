@@ -1,9 +1,10 @@
 import { PlantNotFoundException } from '@contexts/plants/domain/exceptions/plant-not-found.exception';
 import { IPlantReadRepository } from '@contexts/plants/domain/repositories/read/plant-read.repository';
-import { PlantIdValueObject } from '@contexts/plants/domain/value-objects/plant-id/plant-id.value-object';
+
 import { PlantViewModel } from '@contexts/plants/domain/view-models/plant.view-model';
 
 import { AssertPlantViewModelExistsService } from './assert-plant-view-model-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const PLANT_ID = '550e8400-e29b-41d4-a716-446655440000';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
@@ -44,7 +45,7 @@ describe('AssertPlantViewModelExistsService', () => {
   describe('plant exists', () => {
     it('should return PlantViewModel when found', async () => {
       const viewModel = buildViewModel();
-      const id = new PlantIdValueObject(PLANT_ID);
+      const id = new UuidValueObject(PLANT_ID);
       readRepository.findById.mockResolvedValue(viewModel);
 
       const result = await service.execute(id);
@@ -56,14 +57,14 @@ describe('AssertPlantViewModelExistsService', () => {
 
   describe('plant does not exist', () => {
     it('should throw PlantNotFoundException when not found', async () => {
-      const id = new PlantIdValueObject(PLANT_ID);
+      const id = new UuidValueObject(PLANT_ID);
       readRepository.findById.mockResolvedValue(null);
 
       await expect(service.execute(id)).rejects.toThrow(PlantNotFoundException);
     });
 
     it('should include plant id in exception message', async () => {
-      const id = new PlantIdValueObject(PLANT_ID);
+      const id = new UuidValueObject(PLANT_ID);
       readRepository.findById.mockResolvedValue(null);
 
       await expect(service.execute(id)).rejects.toThrow(PLANT_ID);

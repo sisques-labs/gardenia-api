@@ -1,11 +1,11 @@
-import { SpaceIdValueObject } from '@contexts/spaces/domain/value-objects/space-id/space-id.value-object';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 export type GetSpaceWeatherQueryInput = { spaceId: string };
 
 export class GetSpaceWeatherQuery {
-  public readonly spaceId: SpaceIdValueObject;
+  public readonly spaceId: UuidValueObject;
 
   constructor(input: GetSpaceWeatherQueryInput) {
-    this.spaceId = new SpaceIdValueObject(input.spaceId);
+    this.spaceId = new UuidValueObject(input.spaceId);
   }
 }

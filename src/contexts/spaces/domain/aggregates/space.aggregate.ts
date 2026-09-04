@@ -1,5 +1,4 @@
-import { BaseAggregate } from '@sisques-labs/nestjs-kit';
-
+import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { SpaceMembership } from '../entities/space-membership.entity';
 import { MembershipRoleEnum } from '../enums/membership-role.enum';
 import { MemberAddedEvent } from '../events/member-added/member-added.event';
@@ -16,23 +15,21 @@ import { NotASpaceMemberException } from '../exceptions/not-a-space-member.excep
 import { ISpace } from '../interfaces/space.interface';
 import { ISpacePrimitives } from '../primitives/space.primitives';
 import { SpaceEnvironmentValueObject } from '../value-objects/space-environment/space-environment.value-object';
-import { SpaceIdValueObject } from '../value-objects/space-id/space-id.value-object';
+
 import { SpaceLatitudeValueObject } from '../value-objects/space-latitude/space-latitude.value-object';
 import { SpaceLongitudeValueObject } from '../value-objects/space-longitude/space-longitude.value-object';
 import { SpaceNameValueObject } from '../value-objects/space-name/space-name.value-object';
 
 export class SpaceAggregate extends BaseAggregate {
-  private readonly _id: SpaceIdValueObject;
   private _name: SpaceNameValueObject;
-  private readonly _ownerId: SpaceIdValueObject;
+  private readonly _ownerId: UuidValueObject;
   private _memberships: SpaceMembership[];
   private _latitude: SpaceLatitudeValueObject | null;
   private _longitude: SpaceLongitudeValueObject | null;
   private _environment: SpaceEnvironmentValueObject | null;
 
   constructor(props: ISpace) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._name = props.name;
     this._ownerId = props.ownerId;
     this._memberships = [];
@@ -56,11 +53,18 @@ export class SpaceAggregate extends BaseAggregate {
     );
   }
 
-  public update(props: Partial<Pick<ISpace, 'name' | 'latitude' | 'longitude' | 'environment'>>): void {
+  public update(
+    props: Partial<
+      Pick<ISpace, 'name' | 'latitude' | 'longitude' | 'environment'>
+    >,
+  ): void {
     if (props.name !== undefined) this.changeName(props.name);
-    if (props.latitude !== undefined) this.changeLatitude(props.latitude ?? null);
-    if (props.longitude !== undefined) this.changeLongitude(props.longitude ?? null);
-    if (props.environment !== undefined) this.changeEnvironment(props.environment ?? null);
+    if (props.latitude !== undefined)
+      this.changeLatitude(props.latitude ?? null);
+    if (props.longitude !== undefined)
+      this.changeLongitude(props.longitude ?? null);
+    if (props.environment !== undefined)
+      this.changeEnvironment(props.environment ?? null);
 
     this.apply(
       new SpaceUpdatedEvent(
@@ -187,7 +191,9 @@ export class SpaceAggregate extends BaseAggregate {
     );
   }
 
-  private changeLongitude(newLongitude: SpaceLongitudeValueObject | null): void {
+  private changeLongitude(
+    newLongitude: SpaceLongitudeValueObject | null,
+  ): void {
     const oldValue = this._longitude?.value ?? null;
     const newValue = newLongitude?.value ?? null;
 
@@ -210,7 +216,9 @@ export class SpaceAggregate extends BaseAggregate {
     );
   }
 
-  private changeEnvironment(newEnvironment: SpaceEnvironmentValueObject | null): void {
+  private changeEnvironment(
+    newEnvironment: SpaceEnvironmentValueObject | null,
+  ): void {
     const oldValue = this._environment?.value ?? null;
     const newValue = newEnvironment?.value ?? null;
 
@@ -244,10 +252,6 @@ export class SpaceAggregate extends BaseAggregate {
       longitude: this._longitude?.value ?? null,
       environment: this._environment?.value ?? null,
     };
-  }
-
-  get id(): SpaceIdValueObject {
-    return this._id;
   }
 
   get name(): SpaceNameValueObject {

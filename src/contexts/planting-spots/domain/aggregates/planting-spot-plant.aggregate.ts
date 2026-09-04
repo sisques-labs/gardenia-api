@@ -1,10 +1,13 @@
-import { BaseAggregate, StringValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
+import {
+  BaseAggregate,
+  StringValueObject,
+  UuidValueObject,
+} from '@sisques-labs/nestjs-kit';
 
 import { IPlantingSpotPlant } from '../interfaces/planting-spot-plant.interface';
 import { IPlantingSpotPlantPrimitives } from '../primitives/planting-spot-plant.primitives';
 
 export class PlantingSpotPlantAggregate extends BaseAggregate {
-  private readonly _id: UuidValueObject;
   private readonly _name: StringValueObject;
   private readonly _plantSpeciesId: UuidValueObject | null;
   private readonly _imageUrl: StringValueObject | null;
@@ -12,8 +15,7 @@ export class PlantingSpotPlantAggregate extends BaseAggregate {
   private readonly _spaceId: UuidValueObject;
 
   constructor(props: IPlantingSpotPlant) {
-    super(props.createdAt, props.updatedAt);
-    this._id = props.id;
+    super(props.id, props.createdAt, props.updatedAt);
     this._name = props.name;
     this._plantSpeciesId = props.plantSpeciesId;
     this._imageUrl = props.imageUrl;
@@ -34,10 +36,19 @@ export class PlantingSpotPlantAggregate extends BaseAggregate {
     };
   }
 
-  get id(): UuidValueObject { return this._id; }
-  get name(): StringValueObject { return this._name; }
-  get plantSpeciesId(): UuidValueObject | null { return this._plantSpeciesId; }
-  get imageUrl(): StringValueObject | null { return this._imageUrl; }
-  get userId(): UuidValueObject { return this._userId; }
-  get spaceId(): UuidValueObject { return this._spaceId; }
+  get name(): StringValueObject {
+    return this._name;
+  }
+  get plantSpeciesId(): UuidValueObject | null {
+    return this._plantSpeciesId;
+  }
+  get imageUrl(): StringValueObject | null {
+    return this._imageUrl;
+  }
+  get userId(): UuidValueObject {
+    return this._userId;
+  }
+  get spaceId(): UuidValueObject {
+    return this._spaceId;
+  }
 }

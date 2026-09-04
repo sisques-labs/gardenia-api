@@ -17,7 +17,7 @@ import { PlantIdentificationForbiddenException } from '@contexts/plant-identific
 import { PlantIdentificationNotFoundException } from '@contexts/plant-identification/domain/exceptions/plant-identification-not-found.exception';
 import { PlantIdentificationNotResolvedException } from '@contexts/plant-identification/domain/exceptions/plant-identification-not-resolved.exception';
 import { IPlantIdentificationWriteRepository } from '@contexts/plant-identification/domain/repositories/write/plant-identification-write.repository';
-import { PlantIdentificationIdValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-id/plant-identification-id.value-object';
+
 import { PlantIdentificationSpeciesKeyValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-key/plant-identification-species-key.value-object';
 import { PlantIdentificationSpeciesProviderValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-species-provider/plant-identification-species-provider.value-object';
 import { PlantIdentificationStatusValueObject } from '@contexts/plant-identification/domain/value-objects/plant-identification-status/plant-identification-status.value-object';
@@ -35,7 +35,7 @@ function buildIdentification(
   convertedToPlantId: string | null = null,
 ): PlantIdentificationAggregate {
   return new PlantIdentificationAggregate({
-    id: new PlantIdentificationIdValueObject(IDENTIFICATION_ID),
+    id: new UuidValueObject(IDENTIFICATION_ID),
     requestedByUserId: new UuidValueObject(OWNER_ID),
     spaceId: new UuidValueObject(SPACE_ID),
     status: new PlantIdentificationStatusValueObject(

@@ -12,7 +12,7 @@ import { CareScheduleActivityTypeEnum } from '@contexts/care-schedule/domain/enu
 import { CareScheduleUnitEnum } from '@contexts/care-schedule/domain/enums/care-schedule-unit.enum';
 import { CareScheduleViewModel } from '@contexts/care-schedule/domain/view-models/care-schedule.view-model';
 import { CareScheduleActivityTypeValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-activity-type/care-schedule-activity-type.value-object';
-import { CareScheduleIdValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-id/care-schedule-id.value-object';
+
 import { CareScheduleIntervalDaysValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-interval-days/care-schedule-interval-days.value-object';
 import { CareScheduleLastCompletedAtValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-last-completed-at/care-schedule-last-completed-at.value-object';
 import { CareScheduleNextDueAtValueObject } from '@contexts/care-schedule/domain/value-objects/care-schedule-next-due-at/care-schedule-next-due-at.value-object';
@@ -95,7 +95,7 @@ export class CareScheduleBuilder extends BaseBuilder<
   public override build(): CareScheduleAggregate {
     this.validate();
     return new CareScheduleAggregate({
-      id: new CareScheduleIdValueObject(this._id),
+      id: new UuidValueObject(this._id),
       plantId: new UuidValueObject(this._plantId),
       activityType: new CareScheduleActivityTypeValueObject(
         this._activityType as CareScheduleActivityTypeEnum,

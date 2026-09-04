@@ -2,8 +2,9 @@ import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggre
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
 import { AccountNotFoundException } from '@contexts/auth/domain/exceptions/account-not-found.exception';
 import { IAccountWriteRepository } from '@contexts/auth/domain/repositories/write/account-write.repository';
-import { AccountIdValueObject } from '@contexts/auth/domain/value-objects/account-id/account-id.vo';
+
 import { AssertAccountExistsService } from './assert-account-exists.service';
+import { UuidValueObject } from '@sisques-labs/nestjs-kit';
 
 const buildAggregate = (): AccountAggregate =>
   new AccountBuilder()
@@ -33,7 +34,7 @@ describe('AssertAccountExistsService', () => {
 
   it('should return the aggregate when write repository finds the account', async () => {
     const aggregate = buildAggregate();
-    const id = new AccountIdValueObject('550e8400-e29b-41d4-a716-446655440000');
+    const id = new UuidValueObject('550e8400-e29b-41d4-a716-446655440000');
     writeRepository.findById.mockResolvedValue(aggregate);
 
     const result = await service.execute(id);
@@ -43,7 +44,7 @@ describe('AssertAccountExistsService', () => {
   });
 
   it('should throw AccountNotFoundException when write repository returns null', async () => {
-    const id = new AccountIdValueObject('550e8400-e29b-41d4-a716-446655440000');
+    const id = new UuidValueObject('550e8400-e29b-41d4-a716-446655440000');
     writeRepository.findById.mockResolvedValue(null);
 
     await expect(service.execute(id)).rejects.toThrow(AccountNotFoundException);

@@ -3,7 +3,7 @@ import { DateValueObject, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import { FileMimeTypeEnum } from '@contexts/files/domain/enums/file-mime-type.enum';
 import { FileDeletedEvent } from '@contexts/files/domain/events/file-deleted/file-deleted.event';
 import { FileUploadedEvent } from '@contexts/files/domain/events/file-uploaded/file-uploaded.event';
-import { FileIdValueObject } from '@contexts/files/domain/value-objects/file-id/file-id.value-object';
+
 import { FileMimeTypeValueObject } from '@contexts/files/domain/value-objects/file-mime-type/file-mime-type.value-object';
 import { FileNameValueObject } from '@contexts/files/domain/value-objects/file-name/file-name.value-object';
 import { FileSizeValueObject } from '@contexts/files/domain/value-objects/file-size/file-size.value-object';
@@ -13,7 +13,7 @@ import { FileAggregate } from './file.aggregate';
 
 function buildFile(): FileAggregate {
   return new FileAggregate({
-    id: new FileIdValueObject('550e8400-e29b-41d4-a716-446655440000'),
+    id: new UuidValueObject('550e8400-e29b-41d4-a716-446655440000'),
     filename: new FileNameValueObject('rose.png'),
     mimeType: new FileMimeTypeValueObject(FileMimeTypeEnum.IMAGE_PNG),
     size: new FileSizeValueObject(204800),
