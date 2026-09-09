@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.28.4] - 2026-09-04
+
+### Refactor
+- **domain:** Migrate aggregates to nestjs-kit BaseAggregate id (#527) (54652c2)
 ## [0.28.3] - 2026-09-03
 
 ### Bug Fixes

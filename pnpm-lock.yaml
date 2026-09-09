@@ -75,55 +75,55 @@ importers:
         specifier: 0.221.0
         version: 0.221.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/resources':
-        specifier: ^2.10.0
+        specifier: 2.10.0
         version: 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs':
-        specifier: ^0.221.0
+        specifier: 0.221.0
         version: 0.221.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-metrics':
-        specifier: ^2.10.0
+        specifier: 2.10.0
         version: 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-node':
-        specifier: ^0.221.0
+        specifier: 0.221.0
         version: 0.221.0(@opentelemetry/api@1.9.1)(supports-color@8.1.1)
       '@opentelemetry/sdk-trace-base':
-        specifier: ^2.10.0
+        specifier: 2.10.0
         version: 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions':
-        specifier: ^1.43.0
+        specifier: 1.43.0
         version: 1.43.0
       '@opentelemetry/winston-transport':
-        specifier: ^0.31.0
+        specifier: 0.31.0
         version: 0.31.0
       '@sisques-labs/nestjs-kit':
         specifier: 1.8.0
         version: 1.8.0(603a8c669f431b2a7d20ef1f2b337699)
       '@types/passport-github2':
-        specifier: ^1.2.9
+        specifier: 1.2.9
         version: 1.2.9
       '@types/passport-google-oauth20':
         specifier: ^2.0.17
         version: 2.0.17
       axios:
-        specifier: ^1.18.1
+        specifier: 1.19.0
         version: 1.19.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       bcrypt:
-        specifier: ^6.0.0
+        specifier: 6.0.0
         version: 6.0.0
       class-transformer:
-        specifier: ^0.5.1
+        specifier: 0.5.1
         version: 0.5.1
       class-validator:
-        specifier: ^0.15.0
+        specifier: 0.15.1
         version: 0.15.1
       cookie-parser:
-        specifier: ^1.4.7
+        specifier: 1.4.7
         version: 1.4.7
       dotenv:
-        specifier: ^17.4.2
+        specifier: 17.4.2
         version: 17.4.2
       express:
-        specifier: ^5.2.1
+        specifier: 5.2.1
         version: 5.2.1(supports-color@8.1.1)
       graphql:
         specifier: ^17.0.0
@@ -193,13 +193,13 @@ importers:
         specifier: 12.0.4
         version: 12.0.4(supports-color@8.1.1)
       '@types/bcrypt':
-        specifier: ^6.0.0
+        specifier: 6.0.0
         version: 6.0.0
       '@types/cookie-parser':
-        specifier: ^1.4.10
+        specifier: 1.4.10
         version: 1.4.10(@types/express@5.0.6)
       '@types/express':
-        specifier: ^5.0.6
+        specifier: 5.0.6
         version: 5.0.6
       '@types/jest':
         specifier: 30.0.0
