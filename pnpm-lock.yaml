@@ -120,7 +120,7 @@ importers:
         specifier: 1.4.7
         version: 1.4.7
       dotenv:
-        specifier: ^17.4.2
+        specifier: 17.4.2
         version: 17.4.2
       express:
         specifier: ^5.2.1
