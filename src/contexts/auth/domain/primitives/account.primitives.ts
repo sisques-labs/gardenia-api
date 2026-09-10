@@ -5,4 +5,5 @@ export type IAccountPrimitives = BasePrimitives & {
   email: string;
   passwordHash: string;
   appRole: string;
+  externalSubject: string | null;
 };
