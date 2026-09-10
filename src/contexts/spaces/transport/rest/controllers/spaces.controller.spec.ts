@@ -258,6 +258,26 @@ describe('SpacesController', () => {
 
       expect(result).toBeUndefined();
     });
+
+    it('should relay a non-null platformAccessToken onto AddMemberCommand', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+
+      await sut.addMember(SPACE_ID, dto, currentUser, 'platform-token');
+
+      const dispatched = commandBus.execute.mock
+        .calls[0][0] as AddMemberCommand;
+      expect(dispatched.platformAccessToken).toBe('platform-token');
+    });
+
+    it('should default platformAccessToken to null when omitted (native request)', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+
+      await sut.addMember(SPACE_ID, dto, currentUser);
+
+      const dispatched = commandBus.execute.mock
+        .calls[0][0] as AddMemberCommand;
+      expect(dispatched.platformAccessToken).toBeNull();
+    });
   });
 
   describe('removeMember()', () => {
@@ -286,6 +306,31 @@ describe('SpacesController', () => {
       );
 
       expect(result).toBeUndefined();
+    });
+
+    it('should relay a non-null platformAccessToken onto RemoveMemberCommand', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+
+      await sut.removeMember(
+        SPACE_ID,
+        TARGET_USER_ID,
+        currentUser,
+        'platform-token',
+      );
+
+      const dispatched = commandBus.execute.mock
+        .calls[0][0] as RemoveMemberCommand;
+      expect(dispatched.platformAccessToken).toBe('platform-token');
+    });
+
+    it('should default platformAccessToken to null when omitted (native request)', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+
+      await sut.removeMember(SPACE_ID, TARGET_USER_ID, currentUser);
+
+      const dispatched = commandBus.execute.mock
+        .calls[0][0] as RemoveMemberCommand;
+      expect(dispatched.platformAccessToken).toBeNull();
     });
   });
 });

@@ -123,6 +123,42 @@ describe('SpaceMutationsResolver', () => {
       expect(command.requestingUserId.value).toBe(OWNER_ID);
       expect(result.id).toBe(SPACE_ID);
     });
+
+    it('relays a non-null platformAccessToken onto AddMemberCommand', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+      mutationResponseGraphQLMapper.toResponseDto.mockReturnValueOnce({
+        success: true,
+        message: 'Member added successfully',
+        id: SPACE_ID,
+      });
+
+      const input: SpaceAddMemberRequestDto = {
+        spaceId: SPACE_ID,
+        targetUserId: TARGET_USER_ID,
+      };
+      await resolver.spaceAddMember(mockUser as any, input, 'platform-token');
+
+      const command = commandBus.execute.mock.calls[0][0] as any;
+      expect(command.platformAccessToken).toBe('platform-token');
+    });
+
+    it('defaults platformAccessToken to null when omitted', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+      mutationResponseGraphQLMapper.toResponseDto.mockReturnValueOnce({
+        success: true,
+        message: 'Member added successfully',
+        id: SPACE_ID,
+      });
+
+      const input: SpaceAddMemberRequestDto = {
+        spaceId: SPACE_ID,
+        targetUserId: TARGET_USER_ID,
+      };
+      await resolver.spaceAddMember(mockUser as any, input);
+
+      const command = commandBus.execute.mock.calls[0][0] as any;
+      expect(command.platformAccessToken).toBeNull();
+    });
   });
 
   describe('spaceRemoveMember', () => {
@@ -146,6 +182,46 @@ describe('SpaceMutationsResolver', () => {
       expect(command.targetUserId.value).toBe(TARGET_USER_ID);
       expect(command.requestingUserId.value).toBe(OWNER_ID);
       expect(result.id).toBe(SPACE_ID);
+    });
+
+    it('relays a non-null platformAccessToken onto RemoveMemberCommand', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+      mutationResponseGraphQLMapper.toResponseDto.mockReturnValueOnce({
+        success: true,
+        message: 'Member removed successfully',
+        id: SPACE_ID,
+      });
+
+      const input: SpaceRemoveMemberRequestDto = {
+        spaceId: SPACE_ID,
+        targetUserId: TARGET_USER_ID,
+      };
+      await resolver.spaceRemoveMember(
+        mockUser as any,
+        input,
+        'platform-token',
+      );
+
+      const command = commandBus.execute.mock.calls[0][0] as any;
+      expect(command.platformAccessToken).toBe('platform-token');
+    });
+
+    it('defaults platformAccessToken to null when omitted', async () => {
+      commandBus.execute.mockResolvedValueOnce(undefined);
+      mutationResponseGraphQLMapper.toResponseDto.mockReturnValueOnce({
+        success: true,
+        message: 'Member removed successfully',
+        id: SPACE_ID,
+      });
+
+      const input: SpaceRemoveMemberRequestDto = {
+        spaceId: SPACE_ID,
+        targetUserId: TARGET_USER_ID,
+      };
+      await resolver.spaceRemoveMember(mockUser as any, input);
+
+      const command = commandBus.execute.mock.calls[0][0] as any;
+      expect(command.platformAccessToken).toBeNull();
     });
   });
 });

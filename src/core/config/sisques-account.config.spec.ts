@@ -11,6 +11,8 @@ describe('sisquesAccountConfig', () => {
     delete process.env.SISQUES_ACCOUNT_AUDIENCE;
     delete process.env.SISQUES_ACCOUNT_API_URL;
     delete process.env.SISQUES_ACCOUNT_APP_ID;
+    delete process.env.SISQUES_SPACE_TENANT_SYNC_ENABLED;
+    delete process.env.SISQUES_MEMBERSHIP_SYNC_TTL_SECONDS;
   });
 
   afterAll(() => {
@@ -27,6 +29,8 @@ describe('sisquesAccountConfig', () => {
       audience: undefined,
       apiUrl: undefined,
       appId: undefined,
+      spaceTenantSyncEnabled: false,
+      membershipSyncTtlSeconds: 60,
     });
   });
 
@@ -53,6 +57,23 @@ describe('sisquesAccountConfig', () => {
       audience: 'gardenia',
       apiUrl: 'https://account.sisques.com',
       appId: 'gardenia-app',
+      spaceTenantSyncEnabled: false,
+      membershipSyncTtlSeconds: 60,
     });
+  });
+
+  it('enables the membership sync guard only when SISQUES_SPACE_TENANT_SYNC_ENABLED is exactly "true"', () => {
+    process.env.SISQUES_SPACE_TENANT_SYNC_ENABLED = 'true';
+    expect(sisquesAccountConfig().spaceTenantSyncEnabled).toBe(true);
+
+    process.env.SISQUES_SPACE_TENANT_SYNC_ENABLED = 'yes';
+    expect(sisquesAccountConfig().spaceTenantSyncEnabled).toBe(false);
+  });
+
+  it('reads a custom membership sync TTL, falling back to 60s when unset', () => {
+    expect(sisquesAccountConfig().membershipSyncTtlSeconds).toBe(60);
+
+    process.env.SISQUES_MEMBERSHIP_SYNC_TTL_SECONDS = '120';
+    expect(sisquesAccountConfig().membershipSyncTtlSeconds).toBe(120);
   });
 });

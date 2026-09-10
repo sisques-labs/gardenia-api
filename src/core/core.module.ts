@@ -1,4 +1,5 @@
 import { OptionalJwtAuthGuard } from '@contexts/auth/infrastructure/guards/optional-jwt-auth.guard';
+import { MembershipProjectionSyncGuard } from '@contexts/spaces/transport/guards/membership-projection-sync.guard';
 import { SpaceGuard } from '@contexts/spaces/transport/guards/space.guard';
 import { SpaceInterceptor } from '@contexts/spaces/transport/interceptors/space.interceptor';
 import { appConfig } from '@core/config/app.config';
@@ -82,6 +83,13 @@ const CORE_MODULES = [
     // OptionalJwtAuthGuard runs first — decodes JWT if present, passes through
     // if no token (public routes), throws only on invalid/expired tokens.
     { provide: APP_GUARD, useClass: OptionalJwtAuthGuard },
+    // MembershipProjectionSyncGuard runs after JWT, before SpaceGuard (design.md
+    // D4) — refreshes the local membership projection for a platform-issued,
+    // stale/missing (userId, X-Space-ID) row so SpaceGuard reads fresh data.
+    // No-ops for native principals and is a pure no-op read/write otherwise;
+    // it never makes the allow/deny decision itself except on explicit
+    // revocation or fail-closed unavailability.
+    { provide: APP_GUARD, useClass: MembershipProjectionSyncGuard },
     // SpaceGuard runs after JWT — validates X-Space-ID and membership
     { provide: APP_GUARD, useClass: SpaceGuard },
     // SpaceInterceptor wraps the handler in an ALS frame keyed by spaceId

@@ -13,6 +13,7 @@ import { AddMemberCommandHandler } from './application/commands/add-member/add-m
 import { CreateSpaceInvitationCommandHandler } from './application/commands/create-space-invitation/create-space-invitation.handler';
 import { CreateSpaceCommandHandler } from './application/commands/create-space/create-space.handler';
 import { RemoveMemberCommandHandler } from './application/commands/remove-member/remove-member.handler';
+import { SyncSpaceMembershipProjectionCommandHandler } from './application/commands/sync-space-membership-projection/sync-space-membership-projection.handler';
 import { UpdateSpaceCommandHandler } from './application/commands/update-space/update-space.handler';
 import { SPACE_QR_PORT } from './application/ports/space-qr.port';
 import { SPACE_WEATHER_PORT } from './application/ports/space-weather.port';
@@ -41,6 +42,7 @@ import { SpaceBuilder } from './domain/builders/space.builder';
 import { MEMBERSHIP_READ_REPOSITORY } from './domain/repositories/read/membership-read.repository';
 import { SPACE_INVITATION_READ_REPOSITORY } from './domain/repositories/read/space-invitation-read.repository';
 import { SPACE_READ_REPOSITORY } from './domain/repositories/read/space-read.repository';
+import { MEMBERSHIP_WRITE_REPOSITORY } from './domain/repositories/write/membership-write.repository';
 import { SPACE_INVITATION_WRITE_REPOSITORY } from './domain/repositories/write/space-invitation-write.repository';
 import { SPACE_WRITE_REPOSITORY } from './domain/repositories/write/space-write.repository';
 import { AccountApiTenantMembershipAdapter } from './infrastructure/adapters/account-api-tenant-membership.adapter';
@@ -56,8 +58,10 @@ import { SpaceTypeOrmMapper } from './infrastructure/persistence/typeorm/mappers
 import { SpaceInvitationTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/space-invitation-typeorm-read.repository';
 import { SpaceInvitationTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/space-invitation-typeorm-write.repository';
 import { SpaceMembershipTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/space-membership-typeorm-read.repository';
+import { SpaceMembershipTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/space-membership-typeorm-write.repository';
 import { SpaceTypeOrmReadRepository } from './infrastructure/persistence/typeorm/repositories/space-typeorm-read.repository';
 import { SpaceTypeOrmWriteRepository } from './infrastructure/persistence/typeorm/repositories/space-typeorm-write.repository';
+import { MembershipProjectionSyncGuard } from './transport/guards/membership-projection-sync.guard';
 import { SpaceGuard } from './transport/guards/space.guard';
 import { SpaceInterceptor } from './transport/interceptors/space.interceptor';
 import { SpaceAcceptInvitationMcpTool } from './transport/mcp/tools/space-accept-invitation.tool';
@@ -86,6 +90,7 @@ const COMMAND_HANDLERS = [
   AddMemberCommandHandler,
   RemoveMemberCommandHandler,
   UpdateSpaceCommandHandler,
+  SyncSpaceMembershipProjectionCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -134,6 +139,10 @@ const INFRASTRUCTURE_REPOSITORIES = [
     useClass: SpaceMembershipTypeOrmReadRepository,
   },
   {
+    provide: MEMBERSHIP_WRITE_REPOSITORY,
+    useClass: SpaceMembershipTypeOrmWriteRepository,
+  },
+  {
     provide: SPACE_INVITATION_READ_REPOSITORY,
     useClass: SpaceInvitationTypeOrmReadRepository,
   },
@@ -166,6 +175,7 @@ const GRAPHQL_PROVIDERS = [
 
 const TRANSPORT_PROVIDERS = [
   SpaceGuard,
+  MembershipProjectionSyncGuard,
   SpaceInterceptor,
   SpaceRestMapper,
   SpaceInvitationRestMapper,

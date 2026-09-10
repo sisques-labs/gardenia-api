@@ -3,6 +3,10 @@ import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BaseCommandHandler } from '@sisques-labs/nestjs-kit';
 
 import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
+import {
+  ITenantProvisioningPort,
+  TENANT_PROVISIONING_PORT,
+} from '@contexts/spaces/application/ports/tenant-provisioning.port';
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
 import { NotASpaceMemberException } from '@contexts/spaces/domain/exceptions/not-a-space-member.exception';
 import { NotSpaceOwnerException } from '@contexts/spaces/domain/exceptions/not-space-owner.exception';
@@ -13,6 +17,11 @@ import {
 
 import { RemoveMemberCommand } from './remove-member.command';
 
+/**
+ * `space-tenant-mapping` spec's "Platform Write Authority for Membership" —
+ * see `AddMemberCommandHandler`'s doc comment for the same two-path pattern
+ * applied to removal.
+ */
 @CommandHandler(RemoveMemberCommand)
 export class RemoveMemberCommandHandler
   extends BaseCommandHandler<RemoveMemberCommand, SpaceAggregate>
@@ -24,6 +33,8 @@ export class RemoveMemberCommandHandler
     @Inject(SPACE_WRITE_REPOSITORY)
     private readonly spaceWriteRepository: ISpaceWriteRepository,
     private readonly assertSpaceExistsService: AssertSpaceExistsService,
+    @Inject(TENANT_PROVISIONING_PORT)
+    private readonly tenantProvisioningPort: ITenantProvisioningPort,
     eventBus: EventBus,
   ) {
     super(eventBus);
@@ -47,6 +58,14 @@ export class RemoveMemberCommandHandler
       throw new NotSpaceOwnerException(
         command.requestingUserId.value,
         command.spaceId.value,
+      );
+    }
+
+    if (command.platformAccessToken) {
+      await this.tenantProvisioningPort.removeMember(
+        command.platformAccessToken,
+        command.spaceId.value,
+        command.targetUserId.value,
       );
     }
 

@@ -190,12 +190,14 @@ export class SpacesController {
     @Param('id') id: string,
     @Body() dto: AddMemberDto,
     @CurrentUser() user: CurrentUserPayload,
+    @PlatformAccessToken() platformAccessToken: string | null = null,
   ): Promise<void> {
     await this.commandBus.execute(
       new AddMemberCommand({
         spaceId: id,
         targetUserId: dto.userId,
         requestingUserId: user.userId,
+        platformAccessToken,
       }),
     );
   }
@@ -217,12 +219,14 @@ export class SpacesController {
     @Param('id') id: string,
     @Param('userId') userId: string,
     @CurrentUser() user: CurrentUserPayload,
+    @PlatformAccessToken() platformAccessToken: string | null = null,
   ): Promise<void> {
     await this.commandBus.execute(
       new RemoveMemberCommand({
         spaceId: id,
         targetUserId: userId,
         requestingUserId: user.userId,
+        platformAccessToken,
       }),
     );
   }

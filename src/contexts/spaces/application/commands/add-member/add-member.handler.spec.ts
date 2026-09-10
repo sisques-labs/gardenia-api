@@ -1,6 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 
 import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
+import { ITenantProvisioningPort } from '@contexts/spaces/application/ports/tenant-provisioning.port';
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
 import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
@@ -35,6 +36,7 @@ describe('AddMemberCommandHandler', () => {
   let handler: AddMemberCommandHandler;
   let spaceWriteRepository: jest.Mocked<ISpaceWriteRepository>;
   let assertSpaceExistsService: jest.Mocked<AssertSpaceExistsService>;
+  let tenantProvisioningPort: jest.Mocked<ITenantProvisioningPort>;
   let eventBus: jest.Mocked<EventBus>;
   let space: SpaceAggregate;
 
@@ -54,6 +56,12 @@ describe('AddMemberCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertSpaceExistsService>;
 
+    tenantProvisioningPort = {
+      createTenant: jest.fn(),
+      addMember: jest.fn(),
+      removeMember: jest.fn(),
+    } as jest.Mocked<ITenantProvisioningPort>;
+
     eventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -62,6 +70,7 @@ describe('AddMemberCommandHandler', () => {
     handler = new AddMemberCommandHandler(
       spaceWriteRepository,
       assertSpaceExistsService,
+      tenantProvisioningPort,
       eventBus,
     );
   });
@@ -147,6 +156,76 @@ describe('AddMemberCommandHandler', () => {
           }),
         ),
       ).rejects.toThrow(DuplicateMembershipException);
+    });
+  });
+
+  describe('platform-linked Space (design.md D7 pattern applied to Platform Write Authority)', () => {
+    it('delegates the write to the platform BEFORE the local save, and reflects the confirmed role', async () => {
+      assertSpaceExistsService.execute.mockResolvedValue(space);
+      tenantProvisioningPort.addMember.mockResolvedValue({
+        userId: MEMBER_ID,
+        role: 'owner',
+      });
+      spaceWriteRepository.save.mockResolvedValue(undefined as any);
+
+      await handler.execute(
+        new AddMemberCommand({
+          spaceId: SPACE_ID,
+          requestingUserId: OWNER_ID,
+          targetUserId: MEMBER_ID,
+          role: MembershipRoleEnum.MEMBER,
+          platformAccessToken: 'caller-token',
+        }),
+      );
+
+      expect(tenantProvisioningPort.addMember).toHaveBeenCalledWith(
+        'caller-token',
+        SPACE_ID,
+        { userId: MEMBER_ID, role: MembershipRoleEnum.MEMBER },
+      );
+      const savedSpace = spaceWriteRepository.save.mock
+        .calls[0][0] as SpaceAggregate;
+      const membership = savedSpace.memberships.find(
+        (m) => m.userId === MEMBER_ID,
+      );
+      // The platform confirmed "owner", not the locally-requested "member" —
+      // the local projection MUST reflect the platform's confirmed result.
+      expect(membership?.role.isOwner()).toBe(true);
+    });
+
+    it('does not save locally when the platform call rejects', async () => {
+      assertSpaceExistsService.execute.mockResolvedValue(space);
+      tenantProvisioningPort.addMember.mockRejectedValue(
+        new Error('platform down'),
+      );
+
+      await expect(
+        handler.execute(
+          new AddMemberCommand({
+            spaceId: SPACE_ID,
+            requestingUserId: OWNER_ID,
+            targetUserId: MEMBER_ID,
+            platformAccessToken: 'caller-token',
+          }),
+        ),
+      ).rejects.toThrow('platform down');
+
+      expect(spaceWriteRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('does not call the platform for a native (non-platform-linked) request', async () => {
+      assertSpaceExistsService.execute.mockResolvedValue(space);
+      spaceWriteRepository.save.mockResolvedValue(undefined as any);
+
+      await handler.execute(
+        new AddMemberCommand({
+          spaceId: SPACE_ID,
+          requestingUserId: OWNER_ID,
+          targetUserId: MEMBER_ID,
+        }),
+      );
+
+      expect(tenantProvisioningPort.addMember).not.toHaveBeenCalled();
     });
   });
 });

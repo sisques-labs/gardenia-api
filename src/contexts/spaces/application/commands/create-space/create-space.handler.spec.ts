@@ -46,6 +46,8 @@ describe('CreateSpaceCommandHandler', () => {
 
     tenantProvisioningPort = {
       createTenant: jest.fn(),
+      addMember: jest.fn(),
+      removeMember: jest.fn(),
     } as jest.Mocked<ITenantProvisioningPort>;
 
     configService = {

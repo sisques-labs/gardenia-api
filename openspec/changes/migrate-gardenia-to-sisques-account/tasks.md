@@ -76,19 +76,19 @@ Chain strategy: stacked-to-main
 
 ## Phase 7: P2 Membership Sync Guard + Add/Remove Member
 
-- [ ] 7.1 Create `src/contexts/spaces/transport/guards/membership-projection-sync.guard.ts` (+spec) — runs before `SpaceGuard`; no-ops unless platform-issued + row missing/stale beyond TTL; dispatches sync command via `CommandBus` only.
-- [ ] 7.2 Create `src/contexts/spaces/application/commands/sync-space-membership-projection/` (command+handler+spec) — relays caller's token to `listMembers()`; upsert on 200, **delete row on 403**, leave untouched on 5xx/timeout with existing row, write nothing on 5xx/timeout with no row (fail-closed).
-- [ ] 7.3 Modify `add-member.handler.ts`, `remove-member.handler.ts` — for platform-linked Spaces, call the platform membership API before/after the local write per the `spaces` delta; non-platform-linked Spaces unchanged.
-- [ ] 7.4 Wire `MembershipProjectionSyncGuard` ahead of `SpaceGuard` in the relevant transport module; confirm `src/contexts/spaces/transport/guards/space.guard.ts` (read-only) receives no edits.
-- [ ] 7.5 Update `src/contexts/spaces/README.md` per `rules.apply`.
+- [x] 7.1 Create `src/contexts/spaces/transport/guards/membership-projection-sync.guard.ts` (+spec) — runs before `SpaceGuard`; no-ops unless platform-issued + row missing/stale beyond TTL; dispatches sync command via `CommandBus` only.
+- [x] 7.2 Create `src/contexts/spaces/application/commands/sync-space-membership-projection/` (command+handler+spec) — relays caller's token to `listMembers()`; upsert on 200, **delete row on 403**, leave untouched on 5xx/timeout with existing row, write nothing on 5xx/timeout with no row (fail-closed).
+- [x] 7.3 Modify `add-member.handler.ts`, `remove-member.handler.ts` — for platform-linked Spaces, call the platform membership API before/after the local write per the `spaces` delta; non-platform-linked Spaces unchanged.
+- [x] 7.4 Wire `MembershipProjectionSyncGuard` ahead of `SpaceGuard` in the relevant transport module; confirm `src/contexts/spaces/transport/guards/space.guard.ts` (read-only) receives no edits.
+- [x] 7.5 Update `src/contexts/spaces/README.md` per `rules.apply`.
 
 ## Phase 8: P2 Tests + Regression Lock-In
 
-- [ ] 8.1 Unit: `membership-projection-sync.guard.spec.ts` — staleness, fail-closed, delete-on-403.
-- [ ] 8.2 Unit: `add-member.handler.spec.ts`/`remove-member.handler.spec.ts` — platform-linked vs. non-linked branches.
-- [ ] 8.3 Integration: `sync-space-membership-projection` reconcile + delete-on-403 against real Postgres.
-- [ ] 8.4 E2E: platform token with exactly one `tenants` entry and **no** `X-Space-ID` → `400` (never defaulted).
-- [ ] 8.5 Run `pnpm test -- space.guard.spec.ts` and `resolve-jwt-tenant-conflict`'s lock-in specs (read-only, unmodified) — confirm no regression.
+- [x] 8.1 Unit: `membership-projection-sync.guard.spec.ts` — staleness, fail-closed, delete-on-403.
+- [x] 8.2 Unit: `add-member.handler.spec.ts`/`remove-member.handler.spec.ts` — platform-linked vs. non-linked branches.
+- [x] 8.3 Integration: `sync-space-membership-projection` reconcile + delete-on-403 against real Postgres.
+- [x] 8.4 E2E: platform token with exactly one `tenants` entry and **no** `X-Space-ID` → `400` (never defaulted).
+- [x] 8.5 Run `pnpm test -- space.guard.spec.ts` and `resolve-jwt-tenant-conflict`'s lock-in specs (read-only, unmodified) — confirm no regression.
 
 ## Spec-to-Test Traceability (key scenarios)
 

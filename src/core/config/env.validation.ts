@@ -66,6 +66,11 @@ const baseEnvSchema = z
     SISQUES_ACCOUNT_AUDIENCE: z.string().optional(),
     SISQUES_ACCOUNT_API_URL: z.string().optional(),
     SISQUES_ACCOUNT_APP_ID: z.string().optional(),
+    SISQUES_SPACE_TENANT_SYNC_ENABLED: z.enum(['true', 'false']).optional(),
+    SISQUES_MEMBERSHIP_SYNC_TTL_SECONDS: z.coerce
+      .number()
+      .positive()
+      .optional(),
   })
   .superRefine((env, ctx) => {
     if (env.KAFKA_ENABLED === 'true' && !env.KAFKA_BROKERS?.trim()) {

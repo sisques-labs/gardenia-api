@@ -15,6 +15,7 @@ export class SpaceMembershipTypeOrmMapper {
       .withSpaceId(entity.spaceId)
       .withRole(entity.role as MembershipRoleEnum)
       .withJoinedAt(entity.joinedAt)
+      .withSyncedAt(entity.syncedAt ?? null)
       .build();
   }
 
@@ -24,6 +25,7 @@ export class SpaceMembershipTypeOrmMapper {
     entity.spaceId = membership.spaceId;
     entity.role = membership.role.value;
     entity.joinedAt = membership.joinedAt;
+    entity.syncedAt = membership.syncedAt;
     return entity;
   }
 }

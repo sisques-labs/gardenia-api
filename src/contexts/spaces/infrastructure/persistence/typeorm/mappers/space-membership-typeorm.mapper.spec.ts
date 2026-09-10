@@ -15,6 +15,7 @@ const buildEntity = (): SpaceMembershipEntity => {
   entity.userId = USER_ID;
   entity.role = MembershipRoleEnum.OWNER;
   entity.joinedAt = JOINED_AT;
+  entity.syncedAt = null;
   return entity;
 };
 
@@ -55,6 +56,24 @@ describe('SpaceMembershipTypeOrmMapper', () => {
 
       expect(result.role.isOwner()).toBe(true);
     });
+
+    it('should map a null syncedAt to null (never synced)', () => {
+      const entity = buildEntity();
+      entity.syncedAt = null;
+
+      const result = mapper.toDomain(entity);
+
+      expect(result.syncedAt).toBeNull();
+    });
+
+    it('should map a persisted syncedAt timestamp', () => {
+      const entity = buildEntity();
+      entity.syncedAt = new Date('2024-06-01T00:00:00.000Z');
+
+      const result = mapper.toDomain(entity);
+
+      expect(result.syncedAt).toEqual(entity.syncedAt);
+    });
   });
 
   describe('toPersistence()', () => {
@@ -68,6 +87,17 @@ describe('SpaceMembershipTypeOrmMapper', () => {
       expect(result.spaceId).toBe(entity.spaceId);
       expect(result.role).toBe(entity.role);
       expect(result.joinedAt).toEqual(entity.joinedAt);
+      expect(result.syncedAt ?? null).toBeNull();
+    });
+
+    it('should carry a synced timestamp through to persistence', () => {
+      const entity = buildEntity();
+      entity.syncedAt = new Date('2024-06-01T00:00:00.000Z');
+      const membership = mapper.toDomain(entity);
+
+      const result = mapper.toPersistence(membership);
+
+      expect(result.syncedAt).toEqual(entity.syncedAt);
     });
   });
 

@@ -40,6 +40,30 @@ describe('SpaceMembershipBuilder', () => {
     expect(membership.role.value).toBe(MembershipRoleEnum.MEMBER);
   });
 
+  it('should default syncedAt to null when not set', () => {
+    const membership = builder
+      .withUserId(USER_ID)
+      .withSpaceId(SPACE_ID)
+      .withRole(MembershipRoleEnum.MEMBER)
+      .withJoinedAt(JOINED_AT)
+      .build();
+
+    expect(membership.syncedAt).toBeNull();
+  });
+
+  it('should build a SpaceMembership with an explicit syncedAt', () => {
+    const syncedAt = new Date('2024-06-01T00:00:00.000Z');
+    const membership = builder
+      .withUserId(USER_ID)
+      .withSpaceId(SPACE_ID)
+      .withRole(MembershipRoleEnum.MEMBER)
+      .withJoinedAt(JOINED_AT)
+      .withSyncedAt(syncedAt)
+      .build();
+
+    expect(membership.syncedAt).toEqual(syncedAt);
+  });
+
   it('should default joinedAt to now when not set', () => {
     const freshBuilder = new SpaceMembershipBuilder();
     const before = Date.now() - 1;

@@ -78,6 +78,33 @@ describe('SpaceMembership', () => {
     });
   });
 
+  describe('syncedAt (design.md D4 — projection sync bookkeeping)', () => {
+    it('defaults syncedAt to null when not provided (never synced from the platform)', () => {
+      const membership = SpaceMembership.create(
+        USER_ID,
+        SPACE_ID,
+        MembershipRoleEnum.MEMBER,
+      );
+
+      expect(membership.syncedAt).toBeNull();
+    });
+
+    it('hydrates a provided syncedAt timestamp', () => {
+      const syncedAt = new Date('2024-06-01T00:00:00.000Z');
+      const props: ISpaceMembership = {
+        userId: new UuidValueObject(USER_ID),
+        spaceId: new UuidValueObject(SPACE_ID),
+        role: new MembershipRoleValueObject(MembershipRoleEnum.MEMBER),
+        joinedAt: new DateValueObject(new Date('2024-01-01')),
+        syncedAt,
+      };
+
+      const membership = new SpaceMembership(props);
+
+      expect(membership.syncedAt).toEqual(syncedAt);
+    });
+  });
+
   describe('invalid role', () => {
     it('should throw when creating with an invalid role string', () => {
       expect(() =>
