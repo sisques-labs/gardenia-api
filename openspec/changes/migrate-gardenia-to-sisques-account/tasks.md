@@ -60,13 +60,13 @@ Chain strategy: stacked-to-main
 
 ## Phase 5: P2 Migrations, Ports & Adapters
 
-- [ ] 5.1 Create migration `src/database/migrations/1780000000028-AddSpaceTenantMapping.ts` — `spaces.external_tenant_id` (nullable, unique partial), `space_memberships.synced_at`.
-- [ ] 5.2 Create `src/contexts/spaces/application/ports/tenant-provisioning.port.ts` — `createTenant(callerAccessToken, {name}): Promise<string>`.
-- [ ] 5.3 Create `src/contexts/spaces/application/ports/tenant-membership-query.port.ts` — `ITenantMembershipQueryPort.listMembers()` per design's Interfaces section.
-- [ ] 5.4 Create `src/contexts/spaces/infrastructure/adapters/account-api-tenant.adapter.ts` (+spec) — `HttpService` → `POST /v1/tenants`.
-- [ ] 5.5 Create `src/contexts/spaces/infrastructure/adapters/account-api-tenant-membership.adapter.ts` (+spec) — `HttpService` → `GET /v1/tenants/:id/members`, relays caller's raw bearer token.
-- [ ] 5.6 Modify `spaces/infrastructure/persistence/typeorm/entities/space.entity.ts`, `space-membership.entity.ts` + mappers — `+external_tenant_id`, `+synced_at`.
-- [ ] 5.7 Register ports/adapters in `src/contexts/spaces/spaces.module.ts` (named const arrays).
+- [x] 5.1 Create migration `src/database/migrations/1780000000028-AddSpaceTenantMapping.ts` — `spaces.external_tenant_id` (nullable, unique partial), `space_memberships.synced_at`.
+- [x] 5.2 Create `src/contexts/spaces/application/ports/tenant-provisioning.port.ts` — `createTenant(callerAccessToken, {name}): Promise<string>`.
+- [x] 5.3 Create `src/contexts/spaces/application/ports/tenant-membership-query.port.ts` — `ITenantMembershipQueryPort.listMembers()` per design's Interfaces section.
+- [x] 5.4 Create `src/contexts/spaces/infrastructure/adapters/account-api-tenant.adapter.ts` (+spec) — `HttpService` → `POST /v1/tenants`.
+- [x] 5.5 Create `src/contexts/spaces/infrastructure/adapters/account-api-tenant-membership.adapter.ts` (+spec) — `HttpService` → `GET /v1/tenants/:id/members`, relays caller's raw bearer token.
+- [x] 5.6 Modify `spaces/infrastructure/persistence/typeorm/entities/space.entity.ts`, `space-membership.entity.ts` — `+external_tenant_id`, `+synced_at` (nullable columns; deliberately NOT yet mapped by `SpaceTypeOrmMapper`/`SpaceMembershipTypeOrmMapper` or the domain aggregate — see Deviations).
+- [x] 5.7 Register ports/adapters in `src/contexts/spaces/spaces.module.ts` (named const arrays).
 
 ## Phase 6: P2 `CreateSpaceCommandHandler` — D7 Two Paths
 

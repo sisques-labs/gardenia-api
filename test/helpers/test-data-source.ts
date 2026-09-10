@@ -34,6 +34,7 @@ import { TrimPlantSpeciesToGbif1780000000024 } from '../../src/database/migratio
 import { CreatePlantIdentifications1780000000025 } from '../../src/database/migrations/1780000000025-CreatePlantIdentifications';
 import { AddReplacedBySessionIdToAuthSessions1780000000026 } from '../../src/database/migrations/1780000000026-AddReplacedBySessionIdToAuthSessions';
 import { AddExternalSubjectToAccounts1780000000027 } from '../../src/database/migrations/1780000000027-AddExternalSubjectToAccounts';
+import { AddSpaceTenantMapping1780000000028 } from '../../src/database/migrations/1780000000028-AddSpaceTenantMapping';
 
 // This DataSource only runs migrations to build the test schema; TypeORM does
 // not need entity metadata for that, so no entity list is maintained here.
@@ -72,6 +73,7 @@ const TEST_MIGRATIONS = [
   CreatePlantIdentifications1780000000025,
   AddReplacedBySessionIdToAuthSessions1780000000026,
   AddExternalSubjectToAccounts1780000000027,
+  AddSpaceTenantMapping1780000000028,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

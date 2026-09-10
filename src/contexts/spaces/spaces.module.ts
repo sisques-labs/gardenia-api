@@ -1,5 +1,6 @@
 import './transport/graphql/enums/space/space-registered-enums.graphql';
 
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -15,6 +16,8 @@ import { RemoveMemberCommandHandler } from './application/commands/remove-member
 import { UpdateSpaceCommandHandler } from './application/commands/update-space/update-space.handler';
 import { SPACE_QR_PORT } from './application/ports/space-qr.port';
 import { SPACE_WEATHER_PORT } from './application/ports/space-weather.port';
+import { TENANT_MEMBERSHIP_QUERY_PORT } from './application/ports/tenant-membership-query.port';
+import { TENANT_PROVISIONING_PORT } from './application/ports/tenant-provisioning.port';
 import { GetSpaceWeatherQueryHandler } from './application/queries/get-space-weather/get-space-weather.handler';
 import { MembershipFindByUserAndSpaceQueryHandler } from './application/queries/membership-find-by-user-and-space/membership-find-by-user-and-space.handler';
 import { SpaceFindByIdQueryHandler } from './application/queries/space-find-by-id/space-find-by-id.handler';
@@ -40,6 +43,8 @@ import { SPACE_INVITATION_READ_REPOSITORY } from './domain/repositories/read/spa
 import { SPACE_READ_REPOSITORY } from './domain/repositories/read/space-read.repository';
 import { SPACE_INVITATION_WRITE_REPOSITORY } from './domain/repositories/write/space-invitation-write.repository';
 import { SPACE_WRITE_REPOSITORY } from './domain/repositories/write/space-write.repository';
+import { AccountApiTenantMembershipAdapter } from './infrastructure/adapters/account-api-tenant-membership.adapter';
+import { AccountApiTenantAdapter } from './infrastructure/adapters/account-api-tenant.adapter';
 import { SpaceQrAdapter } from './infrastructure/adapters/space-qr.adapter';
 import { SpaceWeatherAdapter } from './infrastructure/adapters/space-weather.adapter';
 import { SpaceInvitationEntity } from './infrastructure/persistence/typeorm/entities/space-invitation.entity';
@@ -115,6 +120,11 @@ const DOMAIN_BUILDERS = [
 const INFRASTRUCTURE_ADAPTERS = [
   { provide: SPACE_QR_PORT, useClass: SpaceQrAdapter },
   { provide: SPACE_WEATHER_PORT, useClass: SpaceWeatherAdapter },
+  { provide: TENANT_PROVISIONING_PORT, useClass: AccountApiTenantAdapter },
+  {
+    provide: TENANT_MEMBERSHIP_QUERY_PORT,
+    useClass: AccountApiTenantMembershipAdapter,
+  },
 ];
 
 const INFRASTRUCTURE_REPOSITORIES = [
@@ -179,6 +189,7 @@ const REST_CONTROLLERS = [SpacesController, InvitationsController];
   imports: [
     ConfigModule.forFeature(spacesConfig),
     CqrsModule,
+    HttpModule,
     TypeOrmModule.forFeature(INFRASTRUCTURE_ENTITIES),
   ],
   controllers: [...REST_CONTROLLERS],
