@@ -1,4 +1,4 @@
-import { registerAs } from '@nestjs/config';
+import { ConfigType, registerAs } from '@nestjs/config';
 
 /**
  * Sisques Account (the platform) dual-issuer connection settings.
@@ -14,3 +14,5 @@ export const sisquesAccountConfig = registerAs('sisquesAccount', () => ({
   apiUrl: process.env.SISQUES_ACCOUNT_API_URL,
   appId: process.env.SISQUES_ACCOUNT_APP_ID,
 }));
+
+export type SisquesAccountConfig = ConfigType<typeof sisquesAccountConfig>;
