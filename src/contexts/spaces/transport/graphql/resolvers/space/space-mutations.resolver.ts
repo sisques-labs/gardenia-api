@@ -122,6 +122,7 @@ export class SpaceMutationsResolver {
   async spaceAddMember(
     @CurrentUser() user: CurrentUserPayload,
     @Args('input') input: SpaceAddMemberRequestDto,
+    @PlatformAccessToken() platformAccessToken: string | null = null,
   ): Promise<MutationResponseDto> {
     this.logger.log(
       `Adding member ${input.targetUserId} to space ${input.spaceId} by user: ${user.userId}`,
@@ -132,6 +133,7 @@ export class SpaceMutationsResolver {
         spaceId: input.spaceId,
         targetUserId: input.targetUserId,
         requestingUserId: user.userId,
+        platformAccessToken,
       }),
     );
 
@@ -146,6 +148,7 @@ export class SpaceMutationsResolver {
   async spaceRemoveMember(
     @CurrentUser() user: CurrentUserPayload,
     @Args('input') input: SpaceRemoveMemberRequestDto,
+    @PlatformAccessToken() platformAccessToken: string | null = null,
   ): Promise<MutationResponseDto> {
     this.logger.log(
       `Removing member ${input.targetUserId} from space ${input.spaceId} by user: ${user.userId}`,
@@ -156,6 +159,7 @@ export class SpaceMutationsResolver {
         spaceId: input.spaceId,
         targetUserId: input.targetUserId,
         requestingUserId: user.userId,
+        platformAccessToken,
       }),
     );
 

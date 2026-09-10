@@ -8,6 +8,14 @@ export interface AddMemberCommandInput {
   requestingUserId: string;
   targetUserId: string;
   role?: MembershipRoleEnum;
+  /**
+   * The requesting owner's own verified platform (Sisques Account) bearer
+   * token, when the request is platform-linked (design.md D7's pattern,
+   * applied to the `space-tenant-mapping` spec's "Platform Write Authority
+   * for Membership" requirement). `null`/omitted means a native request —
+   * today's local-write behavior is preserved unchanged.
+   */
+  platformAccessToken?: string | null;
 }
 
 export class AddMemberCommand {
@@ -15,6 +23,7 @@ export class AddMemberCommand {
   public readonly requestingUserId: UuidValueObject;
   public readonly targetUserId: UuidValueObject;
   public readonly role: MembershipRoleValueObject;
+  public readonly platformAccessToken: string | null;
 
   constructor(input: AddMemberCommandInput) {
     this.spaceId = new UuidValueObject(input.spaceId);
@@ -23,5 +32,6 @@ export class AddMemberCommand {
     this.role = new MembershipRoleValueObject(
       input.role ?? MembershipRoleEnum.MEMBER,
     );
+    this.platformAccessToken = input.platformAccessToken ?? null;
   }
 }

@@ -7,4 +7,10 @@ export interface ISpaceMembership {
   spaceId: UuidValueObject;
   role: MembershipRoleValueObject;
   joinedAt: DateValueObject;
+  /**
+   * Last successful reconciliation against account-api's tenant-membership
+   * API (design.md D4). `null` = "never synced" = treated as stale by
+   * `MembershipProjectionSyncGuard`.
+   */
+  syncedAt?: Date | null;
 }

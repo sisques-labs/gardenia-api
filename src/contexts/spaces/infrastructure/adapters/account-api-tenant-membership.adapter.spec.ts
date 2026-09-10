@@ -32,6 +32,8 @@ describe('AccountApiTenantMembershipAdapter', () => {
     audience: 'gardenia',
     apiUrl: 'https://api.sisques-account.example',
     appId: 'gardenia-app-id',
+    spaceTenantSyncEnabled: true,
+    membershipSyncTtlSeconds: 60,
   };
 
   beforeEach(() => {

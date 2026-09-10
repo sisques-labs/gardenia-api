@@ -12,6 +12,7 @@ export class SpaceMembershipBuilder {
   private _spaceId!: string;
   private _role!: MembershipRoleEnum;
   private _joinedAt: Date = new Date();
+  private _syncedAt: Date | null = null;
 
   withUserId(userId: string): this {
     this._userId = userId;
@@ -33,12 +34,18 @@ export class SpaceMembershipBuilder {
     return this;
   }
 
+  withSyncedAt(syncedAt: Date | null): this {
+    this._syncedAt = syncedAt;
+    return this;
+  }
+
   build(): SpaceMembership {
     const props: ISpaceMembership = {
       userId: new UuidValueObject(this._userId),
       spaceId: new UuidValueObject(this._spaceId),
       role: new MembershipRoleValueObject(this._role),
       joinedAt: new DateValueObject(this._joinedAt),
+      syncedAt: this._syncedAt,
     };
     return new SpaceMembership(props);
   }

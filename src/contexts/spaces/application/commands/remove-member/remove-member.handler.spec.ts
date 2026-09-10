@@ -1,6 +1,7 @@
 import { EventBus } from '@nestjs/cqrs';
 
 import { AssertSpaceExistsService } from '@contexts/spaces/application/services/write/assert-space-exists/assert-space-exists.service';
+import { ITenantProvisioningPort } from '@contexts/spaces/application/ports/tenant-provisioning.port';
 import { SpaceAggregate } from '@contexts/spaces/domain/aggregates/space.aggregate';
 import { SpaceBuilder } from '@contexts/spaces/domain/builders/space.builder';
 import { MembershipRoleEnum } from '@contexts/spaces/domain/enums/membership-role.enum';
@@ -36,6 +37,7 @@ describe('RemoveMemberCommandHandler', () => {
   let handler: RemoveMemberCommandHandler;
   let spaceWriteRepository: jest.Mocked<ISpaceWriteRepository>;
   let assertSpaceExistsService: jest.Mocked<AssertSpaceExistsService>;
+  let tenantProvisioningPort: jest.Mocked<ITenantProvisioningPort>;
   let eventBus: jest.Mocked<EventBus>;
   let space: SpaceAggregate;
 
@@ -55,6 +57,12 @@ describe('RemoveMemberCommandHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AssertSpaceExistsService>;
 
+    tenantProvisioningPort = {
+      createTenant: jest.fn(),
+      addMember: jest.fn(),
+      removeMember: jest.fn(),
+    } as jest.Mocked<ITenantProvisioningPort>;
+
     eventBus = {
       publish: jest.fn(),
       publishAll: jest.fn(),
@@ -63,6 +71,7 @@ describe('RemoveMemberCommandHandler', () => {
     handler = new RemoveMemberCommandHandler(
       spaceWriteRepository,
       assertSpaceExistsService,
+      tenantProvisioningPort,
       eventBus,
     );
   });
@@ -171,6 +180,65 @@ describe('RemoveMemberCommandHandler', () => {
           }),
         ),
       ).rejects.toThrow(NotASpaceMemberException);
+    });
+  });
+
+  describe('platform-linked Space (design.md D7 pattern applied to Platform Write Authority)', () => {
+    it('delegates the removal to the platform BEFORE the local save', async () => {
+      assertSpaceExistsService.execute.mockResolvedValue(space);
+      tenantProvisioningPort.removeMember.mockResolvedValue(undefined);
+      spaceWriteRepository.save.mockResolvedValue(undefined as any);
+
+      await handler.execute(
+        new RemoveMemberCommand({
+          spaceId: SPACE_ID,
+          requestingUserId: OWNER_ID,
+          targetUserId: MEMBER_ID,
+          platformAccessToken: 'caller-token',
+        }),
+      );
+
+      expect(tenantProvisioningPort.removeMember).toHaveBeenCalledWith(
+        'caller-token',
+        SPACE_ID,
+        MEMBER_ID,
+      );
+      expect(spaceWriteRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not remove locally when the platform call rejects', async () => {
+      assertSpaceExistsService.execute.mockResolvedValue(space);
+      tenantProvisioningPort.removeMember.mockRejectedValue(
+        new Error('platform down'),
+      );
+
+      await expect(
+        handler.execute(
+          new RemoveMemberCommand({
+            spaceId: SPACE_ID,
+            requestingUserId: OWNER_ID,
+            targetUserId: MEMBER_ID,
+            platformAccessToken: 'caller-token',
+          }),
+        ),
+      ).rejects.toThrow('platform down');
+
+      expect(spaceWriteRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('does not call the platform for a native (non-platform-linked) request', async () => {
+      assertSpaceExistsService.execute.mockResolvedValue(space);
+      spaceWriteRepository.save.mockResolvedValue(undefined as any);
+
+      await handler.execute(
+        new RemoveMemberCommand({
+          spaceId: SPACE_ID,
+          requestingUserId: OWNER_ID,
+          targetUserId: MEMBER_ID,
+        }),
+      );
+
+      expect(tenantProvisioningPort.removeMember).not.toHaveBeenCalled();
     });
   });
 });

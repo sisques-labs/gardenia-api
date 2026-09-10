@@ -4,8 +4,10 @@ import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
 import {
+  AddTenantMemberInput,
   CreateTenantInput,
   ITenantProvisioningPort,
+  TenantMemberConfirmation,
 } from '@contexts/spaces/application/ports/tenant-provisioning.port';
 import { TenantProvisioningUnavailableException } from '@contexts/spaces/domain/exceptions/tenant-provisioning-unavailable.exception';
 import {
@@ -13,7 +15,10 @@ import {
   sisquesAccountConfig,
 } from '@core/config/sisques-account.config';
 
-import { CreateTenantApiResponse } from './account-api/types/account-api-tenant.types';
+import {
+  CreateTenantApiResponse,
+  TenantMemberApiEntry,
+} from './account-api/types/account-api-tenant.types';
 
 const REQUEST_TIMEOUT_MS = 5000;
 
@@ -68,6 +73,70 @@ export class AccountApiTenantAdapter implements ITenantProvisioningPort {
       if (error instanceof TenantProvisioningUnavailableException) {
         throw error;
       }
+      throw this.mapError(error);
+    }
+  }
+
+  /**
+   * ⚠️ Endpoint shape inferred, not confirmed against account-api source —
+   * see `ITenantProvisioningPort`'s doc comment for the design/spec conflict
+   * this bridges.
+   */
+  async addMember(
+    callerAccessToken: string,
+    tenantId: string,
+    input: AddTenantMemberInput,
+  ): Promise<TenantMemberConfirmation> {
+    this.logger.log(`Adding member ${input.userId} to tenant ${tenantId}`);
+
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.post<TenantMemberApiEntry>(
+          `${this.config.apiUrl}/v1/tenants/${tenantId}/members`,
+          { userId: input.userId, role: input.role },
+          {
+            headers: { Authorization: `Bearer ${callerAccessToken}` },
+            timeout: REQUEST_TIMEOUT_MS,
+          },
+        ),
+      );
+
+      if (!data?.userId || !data?.role) {
+        throw new TenantProvisioningUnavailableException(
+          'response missing member confirmation',
+        );
+      }
+
+      return { userId: data.userId, role: data.role };
+    } catch (error) {
+      if (error instanceof TenantProvisioningUnavailableException) throw error;
+      throw this.mapError(error);
+    }
+  }
+
+  /**
+   * ⚠️ Endpoint shape inferred, not confirmed against account-api source —
+   * see `ITenantProvisioningPort`'s doc comment for the design/spec conflict
+   * this bridges.
+   */
+  async removeMember(
+    callerAccessToken: string,
+    tenantId: string,
+    targetUserId: string,
+  ): Promise<void> {
+    this.logger.log(`Removing member ${targetUserId} from tenant ${tenantId}`);
+
+    try {
+      await firstValueFrom(
+        this.httpService.delete(
+          `${this.config.apiUrl}/v1/tenants/${tenantId}/members/${targetUserId}`,
+          {
+            headers: { Authorization: `Bearer ${callerAccessToken}` },
+            timeout: REQUEST_TIMEOUT_MS,
+          },
+        ),
+      );
+    } catch (error) {
       throw this.mapError(error);
     }
   }

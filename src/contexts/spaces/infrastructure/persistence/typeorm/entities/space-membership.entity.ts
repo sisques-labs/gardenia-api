@@ -31,10 +31,10 @@ export class SpaceMembershipEntity {
 
   /**
    * Last successful reconciliation against account-api's tenant-membership
-   * API (design.md D4). NULL = "never synced" = stale. Not yet read or
-   * written by `SpaceMembershipTypeOrmMapper`/the domain entity — that
-   * wiring lands with `MembershipProjectionSyncGuard` (design.md D4, a
-   * later work unit).
+   * API (design.md D4). NULL = "never synced" = stale. Read/written by
+   * `SpaceMembershipTypeOrmMapper` and reconciled by
+   * `SyncSpaceMembershipProjectionCommandHandler`, dispatched from
+   * `MembershipProjectionSyncGuard`.
    */
   @Column({ name: 'synced_at', type: 'timestamp', nullable: true })
   syncedAt!: Date | null;

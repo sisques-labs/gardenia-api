@@ -15,7 +15,9 @@ src/contexts/spaces/
 │   │                      # create-space-invitation, accept-space-invitation
 │   ├── queries/           # space-find-by-id, spaces-find-by-user,
 │   │                      # membership-find-by-user-and-space
-│   ├── ports/             # ISpaceQrPort (hexagonal adapter to QR module)
+│   ├── ports/             # ISpaceQrPort (hexagonal adapter to QR module),
+│   │                      # ITenantProvisioningPort, ITenantMembershipQueryPort
+│   │                      # (P2 — Sisques Account platform integration)
 │   └── services/
 │       ├── read/          # assert-* view-model exists services
 │       └── write/         # assert-* domain rules, invite code generation,
@@ -31,14 +33,18 @@ src/contexts/spaces/
 │   ├── value-objects/     # SpaceId, InvitationCode, …
 │   └── view-models/       # SpaceViewModel, SpaceInvitationViewModel
 ├── infrastructure/
-│   ├── adapters/          # SpaceQrAdapter → QR module
+│   ├── adapters/          # SpaceQrAdapter → QR module;
+│   │                      # AccountApiTenantAdapter, AccountApiTenantMembershipAdapter
+│   │                      # → account-api (the Sisques Account platform, P2)
 │   ├── config/            # spaces.config.ts (invitation expiry, space limits)
 │   └── persistence/typeorm/
 │       ├── entities/      # spaces, space_memberships, space_invitations
 │       ├── mappers/
 │       └── repositories/
 └── transport/
-    ├── guards/            # SpaceGuard (global APP_GUARD in CoreModule)
+    ├── guards/            # SpaceGuard (global APP_GUARD in CoreModule);
+    │                      # MembershipProjectionSyncGuard (global APP_GUARD,
+    │                      # runs immediately before SpaceGuard, P2)
     ├── interceptors/      # SpaceInterceptor (global APP_INTERCEPTOR)
     ├── rest/              # SpacesController, InvitationsController
     └── graphql/           # SpaceQueriesResolver, SpaceMutationsResolver
@@ -103,6 +109,22 @@ X-Space-ID: <uuid>
 - Wraps the handler in `spaceContext.run(spaceId, …)` using Node.js `AsyncLocalStorage`.
 - If `req.spaceId` is missing (e.g. `@SkipSpace()` route), passes through without setting context.
 
+### 0. `MembershipProjectionSyncGuard` (global, P2 — runs BEFORE `SpaceGuard`)
+
+Registered in `CoreModule` between `OptionalJwtAuthGuard` and `SpaceGuard`. It never makes the SpaceGuard decision itself and `space.guard.ts` is never modified — it only refreshes what `SpaceGuard` is about to read.
+
+- No-ops (returns `true` immediately, no query/command dispatched) when: the route is `@SkipSpace()`/`@IdentityOnly()`, `SISQUES_SPACE_TENANT_SYNC_ENABLED` is `false`, the principal is not platform-issued (native HS256 token), `req.user` is absent, or `X-Space-ID` is missing — each of those is left to `SpaceGuard`/`JwtAuthGuard` to reject.
+- Otherwise: looks up the local `(userId, X-Space-ID)` membership row. If missing, or `synced_at` is older than `SISQUES_MEMBERSHIP_SYNC_TTL_SECONDS` (default 60s), it dispatches `SyncSpaceMembershipProjectionCommand`, which relays the caller's OWN raw bearer token to `ITenantMembershipQueryPort.listMembers()` and reconciles the row (see table below).
+- If the sync outcome denies access (403 confirmed, caller absent, or platform unreachable with no cached row) it throws `ForbiddenException` itself, before `SpaceGuard` ever runs.
+
+| Platform response | Projection effect | Access |
+|---|---|---|
+| 200, caller present | upsert row + `synced_at` | allow |
+| 200, caller absent from the list | delete row | deny (same as 403) |
+| 403 | delete row | deny — immediate revocation |
+| 5xx/timeout, row exists | left untouched | allow, bounded by TTL staleness |
+| 5xx/timeout, no row | nothing written | deny — fail closed |
+
 ### Route decorators
 
 | Decorator | JWT required | `X-Space-ID` required | `SpaceContext` set by |
@@ -126,12 +148,19 @@ POST /api/spaces          (@SkipSpace)
 spaceCreate mutation      (@SkipSpace)
   └─ CreateSpaceCommandHandler
        ├─ checks MAX_SPACES_PER_USER (owned spaces count)
+       ├─ resolveSpaceId(command):
+       │    ├─ platform-linked request (verified Sisques Account bearer token
+       │    │  in hand) → ITenantProvisioningPort.createTenant(callerToken)
+       │    │  first, adopt the returned UUID verbatim as space.id (D6/D7 —
+       │    │  literal tenant-id parity, no mapping table)
+       │    └─ native request (no platform token) → locally-generated UUID,
+       │       today's behavior unchanged
        ├─ builds SpaceAggregate + owner membership
        ├─ persists via ISpaceWriteRepository (global table, no tenant context)
        └─ publishes SpaceCreatedEvent
 ```
 
-On registration, the Auth module also dispatches `CreateSpaceCommand` so every new account gets a default space.
+On registration, the Auth module also dispatches `CreateSpaceCommand` so every new account gets a default space. `@PlatformAccessToken()` (an auth-shared decorator) extracts the caller's raw platform token, decode-only, from the `Authorization` header — see `sisques-account-jwt.strategy.ts`'s doc comment for why this is safe without re-verification.
 
 ---
 
@@ -287,8 +316,9 @@ Resolvers dispatch commands/queries via `CommandBus` / `QueryBus` only — never
 | `CreateSpaceCommand` | `spaceId` | Authenticated user | Insert space + owner membership |
 | `CreateSpaceInvitationCommand` | `SpaceInvitationViewModel` | Space **owner** | Insert invitation, create QR |
 | `AcceptSpaceInvitationCommand` | `userId` | Authenticated user (not yet member) | Add membership, ensure user row |
-| `AddMemberCommand` | `void` | Space **owner** | Add membership |
-| `RemoveMemberCommand` | `void` | Space **owner** | Remove membership |
+| `AddMemberCommand` | `void` | Space **owner** | Platform-linked request → delegate write to `ITenantProvisioningPort.addMember()` first, then reflect the platform's confirmed role locally. Native request → local write unchanged. |
+| `RemoveMemberCommand` | `void` | Space **owner** | Platform-linked request → delegate to `ITenantProvisioningPort.removeMember()` first, then remove locally. Native request → local write unchanged. |
+| `SyncSpaceMembershipProjectionCommand` | `boolean` (allow/deny) | Dispatched only by `MembershipProjectionSyncGuard` | Reconciles ONE `(userId, tenantId)` projection row from the platform's confirmed response — see the guard's table above. Bypasses `SpaceAggregate` deliberately (an external reconciliation, not a domain command). |
 
 ---
 
@@ -322,6 +352,14 @@ cross-context type dependency.
 > rule). Domain, application and transport layers must depend on ports, never on
 > another context directly.
 
+### `ITenantProvisioningPort` / `ITenantMembershipQueryPort` → `AccountApiTenantAdapter` / `AccountApiTenantMembershipAdapter` (P2)
+
+Seams to **account-api** (the Sisques Account platform), not another gardenia bounded context — so these are external-system adapters, not the cross-context anti-corruption pattern above. Both relay the ACTING USER's own already-verified platform bearer token; gardenia has no service-account/client-credentials path into account-api (design.md D7).
+
+- `createTenant` — `POST /v1/tenants`, used by `CreateSpaceCommandHandler`'s platform-linked path.
+- `listMembers` — `GET /v1/tenants/:id/members`, used by `SyncSpaceMembershipProjectionCommandHandler`. Returns `null` specifically to signal a platform-confirmed `403`.
+- `addMember` / `removeMember` — used by `AddMemberCommandHandler`/`RemoveMemberCommandHandler`. ⚠️ **Documented gap**: unlike `createTenant`/`listMembers`, these endpoint shapes are NOT confirmed against account-api source — see `ITenantProvisioningPort`'s doc comment.
+
 ---
 
 ## Configuration
@@ -335,6 +373,14 @@ Registered via `ConfigModule.forFeature(spacesConfig)` in `SpacesModule`:
 | `SPACE_INVITATION_CODE_COLLISION_MAX_RETRIES` | `5` | Retries when generated code already exists |
 
 Invitation QR URLs use `QR_BASE_URL` from `app.config.ts` (required at boot). In development this is typically the frontend origin, e.g. `http://localhost:3000`.
+
+**P2 — Sisques Account platform integration** (`sisquesAccountConfig`, registered globally in `CoreModule`, not `SpacesModule`):
+
+| Env variable | Default | Description |
+|--------------|---------|-------------|
+| `SISQUES_SPACE_TENANT_SYNC_ENABLED` | `false` | Gates `MembershipProjectionSyncGuard`. `false` = the guard no-ops unconditionally (P2 rollback — design.md's "Revert P2" step 1). |
+| `SISQUES_MEMBERSHIP_SYNC_TTL_SECONDS` | `60` | Staleness TTL before the guard re-fetches a platform-linked user's membership row. |
+| `SISQUES_ACCOUNT_API_URL`, `SISQUES_ACCOUNT_APP_ID` | — | Shared with P1's auth config; used by `AccountApiTenantAdapter`/`AccountApiTenantMembershipAdapter`. |
 
 ---
 
@@ -362,9 +408,13 @@ Mapped in `transport/exceptions/spaces-exception.filter.ts`:
 
 Global table (not tenant-filtered). One row per workspace.
 
+`external_tenant_id` (nullable, unique partial index, P2): bridge column for spaces that PREDATE platform tenant provisioning. A NEW platform-linked space adopts the tenant UUID as `id` directly (D6 tenant-id parity) and leaves this NULL — it is not written by `SpaceTypeOrmMapper`/the domain aggregate; backfilling existing spaces has no code task in this SDD change. Tenant resolution is conceptually `external_tenant_id ?? space.id`.
+
 ### `space_memberships`
 
 Links `user_id` ↔ `space_id` with `role`. Queried for guard checks and space listings.
+
+`synced_at` (nullable, P2): last successful reconciliation against account-api's tenant-membership API. `NULL` = never synced = always treated as stale by `MembershipProjectionSyncGuard`. Written only by `SyncSpaceMembershipProjectionCommandHandler` via `IMembershipWriteRepository` — deliberately NOT through `ISpaceWriteRepository`/`SpaceAggregate`, since a projection sync reconciles from an external system and must not trigger domain business invariants or `MemberAdded`/`MemberRemoved` events.
 
 ### `space_invitations`
 

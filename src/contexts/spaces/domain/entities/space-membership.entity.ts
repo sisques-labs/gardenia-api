@@ -9,12 +9,14 @@ export class SpaceMembership {
   private readonly _spaceId: UuidValueObject;
   private readonly _role: MembershipRoleValueObject;
   private readonly _joinedAt: DateValueObject;
+  private readonly _syncedAt: Date | null;
 
   constructor(props: ISpaceMembership) {
     this._userId = props.userId;
     this._spaceId = props.spaceId;
     this._role = props.role;
     this._joinedAt = props.joinedAt;
+    this._syncedAt = props.syncedAt ?? null;
   }
 
   static create(
@@ -44,5 +46,13 @@ export class SpaceMembership {
 
   get joinedAt(): Date {
     return this._joinedAt.value;
+  }
+
+  /**
+   * `null` = never reconciled against the platform (design.md D4) — treated
+   * as stale by `MembershipProjectionSyncGuard`.
+   */
+  get syncedAt(): Date | null {
+    return this._syncedAt;
   }
 }
