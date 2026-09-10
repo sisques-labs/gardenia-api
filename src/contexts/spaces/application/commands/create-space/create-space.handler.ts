@@ -15,6 +15,10 @@ import {
   ISpaceWriteRepository,
   SPACE_WRITE_REPOSITORY,
 } from '@contexts/spaces/domain/repositories/write/space-write.repository';
+import {
+  ITenantProvisioningPort,
+  TENANT_PROVISIONING_PORT,
+} from '@contexts/spaces/application/ports/tenant-provisioning.port';
 
 import { CreateSpaceCommand } from './create-space.command';
 
@@ -31,6 +35,8 @@ export class CreateSpaceCommandHandler
     private readonly membershipReadRepository: IMembershipReadRepository,
     @Inject(SPACE_WRITE_REPOSITORY)
     private readonly spaceWriteRepository: ISpaceWriteRepository,
+    @Inject(TENANT_PROVISIONING_PORT)
+    private readonly tenantProvisioningPort: ITenantProvisioningPort,
     configService: ConfigService,
     private readonly spaceBuilder: SpaceBuilder,
     eventBus: EventBus,
@@ -51,9 +57,11 @@ export class CreateSpaceCommandHandler
       throw new SpaceLimitExceededException(command.ownerId.value, maxSpaces);
     }
 
+    const spaceId = await this.resolveSpaceId(command);
+
     const now = new Date();
     const space = this.spaceBuilder
-      .withId(UuidValueObject.generate().value)
+      .withId(spaceId)
       .withName(command.name.value)
       .withOwnerId(command.ownerId.value)
       .withCreatedAt(now)
@@ -71,5 +79,30 @@ export class CreateSpaceCommandHandler
     );
 
     return space.id.value;
+  }
+
+  /**
+   * D6/D7 two-path branching. `POST /tenants` accepts no caller-supplied id
+   * (D6), so a platform-linked request provisions the tenant FIRST and
+   * adopts the returned UUID verbatim as `space.id` — literal parity, no
+   * mapping table. A native (non-platform) request keeps today's behavior
+   * unchanged: a locally-generated id, `external_tenant_id` left NULL.
+   *
+   * Per D7, `createTenant()` relays the acting user's own already-verified
+   * platform bearer token — never a service-account credential. If
+   * provisioning fails (account-api unreachable, 5xx, ...) the port throws
+   * `TenantProvisioningUnavailableException`, which is left to propagate
+   * here: Space creation fails explicitly rather than silently degrading a
+   * platform-linked request into an unlinked native space.
+   */
+  private async resolveSpaceId(command: CreateSpaceCommand): Promise<string> {
+    if (!command.platformAccessToken) {
+      return UuidValueObject.generate().value;
+    }
+
+    return this.tenantProvisioningPort.createTenant(
+      command.platformAccessToken,
+      { name: command.name.value },
+    );
   }
 }

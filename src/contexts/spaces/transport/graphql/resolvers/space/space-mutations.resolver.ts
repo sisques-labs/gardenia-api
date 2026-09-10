@@ -10,6 +10,7 @@ import {
   CurrentUser,
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import { PlatformAccessToken } from '@contexts/auth/infrastructure/decorators/platform-access-token.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 import { AcceptSpaceInvitationCommand } from '@contexts/spaces/application/commands/accept-space-invitation/accept-space-invitation.command';
 import { AddMemberCommand } from '@contexts/spaces/application/commands/add-member/add-member.command';
@@ -47,6 +48,7 @@ export class SpaceMutationsResolver {
   async spaceCreate(
     @CurrentUser() user: CurrentUserPayload,
     @Args('input') input: SpaceCreateRequestDto,
+    @PlatformAccessToken() platformAccessToken: string | null = null,
   ): Promise<MutationResponseDto> {
     this.logger.log(`Creating space for user: ${user.userId}`);
 
@@ -54,6 +56,7 @@ export class SpaceMutationsResolver {
       new CreateSpaceCommand({
         name: input.name,
         ownerId: user.userId,
+        platformAccessToken,
       }),
     );
 

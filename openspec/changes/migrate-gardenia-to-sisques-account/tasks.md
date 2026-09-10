@@ -70,9 +70,9 @@ Chain strategy: stacked-to-main
 
 ## Phase 6: P2 `CreateSpaceCommandHandler` — D7 Two Paths
 
-- [ ] 6.1 Modify `src/contexts/spaces/application/commands/create-space/create-space.handler.ts`: **platform-linked path** — when the acting request carries a verified platform bearer token, call `ITenantProvisioningPort.createTenant()` first, `withId(tenantId)`, set `external_tenant_id = tenantId`.
-- [ ] 6.2 Same handler: **native fallback path** — no platform token in hand → today's behavior unchanged (locally-generated `space.id`, `external_tenant_id` left NULL).
-- [ ] 6.3 Update `create-space.handler.spec.ts` — cover both paths explicitly (platform-linked and native fallback).
+- [x] 6.1 Modify `src/contexts/spaces/application/commands/create-space/create-space.handler.ts`: **platform-linked path** — when the acting request carries a verified platform bearer token, call `ITenantProvisioningPort.createTenant()` first, `withId(tenantId)`. (Deviation: `external_tenant_id` is NOT set here — D6 says tenant-id parity for NEW spaces IS `space.id`, so `external_tenant_id` stays NULL and only bridges *existing* spaces, which is out of scope. See Deviations note below.)
+- [x] 6.2 Same handler: **native fallback path** — no platform token in hand → today's behavior unchanged (locally-generated `space.id`, `external_tenant_id` left NULL).
+- [x] 6.3 Update `create-space.handler.spec.ts` — cover both paths explicitly (platform-linked and native fallback).
 
 ## Phase 7: P2 Membership Sync Guard + Add/Remove Member
 
