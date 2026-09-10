@@ -64,6 +64,36 @@ describe('SpaceMutationsResolver', () => {
       expect(result.id).toBe(SPACE_ID);
     });
 
+    it('relays a verified platform access token onto CreateSpaceCommand (D7)', async () => {
+      commandBus.execute.mockResolvedValueOnce(SPACE_ID);
+      mutationResponseGraphQLMapper.toResponseDto.mockReturnValueOnce({
+        success: true,
+        message: 'Space created successfully',
+        id: SPACE_ID,
+      });
+
+      const input: SpaceCreateRequestDto = { name: 'My Garden' };
+      await resolver.spaceCreate(mockUser as any, input, 'platform-raw-token');
+
+      const command = commandBus.execute.mock.calls[0][0] as any;
+      expect(command.platformAccessToken).toBe('platform-raw-token');
+    });
+
+    it('defaults platformAccessToken to null for a native request (no regression)', async () => {
+      commandBus.execute.mockResolvedValueOnce(SPACE_ID);
+      mutationResponseGraphQLMapper.toResponseDto.mockReturnValueOnce({
+        success: true,
+        message: 'Space created successfully',
+        id: SPACE_ID,
+      });
+
+      const input: SpaceCreateRequestDto = { name: 'My Garden' };
+      await resolver.spaceCreate(mockUser as any, input);
+
+      const command = commandBus.execute.mock.calls[0][0] as any;
+      expect(command.platformAccessToken).toBeNull();
+    });
+
     it('has @SkipSpace metadata on spaceCreate', () => {
       const method = SpaceMutationsResolver.prototype.spaceCreate;
       const metadata = Reflect.getMetadata(SKIP_SPACE_KEY, method);

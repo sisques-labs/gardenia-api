@@ -31,6 +31,7 @@ import {
   CurrentUser,
   CurrentUserPayload,
 } from '@contexts/auth/infrastructure/decorators/current-user.decorator';
+import { PlatformAccessToken } from '@contexts/auth/infrastructure/decorators/platform-access-token.decorator';
 import { JwtAuthGuard } from '@contexts/auth/infrastructure/guards/jwt-auth.guard';
 
 import { SkipSpace } from '../../../../../shared/decorators/skip-space.decorator';
@@ -71,9 +72,14 @@ export class SpacesController {
   async createSpace(
     @Body() dto: CreateSpaceDto,
     @CurrentUser() user: CurrentUserPayload,
+    @PlatformAccessToken() platformAccessToken: string | null = null,
   ): Promise<SpaceRestResponseDto> {
     const spaceId = await this.commandBus.execute<CreateSpaceCommand, string>(
-      new CreateSpaceCommand({ name: dto.name, ownerId: user.userId }),
+      new CreateSpaceCommand({
+        name: dto.name,
+        ownerId: user.userId,
+        platformAccessToken,
+      }),
     );
     const vm = await this.queryBus.execute<SpaceFindByIdQuery, SpaceViewModel>(
       new SpaceFindByIdQuery({ spaceId }),

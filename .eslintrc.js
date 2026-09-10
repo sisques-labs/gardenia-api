@@ -37,6 +37,7 @@ module.exports = {
           'src/contexts/auth/infrastructure/guards/jwt-auth*',
           'src/contexts/auth/infrastructure/guards/app-role*',
           'src/contexts/auth/infrastructure/decorators/current-user*',
+          'src/contexts/auth/infrastructure/decorators/platform-access-token*',
           'src/contexts/auth/domain/enums/app-role*',
         ],
       },
@@ -79,7 +80,7 @@ module.exports = {
               ['context-adapter', { context: '!${from.context}' }],
             ],
             message:
-              "Cross-context import is not allowed: '${from.context}' must reach '${target.context}' through a port (application/ports) + adapter (infrastructure/adapters). Exempt: auth guards/decorators/app-role enum.",
+              "Cross-context import is not allowed: '${from.context}' must reach '${target.context}' through a port (application/ports) + adapter (infrastructure/adapters). Exempt: auth guards/decorators (current-user, platform-access-token)/app-role enum.",
           },
         ],
       },
