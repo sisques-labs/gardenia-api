@@ -1,6 +1,24 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.28.5] - 2026-09-09
+
+### Bug Fixes
+- **deps:** Pin dependency @opentelemetry/resources to v2.10.0 (#531) (0255b4e)
+- **deps:** Pin dependency @opentelemetry/sdk-logs to 0.221.0 (#532) (3a0e589)
+- **deps:** Pin dependency @opentelemetry/sdk-metrics to v2.10.0 (#533) (38a8f0e)
+- **deps:** Pin dependency @opentelemetry/sdk-node to 0.221.0 (#534) (2719c3e)
+- **deps:** Pin dependency @opentelemetry/sdk-trace-base to v2.10.0 (#535) (6fe431a)
+- **deps:** Pin dependency @opentelemetry/semantic-conventions to 1.43.0 (#536) (0e95ca6)
+- **deps:** Pin dependency @opentelemetry/winston-transport to 0.31.0 (#537) (99f6753)
+- **deps:** Pin dependency @types/passport-github2 to 1.2.9 (#538) (d167627)
+- **deps:** Pin dependency axios to 1.19.0 (#539) (dd0e206)
+- **deps:** Pin dependency bcrypt to 6.0.0 (#540) (05c5181)
+- **deps:** Pin dependency class-transformer to 0.5.1 (#541) (1448cd1)
+- **deps:** Pin dependency class-validator to 0.15.1 (#542) (67d0290)
+- **deps:** Pin dependency cookie-parser to 1.4.7 (#543) (3410940)
+- **deps:** Pin dependency dotenv to 17.4.2 (#544) (2aa1d0b)
+- **deps:** Pin dependency express to 5.2.1 (e8d5be5)
 ## [0.28.4] - 2026-09-04
 
 ### Refactor

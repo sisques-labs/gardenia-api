@@ -21,17 +21,23 @@ import { SpaceGuard } from './space.guard';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
 const SPACE_ID = '550e8400-e29b-41d4-a716-446655440000';
 
+const OTHER_SPACE_ID = '550e8400-e29b-41d4-a716-446655440002';
+
 function buildMockContext(overrides: {
   user?: { userId: string; email: string } | null;
   spaceId?: string | undefined;
   type?: string;
+  userExtras?: Record<string, unknown>;
 }): ExecutionContext {
   const req: Record<string, unknown> = {
     headers: {} as Record<string, unknown>,
   };
 
   if (overrides.user !== null) {
-    req['user'] = overrides.user ?? { userId: USER_ID, email: 'test@test.com' };
+    req['user'] = {
+      ...(overrides.user ?? { userId: USER_ID, email: 'test@test.com' }),
+      ...overrides.userExtras,
+    };
   }
 
   if (overrides.spaceId !== undefined) {
@@ -131,6 +137,74 @@ describe('SpaceGuard', () => {
       );
       queryBus.execute.mockResolvedValue(membership);
 
+      const ctx = buildMockContext({ spaceId: SPACE_ID });
+      const req = ctx.switchToHttp().getRequest() as Record<string, unknown>;
+
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req['spaceId']).toBe(SPACE_ID);
+    });
+  });
+
+  describe('tenant-resolution policy lock-in', () => {
+    it('should not let a token claim satisfy a missing header', async () => {
+      reflector.getAllAndOverride.mockReturnValue(false);
+      const ctx = buildMockContext({
+        spaceId: undefined,
+        userExtras: {
+          spaceId: SPACE_ID,
+          tenants: [{ id: SPACE_ID, role: 'owner' }],
+        },
+      });
+
+      await expect(guard.canActivate(ctx)).rejects.toThrow(BadRequestException);
+      expect(queryBus.execute).not.toHaveBeenCalled();
+    });
+
+    it('should not let a token claim override a present header', async () => {
+      reflector.getAllAndOverride.mockReturnValue(false);
+      const membership = SpaceMembership.create(
+        USER_ID,
+        SPACE_ID,
+        MembershipRoleEnum.MEMBER,
+      );
+      queryBus.execute.mockResolvedValue(membership);
+      const ctx = buildMockContext({
+        spaceId: SPACE_ID,
+        userExtras: { spaceId: OTHER_SPACE_ID },
+      });
+      const req = ctx.switchToHttp().getRequest() as Record<string, unknown>;
+
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      const executedQuery = queryBus.execute.mock.calls[0][0] as {
+        spaceId: { value: string };
+      };
+      expect(executedQuery.spaceId.value).toBe(SPACE_ID);
+      expect(req['spaceId']).toBe(SPACE_ID);
+    });
+
+    it('should not let a token claim bypass the membership check', async () => {
+      reflector.getAllAndOverride.mockReturnValue(false);
+      queryBus.execute.mockResolvedValue(null);
+      const ctx = buildMockContext({
+        spaceId: SPACE_ID,
+        userExtras: { tenants: [{ id: SPACE_ID }] },
+      });
+
+      await expect(guard.canActivate(ctx)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should source req.spaceId from the header verbatim when no claim fields are present', async () => {
+      reflector.getAllAndOverride.mockReturnValue(false);
+      const membership = SpaceMembership.create(
+        USER_ID,
+        SPACE_ID,
+        MembershipRoleEnum.MEMBER,
+      );
+      queryBus.execute.mockResolvedValue(membership);
       const ctx = buildMockContext({ spaceId: SPACE_ID });
       const req = ctx.switchToHttp().getRequest() as Record<string, unknown>;
 

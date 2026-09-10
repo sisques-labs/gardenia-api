@@ -1,137 +1,158 @@
-# Spec: Auth Bounded Context — Multi-Tenancy Delta
+# Auth Specification
 
-**Change**: multitenant
-**Phase**: spec
-**Date**: 2026-05-29
-**Status**: done
+## Purpose
 
----
-
-## 1. Overview
-
-This spec describes only the delta — what MUST change in the `auth` bounded context after multi-tenancy is applied. It does not re-specify existing auth behavior unless it is modified.
+Defines the `auth` bounded context: account registration and Space bootstrap, JWT payload shape and app-level RBAC, auth route exemptions from `SpaceGuard`, the `accounts`/`auth_sessions` table schemas, and identity-scoped endpoints that operate on the authenticated user rather than a specific Space.
 
 ---
 
-## 2. `register-account` Flow
+## Requirements
 
-### 2.1 Space Bootstrap on Registration
+### Requirement: Space Bootstrap on Registration
 
-**Given** a new user submits a valid registration request  
-**When** the `RegisterAccountCommand` is processed  
-**Then** the following MUST happen atomically, in order:
-1. An `Account` is created with a valid `spaceId` referencing the new Space.
-2. A `Space` is created with a system-generated default name.
-3. A `SpaceMembership` (role: `owner`) is created linking the new user to the new Space.
+When an account is registered, a Space MUST be created and linked to it atomically, in order, with no partial state permitted on failure.
 
-**And** if any step fails, the entire operation MUST roll back — no partial state is permitted  
-**And** the auto-created Space MUST count toward `MAX_SPACES_PER_USER` for the user  
-**And** on success, the response MUST include enough information for the client to set `X-Space-ID` on subsequent requests (i.e., the new `spaceId` MUST be returned)
+#### Scenario: Registration creates account, Space, and membership atomically
 
-### 2.2 No Change to JWT Payload
-
-- The JWT payload MUST remain `{ sub: userId, email }`.
-- `spaceId` MUST NOT be embedded in the JWT.
-- The active Space is resolved per-request via the `X-Space-ID` header, not from the token.
-
-### 2.3 Auth Routes Exempt from `SpaceGuard`
-
-- `POST /auth/register` MUST be exempt from `SpaceGuard` (no Space exists yet at registration time).
-- `POST /auth/login` MUST be exempt from `SpaceGuard` (authentication precedes Space context).
-- These exemptions MUST be explicitly declared in the transport layer (e.g., via a decorator or guard skip marker).
+- GIVEN a new user submits a valid registration request
+- WHEN the `RegisterAccountCommand` is processed
+- THEN an `Account` is created with a valid `spaceId` referencing the new Space
+- AND a `Space` is created with a system-generated default name
+- AND a `SpaceMembership` (role: `owner`) is created linking the new user to the new Space
+- AND if any step fails, the entire operation MUST roll back — no partial state is permitted
+- AND the auto-created Space MUST count toward `MAX_SPACES_PER_USER` for the user
+- AND on success, the response MUST include the new `spaceId` so the client can set `X-Space-ID` on subsequent requests
 
 ---
 
-## 3. `accounts` Table Schema
+### Requirement: No Change to JWT Payload
 
-### 3.1 `spaceId` Column
+The JWT payload gardenia issues via `TokenService.sign()` MUST remain `{ sub: userId, email }` (plus any already-approved claims such as `role`); it MUST NOT embed `spaceId` or any other current-tenant selector. No claim inside ANY JWT, regardless of issuer, MUST ever act as or substitute for the current-tenant selector; a JWT MAY carry a list of tenant/space memberships as identity-only metadata, never as a current-tenant selector. The active Space MUST continue to be resolved per-request only via the `X-Space-ID` header plus a database membership lookup, per the `tenant-resolution-policy` spec.
+(Previously: JWT payload MUST remain `{ sub: userId, email }`; `spaceId` MUST NOT be embedded in the JWT; active Space resolved via `X-Space-ID` header, not the token — silent on other issuers or claim shapes.)
 
-- The `accounts` table MUST include a `spaceId` UUID column that is NOT NULL.
-- `spaceId` MUST reference the `spaces` table (enforced at application level; DB-level FK is a design decision).
-- No existing row may omit `spaceId` — the migration MUST ensure this constraint is applied on the fresh schema (alpha data discarded, no backfill needed).
+#### Scenario: Gardenia's own token stays selector-free
 
-### 3.2 Unique Constraint Change
+- GIVEN a call to `TokenService.sign()`
+- WHEN the resulting JWT is decoded
+- THEN the payload MUST NOT contain `spaceId` or any other current-tenant field
 
-| Before | After |
-|--------|-------|
-| `UNIQUE (email)` | `UNIQUE (spaceId, email)` |
+#### Scenario: External or membership-list claim never becomes the current tenant
 
-- The scalar `UNIQUE (email)` constraint MUST be dropped.
-- A composite `UNIQUE (spaceId, email)` constraint MUST replace it.
-- Two accounts in different Spaces MAY share the same email address without conflict.
-- Two accounts within the same Space MUST NOT share the same email address.
-
-**Given** two users in different Spaces attempt to register with the same email  
-**When** both registrations are processed  
-**Then** both MUST succeed without a uniqueness violation
-
-**Given** a user attempts to register with an email already registered in the same Space  
-**When** the registration is processed  
-**Then** it MUST fail with a conflict error equivalent to the current "email already taken" behavior
+- GIVEN a JWT (any issuer) contains a `spaceId`, `tenantId`, or membership-list claim, with or without an `X-Space-ID` header
+- WHEN `SpaceGuard` resolves the current Space for the request
+- THEN the claim MUST be ignored
+- AND a missing header MUST cause rejection rather than falling back to the claim
 
 ---
 
-## 4. `auth_sessions` Table Schema
+### Requirement: Auth Routes Exempt from SpaceGuard
 
-- The `auth_sessions` table MUST NOT include a `spaceId` column.
-- Sessions are user-global: a session identifies a user, not a user-in-a-space.
-- `SpaceGuard` resolves Space context from the `X-Space-ID` header on every request; it does not consult the session record for Space information.
-- This decision is final and MUST NOT be re-opened without a new proposal.
+`POST /auth/register` and `POST /auth/login` MUST be exempt from `SpaceGuard`, declared explicitly in the transport layer.
 
----
+#### Scenario: Register and login bypass SpaceGuard
 
-## 5. Identity-Scoped Auth Endpoints
-
-### 5.1 Definition
-
-Certain auth endpoints operate on the **authenticated user's identity**, not on a specific Space. These endpoints MUST NOT require an `X-Space-ID` header.
-
-| Endpoint | Description |
-|---|---|
-| `GET /auth/me` | Returns the authenticated account |
-| `DELETE /auth/account` | Deletes the authenticated account |
-| `PATCH /auth/password` | Changes the authenticated account's password |
-| `POST /auth/logout-all` | Revokes all sessions for the authenticated user |
-
-### 5.2 `@IdentityOnly()` Decorator
-
-- Identity-scoped endpoints MUST be decorated with `@IdentityOnly()` at the method level.
-- `@IdentityOnly()` MUST NOT suppress JWT validation — a valid Bearer token is still required.
-- `@IdentityOnly()` tells `SpaceGuard` to skip the `X-Space-ID` check without exposing the endpoint as fully public.
-- `@IdentityOnly()` MUST NOT be confused with `@SkipSpace()`, which skips **both** `SpaceGuard` and JWT validation (used for `register`, `login`, `refresh`).
-
-**Given** an authenticated user calls `GET /auth/me` without an `X-Space-ID` header  
-**When** the request is processed  
-**Then** the response status MUST be `200` with the account data  
-**And** `SpaceGuard` MUST NOT reject the request
-
-**Given** a request with no or invalid JWT calls `GET /auth/me`  
-**When** the request is processed  
-**Then** the response status MUST be `401 Unauthorized`
-
-### 5.3 Tenant Isolation Bypass in Auth/User Repositories
-
-Because identity-scoped endpoints run without ALS space context, UUID-based repository operations MUST bypass the tenant proxy.
-
-**Decision (confirmed 2026-06-01):** users can belong to multiple spaces — accounts and users ARE space-scoped entities. `spaceId` MUST remain on both tables. However, ID-based lookups and deletes do not need tenant filtering because UUID uniqueness guarantees the correct row regardless of space.
-
-The following operations MUST use the raw (non-proxied) repository:
-
-| Repository | Methods using rawRepo |
-|---|---|
-| `AccountTypeOrmReadRepository` | `findById`, `findByCriteria` |
-| `AccountTypeOrmWriteRepository` | `delete` |
-| `UserTypeOrmWriteRepository` | `findById`, `delete` |
-
-`save()` in all repositories MUST continue to use the tenant proxy — space context is required when creating accounts and users.
+- GIVEN a request to `POST /auth/register` or `POST /auth/login` with no `X-Space-ID` header
+- WHEN the request is processed
+- THEN `SpaceGuard` MUST NOT reject the request
+- AND the exemption MUST be declared explicitly in the transport layer (e.g. a decorator or guard-skip marker)
 
 ---
 
-## 6. App-Level RBAC (App Role in JWT)
+### Requirement: accounts Table Has a Required spaceId Column
 
-### 6.1 TokenService Includes appRole in JWT
+The `accounts` table MUST include a `spaceId` UUID column that is NOT NULL and references the `spaces` table.
 
-`TokenService.sign()` MUST embed the account's `appRole` as a `role` claim in every JWT it signs. The claim value MUST be the string representation of `AppRoleEnum` (e.g. `'admin'` or `'user'`).
+#### Scenario: No account row may omit spaceId
+
+- GIVEN the `accounts` table schema
+- WHEN a row is inspected
+- THEN `spaceId` MUST be present and NOT NULL
+- AND MUST reference the `spaces` table (enforced at application level)
+
+---
+
+### Requirement: accounts Uniqueness Is Scoped by Space
+
+The scalar `UNIQUE (email)` constraint on `accounts` MUST be replaced by a composite `UNIQUE (spaceId, email)` constraint.
+
+#### Scenario: Same email allowed across different Spaces
+
+- GIVEN two users in different Spaces attempt to register with the same email
+- WHEN both registrations are processed
+- THEN both MUST succeed without a uniqueness violation
+
+#### Scenario: Same email rejected within the same Space
+
+- GIVEN a user attempts to register with an email already registered in the same Space
+- WHEN the registration is processed
+- THEN it MUST fail with a conflict error equivalent to the "email already taken" behavior
+
+---
+
+### Requirement: auth_sessions Table Has No spaceId Column
+
+The `auth_sessions` table MUST NOT include a `spaceId` column; sessions remain user-global. `SpaceGuard` MUST continue to resolve Space context from the `X-Space-ID` header plus a database membership lookup on every request, never from the session record or any JWT claim. This finality clause governs gardenia's own session schema and resolution mechanism; it does not itself authorize a future, separately-scoped integration to derive the current tenant from a token claim — any such integration MUST instead comply with the `tenant-resolution-policy` spec.
+(Previously: `auth_sessions` MUST NOT include a `spaceId` column; `SpaceGuard` resolves Space from the `X-Space-ID` header; "this decision is final and MUST NOT be re-opened without a new proposal" — silent on scope relative to externally-issued tokens.)
+
+#### Scenario: Session table remains schema-unchanged
+
+- GIVEN the `auth_sessions` table
+- WHEN its schema is inspected
+- THEN it MUST NOT contain a `spaceId` column
+
+#### Scenario: Future external-identity integration must still comply
+
+- GIVEN a future change proposes accepting an externally-issued token
+- WHEN that change is scoped
+- THEN it MUST NOT store a tenant claim in `auth_sessions`
+- AND it MUST NOT use any token claim as the current-tenant selector
+### Requirement: Identity-Scoped Auth Endpoints Skip SpaceGuard's Header Check
+
+Endpoints that operate on the authenticated user's identity rather than a specific Space (`GET /auth/me`, `DELETE /auth/account`, `PATCH /auth/password`, `POST /auth/logout-all`) MUST be decorated with `@IdentityOnly()` and MUST NOT require an `X-Space-ID` header, while still requiring a valid JWT.
+
+#### Scenario: Identity-scoped endpoint succeeds without X-Space-ID
+
+- GIVEN an authenticated user calls `GET /auth/me` without an `X-Space-ID` header
+- WHEN the request is processed
+- THEN the response status MUST be `200` with the account data
+- AND `SpaceGuard` MUST NOT reject the request
+
+#### Scenario: Identity-scoped endpoint still requires a valid JWT
+
+- GIVEN a request with no or invalid JWT calls `GET /auth/me`
+- WHEN the request is processed
+- THEN the response status MUST be `401 Unauthorized`
+
+#### Scenario: IdentityOnly is distinct from SkipSpace
+
+- GIVEN an endpoint decorated with `@IdentityOnly()`
+- WHEN a request reaches it without a JWT
+- THEN it MUST still be rejected, because `@IdentityOnly()` MUST NOT suppress JWT validation
+- AND `@IdentityOnly()` MUST NOT be confused with `@SkipSpace()`, which skips both `SpaceGuard` and JWT validation (used for `register`, `login`, `refresh`)
+
+---
+
+### Requirement: Tenant Isolation Bypass in Auth/User Repositories
+
+Because identity-scoped endpoints run without ALS Space context, UUID-based repository operations on `accounts` and `users` MUST bypass the tenant proxy, since UUID uniqueness guarantees the correct row regardless of Space. `save()` on all repositories MUST continue to use the tenant proxy.
+
+#### Scenario: ID-based lookups bypass the tenant proxy
+
+- GIVEN `AccountTypeOrmReadRepository.findById` / `findByCriteria`, `AccountTypeOrmWriteRepository.delete`, or `UserTypeOrmWriteRepository.findById` / `delete` is called
+- WHEN the operation executes
+- THEN it MUST use the raw (non-proxied) repository, not the tenant-scoped proxy
+
+#### Scenario: save() always uses the tenant proxy
+
+- GIVEN any repository's `save()` method is called for an account or user
+- WHEN the operation executes
+- THEN it MUST use the tenant proxy, since Space context is required when creating accounts and users
+
+---
+
+### Requirement: TokenService Includes appRole in JWT
+
+`TokenService.sign()` MUST embed the account's `appRole` as a `role` claim in every JWT it signs, as the string representation of `AppRoleEnum`.
 
 #### Scenario: Signed JWT carries role claim
 
@@ -145,9 +166,11 @@ The following operations MUST use the raw (non-proxied) repository:
 - WHEN the resulting token is decoded
 - THEN the payload MUST contain `role: 'admin'`
 
-### 6.2 JwtStrategy Exposes appRole on CurrentUserPayload
+---
 
-`JwtStrategy.validate()` MUST include `appRole` in the object it returns. The value MUST be taken from `payload.role` when present, defaulting to `AppRoleEnum.USER` when absent.
+### Requirement: JwtStrategy Exposes appRole on CurrentUserPayload
+
+`JwtStrategy.validate()` MUST include `appRole` in the object it returns, taken from `payload.role` when present and defaulting to `AppRoleEnum.USER` when absent.
 
 #### Scenario: Valid token with role claim populates appRole
 
@@ -162,20 +185,24 @@ The following operations MUST use the raw (non-proxied) repository:
 - THEN the returned payload MUST have `appRole = AppRoleEnum.USER`
 - AND the validation MUST NOT throw or reject the token
 
-### 6.3 JWT Payload Structure
+---
 
-The JWT payload MUST continue to contain `sub: userId` and `email`. The addition of the `role` claim MUST NOT alter or remove these fields. `spaceId` MUST NOT be embedded in the JWT.
+### Requirement: JWT Payload Structure Includes sub, email, and role
 
-#### Scenario: JWT retains sub and email
+The JWT payload MUST contain `sub: userId`, `email`, and `role`. It MUST NOT contain `spaceId`.
+
+#### Scenario: JWT retains sub and email alongside role
 
 - GIVEN a valid login
 - WHEN `TokenService.sign()` is called
 - THEN the JWT payload MUST contain `sub` (userId), `email`, and `role`
 - AND MUST NOT contain `spaceId`
 
-### 6.4 CurrentUserPayload Interface Update
+---
 
-`CurrentUserPayload` MUST expose `userId: string`, `email: string`, and `appRole: AppRoleEnum`. The `appRole` field MUST always be populated; it MUST NOT be optional or undefined.
+### Requirement: CurrentUserPayload Always Populates appRole
+
+`CurrentUserPayload` MUST expose `userId: string`, `email: string`, and `appRole: AppRoleEnum`, with `appRole` always populated and never optional or undefined.
 
 #### Scenario: Payload has all three fields
 
@@ -185,8 +212,12 @@ The JWT payload MUST continue to contain `sub: userId` and `email`. The addition
 
 ---
 
-## 7. No Other Auth Behavior Changes
+### Requirement: No Other Auth Behavior Changes
 
-- Password hashing, token signing refresh logic (aside from appRole addition), and logout MUST remain unchanged.
-- `TokenService.sign()` MUST NOT embed `spaceId`.
-- Existing identity-scoped endpoints do not require any RBAC changes at the endpoint level (RBAC guards are opt-in per @RequireAppRole decorator).
+Password hashing, token signing/refresh logic (aside from the `appRole` claim), and logout MUST remain unchanged. `TokenService.sign()` MUST NOT embed `spaceId`. Existing identity-scoped endpoints do not require any RBAC changes at the endpoint level.
+
+#### Scenario: Core auth mechanics are unaffected
+
+- GIVEN the auth bounded context after the `appRole` and multi-tenancy changes
+- WHEN password hashing, refresh, or logout are exercised
+- THEN their behavior MUST match the pre-existing implementation, unaffected by those changes
