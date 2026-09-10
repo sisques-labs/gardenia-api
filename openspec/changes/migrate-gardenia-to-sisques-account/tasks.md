@@ -27,36 +27,36 @@ Chain strategy: stacked-to-main
 
 ## Phase 1: P1 Foundation — dependency, env, JWKS strategy
 
-- [ ] 1.1 Add `jwks-rsa` to `package.json`/`pnpm-lock.yaml`.
-- [ ] 1.2 Add `SISQUES_ACCOUNT_*` vars + `SISQUES_ACCOUNT_AUTH_ENABLED` flag to `src/core/config/env.validation.ts` (zod) and `.env.example`.
-- [ ] 1.3 Create `src/core/config/sisques-account.config.ts` (`registerAs`, mirrors `event-store.config.ts` pattern).
-- [ ] 1.4 Create `src/contexts/auth/infrastructure/strategies/sisques-account-jwt.strategy.ts` — `PassportStrategy(Strategy,'sisques-account')`, `passportJwtSecret()`, `algorithms:['RS256']`, `issuer`, `audience`, `ignoreExpiration:false`; mirrors shape (read-only reference) of `src/contexts/auth/infrastructure/strategies/jwt.strategy.ts`.
-- [ ] 1.5 Modify `src/contexts/auth/infrastructure/guards/jwt-auth.guard.ts` → `AuthGuard(['jwt','sisques-account'])` gated by `SISQUES_ACCOUNT_AUTH_ENABLED`.
-- [ ] 1.6 Register strategy + provider in `src/contexts/auth/auth.module.ts` (named const array per `rules.apply`).
+- [x] 1.1 Add `jwks-rsa` to `package.json`/`pnpm-lock.yaml`.
+- [x] 1.2 Add `SISQUES_ACCOUNT_*` vars + `SISQUES_ACCOUNT_AUTH_ENABLED` flag to `src/core/config/env.validation.ts` (zod) and `.env.example`.
+- [x] 1.3 Create `src/core/config/sisques-account.config.ts` (`registerAs`, mirrors `event-store.config.ts` pattern).
+- [x] 1.4 Create `src/contexts/auth/infrastructure/strategies/sisques-account-jwt.strategy.ts` — `PassportStrategy(Strategy,'sisques-account')`, `passportJwtSecret()`, `algorithms:['RS256']`, `issuer`, `audience`, `ignoreExpiration:false`; mirrors shape (read-only reference) of `src/contexts/auth/infrastructure/strategies/jwt.strategy.ts`.
+- [x] 1.5 Modify `src/contexts/auth/infrastructure/guards/jwt-auth.guard.ts` → `AuthGuard(['jwt','sisques-account'])` gated by `SISQUES_ACCOUNT_AUTH_ENABLED`.
+- [x] 1.6 Register strategy + provider in `src/contexts/auth/auth.module.ts` (named const array per `rules.apply`).
 
 ## Phase 2: P1 Account Linking (domain + infra + application)
 
-- [ ] 2.1 Create migration `src/database/migrations/1780000000027-AddExternalSubjectToAccounts.ts` — nullable `external_subject`, partial global unique index; up/down per design.
-- [ ] 2.2 Create `src/contexts/auth/domain/value-objects/external-subject/external-subject.vo.ts` (+`.spec.ts`).
-- [ ] 2.3 Create `src/contexts/auth/domain/events/account-external-subject-linked/account-external-subject-linked.event.ts`.
-- [ ] 2.4 Modify `account.aggregate.ts`, `account.builder.ts`, `account.interface.ts`, `account.primitives.ts` — `+_externalSubject`; `linkExternalSubject()` emits the event (never in constructor).
-- [ ] 2.5 Modify `account.entity.ts`, `account-typeorm.mapper.ts`, `account-typeorm-write.repository.ts`, `account-write.repository.ts` (interface) — `+external_subject` column/mapping, `findByExternalSubject()` bypassing tenant proxy like `findByEmail`.
-- [ ] 2.6 Create `src/contexts/auth/infrastructure/services/sisques-account-principal.resolver.ts` (+`.spec.ts`) — subject→principal; drives first-link + auto-provision (mirrors, read-only reference, `login-with-oauth.handler.ts`'s find-or-create/auto-link-by-verified-email shape).
-- [ ] 2.7 Create `src/contexts/auth/application/commands/link-external-subject/` (command + handler + spec) — link-by-verified-email, no password/role mutation.
-- [ ] 2.8 Update `src/contexts/auth/README.md` per `rules.apply`.
+- [x] 2.1 Create migration `src/database/migrations/1780000000027-AddExternalSubjectToAccounts.ts` — nullable `external_subject`, partial global unique index; up/down per design.
+- [x] 2.2 Create `src/contexts/auth/domain/value-objects/external-subject/external-subject.vo.ts` (+`.spec.ts`).
+- [x] 2.3 Create `src/contexts/auth/domain/events/account-external-subject-linked/account-external-subject-linked.event.ts`.
+- [x] 2.4 Modify `account.aggregate.ts`, `account.builder.ts`, `account.interface.ts`, `account.primitives.ts` — `+_externalSubject`; `linkExternalSubject()` emits the event (never in constructor).
+- [x] 2.5 Modify `account.entity.ts`, `account-typeorm.mapper.ts`, `account-typeorm-write.repository.ts`, `account-write.repository.ts` (interface) — `+external_subject` column/mapping, `findByExternalSubject()` bypassing tenant proxy like `findByEmail`.
+- [x] 2.6 Create `src/contexts/auth/infrastructure/services/sisques-account-principal.resolver.ts` (+`.spec.ts`) — subject→principal; drives first-link + auto-provision (mirrors, read-only reference, `login-with-oauth.handler.ts`'s find-or-create/auto-link-by-verified-email shape).
+- [x] 2.7 Create `src/contexts/auth/application/commands/link-external-subject/` (command + handler + spec) — link-by-verified-email, no password/role mutation.
+- [x] 2.8 Update `src/contexts/auth/README.md` per `rules.apply`.
 
 ## Phase 3: P1 appRole Per-Request + Strategy Claim Handling
 
-- [ ] 3.1 In `sisques-account-jwt.strategy.ts`, `validate()` returns exactly `{userId,email,appRole}`; `appRole` resolved via account-projection lookup (same row as subject lookup); discard `platformAdmin`/`tenants[]`.
-- [ ] 3.2 Unit-verify `jwt.strategy.ts` (native path) is untouched — no PR edit, confirm by diff review only.
+- [x] 3.1 In `sisques-account-jwt.strategy.ts`, `validate()` returns exactly `{userId,email,appRole}`; `appRole` resolved via account-projection lookup (same row as subject lookup); discard `platformAdmin`/`tenants[]`.
+- [x] 3.2 Unit-verify `jwt.strategy.ts` (native path) is untouched — no PR edit, confirm by diff review only.
 
 ## Phase 4: P1 Tests
 
-- [ ] 4.1 Unit: `sisques-account-jwt.strategy.spec.ts` — valid/invalid signature, exact `{userId,email,appRole}` key set, `platformAdmin`/`tenants[]` dropped (mirror `jwt.strategy.spec.ts` lock-in cases).
-- [ ] 4.2 Unit: `account.aggregate.spec.ts` — `linkExternalSubject()` emits event once, never from constructor.
-- [ ] 4.3 Unit: `sisques-account-principal.resolver.spec.ts` — link-by-email, already-linked, auto-provision paths.
-- [ ] 4.4 Integration: partial unique index rejects duplicate `external_subject`, permits many NULLs; `findByExternalSubject` bypasses tenant proxy.
-- [ ] 4.5 E2E: platform token authenticates a protected endpoint; native token unaffected (dual-issuer).
+- [x] 4.1 Unit: `sisques-account-jwt.strategy.spec.ts` — valid/invalid signature, exact `{userId,email,appRole}` key set, `platformAdmin`/`tenants[]` dropped (mirror `jwt.strategy.spec.ts` lock-in cases).
+- [x] 4.2 Unit: `account.aggregate.spec.ts` — `linkExternalSubject()` emits event once, never from constructor.
+- [x] 4.3 Unit: `sisques-account-principal.resolver.spec.ts` — link-by-email, already-linked, auto-provision paths.
+- [x] 4.4 Integration: partial unique index rejects duplicate `external_subject`, permits many NULLs; `findByExternalSubject` bypasses tenant proxy.
+- [x] 4.5 E2E: platform token authenticates a protected endpoint; native token unaffected (dual-issuer).
 
 ## Phase 5: P2 Migrations, Ports & Adapters
 

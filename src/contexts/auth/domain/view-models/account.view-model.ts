@@ -5,7 +5,12 @@ export class AccountViewModel extends BaseViewModel {
   public readonly userId: string;
   public readonly email: string;
 
-  constructor(props: Omit<IAccountPrimitives, 'passwordHash' | 'appRole'>) {
+  constructor(
+    props: Omit<
+      IAccountPrimitives,
+      'passwordHash' | 'appRole' | 'externalSubject'
+    >,
+  ) {
     super(props.id, props.createdAt, props.updatedAt);
     this.userId = props.userId;
     this.email = props.email;

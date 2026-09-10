@@ -7,6 +7,7 @@ import { validateEnv } from '@core/config/env.validation';
 import { kafkaConfig } from '@core/config/kafka.config';
 import { otelConfig } from '@core/config/otel.config';
 import { postgresConfig } from '@core/config/postgres.config';
+import { sisquesAccountConfig } from '@core/config/sisques-account.config';
 import { AGGREGATE_MODULE_MAP } from '@core/messaging/domain/topics/aggregate-module.map.generated';
 import { HealthModule } from '@core/health/health.module';
 import { McpContextBuilder } from '@core/mcp/mcp-context.builder';
@@ -37,7 +38,14 @@ const CORE_MODULES = [
   ConfigModule.forRoot({
     isGlobal: true,
     validate: validateEnv,
-    load: [postgresConfig, authConfig, appConfig, otelConfig, kafkaConfig],
+    load: [
+      postgresConfig,
+      authConfig,
+      appConfig,
+      otelConfig,
+      kafkaConfig,
+      sisquesAccountConfig,
+    ],
     cache: true,
   }),
   TypeOrmModule.forRootAsync({

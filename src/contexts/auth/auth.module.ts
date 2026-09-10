@@ -5,6 +5,7 @@ import { LogoutAllCommandHandler } from '@contexts/auth/application/commands/log
 import { LogoutCommandHandler } from '@contexts/auth/application/commands/logout/logout.handler';
 import { LinkOAuthIdentityCommandHandler } from '@contexts/auth/application/commands/oauth/link-oauth-identity/link-oauth-identity.handler';
 import { LoginWithOAuthCommandHandler } from '@contexts/auth/application/commands/oauth/login-with-oauth/login-with-oauth.handler';
+import { LinkExternalSubjectCommandHandler } from '@contexts/auth/application/commands/link-external-subject/link-external-subject.handler';
 import { RefreshTokenCommandHandler } from '@contexts/auth/application/commands/refresh-token/refresh-token.handler';
 import { EncryptionService } from '@contexts/auth/application/services/encryption/encryption.service';
 import { OAuthStateService } from '@contexts/auth/application/services/oauth/oauth-state.service';
@@ -55,6 +56,8 @@ import { AppleOAuthStrategy } from './infrastructure/strategies/oauth/apple/appl
 import { GithubOAuthStrategy } from './infrastructure/strategies/oauth/github/github-oauth.strategy';
 import { GoogleOAuthStrategy } from './infrastructure/strategies/oauth/google/google-oauth.strategy';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
+import { SisquesAccountJwtStrategy } from './infrastructure/strategies/sisques-account-jwt.strategy';
+import { SisquesAccountPrincipalResolver } from './infrastructure/services/sisques-account-principal.resolver';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
 import { AccountGraphQLMapper } from './transport/graphql/mappers/account/account.mapper';
 import { AuthMutationsResolver } from './transport/graphql/resolvers/auth/auth-mutations.resolver';
@@ -74,6 +77,7 @@ const COMMAND_HANDLERS = [
   LogoutAllCommandHandler,
   LinkOAuthIdentityCommandHandler,
   LoginWithOAuthCommandHandler,
+  LinkExternalSubjectCommandHandler,
 ];
 
 const QUERY_HANDLERS = [
@@ -140,6 +144,22 @@ const STRATEGIES = [
   LocalStrategy,
   JwtStrategy,
   {
+    // Gated the same way as JwtAuthGuard's strategy array (D1/D2): when the
+    // flag is off, no JWKS client is created at all — construction alone
+    // would otherwise eagerly fetch/validate a jwksUri that may be unset.
+    provide: SisquesAccountJwtStrategy,
+    inject: [ConfigService, SisquesAccountPrincipalResolver],
+    useFactory: (
+      config: ConfigService,
+      resolver: SisquesAccountPrincipalResolver,
+    ) => {
+      const authEnabled = config.get<boolean>('sisquesAccount.authEnabled');
+      return authEnabled
+        ? new SisquesAccountJwtStrategy(config, resolver)
+        : null;
+    },
+  },
+  {
     provide: GoogleOAuthStrategy,
     inject: [ConfigService],
     useFactory: (config: ConfigService) => {
@@ -168,6 +188,8 @@ const STRATEGIES = [
 const GUARDS = [JwtAuthGuard, LocalAuthGuard, DynamicOAuthGuard, AppRoleGuard];
 
 const OAUTH_INFRASTRUCTURE = [OAuthProviderRegistry];
+
+const INFRASTRUCTURE_SERVICES = [SisquesAccountPrincipalResolver];
 
 const TRANSPORT_GRAPHQL_RESOLVERS = [
   AuthQueriesResolver,
@@ -204,6 +226,7 @@ const TRANSPORT_REST_CONTROLLERS = [AuthController, OAuthController];
     ...TRANSPORT_MAPPERS,
     ...INFRASTRUCTURE_REPOSITORIES,
     ...INFRASTRUCTURE_ADAPTERS,
+    ...INFRASTRUCTURE_SERVICES,
     ...STRATEGIES,
     ...GUARDS,
     ...OAUTH_INFRASTRUCTURE,

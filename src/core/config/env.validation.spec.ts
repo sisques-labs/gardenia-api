@@ -107,6 +107,32 @@ describe('validateEnv', () => {
     expect(() => validateEnv(env)).not.toThrow();
   });
 
+  it('accepts an environment with the sisques-account flag disabled and no connection settings', () => {
+    expect(() =>
+      validateEnv(validEnv({ SISQUES_ACCOUNT_AUTH_ENABLED: 'false' })),
+    ).not.toThrow();
+  });
+
+  it('rejects SISQUES_ACCOUNT_AUTH_ENABLED=true without SISQUES_ACCOUNT_JWKS_URL/ISSUER/AUDIENCE', () => {
+    const env = validEnv({ SISQUES_ACCOUNT_AUTH_ENABLED: 'true' });
+
+    expect(() => validateEnv(env)).toThrow(
+      /SISQUES_ACCOUNT_JWKS_URL is required when SISQUES_ACCOUNT_AUTH_ENABLED is "true"/,
+    );
+  });
+
+  it('accepts SISQUES_ACCOUNT_AUTH_ENABLED=true with all connection settings present', () => {
+    const env = validEnv({
+      SISQUES_ACCOUNT_AUTH_ENABLED: 'true',
+      SISQUES_ACCOUNT_ISSUER: 'https://account.sisques.com',
+      SISQUES_ACCOUNT_JWKS_URL:
+        'https://account.sisques.com/.well-known/jwks.json',
+      SISQUES_ACCOUNT_AUDIENCE: 'gardenia',
+    });
+
+    expect(() => validateEnv(env)).not.toThrow();
+  });
+
   it('accepts a valid OTEL_EXPORTER_OTLP_ENDPOINT', () => {
     const env = validEnv({
       OTEL_EXPORTER_OTLP_ENDPOINT: 'http://localhost:4318',
