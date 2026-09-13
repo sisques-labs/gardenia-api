@@ -129,7 +129,7 @@ importers:
         specifier: 17.0.2
         version: 17.0.2
       graphql-query-complexity:
-        specifier: ^2.0.0
+        specifier: 2.0.0
         version: 2.0.0(graphql@17.0.2)
       kafkajs:
         specifier: ^2.2.4
