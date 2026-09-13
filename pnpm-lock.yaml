@@ -150,7 +150,7 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1
       passport-local:
-        specifier: ^1.0.0
+        specifier: 1.0.0
         version: 1.0.0
       pg:
         specifier: ^8.22.0
@@ -211,7 +211,7 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1
       '@types/passport-local':
-        specifier: ^1.0.38
+        specifier: 1.0.38
         version: 1.0.38
       '@types/qrcode':
         specifier: ^1.5.6
