@@ -147,7 +147,7 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       passport-jwt:
-        specifier: ^4.0.1
+        specifier: 4.0.1
         version: 4.0.1
       passport-local:
         specifier: ^1.0.0
@@ -208,7 +208,7 @@ importers:
         specifier: 26.1.2
         version: 26.1.2
       '@types/passport-jwt':
-        specifier: ^4.0.1
+        specifier: 4.0.1
         version: 4.0.1
       '@types/passport-local':
         specifier: ^1.0.38
