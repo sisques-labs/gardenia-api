@@ -3,6 +3,12 @@
 // before the handler chain completes. SpaceInterceptor wraps next.handle()
 // ensuring the ALS frame covers the full request lifecycle.
 
+// Tenant Resolution Policy: the current space is resolved ONLY from the
+// X-Space-ID header plus the MembershipFindByUserAndSpaceQuery lookup below.
+// A JWT claim (spaceId, tenants, ...) MUST NOT be read as a current-space
+// selector, whoever issued the token — it may carry membership metadata for
+// identity purposes only. See openspec/specs/tenant-resolution-policy/spec.md.
+
 import {
   BadRequestException,
   CanActivate,
@@ -42,8 +48,7 @@ export class SpaceGuard implements CanActivate {
     }
 
     const headers = req['headers'] as
-      | Record<string, string | string[] | undefined>
-      | undefined;
+      Record<string, string | string[] | undefined> | undefined;
     const spaceId = headers?.['x-space-id'] as string | undefined;
     if (!spaceId || spaceId.trim() === '') {
       throw new BadRequestException('X-Space-ID header is required');
