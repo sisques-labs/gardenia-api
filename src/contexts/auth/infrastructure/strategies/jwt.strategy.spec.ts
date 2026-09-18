@@ -55,4 +55,41 @@ describe('JwtStrategy', () => {
       expect(result.appRole).toBe(AppRoleEnum.USER);
     });
   });
+
+  describe('tenant-resolution policy lock-in', () => {
+    it('should return only userId, email and appRole as keys', () => {
+      const payload = {
+        sub: 'user-id-123',
+        email: 'user@example.com',
+        role: 'admin',
+      };
+
+      const result = strategy.validate(payload);
+
+      expect(Object.keys(result).sort()).toEqual([
+        'appRole',
+        'email',
+        'userId',
+      ]);
+    });
+
+    it('should drop extra spaceId/tenants claim fields instead of forwarding them', () => {
+      const payload = {
+        sub: 'user-id-123',
+        email: 'user@example.com',
+        spaceId: 'some-space-id',
+        tenants: [{ id: 'some-space-id' }],
+      } as unknown as { sub: string; email: string; role?: string };
+
+      const result = strategy.validate(payload);
+
+      expect((result as Record<string, unknown>)['spaceId']).toBeUndefined();
+      expect((result as Record<string, unknown>)['tenants']).toBeUndefined();
+      expect(Object.keys(result).sort()).toEqual([
+        'appRole',
+        'email',
+        'userId',
+      ]);
+    });
+  });
 });
