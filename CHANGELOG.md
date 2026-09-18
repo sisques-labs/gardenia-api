@@ -1,6 +1,16 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.28.6] - 2026-09-18
+
+### Chore
+- **openspec:** Archive resolve-jwt-tenant-conflict (6cddb09)
+
+### Documentation
+- **auth:** Resolve JWT tenant-claim policy conflict (4f4aa11)
+
+### Testing
+- **auth:** Lock in header-only tenant resolution invariant (026af0d)
 ## [0.28.5] - 2026-09-09
 
 ### Bug Fixes
