@@ -184,7 +184,7 @@ docker compose up -d   # local Postgres only — the API itself runs via pnpm de
 - Base branch: `main`. Feature branches → PR → `main`.
 - [Conventional Commits](https://www.conventionalcommits.org/); no AI attribution in commit messages.
 - Pre-push hooks (Husky) run unit tests; pre-commit (lint-staged) runs ESLint/Prettier on staged files.
-- Releases are automated via `release-train.yml` / `release.yml` (git-cliff generates `CHANGELOG.md`).
+- Releases: `trunk-ci-cd.yml` builds and publishes a continuous image on every merge to `main`; `release.yml` promotes a validated digest to a versioned stable release (git-cliff generates `CHANGELOG.md`).
 
 ## License
 
