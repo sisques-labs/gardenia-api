@@ -141,7 +141,7 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0
       passport-github2:
-        specifier: ^0.1.12
+        specifier: 0.1.12
         version: 0.1.12
       passport-google-oauth20:
         specifier: ^2.0.0
