@@ -131,6 +131,9 @@ importers:
       graphql-query-complexity:
         specifier: ^2.0.0
         version: 2.0.0(graphql@17.0.2)
+      jwks-rsa:
+        specifier: 3.2.2
+        version: 3.2.2(supports-color@8.1.1)
       kafkajs:
         specifier: ^2.2.4
         version: 2.2.4

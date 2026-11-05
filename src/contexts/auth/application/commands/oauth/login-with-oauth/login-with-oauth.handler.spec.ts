@@ -59,6 +59,7 @@ const makeOAuthRepo = (): jest.Mocked<IOAuthIdentityWriteRepository> => ({
 const makeAccountRepo = (): jest.Mocked<IAccountWriteRepository> => ({
   findByEmail: jest.fn(),
   findByUserId: jest.fn(),
+  findByExternalSubject: jest.fn(),
   save: jest.fn(),
   delete: jest.fn(),
   findById: jest.fn(),

@@ -4,6 +4,7 @@ import { AppRoleValueObject } from '@contexts/auth/domain/value-objects/app-role
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 
 import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
+import { ExternalSubjectValueObject } from '@contexts/auth/domain/value-objects/external-subject/external-subject.vo';
 import { AccountViewModel } from '@contexts/auth/domain/view-models/account.view-model';
 import { Injectable } from '@nestjs/common';
 import {
@@ -22,6 +23,7 @@ export class AccountBuilder extends BaseBuilder<
   private _email!: string;
   private _passwordHash!: string;
   private _appRole: string = AppRoleEnum.USER;
+  private _externalSubject: string | null = null;
 
   withUserId(userId: string): this {
     this._userId = userId;
@@ -40,6 +42,11 @@ export class AccountBuilder extends BaseBuilder<
 
   withAppRole(role: string): this {
     this._appRole = role;
+    return this;
+  }
+
+  withExternalSubject(externalSubject: string | null): this {
+    this._externalSubject = externalSubject;
     return this;
   }
 
@@ -66,6 +73,9 @@ export class AccountBuilder extends BaseBuilder<
       email: new AccountEmailValueObject(this._email),
       passwordHash: new AccountPasswordHashValueObject(this._passwordHash),
       appRole: new AppRoleValueObject(this._appRole),
+      externalSubject: this._externalSubject
+        ? new ExternalSubjectValueObject(this._externalSubject)
+        : null,
       createdAt: new DateValueObject(this._createdAt ?? new Date()),
       updatedAt: new DateValueObject(this._updatedAt ?? new Date()),
     });

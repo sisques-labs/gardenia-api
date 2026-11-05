@@ -7,6 +7,7 @@ import { CreateSpaceMemberships1780000000002 } from '../../src/database/migratio
 import { AddSpaceIdToAccounts1780000000003 } from '../../src/database/migrations/1780000000003-AddSpaceIdToAccounts';
 import { AddSpaceIdToUsers1780000000004 } from '../../src/database/migrations/1780000000004-AddSpaceIdToUsers';
 import { CreatePlants1780000000005 } from '../../src/database/migrations/1780000000005-CreatePlants';
+import { CreateOAuthIdentities1780000000011 } from '../../src/database/migrations/1780000000011-CreateOAuthIdentities';
 import { CreateQrs1780000000006 } from '../../src/database/migrations/1780000000006-CreateQrs';
 import { LinkPlantsToQrs1780000000007 } from '../../src/database/migrations/1780000000007-LinkPlantsToQrs';
 import { CreatePlantSpecies1780000000008 } from '../../src/database/migrations/1780000000008-CreatePlantSpecies';
@@ -24,7 +25,15 @@ import { CreateInventoryItems1780000000018 } from '../../src/database/migrations
 import { CreateFiles1780000000019 } from '../../src/database/migrations/1780000000019-CreateFiles';
 import { CreateCareSchedules1780000000020 } from '../../src/database/migrations/1780000000020-CreateCareSchedules';
 import { MakeCareScheduleIntervalDaysNullable1780000000021 } from '../../src/database/migrations/1780000000021-MakeCareScheduleIntervalDaysNullable';
+import { AddGeolocationToSpaces1780000000017 } from '../../src/database/migrations/1780000000017-AddGeolocationToSpaces';
+import { AddPlantingSpotCapacityAndFields1780000000017 } from '../../src/database/migrations/1780000000017-AddPlantingSpotCapacityAndFields';
+import { AddStatusAndFallowSinceToPlantingSpots1780000000022 } from '../../src/database/migrations/1780000000022-AddStatusAndFallowSinceToPlantingSpots';
+import { CreatePlantPhotos1780000000023 } from '../../src/database/migrations/1780000000023-CreatePlantPhotos';
+import { LinkPlantingSpotsToQrs1780000000023 } from '../../src/database/migrations/1780000000023-LinkPlantingSpotsToQrs';
 import { TrimPlantSpeciesToGbif1780000000024 } from '../../src/database/migrations/1780000000024-TrimPlantSpeciesToGbif';
+import { CreatePlantIdentifications1780000000025 } from '../../src/database/migrations/1780000000025-CreatePlantIdentifications';
+import { AddReplacedBySessionIdToAuthSessions1780000000026 } from '../../src/database/migrations/1780000000026-AddReplacedBySessionIdToAuthSessions';
+import { AddExternalSubjectToAccounts1780000000027 } from '../../src/database/migrations/1780000000027-AddExternalSubjectToAccounts';
 
 // This DataSource only runs migrations to build the test schema; TypeORM does
 // not need entity metadata for that, so no entity list is maintained here.
@@ -36,6 +45,7 @@ const TEST_MIGRATIONS = [
   AddSpaceIdToAccounts1780000000003,
   AddSpaceIdToUsers1780000000004,
   CreatePlants1780000000005,
+  CreateOAuthIdentities1780000000011,
   CreateQrs1780000000006,
   LinkPlantsToQrs1780000000007,
   CreatePlantSpecies1780000000008,
@@ -53,7 +63,15 @@ const TEST_MIGRATIONS = [
   CreateFiles1780000000019,
   CreateCareSchedules1780000000020,
   MakeCareScheduleIntervalDaysNullable1780000000021,
+  AddGeolocationToSpaces1780000000017,
+  AddPlantingSpotCapacityAndFields1780000000017,
+  AddStatusAndFallowSinceToPlantingSpots1780000000022,
+  CreatePlantPhotos1780000000023,
+  LinkPlantingSpotsToQrs1780000000023,
   TrimPlantSpeciesToGbif1780000000024,
+  CreatePlantIdentifications1780000000025,
+  AddReplacedBySessionIdToAuthSessions1780000000026,
+  AddExternalSubjectToAccounts1780000000027,
 ];
 
 export function getTestDataSourceOptions(): DataSourceOptions {

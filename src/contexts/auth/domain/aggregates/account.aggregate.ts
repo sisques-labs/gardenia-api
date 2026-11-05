@@ -1,5 +1,6 @@
 import { AccountCreatedEvent } from '@contexts/auth/domain/events/account-created/account-created.event';
 import { AccountDeletedEvent } from '@contexts/auth/domain/events/account-deleted/account-deleted.event';
+import { AccountExternalSubjectLinkedEvent } from '@contexts/auth/domain/events/account-external-subject-linked/account-external-subject-linked.event';
 import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import { IAccount } from '@contexts/auth/domain/interfaces/account.interface';
@@ -8,6 +9,7 @@ import { AppRoleValueObject } from '@contexts/auth/domain/value-objects/app-role
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 
 import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
+import { ExternalSubjectValueObject } from '@contexts/auth/domain/value-objects/external-subject/external-subject.vo';
 import { BaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 import * as bcrypt from 'bcrypt';
 
@@ -16,6 +18,7 @@ export class AccountAggregate extends BaseAggregate {
   private readonly _email: AccountEmailValueObject;
   private _passwordHash: AccountPasswordHashValueObject;
   private readonly _appRole: AppRoleValueObject;
+  private _externalSubject: ExternalSubjectValueObject | null;
 
   constructor(props: IAccount) {
     super(props.id, props.createdAt, props.updatedAt);
@@ -23,6 +26,7 @@ export class AccountAggregate extends BaseAggregate {
     this._email = props.email;
     this._passwordHash = props.passwordHash;
     this._appRole = props.appRole;
+    this._externalSubject = props.externalSubject;
   }
 
   public create(): void {
@@ -81,6 +85,27 @@ export class AccountAggregate extends BaseAggregate {
     this.changePassword(hashedPassword);
   }
 
+  public linkExternalSubject(externalSubject: string): void {
+    this._externalSubject = new ExternalSubjectValueObject(externalSubject);
+
+    this.apply(
+      new AccountExternalSubjectLinkedEvent(
+        {
+          aggregateRootId: this.id.value,
+          aggregateRootType: AccountAggregate.name,
+          entityId: this.id.value,
+          entityType: AccountAggregate.name,
+          eventType: AccountExternalSubjectLinkedEvent.name,
+        },
+        {
+          id: this.id.value,
+          userId: this._userId.value,
+          externalSubject: this._externalSubject.value,
+        },
+      ),
+    );
+  }
+
   public delete(): void {
     this.apply(
       new AccountDeletedEvent(
@@ -112,6 +137,10 @@ export class AccountAggregate extends BaseAggregate {
     return this._appRole;
   }
 
+  get externalSubject(): ExternalSubjectValueObject | null {
+    return this._externalSubject;
+  }
+
   toPrimitives(): IAccountPrimitives {
     return {
       id: this._id.value,
@@ -119,6 +148,7 @@ export class AccountAggregate extends BaseAggregate {
       email: this._email.value,
       passwordHash: this._passwordHash.value,
       appRole: this._appRole.value,
+      externalSubject: this._externalSubject?.value ?? null,
       createdAt: this.createdAt.value,
       updatedAt: this.updatedAt.value,
     };

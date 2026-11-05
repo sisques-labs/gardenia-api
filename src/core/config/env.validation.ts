@@ -60,6 +60,12 @@ const baseEnvSchema = z
       .optional(),
     KAFKA_SASL_USERNAME: z.string().optional(),
     KAFKA_SASL_PASSWORD: z.string().optional(),
+    SISQUES_ACCOUNT_AUTH_ENABLED: z.enum(['true', 'false']).optional(),
+    SISQUES_ACCOUNT_ISSUER: z.string().optional(),
+    SISQUES_ACCOUNT_JWKS_URL: z.string().optional(),
+    SISQUES_ACCOUNT_AUDIENCE: z.string().optional(),
+    SISQUES_ACCOUNT_API_URL: z.string().optional(),
+    SISQUES_ACCOUNT_APP_ID: z.string().optional(),
   })
   .superRefine((env, ctx) => {
     if (env.KAFKA_ENABLED === 'true' && !env.KAFKA_BROKERS?.trim()) {
@@ -67,6 +73,24 @@ const baseEnvSchema = z
         code: z.ZodIssueCode.custom,
         path: ['KAFKA_BROKERS'],
         message: 'KAFKA_BROKERS is required when KAFKA_ENABLED is "true"',
+      });
+    }
+
+    if (env.SISQUES_ACCOUNT_AUTH_ENABLED === 'true') {
+      (
+        [
+          'SISQUES_ACCOUNT_JWKS_URL',
+          'SISQUES_ACCOUNT_ISSUER',
+          'SISQUES_ACCOUNT_AUDIENCE',
+        ] as const
+      ).forEach((key) => {
+        if (!env[key]?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [key],
+            message: `${key} is required when SISQUES_ACCOUNT_AUTH_ENABLED is "true"`,
+          });
+        }
       });
     }
   });

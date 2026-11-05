@@ -9,6 +9,9 @@ The `auth` context is the **identity and security boundary** of the application.
 - **OAuth identities** — third-party provider links (Google, GitHub, Apple)
 - **JWT issuance** — signing access tokens and embedding identity claims
 - **App-level RBAC** — `AppRoleEnum { ADMIN, USER }` enforcement via `AppRoleGuard`
+- **Platform (Sisques Account) dual-issuer acceptance** — verifying a second,
+  platform-issued token via JWKS and linking it to a local account (P1; see
+  "Dual-issuer platform authentication" below)
 
 What it does **not** own: user profiles (names, avatars, bios). That belongs to the `users` context. An **account** is the security principal; a **user** is the profile attached to it. They share the same `userId` but live in separate bounded contexts.
 
@@ -27,12 +30,14 @@ The central aggregate. Fields:
 | `email` | `AccountEmailValueObject` | Unique, lowercased email |
 | `passwordHash` | `AccountPasswordHashValueObject` | bcrypt hash |
 | `appRole` | `AppRoleValueObject` | `ADMIN` or `USER` (default: `USER`) |
+| `externalSubject` | `ExternalSubjectValueObject \| null` | Linked platform (Sisques Account) subject id, or `null` if never linked |
 
 Domain methods:
 
 - `create()` — applies `AccountCreatedEvent`, call after saving via the builder
 - `changePassword(hash)` — applies `AccountPasswordChangedEvent`
 - `changePasswordWithValidation(current, new)` — bcrypt comparison + change
+- `linkExternalSubject(subject)` — applies `AccountExternalSubjectLinkedEvent`; additive only, never touches `passwordHash`/`appRole`
 - `delete()` — applies `AccountDeletedEvent`
 
 ### `AuthSessionAggregate`
@@ -133,6 +138,38 @@ GET /api/auth/{provider}/callback →   OAuthController
                                          - If not found + no match: provision new user + space (role = USER)
                                       2. Issue JWT + refresh token (same as login)
 ```
+
+## How dual-issuer platform authentication works (P1)
+
+Gardenia additionally accepts a **Sisques Account (the platform)** access
+token as valid authentication, verified via JWKS — no gardenia JWT is ever
+minted for a platform-authenticated request (full delegation, not
+verify-then-remint). Opt-in via `SISQUES_ACCOUNT_AUTH_ENABLED`; when unset or
+`false`, gardenia's native `'jwt'` strategy is the only accepted issuer and
+nothing below is even constructed.
+
+```
+Bearer(platform token)  →  JwtAuthGuard AuthGuard(['jwt','sisques-account'])
+                             │ 'jwt' fails (RS256 ≠ gardenia's HS256) → tries 'sisques-account'
+                             ▼
+                  SisquesAccountJwtStrategy  ── jwks-rsa (cached keys, kid) ──▶ platform JWKS endpoint
+                             │ verify RS256 signature + issuer + audience + exp
+                             ▼
+                  SisquesAccountPrincipalResolver:
+                    1. accounts WHERE external_subject = sub → already linked, resolve directly
+                    2. else accounts WHERE email = <verified email> → LinkExternalSubjectCommand (link-by-email)
+                    3. else auto-provision: new account (appRole=USER, external_subject set at
+                       creation) + default Space, mirroring native OAuth provisioning
+                             ▼
+                  req.user = { userId, email, appRole }   ← platformAdmin/tenants[] dropped here,
+                                                             never forwarded past this point
+```
+
+- `SisquesAccountJwtStrategy` is a **sibling** to `JwtStrategy` (`infrastructure/strategies/sisques-account-jwt.strategy.ts`), not a modification of it — the native strategy, its tests, and the tenant-resolution-policy lock-in cases are untouched.
+- `appRole` is resolved from the same `accounts` row the subject lookup already reads — zero extra queries, no cache (role revocation stays immediate). This applies **only** to platform-issued tokens in P1; a gardenia-issued token still carries `appRole` via its `role` JWT claim (see "JWT payload" below) until a future phase supersedes that path too.
+- Linking is **additive metadata only**: `LinkExternalSubjectCommand` never touches `passwordHash` or `appRole`.
+- `accounts.external_subject` is nullable with a **partial, globally unique** index (not scoped by `spaceId`, unlike this table's `(space_id, email)` constraint) — one platform subject maps to exactly one gardenia account, platform-wide.
+- Native gardenia login, native OAuth, and local sessions are fully unaffected — this is additive dual-issuer acceptance, not a replacement. Retiring them is a future, out-of-scope phase requiring an explicit go/no-go.
 
 ---
 
@@ -239,6 +276,7 @@ After promoting, the user must log out and log back in (or call `logoutAll`) to 
 | `DeleteAccountCommand` | Deletes the account aggregate |
 | `LoginWithOAuthCommand` | OAuth login/provision flow |
 | `LinkOAuthIdentityCommand` | Links a new OAuth provider to an existing account |
+| `LinkExternalSubjectCommand` | Links a verified platform subject to an existing account by email (additive; never touches password/role) |
 | `AccountFindByIdQuery` | Returns account view model by id |
 | `AccountFindByCriteriaQuery` | Paginated account list |
 
@@ -248,6 +286,7 @@ After promoting, the user must log out and log back in (or call `logoutAll`) to 
 |-------|-------------|
 | `AccountCreatedEvent` | `account.create()` — account first persisted |
 | `AccountPasswordChangedEvent` | `account.changePassword()` |
+| `AccountExternalSubjectLinkedEvent` | `account.linkExternalSubject()` — platform subject linked to an existing account |
 | `AccountDeletedEvent` | `account.delete()` |
 | `AuthSessionCreatedEvent` | `session.create()` — new login or token rotation |
 | `AuthSessionRevokedEvent` | `session.revoke()` — logout or rotation |
@@ -261,7 +300,7 @@ After promoting, the user must log out and log back in (or call `logoutAll`) to 
 | Guard | Where registered | What it does |
 |-------|-----------------|--------------|
 | `OptionalJwtAuthGuard` | Global (`APP_GUARD`) | Extracts JWT if present; never throws. Populates `req.user` or leaves it `undefined`. |
-| `JwtAuthGuard` | Per-resolver/controller | Requires a valid JWT. Throws 401 if missing or invalid. |
+| `JwtAuthGuard` | Per-resolver/controller (and the base of `OptionalJwtAuthGuard`) | Requires a valid JWT from `'jwt'` (native) or, when `SISQUES_ACCOUNT_AUTH_ENABLED=true`, also `'sisques-account'` (platform, tried second). Throws 401 if none match. |
 | `LocalAuthGuard` | Login endpoint | Runs `LocalStrategy` (bcrypt credential check). |
 | `DynamicOAuthGuard` | OAuth callback | Dispatches to the correct Passport OAuth strategy by provider name. |
 | `AppRoleGuard` | Per-resolver/controller | Enforces `@RequireAppRole(...)`. Requires `JwtAuthGuard` to run first. |

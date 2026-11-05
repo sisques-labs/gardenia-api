@@ -1,6 +1,7 @@
 import { AccountAggregate } from '@contexts/auth/domain/aggregates/account.aggregate';
 import { AccountCreatedEvent } from '@contexts/auth/domain/events/account-created/account-created.event';
 import { AccountDeletedEvent } from '@contexts/auth/domain/events/account-deleted/account-deleted.event';
+import { AccountExternalSubjectLinkedEvent } from '@contexts/auth/domain/events/account-external-subject-linked/account-external-subject-linked.event';
 import { AccountPasswordChangedEvent } from '@contexts/auth/domain/events/field-changed/account-password-changed/account-password-changed.event';
 import { InvalidCredentialsException } from '@contexts/auth/domain/exceptions/invalid-credentials.exception';
 import { AccountBuilder } from '@contexts/auth/domain/builders/account.builder';
@@ -209,6 +210,71 @@ describe('AccountAggregate', () => {
   describe('AccountBuilder defaults', () => {
     it('should default appRole to USER when not explicitly set', () => {
       const account = buildAccount();
+      expect(account.appRole.value).toBe(AppRoleEnum.USER);
+    });
+  });
+
+  describe('externalSubject', () => {
+    it('should default to null when never linked', () => {
+      const account = buildAccount();
+      expect(account.externalSubject).toBeNull();
+    });
+
+    it('should include a null externalSubject in primitives when unlinked', () => {
+      const account = buildAccount();
+      expect(account.toPrimitives().externalSubject).toBeNull();
+    });
+  });
+
+  describe('linkExternalSubject()', () => {
+    it('should set the externalSubject field', () => {
+      const account = buildAccount();
+
+      account.linkExternalSubject('platform-subject-abc');
+
+      expect(account.externalSubject?.value).toBe('platform-subject-abc');
+    });
+
+    it('should emit exactly one AccountExternalSubjectLinkedEvent', () => {
+      const account = buildAccount();
+
+      account.linkExternalSubject('platform-subject-abc');
+      const events = account
+        .getUncommittedEvents()
+        .filter((e) => e instanceof AccountExternalSubjectLinkedEvent);
+
+      expect(events).toHaveLength(1);
+    });
+
+    it('should never emit the linked event from the constructor (ADR-1)', () => {
+      const account = buildAccount();
+
+      expect(account.getUncommittedEvents()).toHaveLength(0);
+    });
+
+    it('should include the account id, userId and subject in the event data', () => {
+      const account = buildAccount();
+
+      account.linkExternalSubject('platform-subject-abc');
+      const event = account
+        .getUncommittedEvents()
+        .find(
+          (e) => e instanceof AccountExternalSubjectLinkedEvent,
+        ) as AccountExternalSubjectLinkedEvent;
+
+      expect(event.data).toEqual({
+        id: ACCOUNT_ID,
+        userId: USER_ID,
+        externalSubject: 'platform-subject-abc',
+      });
+    });
+
+    it('should not modify the passwordHash or appRole', () => {
+      const account = buildAccount();
+
+      account.linkExternalSubject('platform-subject-abc');
+
+      expect(account.passwordHash.value).toBe(PASSWORD_HASH);
       expect(account.appRole.value).toBe(AppRoleEnum.USER);
     });
   });

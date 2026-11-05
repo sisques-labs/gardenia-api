@@ -56,4 +56,13 @@ export class AccountTypeOrmWriteRepository implements IAccountWriteRepository {
     const entity = await this.rawRepo.findOne({ where: { userId } });
     return entity ? this.mapper.toAggregate(entity) : null;
   }
+
+  async findByExternalSubject(
+    externalSubject: string,
+  ): Promise<AccountAggregate | null> {
+    const entity = await this.rawRepo.findOne({
+      where: { externalSubject },
+    });
+    return entity ? this.mapper.toAggregate(entity) : null;
+  }
 }

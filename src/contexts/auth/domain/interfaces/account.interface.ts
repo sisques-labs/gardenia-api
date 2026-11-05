@@ -2,10 +2,12 @@ import { AppRoleValueObject } from '@contexts/auth/domain/value-objects/app-role
 import { AccountEmailValueObject } from '@contexts/auth/domain/value-objects/account-email/account-email.vo';
 
 import { AccountPasswordHashValueObject } from '@contexts/auth/domain/value-objects/account-password-hash/account-password-hash.vo';
+import { ExternalSubjectValueObject } from '@contexts/auth/domain/value-objects/external-subject/external-subject.vo';
 import { IBaseAggregate, UuidValueObject } from '@sisques-labs/nestjs-kit';
 export interface IAccount extends IBaseAggregate {
   userId: UuidValueObject;
   email: AccountEmailValueObject;
   passwordHash: AccountPasswordHashValueObject;
   appRole: AppRoleValueObject;
+  externalSubject: ExternalSubjectValueObject | null;
 }

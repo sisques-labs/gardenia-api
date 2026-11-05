@@ -15,6 +15,7 @@ export class AccountTypeOrmMapper {
       .withEmail(entity.email)
       .withPasswordHash(entity.passwordHash)
       .withAppRole(entity.appRole)
+      .withExternalSubject(entity.externalSubject)
       .withCreatedAt(entity.createdAt)
       .withUpdatedAt(entity.updatedAt)
       .build();
@@ -28,6 +29,7 @@ export class AccountTypeOrmMapper {
     entity.email = primitives.email;
     entity.passwordHash = primitives.passwordHash;
     entity.appRole = primitives.appRole;
+    entity.externalSubject = primitives.externalSubject;
     entity.createdAt = primitives.createdAt;
     entity.updatedAt = primitives.updatedAt;
     return entity;
